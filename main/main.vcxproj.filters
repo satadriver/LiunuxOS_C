@@ -1,0 +1,188 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="头文件\gdi">
+      <UniqueIdentifier>{146dcb46-6d66-4ad3-83d2-244e0d9d46f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\gdi">
+      <UniqueIdentifier>{68ecdc1d-6ccf-4350-aa66-b0a4fba6f250}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\fat32">
+      <UniqueIdentifier>{e73eb7fe-f21f-4586-9384-3d471c99da67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\ntfs">
+      <UniqueIdentifier>{882d6e4f-3ce2-45ff-8f96-c297fa279025}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\sbplayer">
+      <UniqueIdentifier>{789cbe3f-f289-43b7-98e1-772d3a47097e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\fat32">
+      <UniqueIdentifier>{d179e208-d8b7-4816-95b4-b0bae4a8d081}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\ntfs">
+      <UniqueIdentifier>{ef5f94b8-53ec-47aa-a22c-53bf17e1cc56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\iso9660">
+      <UniqueIdentifier>{0381c2dd-20ad-4590-89c3-9af8dbcee35b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\iso9660">
+      <UniqueIdentifier>{d6a4c226-0e66-43ec-86c8-dad96f90353c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件\fat12">
+      <UniqueIdentifier>{b3d64a5d-0619-4bab-ab1a-4e8fac0e0841}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\fat12">
+      <UniqueIdentifier>{a26b854d-5265-4931-af43-3cdcfec8fd59}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gdi\jpeg.cpp">
+      <Filter>源文件\gdi</Filter>
+    </ClCompile>
+    <ClCompile Include="machine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="fileManager.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NTFS\ntfsDirs.cpp">
+      <Filter>源文件\ntfs</Filter>
+    </ClCompile>
+    <ClCompile Include="fat32\fat32dirs.cpp">
+      <Filter>源文件\fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="sysregs.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ios9660\ios9660.cpp">
+      <Filter>源文件\iso9660</Filter>
+    </ClCompile>
+    <ClCompile Include="console.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="userUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="fat12\fat12.cpp">
+      <Filter>源文件\fat12</Filter>
+    </ClCompile>
+    <ClCompile Include="windowClass.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="menu.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="paint.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="taskBar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="explorer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="graph.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="fileManagerWindow.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="gdi\jpeg.h">
+      <Filter>头文件\gdi</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="machine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="console.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="sysregs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="fileManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="fat32\FAT32.h">
+      <Filter>头文件\fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="fat32\Fat32File.h">
+      <Filter>头文件\fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="fat32\FAT32Utils.h">
+      <Filter>头文件\fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="fat32\FileUtils.h">
+      <Filter>头文件\fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="NTFS\ntfs.h">
+      <Filter>头文件\ntfs</Filter>
+    </ClInclude>
+    <ClInclude Include="NTFS\ntfsFile.h">
+      <Filter>头文件\ntfs</Filter>
+    </ClInclude>
+    <ClInclude Include="soundBlaster\sbPlay.h">
+      <Filter>头文件\sbplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="NTFS\ntfsDirs.h">
+      <Filter>头文件\ntfs</Filter>
+    </ClInclude>
+    <ClInclude Include="fat32\fat32dirs.h">
+      <Filter>头文件\fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="ios9660\ios9660.h">
+      <Filter>头文件\iso9660</Filter>
+    </ClInclude>
+    <ClInclude Include="userUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="fat12\fat12.h">
+      <Filter>头文件\fat12</Filter>
+    </ClInclude>
+    <ClInclude Include="windowClass.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="menu.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="paint.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="taskBar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Explorer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="graph.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="fileManagerWindow.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="main.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

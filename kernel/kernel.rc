@@ -1,0 +1,16 @@
+#define	ICO_MAIN00016	0x2001
+#define	ICO_MAIN00012	0x2002
+#define ICO_MAIN00007	0x2003
+
+#define	ICO_MAIN00004	0x2006
+#define	ICO_MAIN00071	0x2007
+#define	ICO_MAIN00326	0x2008
+
+
+ICO_MAIN00016	ICON		"res\\icon\\shell32_00016.ico"
+ICO_MAIN00012	ICON		"res\\icon\\shell32_00012.ico"
+ICO_MAIN00007	ICON		"res\\icon\\shell32_00007.ico"
+
+//ICO_MAIN00004	ICON		"res\\icon\\shell32_00004.ico"
+//ICO_MAIN00071	ICON		"res\\icon\\shell32_00071.ico"
+//ICO_MAIN00326	ICON		"res\\icon\\shell32_00326.ico"

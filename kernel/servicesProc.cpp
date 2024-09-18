@@ -1,0 +1,393 @@
+#include "servicesProc.h"
+#include "task.h"
+#include "hardware.h"
+#include "task.h"
+#include "mouse.h"
+#include "keyboard.h"
+#include "Utils.h"
+
+
+DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
+
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+	}
+
+	__asm {
+		push edi
+		push eax
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss,ax
+		call __kServicesProc
+		add esp, 8
+
+		mov stack.eax, eax		//may be error?  warning: "."应用于非 UDT 类型
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+	}
+}
+
+DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
+
+	DWORD r = 0;
+	switch (num)
+	{
+		case KBD_OUTPUT:
+		{
+			r = __kGetKbd(0);
+			break;
+		}
+		case KBD_INPUT:
+		{
+			__kPutKbd((DWORD)params, 0);
+			break;
+		}
+		case MOUSE_OUTPUT:
+		{
+			r= __kGetMouse((LPMOUSEINFO)params,0);
+			break;
+		}
+		case GRAPH_CHAR_OUTPUT:
+		{
+			break;
+		}
+		case RANDOM:
+		{
+			r = __random((unsigned long)params);
+			break;
+		}
+		case SLEEP:
+		{
+			sleep(params);
+
+			break;
+		}
+		case TURNON_SCREEN:
+		{
+			__turnonScreen();
+			break;
+		}
+		case TURNOFF_SCREEN:
+		{
+			__turnoffScreen();
+			break;
+		}
+		case CPU_MANUFACTORY:
+		{
+			r = __cputype(params);
+			break;
+		}
+		case TIMESTAMP:
+		{
+			r = __timestamp(params);
+			break;
+		}
+		case SWITCH_SCREEN:
+		{
+			__switchScreen();
+			break;
+		}
+		case CPUINFO:
+		{
+			r = __cpuinfo(params);
+			break;
+		}
+		case DRAW_MOUSE:
+		{
+			__kDrawMouse();
+			break;
+		}
+		case RESTORE_MOUSE:
+		{
+
+			__kRestoreMouse();
+			break;
+		}
+		case SET_VIDEOMODE:
+		{
+			break;
+		}
+
+		default: {
+			break;
+		}
+	}
+	return r;
+}
+
+
+void sleep(DWORD * params) {
+	int sleeptime = params[0];
+	int interval = 1000 / (OSCILLATE_FREQUENCY / SYSTEM_TIMER0_FACTOR);
+	DWORD times = sleeptime / interval;
+	DWORD mod = sleeptime % interval;
+	if (mod != 0)
+	{
+		times++;
+	}
+
+	if (times == 0) {
+		times = 1;
+	}
+
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	int tid = proc->tid;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO cur_tss = tss + tid;
+	
+	cur_tss->sleep += times ;
+	proc->sleep = cur_tss->sleep;
+	while(1)
+	{
+		__asm {
+			hlt
+		}
+
+		if (cur_tss->sleep == 0)
+		{
+			break;
+		}
+		else {
+			continue;
+		}
+	}
+}
+
+
+
+DWORD __random(DWORD init) {
+	if (init == 0) {
+		init = *(DWORD*)TIMER0_TICK_COUNT;
+	}
+	init = (init * 7 ^ 5) % 0xffffffff;
+	return init;
+}
+
+
+
+void __turnoffScreen() {
+
+	outportb(0x3c4, 1);
+	int r = inportb(0x3c5);
+	if ( (r & 0x20) == 0) {
+		outportb(0x3c5, r | 0x20);
+	}
+}
+
+
+void __turnonScreen() {
+
+	outportb(0x3c4, 1);
+	int r = inportb(0x3c5);
+	if (r & 0x20 ) {
+		outportb(0x3c5, 0);
+	}
+}
+
+
+void __switchScreen() {
+	outportb(0x3c4, 1);
+	int r = inportb(0x3c5);
+	if (r & 0x20) {
+		outportb(0x3c5, 0);
+	}
+	else {
+		outportb(0x3c5, 0x20);
+	}
+}
+
+
+
+DWORD	__cputype(unsigned long * params) {
+
+	__asm{
+		mov edi,params
+		mov eax, 0
+		; must use .586 or above
+		; dw 0a20fh
+		mov ecx,0
+		cpuid
+		; ebx:edx:ecx = intel or else
+		mov ds : [edi] , ebx
+		mov ds : [edi + 4] , edx
+		mov ds : [edi + 8] , ecx
+		mov dword ptr ds : [edi + 12] , 0
+	}
+}
+
+
+
+
+
+DWORD __cpuinfo(unsigned long* params) {
+	__asm {
+		mov edi,params
+
+		mov     eax, 80000000h
+		mov ecx,0
+		; dw 0a20fh
+		cpuid
+		cmp     eax, 80000004h
+		jb      __cpuinfoEnd
+
+		mov     eax, 80000002h
+		mov ecx, 0
+		; dw 0a20fh
+		cpuid
+		mov     dword ptr[edi], eax
+		mov     dword ptr[edi + 4], ebx
+		mov     dword ptr[edi + 8], ecx
+		mov     dword ptr[edi + 12], edx
+
+		mov     eax, 80000003h
+		mov ecx, 0
+		; dw 0a20fh
+		cpuid
+		mov     dword ptr[edi + 16], eax
+		mov     dword ptr[edi + 20], ebx
+		mov     dword ptr[edi + 24], ecx
+		mov     dword ptr[edi + 28], edx
+
+		mov     eax, 80000004h
+		; dw 0a20fh
+		cpuid
+		mov ecx, 0
+		mov     dword ptr[edi + 32], eax
+		mov     dword ptr[edi + 36], ebx
+		mov     dword ptr[edi + 40], ecx
+		mov     dword ptr[edi + 44], edx
+
+		mov     dword ptr[edi + 48], 0
+
+		__cpuinfoEnd:
+	}
+}
+
+
+
+//https://www.felixcloutier.com/x86/cpuid
+unsigned __int64 __cpuRate() {
+	__asm {
+
+		mov eax, 0x16
+		mov ecx, 0
+		cpuid
+		//why use ret will make error?
+		//ret 
+	}
+}
+
+unsigned __int64 __rdtsc() {
+	__asm {
+
+		rdtsc
+		//why use ret will make error?
+		//ret 
+	}
+}
+
+
+DWORD __timestamp(unsigned long* params) {
+
+	__asm {
+		mov edi,params
+		; must use .586 or above
+		rdtsc
+		; edx:eax = time stamp
+		mov ds : [edi] , eax
+		mov ds : [edi + 4] , edx
+		mov dword ptr ds : [edi + 8] , 0
+	}
+}
+
+
+
+//MSR 是CPU 的一组64 位寄存器，可以分别通过RDMSR 和WRMSR 两条指令进行读和写的操作，前提要在ECX 中写入MSR 的地址。
+//MSR 的指令必须执行在level 0 或实模式下。
+//RDMSR    读模式定义寄存器。对于RDMSR 指令，将会返回相应的MSR 中64bit 信息到(EDX：EAX)寄存器中
+//WRMSR    写模式定义寄存器。对于WRMSR 指令，把要写入的信息存入(EDX：EAX)中，执行写指令后，即可将相应的信息存入ECX 指定的MSR 中
+
+//通过DTS获取温度并不是直接得到CPU的实际温度，而是两个温度的差。
+//第一个叫做Tjmax，这个Intel叫TCC activation temperature，
+//意思是当CPU温度达到或超过这个值时，就会触发相关的温度控制电路，系统此时会采取必要的动作来降低CPU的温度，或者直接重启或关机。
+//所以CPU的温度永远不会超过这个值。这个值一般是100℃或85℃（也有其他值），对于具体的处理器来说就是一个固定的值。
+//第二个就是DTS获取的CPU温度相对Tjmax的偏移值，暂且叫Toffset，那CPU的实际温度就是：currentTemp=Tjmax-Toffset
+int __readTemperature(DWORD* tjunction) {
+	unsigned int Tjunction = 0;
+	DWORD temp = 0;
+	__asm {
+		mov eax, 0
+		cpuid
+		cmp eax, 6
+		jb _tmpQuit
+
+		mov eax, 6
+		cpuid
+		test eax, 2
+		jz _tmpQuit
+
+		mov ecx, 0x1A2		//eax中16~23位就是Tjmax的值
+		rdmsr
+		test eax, 0x40000000
+		jnz _tmp85
+		//mov eax, 100
+		mov Tjunction, eax
+		jmp _getdts
+		_tmp85 :
+		//mov eax, 85
+		mov Tjunction, eax
+
+			_getdts :
+		mov ebx, eax
+			and ebx, 0x00ff0000
+			shr ebx, 16
+
+			//mov ebx,eax
+
+			mov ecx, 0x19C		//eax中16~22（注意这里是7位）位就是Toffset的值
+			rdmsr
+			and eax, 0x007f0000
+			shr eax, 16
+			sub ebx, eax
+			mov eax, ebx
+			mov temp, eax
+			_tmpQuit :
+	}
+
+	*tjunction = Tjunction;
+
+	char szout[1024];
+	__printf(szout, "tjmax:%x,temprature:%x\r\n", Tjunction, temp);
+
+
+	return temp;
+}
