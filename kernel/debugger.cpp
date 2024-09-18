@@ -217,7 +217,6 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 		pushfd
 		pop ss:[eflags]
 	}
-	return;
 
 	if (stack->eflags & 0x20000)
 	{
@@ -711,4 +710,22 @@ int disableGdDebugger() {
 		mov dr7, eax
 	}
 }
+
+
+void enableOverflow() {
+	__asm {
+		pushfd
+		or ss:[esp],0x800
+		popfd
+
+		_emit 0xce
+	}
+}
+
+void enableDebugger() {
+	__asm {
+		_emit 0xF1
+	}
+}
+
 

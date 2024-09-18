@@ -112,7 +112,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	__enableBreakPoint();
 
-	__kAddAlarmTimer(30, (DWORD)__doAlarmTask, 0);
+	enableOverflow();
+
+	__kAddAlarmTimer(60, (DWORD)__doAlarmTask, 0);
 
 	sysEntryProc();
 
@@ -131,10 +133,10 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	//__kCreateThread((DWORD)address3, MAIN_DLL_BASE, (DWORD)0, "__taskTest3");
 	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest3", 3, 0);
 
-	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
+	//readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
 	//readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 4);
-	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-	__drawGraphChars((unsigned char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+	//__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+	//__drawGraphChars((unsigned char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 

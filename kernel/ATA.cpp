@@ -9,6 +9,7 @@
 #include "Kernel.h"
 #include "v86.h"
 #include "hardware.h"
+#include "device.h"
 
 DWORD gATADrv = 0;
 
@@ -132,55 +133,19 @@ int getIDEPort() {
 	writeSector = writePortSector;
 
 	ret = checkIDEPort(0x3f0);
-	if (ret == 1)
-	{
-		//gAtaBasePort = 0x3f0;	
-		//gATADev = 0xf0;
-	}
-	else if (ret == 2) {
-		//gATAPIDev = 0xf0;
-		//gAtapiBasePort = 0x3f0;
-	}
 
 	//__printf((char*)szshow, "getIDEPort 3f0 over\n");
 
 	ret = checkIDEPort(0x370);
-	if (ret==1)
-	{
-		//gATADev = 0xf0;
-		//gAtaBasePort = 0x370;
-	}
-	else if (ret == 2) {
-		//gATAPIDev = 0xf0;
-		//gAtapiBasePort = 0x370;
-	}
 
 	//__printf((char*)szshow, "getIDEPort 370 over\n");
 
 	//1f7 = 3f6 = 3f7,376=377=177
 	ret = checkIDEPort(0x1f0);
-	if (ret == 1)
-	{
-		//gAtaBasePort = 0x1f0;
-		//gATADev = 0xe0;
-	}
-	else if (ret == 2) {
-		//gATAPIDev = 0xe0;
-		//gAtapiBasePort = 0x1f0;
-	}
 
 	//__printf((char*)szshow, "getIDEPort 1f0 over\n");
 
 	ret = checkIDEPort(0x170);
-	if (ret == 1)
-	{
-		//gATADev = 0xe0;
-		//gAtaBasePort = 0x170;
-	}
-	else if (ret == 2) {
-		//gATAPIDev = 0xe0;
-		//gAtapiBasePort = 0x170;
-	}
 
 	ret = checkIDEPort(0x168);
 
@@ -234,7 +199,7 @@ int getIDEPort() {
 		gATADev = 0xa0;
 		readSector = vm86ReadSector;
 		writeSector = vm86WriteSector;
-		__printf((char*)szshow, "int13 emulate ide read write\n");
+		__printf((char*)szshow, "int13 emulate ide read write sector\n");
 	}
 
 	return TRUE;
@@ -304,6 +269,9 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 
 
 int waitComplete(WORD port) {
+
+	//waitInterval(0);
+
 	int r = 0;
 	//r = inportb(port - 6);
 	//if (r == 0) 
@@ -311,16 +279,15 @@ int waitComplete(WORD port) {
 		int cnt = 16;
 		while (cnt--) {
 			r = inportb(port);
-			//if (r & 1) {
-			//	return FALSE;
-			//}
-			//else 
-			if ((r & 0xf9) == 0x58) {
+			if (r & 1) {
+				return FALSE;
+			}
+			else if ((r & 0xf9) == 0x58) {
 				return TRUE;
 			}
 			else {
 				char szout[1024];
-				//if ( (r & 0x80) == 0) 
+				if ( (r & 0x80) == 0) 
 				{
 					__printf(szout, "waitComplete:%x,port:%x\r\n",r,port);
 				}

@@ -28,6 +28,10 @@ extern "C" __declspec(dllexport) int disableSingleStep();
 extern "C" __declspec(dllexport) int enableGdDebugger();
 extern "C" __declspec(dllexport) int disableGdDebugger();
 
+extern "C" __declspec(dllexport) void enableDebugger();
+
+extern "C" __declspec(dllexport) void enableOverflow();
+
 extern "C" __declspec(dllexport) void __enableBreakPoint();
 
 extern "C" __declspec(dllexport) void __kBreakPoint(LIGHT_ENVIRONMENT * stack);
@@ -45,6 +49,10 @@ extern "C" __declspec(dllimport) int enableGdDebugger();
 extern "C" __declspec(dllimport) int disableGdDebugger();
 
 extern "C" __declspec(dllimport) void __enableBreakPoint();
+
+extern "C" __declspec(dllimport) void enableDebugger();
+
+extern "C" __declspec(dllimport) void enableOverflow();
 
 extern "C" __declspec(dllimport) void __kBreakPoint(LIGHT_ENVIRONMENT * stack);
 

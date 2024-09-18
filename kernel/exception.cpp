@@ -12,7 +12,7 @@
 
 #define EXCEPTION_TIPS_COLOR 0X9F3F00
 
-
+int g_ExceptionCounter = 0;
 
 void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 
@@ -45,6 +45,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	int pid = process->pid;
 	int level = process->level;
 
+	int len = 0;
 	if (num == 8 || num == 10 || num == 11 || num == 12 || num == 13 || num == 14 || num == 17 || num == 21)
 	{
 		LPEXCEPTIONCODESTACK tss = (LPEXCEPTIONCODESTACK)param;
@@ -52,11 +53,11 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		{
 			DWORD rva = tss->eip;
 
-			__printf(showinfo,
-				"v86 Exception:%d,tid:%d,error:%x,EIP:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+			len = __sprintf(showinfo,
+				"VM86 Exception:%d,tid:%d,pid:%d,error:%x,EIP:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,ds_v86:%x,es_v86:%x,fs_v86:%x,gs_v86:%x,\
 				cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num, tid, tss->errcode, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num, tid,pid, tss->errcode, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				tss->ds_v86, tss->es_v86, tss->fs_v86, tss->gs_v86, rcr0, rcr2, rcr3, rcr4);
 		}
@@ -64,20 +65,20 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		{
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
-			__printf(showinfo,
-				"Exception:%d,tid:%d,error:%x,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+			len = __sprintf(showinfo,
+				"Exception:%d,tid:%d,pid:%d,error:%x,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num,tid, pid, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0,rcr2,rcr3, rcr4);
 		}
 		else {
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
-			__printf(showinfo,
-				"Exception:%d,tid:%d,error:%x,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
+			len = __sprintf(showinfo,
+				"Exception:%d,tid:%d,pid:%d,error:%x,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
+				num,tid, pid, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0, rcr2, rcr3, rcr4);
 		}
@@ -89,11 +90,11 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		{
 			DWORD rva = tss->eip;
 
-			__printf(showinfo,
-				"v86 Exception:%d,tid:%d,EIP:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+			len = __sprintf(showinfo,
+				"v86 Exception:%d,tid:%d,pid:%d,EIP:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,ds_v86:%x,es_v86:%x,fs_v86:%x,gs_v86:%x,\
 			cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num, tid, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num, tid, pid, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				tss->ds_v86, tss->es_v86, tss->fs_v86, tss->gs_v86, rcr0, rcr2, rcr3, rcr4);
 		}
@@ -102,37 +103,38 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
-			__printf(showinfo,
-				"Exception:%d,tid:%d,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+			len = __sprintf(showinfo,
+				"Exception:%d,tid:%d,pid:%d,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, rva,tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num,tid, pid, rva,tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0, rcr2, rcr3, rcr4);
 		}
 		else {
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
-			__printf(showinfo,
-				"Exception:%d,tid:%d,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
+			len = __sprintf(showinfo,
+				"Exception:%d,tid:%d,pid:%d,EIP RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
+				num,tid, pid, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0, rcr2, rcr3, rcr4);
 		}
 	}
 
-	//__logShow((unsigned char*)showinfo, EXCEPTION_TIPS_COLOR);
+	__sprintf(showinfo + len, "Exception level:%d,status:%x,counter:%d,base:%x,sleep:%d,function:%s,file:%s\r\n",
+		process->level, process->status, process->counter, process->moduleaddr, process->sleep, process->funcname, process->filename);
 
-	LPPROCESS_INFO taskinfo = __findProcessByPid(pid);
-	if (taskinfo)
-	{
-		__printf(showinfo, "Exception tid:%d,pid:%d,level:%d,status:%x,counter:%d,base:%x,sleep:%d,function:%s,file:%s\r\n",
-			taskinfo->tid,taskinfo->pid, taskinfo->level, taskinfo->status,taskinfo->counter, taskinfo->moduleaddr,taskinfo->sleep,
-			taskinfo->funcname, taskinfo->filename);
-		//__logShow((unsigned char*)showinfo, EXCEPTION_TIPS_COLOR);
+	if (g_ExceptionCounter++ < 4) {
+		__logShow((unsigned char*)showinfo, EXCEPTION_TIPS_COLOR);
 	}
 	
-	__terminateProcess(pid , process->filename, process->funcname, 0);
+	if (pid == tid) {
+		__terminateProcess(tid | 0x80000000, process->filename, process->funcname, 0);
+	}
+	else {
+		__kTerminateThread(tid | 0x80000000, process->filename, process->funcname, 0);
+	}
 
 	__asm {
 		hlt

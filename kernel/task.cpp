@@ -425,7 +425,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			fxrstor[eax]
 		}
 	}
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg < 0x100) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x1000) {
 		__int64 timeh2 = __rdtsc() - timeh1;
 
 		__int64 cpurate = __cpuRate();
@@ -442,6 +442,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env) {
 
 	char szout[1024];
+	__int64 timeh1 = __rdtsc();
 	__asm {
 		clts			//before all fpu instructions
 	}

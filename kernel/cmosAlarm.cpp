@@ -214,7 +214,7 @@ void __kRemoveAlarmTimer() {
 void __doAlarmTask(DWORD  param) {
 
 	char szout[1024];
-	__printf(szout, "set cmos alarm complete\n");
+	__printf(szout, "__doAlarmTask running\n");
 
 	//return;
 

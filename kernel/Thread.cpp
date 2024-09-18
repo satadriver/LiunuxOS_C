@@ -10,7 +10,9 @@
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
 //above so,the most import element is dwtid
-DWORD __kTerminateThread(int tid, char* filename, char* funcname, DWORD lpparams) {
+DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+
+	int tid = dwtid & 0x7fffffff;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -46,7 +48,12 @@ DWORD __kTerminateThread(int tid, char* filename, char* funcname, DWORD lpparams
 
 	__kFree(tss[tid].espbase);
 
-	__sleep(-1);
+	if (dwtid & 0x80000000) {
+		return;
+	}
+	else {
+		__sleep(-1);
+	}
 
 	return 0;
 }

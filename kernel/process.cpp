@@ -32,7 +32,9 @@ void __kFreeProcess(int pid) {
 //3 any thread of process can call this to terminate process resident in
 // any process can call this to terminate self to other process with dwtid
 //above so,the most import element is dwtid
-void __terminateProcess(int tid, char* filename, char* funcname, DWORD lpparams) {
+void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+
+	int tid = dwtid & 0x7fffffff;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
@@ -81,7 +83,12 @@ void __terminateProcess(int tid, char* filename, char* funcname, DWORD lpparams)
 	__asm {
 		mov eax, retvalue
 	}
-	__sleep(-1);
+	if (dwtid & 0x80000000) {
+		return;
+	}
+	else {
+		__sleep(-1);
+	}
 }
 
 

@@ -163,6 +163,7 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 }
 
 //是否能触发还要看 eflags 寄存器中的 OF 位是否为 1，若不为 1，则直接无视。
+//0xCE(INTO):Generate overflow trap if overflow flag is 1.
 void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 	__asm {
 		pushad
@@ -1717,7 +1718,6 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		
 		outportb(0x3f6, 0); //IRQ15
 		
-
 		int status = inportb(gAtapiBasePort + 7);
 		int err = inportb(gAtaBasePort + 1);
 		//below 2 line codes why can not be removed?
