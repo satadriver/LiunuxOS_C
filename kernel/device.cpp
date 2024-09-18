@@ -280,7 +280,7 @@ unsigned int getTimer0Counter() {
 		in al, 40h
 		xchg ah, al
 		movzx eax, ax
-		ret
+		
 	}
 }
 

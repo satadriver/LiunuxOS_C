@@ -170,7 +170,7 @@ int getLocalApicID() {
 		mov ecx, 0
 		cpuid
 		mov eax,edx
-		ret
+		
 	}
 }
 

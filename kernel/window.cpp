@@ -11,6 +11,7 @@
 
 
 LPWINDOWSINFO gWindowsList = 0;
+
 LPWINDOWSINFO gWindowLast = 0;
 
 
@@ -25,41 +26,42 @@ void initWindowList() {
 }
 
 LPWINDOWSINFO checkWindowExist(char * wname) {
-	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList;
+	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
+	LPWINDOWSINFO tmp = info;
 	do
 	{
+		if (info == 0) {
+			break;
+		}
 		if (info->valid && info->windowname[0] && __strcmp(info->windowname,wname)== 0 )
 		{
 			return info;
 		}
 		else {
-			if (info->list.next == 0)
-			{
-				break;
-			}
 			info = (LPWINDOWSINFO)(info->list.next);
 		}
-	} while (info != gWindowsList);
+	} while (info && info != tmp);
 
 	return 0;
 }
 
 LPWINDOWSINFO checkWindowExist(DWORD wid) {
-	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList;
+	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
+	LPWINDOWSINFO tmp = info;
 	do
 	{
+		if (info == 0)
+		{
+			break;
+		}
 		if (info->valid && info->id == wid )
 		{
 			return info;
 		}
 		else {
-			if (info->list.next == 0)
-			{
-				break;
-			}
 			info = (LPWINDOWSINFO)(info->list.next);
 		}
-	} while (info != gWindowsList);
+	} while (info && info != tmp);
 
 	return 0;
 }
@@ -67,8 +69,8 @@ LPWINDOWSINFO checkWindowExist(DWORD wid) {
 LPWINDOWSINFO getFreeWindow() {
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList;
 
-	int c = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO);
-	for (int i = 0; i < c; i++)
+	int cnt = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO);
+	for (int i = 1; i < cnt; i++)
 	{
 		if (info[i].valid == 0)
 		{
@@ -87,6 +89,7 @@ DWORD isTopWindow(int wid) {
 		return TRUE;
 	}
 	return FALSE;
+
 	//return (window == gWindowLast ? TRUE : FALSE);
 }
 
@@ -94,6 +97,7 @@ DWORD isTopWindow(int wid) {
 DWORD getTopWindow() {
 	return gWindowLast - gWindowsList;
 }
+
 
 int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	char szout[1024];
@@ -108,9 +112,9 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	if (window == FALSE)
 	{
 		__printf(szout, "getFreeWindow error,first:%x,last:%x\n", gWindowsList, gWindowLast);
-
 		return -1;
 	}
+
 	window->valid = TRUE;
 	int i = window - gWindowsList;
 
@@ -121,8 +125,7 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	window->cursorX = x;
 	window->cursorY = y;
 
-	__strncpy(window->windowname, wname, WINDOW_NAME_LIMIT);
-	window->windowname[WINDOW_NAME_LIMIT - 1] = 0;
+	__strncpy(window->windowname, wname, WINDOW_NAME_LIMIT - 1);
 
 	if (active)
 	{
@@ -137,7 +140,6 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	gWindowLast = window;
 
 // 	__printf(szout, "add windowid:%x,first:%x,top:%x\n", i, gWindowsList ,gWindowLast);
-// 	__drawGraphChars((unsigned char*)szout, 0);
 
 	return i;
 }
@@ -148,12 +150,16 @@ int removeWindow(int id) {
 	LPWINDOWSINFO window = gWindowsList + id;
 
 	window->valid = FALSE;
-
-	removelist( &window->list);
 	
 	if (gWindowLast == window)
 	{
-		gWindowLast = (LPWINDOWSINFO)window->list.prev;
+		if ((window->list.prev == &window->list) && (window->list.next == &window->list)) {
+			gWindowLast = gWindowsList;
+		}
+		else {
+			gWindowLast = (LPWINDOWSINFO)window->list.prev;
+		}
+		
 		if (gWindowLast->valid & 0x80000000)
 		{
 
@@ -163,8 +169,25 @@ int removeWindow(int id) {
 		}
 	}
 
+	removelist(&gWindowsList->list, &window->list);
+
 	return TRUE;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 int destroyWindows() {
@@ -173,7 +196,7 @@ int destroyWindows() {
 	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 	LPWINDOWCLASS windows = p->window;
-	
+
 	if (windows)
 	{
 		LPWINDOWCLASS next = windows;
@@ -181,7 +204,7 @@ int destroyWindows() {
 		while (next->next)
 		{
 			next = next->next;
-		}	
+		}
 
 		while (next)
 		{
@@ -217,14 +240,6 @@ LPWINDOWCLASS getWindowFromName(char * winname) {
 	return 0;
 }
 
-
-
-
-
-
-
-
-
 LPWINDOWCLASS insertProcWindow(LPWINDOWCLASS window) {
 
 	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -248,8 +263,6 @@ LPWINDOWCLASS insertProcWindow(LPWINDOWCLASS window) {
 	return window;
 }
 
-
-
 LPWINDOWCLASS removeProcWindow() {
 	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	LPWINDOWCLASS w = p->window;
@@ -262,8 +275,6 @@ LPWINDOWCLASS removeProcWindow() {
 
 	return w;
 }
-
-
 
 int getOverlapRect(LPRECT r1, LPRECT r2, LPRECT res) {
 	if ((r1->right > r2->left && r1->bottom > r2->top) || (r2->right > r1->left && r2->bottom > r1->top)) {
@@ -313,7 +324,6 @@ int getOverlapRect(LPRECT r1, LPRECT r2, LPRECT res) {
 	return TRUE;
 }
 
-
 LPWINDOWCLASS getLastWindow() {
 	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	LPWINDOWCLASS w = p->window;
@@ -324,9 +334,6 @@ LPWINDOWCLASS getLastWindow() {
 
 	return w;
 }
-
-
-
 
 int placeFocus(int x,int y) {
 	int res = 0;

@@ -3,63 +3,108 @@
 
 
 void initListEntry(LIST_ENTRY * list) {
-	list->next = list;
-	list->prev = list;
+	list->next = 0;
+	list->prev = 0;
+}
+
+int getListSize(LIST_ENTRY* list) {
+	int size = 0;
+	LIST_ENTRY* n = list->next;
+	LIST_ENTRY* t = n;
+	do  {
+		if (n) {
+			size++;
+			n = n->next;
+		}
+	} while (n && n != t);
+
+	return size;
 }
 
 //add after head
 void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
-	if (head->next == 0 || head->prev == 0 || list == head) 
+	if (head == 0 || list == 0 || list == head)
 	{
-		head->next = list;
-		head->prev = list;
 		return;
 	}
 
-	LIST_ENTRY * headnext = head->next;
+	LIST_ENTRY * next = head->next;
+	LIST_ENTRY* prev = head->prev;
 
-	list->prev = head;
-	list->next = headnext;
+	if (next ) {
+		next->prev = list;
+		if (prev) {
+			prev->next = list;
+		}
+		else {
+			//error
+		}
+		list->next = next;
+		list->prev = prev;
 
-	head->next = list;
-	headnext->prev = list;
+		head->prev = list;
+	}
+	else {
+		head->next = list;
+		head->prev = list;
+
+		list->prev = list;
+		list->next = list;
+	}
 }
 
 //add to head
 void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
-	if (head->next == 0 || head->prev == 0 || list == head)
+	if (head == 0 || list == 0 || list == head)
 	{
-		head->next = list;
-		head->prev = list;
 		return;
 	}
-	LIST_ENTRY * headprev = head->prev;
 
-	list->prev = headprev;
-	list->next = head;
+	LIST_ENTRY* next = head->next;
+	LIST_ENTRY* prev = head->prev;
 
-	headprev->next = list;
-	head->prev = list;
+	if (next) {
+
+		next->prev = list;
+		if (prev) {
+			prev->next = list;
+		}
+		else {
+			//error
+		}
+		list->next = next;
+		list->prev = prev;
+
+		head->next = list;
+	}
+	else {
+		head->next = list;
+		head->prev = list;
+
+		list->prev = list;
+		list->next = list;
+	}
 }
 
-int searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
-	if (head == list)
+LIST_ENTRY * searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
+	if (head == list || head == 0 || list == 0)
 	{
-		return TRUE;
+		return FALSE;
 	}
 
-	LPLIST_ENTRY e = head->next;
+	LPLIST_ENTRY n = head->next;
+
 	do
 	{
-		if (e == 0) {
+		if (n == 0) {
 			break;
 		}
-		if ( e == list)
+		if ( n == list)
 		{
-			return TRUE;
+			return n;
 		}
 
-		e = e->next;
+		n = n->next;
 		
 	} while (TRUE);
 
@@ -67,36 +112,42 @@ int searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
 }
 
 
-void removelist(LPLIST_ENTRY list) {
+void removelist(LPLIST_ENTRY h,LPLIST_ENTRY list) {
+	LPLIST_ENTRY r = searchList(h, list);
+	if (r == FALSE) {
+		return ;
+	}
 
-	if (list->next == 0 && list->prev == 0)
-	{
-		//error
-		return;
+	if (h->next == list && h->prev == list) {
+		h->prev = 0;
+		h->next = 0;
 	}
-	else if (list->next == 0 && list->prev)
+	else if (h->next == list ) 
 	{
-		//error
-		return;
+		LPLIST_ENTRY next = list->next;
+		LPLIST_ENTRY prev = list->prev;
+		prev->next = next;
+		next->prev = prev;
+		//list->next = 0;
+		//list->prev = 0;	
+		h->next = next;
 	}
-	else if (list->prev == 0 && list->next)
+	else if (h->prev == list) 
 	{
-		//error
-		return;
+		LPLIST_ENTRY next = list->next;
+		LPLIST_ENTRY prev = list->prev;
+		prev->next = next;
+		next->prev = prev;
+
+		h->prev = prev;
 	}
 	else {
-		if (list->next == list && list->prev == list) {
-			list->next = 0;
-			list->prev = 0;
-		}
-		else {
-			LPLIST_ENTRY next = list->next;
-			LPLIST_ENTRY prev = list->prev;
-			list->prev->next = next;
-			list->next->prev = prev;
-			//list->next = 0;
-			//list->prev = 0;
-		}
+		LPLIST_ENTRY next = list->next;
+		LPLIST_ENTRY prev = list->prev;
+		prev->next = next;
+		next->prev = prev;
+		//list->next = 0;
+		//list->prev = 0;
 	}
 }
 

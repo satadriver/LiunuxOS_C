@@ -876,7 +876,7 @@ DWORD __leaveSpinlock(DWORD * v) {
 	__asm {
 		lock btr[v], 0
 		jnc __leaveSpinLockError
-		ret
+		
 		__leaveSpinLockError :
 	}
 	char szout[1024];

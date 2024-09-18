@@ -10,15 +10,22 @@
 
 DWORD gPageAllocLock = FALSE;
 
-
+LPMEMALLOCINFO gPageAllocList = 0;
 
 
 
 LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(base->list.next);
+	LPMEMALLOCINFO tmp = info;
+
 	do
 	{
+		if (info == 0) {
+			break;
+		}
+
 		if (info->addr == addr)
 		{
 			return info;
@@ -30,17 +37,17 @@ LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 		else {
 			info = (LPMEMALLOCINFO)info->list.next;
 		}
-	} while (info != (LPMEMALLOCINFO)PAGE_ALLOC_LIST);
+	} while (info && (info != tmp));
 
 	return 0;
 }
 
 LPMEMALLOCINFO getFreePageIdx() {
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 
 	int cnt = PAGE_ALLOC_LIST_SIZE / sizeof(MEMALLOCINFO);
-	for (int i = 0; i < cnt; i++)
+	for (int i = 1; i < cnt; i++)
 	{
 		if (info[i].size == 0 && info[i].addr == 0 && info[i].pid == 0 && info[i].vaddr == 0)
 		{
@@ -53,7 +60,7 @@ LPMEMALLOCINFO getFreePageIdx() {
 
 int resetPageIdx(LPMEMALLOCINFO pde) {
 	DWORD size = pde->size;
-	removelist((LPLIST_ENTRY)&pde->list);
+	removelist(&gPageAllocList->list,(LPLIST_ENTRY)&pde->list);
 	pde->addr = 0;
 	pde->size = 0;
 	pde->vaddr = 0;
@@ -196,7 +203,8 @@ void freeProcessPages(int pid) {
 	
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)(LPMEMALLOCINFO)gPageAllocList->list.next;
+	LPMEMALLOCINFO info = base;
 	do
 	{
 		if (info->pid == pid)
@@ -206,7 +214,7 @@ void freeProcessPages(int pid) {
 
 		info = (LPMEMALLOCINFO)info->list.next;
 
-	} while (info != (LPMEMALLOCINFO)PAGE_ALLOC_LIST);
+	} while (info != (LPMEMALLOCINFO)base);
 
 	__leaveSpinlock(&gPageAllocLock);
 }
@@ -258,6 +266,7 @@ void initPaging() {
 		mov cr0,eax
 	}
 
+	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	initListEntry(&pageList->list);
 	pageList->addr = 0;

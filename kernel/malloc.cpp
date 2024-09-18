@@ -18,6 +18,8 @@ DWORD gAllocLimitSize = 0;
 
 DWORD gAllocLock = FALSE;
 
+LPMEMALLOCINFO gMemAllocList = 0;
+
 
 int getAlignedSize(int size, int allignsize) {
 	int allocsize = size;
@@ -128,12 +130,17 @@ int initMemory() {
 
 
 LPMEMALLOCINFO getExistAddr(DWORD addr,int size) {
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)base->list.next;
+
+	LPMEMALLOCINFO tmp = info;
+
 	do
 	{
 		if (info == 0)
 		{
-			return (LPMEMALLOCINFO)-1;
+			return (LPMEMALLOCINFO)0;
 		}	
 		else if (info->addr == addr) 
 		{
@@ -146,7 +153,7 @@ LPMEMALLOCINFO getExistAddr(DWORD addr,int size) {
 		else {
 			info = (LPMEMALLOCINFO)info->list.next;
 		}
-	} while (info != (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST);
+	} while (info != tmp);
 
 	return 0;
 }
@@ -155,6 +162,7 @@ LPMEMALLOCINFO getExistAddr(DWORD addr,int size) {
 
 
 void resetAllMemAllocInfo() {
+	gMemAllocList = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
 
 	LPMEMALLOCINFO item = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
 	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO);
@@ -171,7 +179,7 @@ void resetAllMemAllocInfo() {
 int resetMemAllocInfo(LPMEMALLOCINFO item) {
 	DWORD size = item->size;
 
-	removelist((LPLIST_ENTRY)item);
+	removelist(&gMemAllocList->list,(LPLIST_ENTRY)item);
 	item->addr = 0;
 	item->size = 0;
 	item->vaddr = 0;
@@ -184,7 +192,7 @@ LPMEMALLOCINFO getMemAllocInfo() {
 	LPMEMALLOCINFO item = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
 
 	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO);
-	for ( int i = 0;i < cnt;i ++)
+	for ( int i = 1;i < cnt;i ++)
 	{
 		if ( //item[i].list.next == 0 && item[i].list.prev == 0 &&
 			item[i].size == 0 && item[i].addr == 0 && item[i].vaddr == 0 && item[i].pid == 0)
@@ -446,9 +454,8 @@ void freeProcessMemory(int pid) {
 
 	__enterSpinlock(&gAllocLock);
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)gMemAllocList->list.next;
+	LPMEMALLOCINFO info =(LPMEMALLOCINFO) base;
 	do
 	{
 		if (info == 0)
@@ -462,7 +469,7 @@ void freeProcessMemory(int pid) {
 
 		info = (LPMEMALLOCINFO)info->list.next;
 
-	} while (info != (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST);
+	} while (info != (LPMEMALLOCINFO)base);
 
 	__leaveSpinlock(&gAllocLock);
 }
@@ -485,9 +492,13 @@ int getProcMemory(int pid, char* szout) {
 		return FALSE;
 	}
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)gMemAllocList->list.next;
+	LPMEMALLOCINFO info = base;
 	do
 	{
+		if (info == 0) {
+			break;
+		}
 		if (info->pid == pid)
 		{
 			int len = __printf(szout + offset, 
@@ -497,7 +508,7 @@ int getProcMemory(int pid, char* szout) {
 
 		info = (LPMEMALLOCINFO)info->list.next;
 
-	} while (info != (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST);
+	} while (info != (LPMEMALLOCINFO)base);
 
 	return offset;
 }
