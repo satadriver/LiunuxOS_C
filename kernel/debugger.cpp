@@ -664,7 +664,7 @@ int codeBreakPoint(unsigned int * addr,int len) {
 
 
 void __enableBreakPoint() {
-	return;
+
 	__asm {
 		_emit 0xcd
 		_emit 03

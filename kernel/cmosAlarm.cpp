@@ -216,8 +216,6 @@ void __doAlarmTask(DWORD  param) {
 	char szout[1024];
 	__printf(szout, "__doAlarmTask running\n");
 
-	//return;
-
 	DWORD backsize = gBytesPerPixel*(gVideoWidth)*(gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
