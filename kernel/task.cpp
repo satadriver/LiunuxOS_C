@@ -725,5 +725,16 @@ int __initTask() {
 	*/
 
 	//__memset((char*)V86_TASKCONTROL_ADDRESS, 0, LIMIT_V86_PROC_COUNT*12);
+
+	DWORD addr = 0x500;		//from 0x500 to 0x7c00 is available memory address
+	*(DWORD*)addr = 0xcf;	//iret opcode
+	DWORD* vector = (DWORD * )(0x20*4);		//dos int call
+	for (int i = 0x20; i < 0x100; i++) {
+		WORD* v = (WORD*)vector;
+		*v = 0;
+		*(v + 1) = (0x500 >> 4);
+		vector++;
+	}
+
 	return 0;
 }

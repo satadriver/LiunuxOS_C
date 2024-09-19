@@ -74,7 +74,7 @@ int getIDEPort();
 int readPortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 
-
+void resetPort(int port);
 
 #ifdef DLL_EXPORT
 

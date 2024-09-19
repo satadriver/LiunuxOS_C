@@ -61,8 +61,6 @@ int(__cdecl* writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int s
 //而一个扇区共有512Byte，这样使用CHS寻址一块硬盘最大容量为256 * 1024 * 63 * 512B = 8064 MB
 int checkIDEPort(unsigned short port) {
 
-	//char buffer[0x1000];
-
 	int r = inportb(port + 7);
 	if (r == 0x50)
 	{	
@@ -85,7 +83,7 @@ int checkIDEPort(unsigned short port) {
 		}
 		return 0;
 	}
-	else if( r == 0x41)
+	else if( r == 0x41 || r == 0x40)
 	{
 		gAtapiBasePort = port;
 
@@ -111,6 +109,18 @@ int checkIDEPort(unsigned short port) {
 	else {
 		return FALSE;
 	}
+}
+
+void resetPort(int port) {
+	outportb(0x3f6,4);
+
+	outportb(0x376,4);
+
+	__sleep(0);
+
+	outportb(0x3f6, 0); //IRQ15
+
+	outportb(0x376, 0);	//IRQ14
 }
 
 int checkIDEMimo(unsigned int addr) {
@@ -195,8 +205,8 @@ int getIDEPort() {
 		__printf((char*)szshow, "ide master port:%x,device:%x,slave port:%x,device:%x\n", gAtaBasePort, gATADev, gAtapiBasePort, gATAPIDev);
 	}
 	else {
-		gATAPIDev = 0xe0;
-		gATADev = 0xa0;
+		gATAPIDev = 0xa0;
+		gATADev = 0xe0;
 		readSector = vm86ReadSector;
 		writeSector = vm86WriteSector;
 		__printf((char*)szshow, "int13 emulate ide read write sector\n");
@@ -213,13 +223,18 @@ int getIDEPort() {
 //bit2:1 reset复位磁盘,0不复位磁盘
 //bit3:always be 0
 //bit4-bit7:读取端口得值跟1f7读取得高4位一致
+
+//bit1	nIEN	Set this to stop the current device from sending interrupts.
+//bit2	SRST	Set, then clear(after 5us), this to do a "Software Reset" on all ATA drives on a bus, if one is misbehaving.
 int __initIDE() {
 
-	outportb(0x3f6, 0); //IRQ15
-	outportb(0x376, 0);	//IRQ14
+	resetPort(0x3f6);	//IRQ15
 
-	outportb(0x3e6, 0); //IRQ15
-	outportb(0x366, 0);	//IRQ14
+	resetPort(0x376);	//IRQ14
+
+	//resetPort(0x3e6);
+
+	//resetPort(0x366);
 
 	int r = getIDEPort();
 
@@ -279,14 +294,14 @@ int waitComplete(WORD port) {
 	//r = inportb(port - 6);
 	//if (r == 0) 
 	{
-		int cnt = 16;
+		int cnt = 64;
 		while (cnt--) {
 			r = inportb(port);
 			//if (r & 1) {
 			//	return FALSE;
 			//}
 			//else 
-			if ((r & 0xf9) == 0x58) {
+			if ((r & 8) == 8) {
 				return TRUE;
 			}
 			else {
@@ -313,9 +328,9 @@ void waitFree(WORD port) {
 		if (r & 0x80) {
 			char szout[1024];
 			//__printf(szout, "waitFree:%x\r\n",r);
-			//__sleep(0);
+			__sleep(0);
 			//waitInterval0(1);
-			delay();
+			//delay();
 			continue;
 		}
 		else {
@@ -335,9 +350,9 @@ void waitReady(WORD port) {
 		else {
 			char szout[1024];
 			//__printf(szout, "waitReady:%x\r\n", r);
-			//__sleep(0);
+			__sleep(0);
 			//waitInterval0(1);
-			delay();
+			//delay();
 			continue;
 		}
 	}
