@@ -7,7 +7,7 @@
 #include "../video.h"
 #include "../ata.h"
 #include "../file.h"
-#include "../FileManager.h"
+#include "../FileBrowser.h"
 #include "../fat32/fileutils.h"
 #include "../file.h"
 #include "../malloc.h"

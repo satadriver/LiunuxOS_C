@@ -38,7 +38,14 @@ void setMouseRate(int rate);
 
 void disableMouse();
 
+int delay();
 
-int getTimerCounter(int num);
+unsigned short getTimer0Counter();
 
-void waitInterval(int v);
+unsigned short getTimerCounter(int num);
+
+void waitInterval2(int cnt);
+
+void waitInterval1(int cnt);
+
+void waitInterval0(unsigned short v);

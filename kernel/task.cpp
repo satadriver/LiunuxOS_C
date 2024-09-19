@@ -425,10 +425,10 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			fxrstor[eax]
 		}
 	}
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x1000) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
 		__int64 timeh2 = __rdtsc() - timeh1;
 
-		__int64 cpurate = __cpuRate();
+		__int64 cpurate = __cpuFreq();
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,"\
@@ -627,10 +627,10 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->es = process->tss.es;
 	env->ss = process->tss.ss;
 
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg < 0x1000) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
 		__int64 timeh2 = __rdtsc() - timeh1;
 
-		__int64 cpurate = __cpuRate();
+		__int64 cpurate = __cpuFreq();
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,"\

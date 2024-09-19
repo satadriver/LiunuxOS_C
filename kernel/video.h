@@ -205,7 +205,7 @@ typedef struct {
 
 typedef struct  
 {
-	 POINT pos;
+	 POINT pos;		//window postion x and y
 	 int width;
 	 int height;
 	 int frameSize;
@@ -232,6 +232,9 @@ typedef struct
 
 
 typedef struct __WINDOWCLASS {
+	__WINDOWCLASS* next;
+	__WINDOWCLASS* prev;
+
 	//window left and top
 	POINT pos;
 	//client width,not window width
@@ -256,7 +259,7 @@ typedef struct __WINDOWCLASS {
 	int id;
 	int tid;
 	int pid;
-	
+	//client top,left,right,bottom,not window's
 	int top;
 	int left;
 	int right;
@@ -268,8 +271,7 @@ typedef struct __WINDOWCLASS {
 	unsigned int backGround;
 	unsigned int backsize;
 	int focus;
-	__WINDOWCLASS * next;
-	__WINDOWCLASS* prev;
+
 }WINDOWCLASS,*LPWINDOWCLASS;
 
 

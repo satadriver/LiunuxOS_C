@@ -61,7 +61,7 @@ int(__cdecl* writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int s
 //而一个扇区共有512Byte，这样使用CHS寻址一块硬盘最大容量为256 * 1024 * 63 * 512B = 8064 MB
 int checkIDEPort(unsigned short port) {
 
-	char buffer[0x1000];
+	//char buffer[0x1000];
 
 	int r = inportb(port + 7);
 	if (r == 0x50)
@@ -72,9 +72,9 @@ int checkIDEPort(unsigned short port) {
 
 		gATADrv = gATADev & 0x10;
 
-		r = identifyDevice(port, 0xec, buffer);
+		r = identifyDevice(port, 0xec,(char*) ATA_INFO_BASE);
 		if (r) {
-			unsigned char gc = *(unsigned char*)buffer;
+			unsigned char gc = *(unsigned char*)ATA_INFO_BASE;
 			if (gc * 0x80) {
 				return 1;
 			}
@@ -93,9 +93,9 @@ int checkIDEPort(unsigned short port) {
 
 		gATAPIDrv = gATAPIDev & 0x10;
 
-		r = identifyDevice(port , 0xa1 , buffer);
+		r = identifyDevice(port , 0xa1 , (char*)ATAPI_INFO_BASE);
 		if (r) {
-			WORD gc = *(WORD*)buffer;
+			WORD gc = *(WORD*)ATAPI_INFO_BASE;
 			if ( (gc & 3) == 1) {
 				gAtapiPackSize = 16;
 			}
@@ -234,6 +234,7 @@ int readPortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, cha
 	CHAR* offset = buf;
 	for (int i = 0; i < readcnt; i++)
 	{
+		//ret = readSectorLBA48Multiple(secno, secnohigh, gSecMax, offset);
 		ret = readSectorLBA48(secno, secnohigh, gSecMax, offset);
 		offset += (BYTES_PER_SECTOR * gSecMax);
 		secno += gSecMax;
@@ -241,6 +242,7 @@ int readPortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, cha
 
 	if (readmod)
 	{
+		//ret = readSectorLBA48Multiple(secno, secnohigh, gSecMax, offset);
 		ret = readSectorLBA48(secno, secnohigh, readmod, offset);
 	}
 	return ret;
@@ -271,6 +273,7 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 int waitComplete(WORD port) {
 
 	//waitInterval(0);
+	delay();
 
 	int r = 0;
 	//r = inportb(port - 6);
@@ -279,10 +282,11 @@ int waitComplete(WORD port) {
 		int cnt = 16;
 		while (cnt--) {
 			r = inportb(port);
-			if (r & 1) {
-				return FALSE;
-			}
-			else if ((r & 0xf9) == 0x58) {
+			//if (r & 1) {
+			//	return FALSE;
+			//}
+			//else 
+			if ((r & 0xf9) == 0x58) {
 				return TRUE;
 			}
 			else {
@@ -291,7 +295,9 @@ int waitComplete(WORD port) {
 				{
 					__printf(szout, "waitComplete:%x,port:%x\r\n",r,port);
 				}
+				//delay();
 				__sleep(0);
+				//waitInterval0(1);
 				continue;
 			}
 		}
@@ -307,7 +313,9 @@ void waitFree(WORD port) {
 		if (r & 0x80) {
 			char szout[1024];
 			//__printf(szout, "waitFree:%x\r\n",r);
-			__sleep(0);
+			//__sleep(0);
+			//waitInterval0(1);
+			delay();
 			continue;
 		}
 		else {
@@ -327,7 +335,9 @@ void waitReady(WORD port) {
 		else {
 			char szout[1024];
 			//__printf(szout, "waitReady:%x\r\n", r);
-			__sleep(0);
+			//__sleep(0);
+			//waitInterval0(1);
+			delay();
 			continue;
 		}
 	}
@@ -347,7 +357,7 @@ int writesector(int port,int len,char* buf) {
 
 int readsector(int port,int len, char * buf) {
 	__asm {
-		cli
+		//cli
 
 		cld
 		mov edi,buf
@@ -355,7 +365,7 @@ int readsector(int port,int len, char * buf) {
 		mov edx, port
 		rep insd
 
-		sti
+		//sti
 	}
 }
 
@@ -424,7 +434,6 @@ int readSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char
 
 	outportb(gAtaBasePort + 2, 0);	//172,first high byte of sector counter,then low byte of counter
 	
-
 	outportb(gAtaBasePort + 5, (secnoHigh >> 8) & 0xff);
 	outportb(gAtaBasePort + 4, secnoHigh & 0xff);
 	outportb(gAtaBasePort + 3, (secnoLow>>24) & 0xff);
@@ -451,7 +460,41 @@ int readSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char
 	return seccnt * BYTES_PER_SECTOR;
 }
 
+int readSectorLBA48Multiple(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf) {
 
+	waitFree(gAtaBasePort + 7);
+
+	outportb(gAtaBasePort + 1, 0);	//dma = 1,pio = 0
+	outportb(gAtaBasePort + 1, 0);	//dma = 1,pio = 0
+
+	outportb(gAtaBasePort + 2, 0);	//172,first high byte of sector counter,then low byte of counter
+
+
+	outportb(gAtaBasePort + 5, (secnoHigh >> 8) & 0xff);
+	outportb(gAtaBasePort + 4, secnoHigh & 0xff);
+	outportb(gAtaBasePort + 3, (secnoLow >> 24) & 0xff);
+
+	outportb(gAtaBasePort + 2, seccnt & 0xff);
+
+	outportb(gAtaBasePort + 5, (secnoLow >> 16) & 0xff);
+	outportb(gAtaBasePort + 4, (secnoLow >> 8) & 0xff);
+	outportb(gAtaBasePort + 3, secnoLow & 0xff);
+
+	outportb(gAtaBasePort + 6, gATADev);
+
+	waitReady(gAtaBasePort + 7);
+
+	outportb(gAtaBasePort + 7, 0xc4);
+
+	char* lpbuf = buf;
+	int res = waitComplete(gAtaBasePort + 7);
+	for (int i = 0; i < seccnt; i++) {	
+		readsector(gAtaBasePort, BYTES_PER_SECTOR / 4, lpbuf);
+		lpbuf += BYTES_PER_SECTOR;
+	}
+
+	return seccnt * BYTES_PER_SECTOR;
+}
 
 int writeSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf) {
 
@@ -462,7 +505,6 @@ int writeSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned cha
 
 	outportb(gAtaBasePort + 2, 0);	//172,first high byte of sector counter,then low byte of counter
 	
-
 	outportb(gAtaBasePort + 5, (secnoHigh >> 8) & 0xff);
 	outportb(gAtaBasePort + 4, secnoHigh & 0xff);
 	outportb(gAtaBasePort + 3, (secnoLow >> 24) & 0xff);

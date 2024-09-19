@@ -295,7 +295,7 @@ DWORD __cpuinfo(unsigned long* params) {
 
 
 //https://www.felixcloutier.com/x86/cpuid
-unsigned __int64 __cpuRate() {
+unsigned __int64 __cpuFreq() {
 	__asm {
 
 		mov eax, 0x16
@@ -304,6 +304,43 @@ unsigned __int64 __cpuRate() {
 		//why use ret will make error?
 		//ret 
 	}
+}
+
+//CPU_freq = tsc_freq * (aperf_t1 - aperf_t0) / (mperf_t1 - mperf_t0)
+
+unsigned __int64 getCpuFreq() {
+	unsigned int mperf_var_lo;
+
+	unsigned int mperf_var_hi;
+
+	unsigned int aperf_var_lo;
+
+	unsigned int aperf_var_hi;
+
+	unsigned __int64 maxfreq;
+
+	__asm {
+		; read MPERF
+		mov ecx, 0xe7
+		rdmsr
+		mov mperf_var_lo, eax
+		mov mperf_var_hi, edx
+
+		; read APERF
+		mov ecx, 0xe8
+		rdmsr
+		mov aperf_var_lo, eax
+		mov aperf_var_hi, edx
+
+		; read maxfreq
+		mov ecx,0xce
+		rdmsr
+		; bits 8:15
+		mov dword ptr  [maxfreq],eax
+		mov dword ptr [maxfreq+4],edx
+	}
+
+	return ((maxfreq <<32)+ maxfreq)*(aperf_var_hi - aperf_var_lo) / (mperf_var_hi- mperf_var_lo);
 }
 
 unsigned __int64 __rdtsc() {

@@ -55,6 +55,8 @@ int readSectorLBA24Mimo(unsigned int secno, unsigned char seccnt, char* buf);
 
 int readSectorLBA48Mimo(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf);
 
+int readSectorLBA48Multiple(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf);
+
 void waitFree(WORD port);
 
 void waitReady(WORD port);

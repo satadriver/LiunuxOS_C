@@ -12,7 +12,7 @@
 
 LPWINDOWSINFO gWindowsList = 0;
 
-LPWINDOWSINFO gWindowLast = 0;
+
 
 
 
@@ -21,8 +21,6 @@ void initWindowList() {
 	__memset((char*)gWindowsList, 0, WINDOW_LIST_BUF_SIZE);
 
 	initListEntry((LPLIST_ENTRY)&gWindowsList->list);
-
-	gWindowLast = gWindowsList;
 }
 
 LPWINDOWSINFO checkWindowExist(char * wname) {
@@ -84,18 +82,19 @@ LPWINDOWSINFO getFreeWindow() {
 
 DWORD isTopWindow(int wid) {
 	LPWINDOWSINFO window = wid + gWindowsList;
-	if (window == gWindowLast)
+	if (window == (LPWINDOWSINFO)(gWindowsList->list.prev) )
 	{
 		return TRUE;
 	}
 	return FALSE;
 
-	//return (window == gWindowLast ? TRUE : FALSE);
+	//return (window == gWindowsList->list.prev ? TRUE : FALSE);
 }
 
 
 DWORD getTopWindow() {
-	return gWindowLast - gWindowsList;
+	LPWINDOWSINFO prev =(LPWINDOWSINFO)gWindowsList->list.prev;
+	return prev->id;
 }
 
 
@@ -111,7 +110,7 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	window = getFreeWindow();
 	if (window == FALSE)
 	{
-		__printf(szout, "getFreeWindow error,first:%x,last:%x\n", gWindowsList, gWindowLast);
+		__printf(szout, "getFreeWindow error,first:%x,last:%x\n", gWindowsList->list.next, gWindowsList->list.prev);
 		return -1;
 	}
 
@@ -137,8 +136,6 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 
 	addlistTail(&gWindowsList->list, &window->list);
 
-	gWindowLast = window;
-
 // 	__printf(szout, "add windowid:%x,first:%x,top:%x\n", i, gWindowsList ,gWindowLast);
 
 	return i;
@@ -151,24 +148,6 @@ int removeWindow(int id) {
 
 	window->valid = FALSE;
 	
-	if (gWindowLast == window)
-	{
-		if ((window->list.prev == &window->list) && (window->list.next == &window->list)) {
-			gWindowLast = gWindowsList;
-		}
-		else {
-			gWindowLast = (LPWINDOWSINFO)window->list.prev;
-		}
-		
-		if (gWindowLast->valid & 0x80000000)
-		{
-
-		}
-		else {
-
-		}
-	}
-
 	removelist(&gWindowsList->list, &window->list);
 
 	return TRUE;

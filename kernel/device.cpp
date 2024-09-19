@@ -222,6 +222,8 @@ void enableSpeaker() {
 	outportb(0x61, 3);
 }
 
+#define TIMER1_DIVIDE_FREQ  1193
+#define TIMER2_DIVIDE_FREQ  1193
 
 //d6 d7 select timer, 00 = 40h, 01 = 41h, 02 = 42h
 //d4 d5 mode :11 read read / write low byte first, than read / write high byte
@@ -234,20 +236,20 @@ void init8254() {
 	outportb(0x40, (SYSTEM_TIMER0_FACTOR >> 8)&0xff);
 
 	outportb(TIMER_COMMAND_REG, 0X76);
-	outportb(0x41, 12 & 0xff);
-	outportb(0x41, (12>>8)&0xff);
+	outportb(0x41, TIMER1_DIVIDE_FREQ & 0xff);
+	outportb(0x41, (TIMER1_DIVIDE_FREQ >>8)&0xff);
 
 	outportb(TIMER_COMMAND_REG, 0Xb6);
-	outportb(0x42, 0);
-	outportb(0x42, 0);
+	outportb(0x42, TIMER2_DIVIDE_FREQ & 0xff);
+	outportb(0x42, (TIMER2_DIVIDE_FREQ >> 8) & 0xff);
 }
 
 
 void waitInterval(int v) {
 	
-	int interval = 1000000/ (OSCILLATE_FREQUENCY / 12);
-	DWORD times = (v * 10 )/ interval;
-	DWORD mod =( v * 10) % interval;
+	unsigned short interval = 1000/ (OSCILLATE_FREQUENCY / TIMER1_DIVIDE_FREQ);
+	unsigned short times = (v *1 )/ interval;
+	unsigned short mod =( v * 1) % interval;
 	if (mod != 0)
 	{
 		times++;
@@ -257,9 +259,9 @@ void waitInterval(int v) {
 		times = 1;
 	}
 
-	unsigned int v0 = getTimerCounter(1);
+	unsigned short v0 = getTimerCounter(1);
 	do {
-		unsigned int v1 = getTimerCounter(1);
+		unsigned short v1 = getTimerCounter(1);
 		if (v1 - v0 < times) {
 			continue;
 		}
@@ -267,10 +269,52 @@ void waitInterval(int v) {
 			break;
 		}
 	} while (1);
+
 	return;
 }
 
-unsigned int getTimer0Counter() {
+void waitInterval2(int cnt) {
+	unsigned short v0 = getTimerCounter(2);
+	unsigned short v1 = getTimerCounter(2);
+	//while (v0 == v1) 
+	{
+		v1 = getTimerCounter(2);
+	}
+	do {
+		v1 = getTimerCounter(2);
+	} while ((v1 - v0) != cnt && (v0 - v1) != cnt);
+	return;
+}
+
+
+void waitInterval1(int cnt) {
+	unsigned short v0 = getTimerCounter(1) ;
+	unsigned short v1 = getTimerCounter(1);
+	//while (v0 == v1) 
+	{
+		v1 = getTimerCounter(1);
+	}
+	do {
+		v1 = getTimerCounter(1);
+	} while ((v1 - v0) != cnt && (v0 - v1) != cnt);
+	return;
+}
+
+void waitInterval0(unsigned short cnt) {
+	unsigned short v0 = getTimer0Counter();
+	unsigned short v1 = getTimer0Counter();
+	//while (v0 == v1) 
+	{
+		v1 = getTimer0Counter();
+	}
+
+	do {
+		v1 = getTimer0Counter();
+	} while ( (v1 - v0) != cnt && (v0 - v1) != cnt);
+	return;
+}
+
+unsigned short getTimer0Counter() {
 
 	__asm {
 		mov al, 0x36
@@ -280,16 +324,24 @@ unsigned int getTimer0Counter() {
 		in al, 40h
 		xchg ah, al
 		movzx eax, ax
-		
 	}
 }
 
-int getTimerCounter(int num) {
+int delay() {
+	int v = 1;
+	int s = 1;
+	for (int i = 0; i < 0x1000; i++) {
+		v = v * (s++);
+	}
+	return v;
+}
+
+unsigned short getTimerCounter(int num) {
 
 	int cmd = (num << 6) + 0x36;
 	outportb(TIMER_COMMAND_REG, cmd);
-	int low = inportb(0x40 + num);
-	int high = inportb(0x40 + num);
+	unsigned short low = inportb(0x40 + num);
+	unsigned short high = inportb(0x40 + num);
 	return low + (high << 8);
 }
 

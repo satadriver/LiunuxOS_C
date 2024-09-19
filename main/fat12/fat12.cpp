@@ -1,8 +1,8 @@
 #include "fat12.h"
 #include "../Utils.h"
-#include "../FileManager.h"
+#include "../FileBrowser.h"
 #include "../file.h"
-#include "../UserUtils.h"
+
 #include "../ata.h"
 #include "../atapi.h"
 #include "../fat32/FAT32.h"

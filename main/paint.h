@@ -1,8 +1,9 @@
 #pragma once
 #include "def.h"
-#include "WindowClass.h"
+#include "video.h"
 
 #pragma pack(1)
+
 typedef struct  
 {
 	unsigned char blue;

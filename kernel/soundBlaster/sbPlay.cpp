@@ -522,6 +522,7 @@ void __declspec(naked) SoundInterruptProc(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		mov ss,ax
 	}
 
 	{

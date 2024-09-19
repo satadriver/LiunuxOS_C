@@ -8,7 +8,7 @@
 #include "Pe.h"
 #include "console.h"
 
-#include "FileManager.h"
+#include "fileBrowser.h"
 #include "window.h"
 #include "file.h"
 #include "fat32/FAT32.h"
@@ -17,15 +17,16 @@
 #include "NTFS/ntfsFile.h"
 #include "NTFS/ntfsDirs.h"
 #include "fat32/fat32dirs.h"
-#include "FileManagerWindow.h"
+#include "guihelper.h"
 #include "ios9660/ios9660.h"
-#include "UserUtils.h"
+
 #include "graph.h"
 #include "soundBlaster/sbPlay.h"
 #include "fat12/fat12.h"
 #include "malloc.h"
 #include "Thread.h"
-#include "WindowClass.h"
+#include "fileWindow.h"
+
 
 int gPartitionType = 0;
 
@@ -400,7 +401,8 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 			MOUSEINFO mouseinfo;
 			__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-			ret = getmouse(&mouseinfo, window.window.id);
+			//ret = getmouse(&mouseinfo, window.window.id);
+			ret = __kGetMouse(&mouseinfo, window.window.id);
 			if (mouseinfo.status & 1)
 			{
 				//y positon is page
@@ -490,27 +492,4 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 
 
-int __restoreRectangleFrame(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
-	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-
-	for (int i = 0; i < height + framesize; i++)
-	{
-		for (int j = 0; j < width + framesize; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				*ptr = *backup;
-				ptr++;
-				backup++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-
-	return (int)ptr - gGraphBase;
-}
 

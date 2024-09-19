@@ -21,7 +21,7 @@ int readFileData(DWORD secno, int filesize, char * databuf, int readsize);
 int preparePartitionInfo();
 
 int readFileDirs(DWORD secno, LPFILEBROWSER files,DWORD ntfsseq);
-int __restoreRectangleFrame(LPPOINT p, int width, int height, int framesize, unsigned char * backup);
+
 
 extern "C" __declspec(dllexport) int __kFileManager(unsigned int retaddr, int tid,char * filename, char * funcname, DWORD param);
 

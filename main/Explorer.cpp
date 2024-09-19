@@ -11,15 +11,15 @@
 #include "floppy.h"
 #include "Utils.h"
 #include "menu.h"
-#include "windowclass.h"
+
 #include "Pe.h"
 #include "window.h"
 #include "ProcessDos.h"
 #include "ata.h"
-#include "UserUtils.h"
+
 #include "Kernel.h"
-#include "sysregs.h"
-#include "WindowClass.h"
+#include "mainUtils.h"
+
 #include "Utils.h"
 #include "paint.h"
 #include "malloc.h"
@@ -28,7 +28,7 @@
 #include "pci.h"
 #include "window.h"
 #include "keyboard.h"
-#include "FileManager.h"
+#include "FileBrowser.h"
 #include "descriptor.h"
 #include "debugger.h"
 #include "gdi.h"
@@ -37,6 +37,7 @@
 #include "cmosAlarm.h"
 #include "elf.h"
 #include "v86.h"
+#include "guihelper.h"
 
 #define EXPLORER_TASKNAME	"__kExplorer"
 
@@ -172,8 +173,10 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
-				return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kLogWatch");
-				//__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kLogWatch", 3, 0);
+				if (thread) {
+					return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kLogWatch");
+					//__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kLogWatch", 3, 0);
+				}
 			}
 			continue;
 		}
@@ -290,6 +293,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	}
 	return 0;
 }
+
 
 
 DWORD isDesktop() {

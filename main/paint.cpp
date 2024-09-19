@@ -1,9 +1,9 @@
-#include "paint.h"
+
 #pragma once
-#include "windowclass.h"
+#include "paint.h"
 #include "video.h"
 #include "Utils.h"
-
+#include "guiHelper.h"
 #include "mouse.h"
 #include "keyboard.h"
 #include "task.h"

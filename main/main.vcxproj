@@ -166,28 +166,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cmd.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="explorer.cpp" />
     <ClCompile Include="fat12\fat12.cpp" />
     <ClCompile Include="fat32\fat32dirs.cpp" />
-    <ClCompile Include="fileManager.cpp" />
-    <ClCompile Include="fileManagerWindow.cpp" />
+    <ClCompile Include="fileBrowser.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="gdi\jpeg.cpp" />
     <ClCompile Include="ios9660\ios9660.cpp" />
-
     <ClCompile Include="main.cpp" />
     <ClCompile Include="menu.cpp" />
     <ClCompile Include="NTFS\ntfsDirs.cpp" />
     <ClCompile Include="paint.cpp" />
-    <ClCompile Include="taskBar.cpp" />
-    <ClCompile Include="windowClass.cpp" />
-    <ClCompile Include="sysregs.cpp" />
-    <ClCompile Include="userUtils.cpp" />
+    <ClCompile Include="fileWindow.cpp" />
+    <ClCompile Include="mainUtils.cpp" />
+    <ClCompile Include="guiHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cmd.h" />
     <ClInclude Include="console.h" />
-    <ClInclude Include="Explorer.h" />
+    <ClInclude Include="explorer.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="fat12\fat12.h" />
     <ClInclude Include="fat32\FAT32.h" />
@@ -195,22 +194,19 @@
     <ClInclude Include="fat32\Fat32File.h" />
     <ClInclude Include="fat32\FAT32Utils.h" />
     <ClInclude Include="fat32\FileUtils.h" />
-    <ClInclude Include="fileManager.h" />
-    <ClInclude Include="fileManagerWindow.h" />
+    <ClInclude Include="fileBrowser.h" />
     <ClInclude Include="ios9660\ios9660.h" />
     <ClInclude Include="paint.h" />
-    <ClInclude Include="taskBar.h" />
-    <ClInclude Include="windowClass.h" />
+    <ClInclude Include="fileWindow.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="gdi\jpeg.h" />
-
     <ClInclude Include="main.h" />
     <ClInclude Include="NTFS\ntfs.h" />
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="NTFS\ntfsFile.h" />
     <ClInclude Include="soundBlaster\sbPlay.h" />
-    <ClInclude Include="sysregs.h" />
-    <ClInclude Include="userUtils.h" />
+    <ClInclude Include="mainUtils.h" />
+    <ClInclude Include="guiHelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="main.rc" />

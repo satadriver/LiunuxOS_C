@@ -6,12 +6,10 @@
 
 
 int showTxtFile(char * filename);
+
 int setCursor(unsigned char high8bits, unsigned char low8bits);
 
-
-
 #ifdef DLL_EXPORT
-
 
 extern "C" int showBmpFile(char * filename);
 

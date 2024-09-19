@@ -1719,7 +1719,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		outportb(0x3f6, 0); //IRQ15
 		
 		int status = inportb(gAtapiBasePort + 7);
-		int err = inportb(gAtaBasePort + 1);
+		int err = inportb(gAtapiBasePort + 1);
 		//below 2 line codes why can not be removed?
 		int low = inportb(gAtapiBasePort + 4);
 		int high = inportb(gAtapiBasePort + 5);

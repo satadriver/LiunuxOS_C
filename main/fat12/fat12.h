@@ -1,6 +1,6 @@
 #pragma once
 #include "../def.h"
-#include "../FileManager.h"
+#include "../FileBrowser.h"
 
 #pragma pack(1)
 

@@ -15,6 +15,7 @@ int getcrs(char * szout);
 int getGeneralRegs(char * szout);
 
 int getpid(int pid, char * szout);
+
 int getpids(char * szout);
 
 int getmemmap(int pid, char * szout);

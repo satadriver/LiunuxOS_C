@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../FileManager.h"
+#include "../FileBrowser.h"
 
 
 int getFat32RootDirs(LPFAT32DIRECTORY dir, LPFILEBROWSER files);

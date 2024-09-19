@@ -54,10 +54,7 @@
     <ClCompile Include="gdi\jpeg.cpp">
       <Filter>源文件\gdi</Filter>
     </ClCompile>
-    <ClCompile Include="machine.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="fileManager.cpp">
+    <ClCompile Include="fileBrowser.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="NTFS\ntfsDirs.cpp">
@@ -66,7 +63,7 @@
     <ClCompile Include="fat32\fat32dirs.cpp">
       <Filter>源文件\fat32</Filter>
     </ClCompile>
-    <ClCompile Include="sysregs.cpp">
+    <ClCompile Include="mainUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ios9660\ios9660.cpp">
@@ -75,13 +72,13 @@
     <ClCompile Include="console.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="userUtils.cpp">
+    <ClCompile Include="guiHelper.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="fat12\fat12.cpp">
       <Filter>源文件\fat12</Filter>
     </ClCompile>
-    <ClCompile Include="windowClass.cpp">
+    <ClCompile Include="fileWindow.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="menu.cpp">
@@ -90,16 +87,13 @@
     <ClCompile Include="paint.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="taskBar.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="explorer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="graph.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="fileManagerWindow.cpp">
+    <ClCompile Include="cmd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -110,16 +104,13 @@
     <ClInclude Include="main.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="machine.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="console.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="sysregs.h">
+    <ClInclude Include="mainUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="fileManager.h">
+    <ClInclude Include="fileBrowser.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="fat32\FAT32.h">
@@ -152,13 +143,13 @@
     <ClInclude Include="ios9660\ios9660.h">
       <Filter>头文件\iso9660</Filter>
     </ClInclude>
-    <ClInclude Include="userUtils.h">
+    <ClInclude Include="guiHelper.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="fat12\fat12.h">
       <Filter>头文件\fat12</Filter>
     </ClInclude>
-    <ClInclude Include="windowClass.h">
+    <ClInclude Include="fileWindow.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="menu.h">
@@ -167,16 +158,13 @@
     <ClInclude Include="paint.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="taskBar.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Explorer.h">
+    <ClInclude Include="explorer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="graph.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="fileManagerWindow.h">
+    <ClInclude Include="cmd.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
