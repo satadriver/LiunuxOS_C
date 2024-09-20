@@ -9,6 +9,8 @@
 #include "hardware.h"
 #include "servicesProc.h"
 #include "screenProtect.h"
+#include "device.h"
+
 
  DWORD gMouseTest = 0;
 
@@ -16,7 +18,7 @@ DWORD gMouseID = 0;
 
 DWORD gMouseColor =	MOUSE_SHOW_COLOR;
 
-#define MOUSE_FACTOR_SIZE	40
+#define MOUSE_FACTOR_SIZE	30
 
 
 void mousetest() {
@@ -30,7 +32,7 @@ void mousetest() {
 		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel + (gVideoWidth/2)*gBytesPerPixel;
 
 		__sprintf(szout, "mouse x:%x,mouse y:%x,status:%x\n", mouseinfo.x,mouseinfo.y,mouseinfo.status);
-		__drawGraphChar((unsigned char*)szout, 0, pos, TASKBARCOLOR);
+		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 	}
 }
 
@@ -227,6 +229,30 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 	}
 }
 
+
+int isGeometryMouse(int x,int y) {
+	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	if ( (6 * y >= 4 * x) && (6 * y <= 9 * x) ) {
+		if ( (y > data->mouseWidth *2 / 3) && (x > data->mouseWidth * 2 / 3) ) {
+			return FALSE;
+		}
+		return TRUE;
+	}
+	return FALSE;
+}
+
+int isGeometryBorder(int x, int y) {
+	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	if ( (y + MOUSE_BORDER_SIZE > data->mouseWidth * 2 / 3) && (x + MOUSE_BORDER_SIZE > data->mouseWidth * 2 / 3) ) {
+		return TRUE;
+	}
+	if (6 * y >= 4 * (x + MOUSE_BORDER_SIZE) || 6 * y <= 9 * (x - MOUSE_BORDER_SIZE)) {
+
+		return TRUE;
+	}
+	return FALSE;
+}
+
 void __kDrawMouse() {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
@@ -238,15 +264,15 @@ void __kDrawMouse() {
 		for (unsigned int x = 0; x < data->mouseWidth; x++)
 		{
 			int color = 0;
-			if (6 * y >= 4 * x && 6 * y <= 9 * x) {
-				if (6 * y <= 4 * (x + MOUSE_BORDER_SIZE) || 6 * y >= 9 * (x - MOUSE_BORDER_SIZE))
+			if (isGeometryMouse(x,y) ) {
+				if (isGeometryBorder(x,y) )
 				{
 					color = MOUSE_BORDER_COLOR;
 
 				}
 				else {
 					color = gMouseColor;
-					gMouseColor += 0x000f;
+					gMouseColor += 0x0f0f0f;
 				}
 				unsigned char * showpos = (unsigned char*)__getpos(x, y) + pos;
 
@@ -274,7 +300,7 @@ void __kRestoreMouse() {
 	{
 		for (unsigned int x = 0; x < data->mouseWidth; x++)
 		{
-			if (6 * y >= 4 * x && 6 * y <= 9 * x)
+			if (isGeometryMouse(x, y))
 			{
 				unsigned char * showpos = (unsigned char*)__getpos(x, y) + pos;
 
@@ -301,7 +327,7 @@ void __kRefreshMouseBackup() {
 	{
 		for (unsigned int x = 0; x < data->mouseWidth; x ++)
 		{
-			if (6*y >= 4*x && 6*y <= 9*x)
+			if (isGeometryMouse(x, y))
 			{
 				unsigned char * showpos = (unsigned char*)__getpos(x, y) + pos;
 
@@ -316,19 +342,16 @@ void __kRefreshMouseBackup() {
 	}
 }
 
-
-
-
-void __initMouse(int x,int y) {
-
+int getMouseID() {
+	int mid = 0;
 	__asm {
-		//call waitPs2In
-		mov al,0xd4
-		out 64h,al
+		call __wait8042Empty
+		mov al, 0xd4
+		out 64h, al
 
-		//call waitPs2In
-		mov al,0xf2
-		out 60h,al
+		call __wait8042Empty
+		mov al, 0xf2
+		out 60h, al
 
 		//call waitPs2In
 		//mov al, 0x20
@@ -336,10 +359,21 @@ void __initMouse(int x,int y) {
 
 		//call waitPs2Out
 
-		in al,60h
-		movzx eax,al
-		mov gMouseID,eax
+		in al, 60h
+		movzx eax, al
+		mov mid, eax
 	}
+	return mid;
+}
+
+
+void __initMouse(int x,int y) {
+
+	enableMouse();
+
+	gMouseID = getMouseID();
+
+	setMouseRate(200);
 
 	char szout[1024];
 	__printf(szout, "keyboard id:%x, mouse id:%d\n", gKeyboardID,gMouseID);

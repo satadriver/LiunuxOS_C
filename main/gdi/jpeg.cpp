@@ -241,16 +241,16 @@ void showerror(int funcret)
 	switch (funcret)
 	{
 	case FUNC_MEMORY_ERROR:
-		__drawGraphChars((unsigned char*)"Error alloc memory\n!",0);
+		__drawGraphChars(( char*)"Error alloc memory\n!",0);
 		break;
 	case FUNC_FILE_ERROR:
-		__drawGraphChars((unsigned char*)"File not found!\n",0);
+		__drawGraphChars(( char*)"File not found!\n",0);
 		break;
 	case FUNC_FORMAT_ERROR:
-		__drawGraphChars((unsigned char*)"File format error!\n",0);
+		__drawGraphChars(( char*)"File format error!\n",0);
 		break;
 	default:
-		__drawGraphChars((unsigned char*)"gpeg error\n", 0);
+		__drawGraphChars(( char*)"gpeg error\n", 0);
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////

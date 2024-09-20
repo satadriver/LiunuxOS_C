@@ -96,45 +96,43 @@ typedef struct  {
 
 
 
-#define TASKBARCOLOR			0X00CFCFCF
-#define TIMERZONECOLOR			0X00E8E8E8
+#define TASKBARCOLOR				0X00CFCFCF
+#define TIMERZONECOLOR				0X00E8E8E8
 
-#define BACKGROUND_COLOR	0X00B0E0E6
+#define BACKGROUND_COLOR			0X00B0E0E6
 
-#define FILECOLOR			0x00cd3333	//red
-#define FILEFONTCOLOR		0x009c9c9c	//gray
-#define FILEFONTBGCOLOR		0X00C0C0C0	//gray
+#define FILECOLOR					0x00cd3333	//red
+#define FILEFONTCOLOR				0x009c9c9c	//gray
+#define FILEFONTBGCOLOR				0X00C0C0C0	//gray
 
-#define FOLDERCOLOR			0x00ffa500	//brown
-#define FOLDERFONTCOLOR		0x001c1c1c	//gray
-#define FOLDERFONTBGCOLOR	0X00D3D3D3	//silver
+#define FOLDERCOLOR					0x00ffa500	//brown
+#define FOLDERFONTCOLOR				0x001c1c1c	//gray
+#define FOLDERFONTBGCOLOR			0X00D3D3D3	//silver
 
-#define DEFAULT_FONT_COLOR		0
+#define DEFAULT_FONT_COLOR			0
 #define CMOS_TIMESTAMP_SINGLE_COLOR	0X9f3F3F
 #define CMOS_TIMESTAMP_DOUBLE_COLOR	0X3f9F3F
 #define CMOS_TIMESTAMP_THIRD_COLOR	0X3f3F9F
-#define CONSOLE_FONT_COLOR		0XFFFFFF
+#define CONSOLE_FONT_COLOR			0XFFFFFF
 
-#define GRAPH_CHINESECHAR_HEIGHT		16
-#define GRAPH_CHINESECHAR_WIDTH			16
-#define GRAPHCHAR_HEIGHT		8
-#define GRAPHCHAR_WIDTH			8
-#define TASKBAR_HEIGHT			(GRAPHCHAR_HEIGHT*4)
+#define GRAPH_CHINESECHAR_HEIGHT	16
+#define GRAPH_CHINESECHAR_WIDTH		16
+#define GRAPHCHAR_HEIGHT			8
+#define GRAPHCHAR_WIDTH				8
+#define TASKBAR_HEIGHT				(GRAPHCHAR_HEIGHT*4)
 
-#define FOLDERFIRSTX			60
-#define FOLDERFIRSTY			60
-#define FULLWINDOW_TOP			0
-#define FULLWINDOW_LEFT			0
+#define FOLDERFIRSTX				60
+#define FOLDERFIRSTY				60
+#define FULLWINDOW_TOP				0
+#define FULLWINDOW_LEFT				0
 
-#define RIGHTCLICK_MENU_WIDTH	160
-#define RIGHTCLICK_MENU_HEIGHT	240
-
-//extern "C"  VESAINFORMATION gVesaInfo;
+#define RIGHTCLICK_MENU_WIDTH		160
+#define RIGHTCLICK_MENU_HEIGHT		240
 
 
-unsigned short * getCCIdxInGBK(unsigned short gbk);
 
-extern "C" int g_ScreenMode ;
+
+extern "C" int g_ScreenMode;
 
 #ifdef DLL_EXPORT
 
@@ -203,13 +201,17 @@ typedef struct {
 
 }RECT,*LPRECT;
 
-typedef struct  
+typedef struct  _FILEMAP
 {
+	_FILEMAP* next;
+	_FILEMAP* prev;
 	 POINT pos;		//window postion x and y
-	 int width;
-	 int height;
+
 	 int frameSize;
 	 int frameColor;
+
+	 int width;
+	 int height;
 
 	 unsigned int color;
 	 char name[WINDOW_NAME_LIMIT];
@@ -237,40 +239,49 @@ typedef struct __WINDOWCLASS {
 
 	//window left and top
 	POINT pos;
-	//client width,not window width
-	int width;
-	//client height,not window height
-	int height;
 
-	int frameSize;
+	int frameSize;	// the width of window frame. so need to divide 2
 	int frameColor;
 
-	unsigned int color;
-	int fontcolor;
-	char caption[WINDOW_NAME_LIMIT];
-	char winname[WINDOW_NAME_LIMIT];
 	int capHeight;
 	int capColor;
 
-	int zoomin;
-	int showY;
-	int showX;
-
-	int id;
-	int tid;
-	int pid;
-	//client top,left,right,bottom,not window's
+	//client top,left,right,bottom,not the window's
 	int top;
 	int left;
 	int right;
 	int bottom;
 
-	int shutdownx;
+	//client width,not the window width
+	int width;
+	//client height,not the window height
+	int height;
+
+	unsigned int color;	//client color
+
+	int showY;	//font position x
+	int showX;
+
+	int fontcolor;
+
+	int shutdownx;		//shutdown position x
 	int shutdowny;
 
-	unsigned int backGround;
+	int zoomin;
+
+	unsigned int backBuf;
+
 	unsigned int backsize;
+
 	int focus;
+
+	int id;		//window id
+	int tid;
+	int pid;
+
+	char caption[WINDOW_NAME_LIMIT];
+
+	char winname[WINDOW_NAME_LIMIT];
 
 }WINDOWCLASS,*LPWINDOWCLASS;
 
@@ -301,30 +312,37 @@ typedef struct {
 }RIGHTMENU, *LPRIGHTMENU;
 
 
+typedef struct
+{
+	WINDOWCLASS window;
 
+	int cpl;
+	int fsheight;
+
+}FMWINDOW, * LPFMWINDOW;
 
 #pragma pack()
 
 
+unsigned short* getGBKCCIdx(unsigned short gbk);
+
+
 #ifdef DLL_EXPORT
 
-extern "C"  __declspec(dllexport) int __logShow(unsigned char * font, int color);
+
 extern "C"   int __initVideo(LPVESAINFORMATION vesa,DWORD fontbase);
 
 extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window,int active);
 
-extern "C"  __declspec(dllexport) int __drawBackGroundWindow(LPWINDOWCLASS window, int active);
-
-extern "C"  __declspec(dllexport) int __backupWindow(LPWINDOWCLASS window);
 extern "C"  __declspec(dllexport) int __restoreWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllexport) int __drawGraphCharIntr(char * font, int color, int pos, int bgcolor);
+extern "C"  __declspec(dllexport) int __removeWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllexport) int __drawGraphCharPos(unsigned char * font, int color, unsigned int pos);
+extern "C"  __declspec(dllexport) int __drawGraphCharInt(char * font, int color, int pos, int bgcolor);
 
-extern "C"  __declspec(dllexport) int __drawGraphChar(unsigned char * font, int color,unsigned int pos, int bgcolor);
+extern "C"  __declspec(dllexport) int __drawGraphChar( char * font, int color,unsigned int pos, int bgcolor);
 
-extern "C"  __declspec(dllexport) int __drawGraphChars(unsigned char * font, int color);
+extern "C"  __declspec(dllexport) int __drawGraphChars( char * font, int color);
 
 extern "C"  __declspec(dllexport) int __backspaceChar();
 
@@ -334,9 +352,10 @@ extern "C"  __declspec(dllexport) int __drawVertical(int x, int y, int len, int 
 
 extern "C"  __declspec(dllexport) int __drawHorizon(int x, int y, int len, int color);
 
-extern "C"  __declspec(dllexport) int __drawRectangle(LPPOINT p, int width, int height, int color,unsigned char * backup);
+extern "C"  __declspec(dllexport) int __drawRectWindow(LPPOINT p, int width, int height, int color,unsigned char * backup);
 
 extern "C"  __declspec(dllexport) int __restoreCircle(int x, int y, int radius, unsigned char * backup);
+
 extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int color, unsigned char * backup);
 
 extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char * backup);
@@ -344,15 +363,20 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 extern "C"  __declspec(dllexport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname,char * backdata);
 
-extern "C"  __declspec(dllexport) int __showGraphString(FILEMAP *);
-
-extern "C"  __declspec(dllexport) int __showGraphChar(FILEMAP *);
+extern "C"  __declspec(dllexport) int __drawFileMapChars(FILEMAP *);
 
 extern "C"  __declspec(dllexport) int __drawCCS(unsigned char * font, int color);
 
-extern "C"  __declspec(dllexport) int __restoreRectangle(LPPOINT p, int width, int height, unsigned char * backup);
+extern "C"  __declspec(dllexport) int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
 
-extern "C"  __declspec(dllexport) int __drawRectangleFrame(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
+extern "C"  __declspec(dllexport) int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
+
+extern "C"  __declspec(dllexport) int removeFileManager(LPFMWINDOW w);
+
+extern "C"  __declspec(dllexport) int drawFileManager(LPFMWINDOW w);
+
+extern "C"  __declspec(dllexport) int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
+
 extern "C"  __declspec(dllexport) int __drawFileMap(LPFILEMAP);
 
 extern "C"  __declspec(dllexport) int __drawShutdown(LPWINDOWCLASS window);
@@ -362,26 +386,27 @@ extern "C"  __declspec(dllexport) int __drawLine(int x1, int y1, int x2, int y2,
 extern "C"  __declspec(dllexport) int __drawDot(int x, int y, DWORD color);
 
 extern "C"  __declspec(dllexport) int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color);
+
 extern "C"  __declspec(dllexport) int __diamond(int startx, int starty, int raduis, int cnt, DWORD color);
+
+extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS* window);
+
+extern "C"  __declspec(dllexport) int __drawWindowChars(unsigned char* font, int color, WINDOWCLASS* window);
 #else
-extern "C"  __declspec(dllimport) int __logShow(unsigned char * font, int color);
 
 extern "C" int __initVideo(LPVESAINFORMATION vesa, DWORD fontbase);
 
 extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window, int active);
 
-extern "C"  __declspec(dllimport) int __drawBackGroundWindow(LPWINDOWCLASS window, int active);
-
-extern "C"  __declspec(dllimport) int __backupWindow(LPWINDOWCLASS window);
 extern "C"  __declspec(dllimport) int __restoreWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllimport) int __drawGraphCharIntr(char * font, int color, int pos, int bgcolor);
+extern "C"  __declspec(dllimport) int __removeWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllimport) int __drawGraphCharPos(unsigned char * font, int color, unsigned int pos);
+extern "C"  __declspec(dllimport) int __drawGraphCharInt(char * font, int color, int pos, int bgcolor);
 
-extern "C"  __declspec(dllimport) int __drawGraphChar(unsigned char * font, int color, unsigned int pos, int bgcolor);
+extern "C"  __declspec(dllimport) int __drawGraphChar( char * font, int color, unsigned int pos, int bgcolor);
 
-extern "C"  __declspec(dllimport) int __drawGraphChars(unsigned char * font, int color);
+extern "C"  __declspec(dllimport) int __drawGraphChars( char * font, int color);
 
 extern "C"  __declspec(dllimport) int __backspaceChar();
 
@@ -391,9 +416,10 @@ extern "C"  __declspec(dllimport) int __drawVertical(int x, int y, int len, int 
 
 extern "C"  __declspec(dllimport) int __drawHorizon(int x, int y, int len, int color);
 
-extern "C"  __declspec(dllimport) int __drawRectangle(LPPOINT p, int width, int height, int color, unsigned char * backup);
+extern "C"  __declspec(dllimport) int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char * backup);
 
 extern "C"  __declspec(dllimport) int __restoreCircle(int x, int y, int radius, unsigned char * backup);
+
 extern "C"  __declspec(dllimport) int __drawCircle(int x, int y, int radius, int color, unsigned char * backup);
 
 extern "C"  __declspec(dllimport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char * backup);
@@ -401,24 +427,35 @@ extern "C"  __declspec(dllimport) int __drawColorCircle(int x, int y, int radius
 extern "C"  __declspec(dllimport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname, char * backdata);
 
-extern "C"  __declspec(dllimport) int __showGraphString(FILEMAP *);
-
-extern "C"  __declspec(dllimport) int __showGraphChar(FILEMAP *);
+extern "C"  __declspec(dllimport) int __drawFileMapChars(FILEMAP *);
 
 extern "C"  __declspec(dllimport) int __drawCCS(unsigned char * font, int color);
 
-extern "C"  __declspec(dllimport) int __restoreRectangle(LPPOINT p, int width, int height, unsigned char * backup);
+extern "C"  __declspec(dllimport) int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
 
-extern "C"  __declspec(dllimport) int __drawRectangleFrame(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
+extern "C"  __declspec(dllimport) int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
+
+extern "C"  __declspec(dllimport) int removeFileManager(LPFMWINDOW w);
+
+extern "C"  __declspec(dllimport) int drawFileManager(LPFMWINDOW w);
+
+extern "C"  __declspec(dllimport) int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
+
 extern "C"  __declspec(dllimport) int __drawFileMap(LPFILEMAP);
 
 extern "C"  __declspec(dllimport) int __drawShutdown(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __drawDot(int x, int y, DWORD color);
+
 extern "C"  __declspec(dllimport) int __drawLine(int x1, int y1, int x2, int y2, DWORD color);
 
 extern "C"  __declspec(dllimport) int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color);
+
 extern "C"  __declspec(dllimport) int __diamond(int startx, int starty, int raduis, int cnt, DWORD color);
+
+extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS * window);
+
+extern "C"  __declspec(dllexport) int __drawWindowChars(unsigned char* font, int color, WINDOWCLASS * window);
 #endif
 
 #endif

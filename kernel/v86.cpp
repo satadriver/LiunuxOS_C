@@ -25,7 +25,7 @@ int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, cha
 		counter++;
 		if (counter && (counter % VM_OUTPUT_BUSY_CONSTANT == 0))
 		{
-			__drawGraphChars((unsigned char*)"wait bwork to be free\n", 0);
+			__drawGraphChars(( char*)"wait bwork to be free\n", 0);
 		}
 	}
 
@@ -69,7 +69,7 @@ int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, cha
 		return seccnt * sectorsize;
 	}
 	else {
-		__drawGraphChars((unsigned char*)"vm read sector error\n", 0);
+		__drawGraphChars(( char*)"vm read sector error\n", 0);
 	}
 
 	return 0;

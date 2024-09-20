@@ -228,7 +228,7 @@ void __doAlarmTask(DWORD  param) {
 
 	int color = 0;
 
-	__drawRectangle(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
 	while (1)
 	{
@@ -237,7 +237,7 @@ void __doAlarmTask(DWORD  param) {
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
-			__restoreRectangle(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
 			removeWindow(windowid);
 
 			__kFree(backGround);
@@ -249,6 +249,6 @@ void __doAlarmTask(DWORD  param) {
 		__sleep(0);
 
 		color += 0x00010f;
-		__drawRectangle(&p, gVideoWidth, gVideoHeight, color, 0);
+		__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, 0);
 	}
 }

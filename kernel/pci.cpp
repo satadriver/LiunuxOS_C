@@ -151,7 +151,7 @@ int showPciDevs() {
 
 	showAllPciDevs();
 
-	__drawGraphChars((unsigned char*)"\n\npci devices:\n", 0);
+	__drawGraphChars(( char*)"\n\npci devices:\n", 0);
 
 	int ret = 0;
 	char szout[1024];

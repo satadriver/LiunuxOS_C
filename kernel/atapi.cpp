@@ -61,7 +61,7 @@ int atapiCMD(unsigned short *cmd) {
 }
 
 
-int readAtapiSector(char * buf,unsigned int secnum,unsigned char seccnt) {
+int readAtapiSector(char * buf,unsigned int secnum,unsigned int seccnt) {
 
 	waitFree(gAtapiBasePort + 7);
 
@@ -105,7 +105,7 @@ int readAtapiSector(char * buf,unsigned int secnum,unsigned char seccnt) {
 }
 
 
-int writeAtapiSector(char* buf, unsigned int secnum, unsigned char seccnt) {
+int writeAtapiSector(char* buf, unsigned int secnum, unsigned int seccnt) {
 
 	waitFree(gAtapiBasePort + 7);
 

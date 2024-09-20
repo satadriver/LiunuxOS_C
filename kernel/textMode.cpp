@@ -265,7 +265,10 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 //https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
 //http://www.osdever.net/FreeVGA/vga/portidx.htm
 
-
+//光标在屏幕上的位置保存在显卡内部的两个光标寄存器中，
+//索引寄存器的端口号是0x03d4。通过给索引寄存器写入索引值读取对应的显卡内部寄存器的值。
+//两个 8 位光标寄存器，索引值分别是 14（0x0e）和 15（0x0f），分别存储光标位置的高 8 位和低 8 位。
+//指定了索引寄存器的值之后，通过数据端口0x03d5读取数据。
 int setCursor(int pos) {
 
 	outportb(0x3d4, 0x0e);

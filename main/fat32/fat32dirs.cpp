@@ -99,7 +99,7 @@ int fat32FileReader(DWORD clusterno, int filesize,char * lpdata, int readsize) {
 			lpdata += g_ClusterSize;
 		}
 		else {
-			__drawGraphChars((unsigned char*)"fat32 read cluster error\n", 0);
+			__drawGraphChars(( char*)"fat32 read cluster error\n", 0);
 			break;
 		}
 

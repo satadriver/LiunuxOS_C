@@ -179,7 +179,7 @@ int showBmpBits(int x, int y, BITMAPINFOHEADER* info, unsigned char * data) {
 
 	if (info->biBitCount < 8)
 	{
-		__drawGraphChars((unsigned char*)"bmp file bit error\n", 0);
+		__drawGraphChars(( char*)"bmp file bit error\n", 0);
 		return FALSE;
 	}
 

@@ -270,7 +270,7 @@ int clusterReader( LPFAT32DIRECTORY dir, char * buf, int readsize) {
 			lpdata += g_ClusterSize;
 		}
 		else {
-			__drawGraphChars((unsigned char*)"fat32 read cluster error\n", 0);
+			__drawGraphChars(( char*)"fat32 read cluster error\n", 0);
 			break;
 		}
 

@@ -73,7 +73,7 @@ int getMBR() {
 
 	if (*(WORD*)gMBR.systemFlag != 0xaa55)
 	{
-		__drawGraphChars((unsigned char*)"MBR format error\r\n", 0);
+		__drawGraphChars(( char*)"MBR format error\r\n", 0);
 		return FALSE;
 	}
 	else {

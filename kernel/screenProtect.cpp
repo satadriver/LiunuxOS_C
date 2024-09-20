@@ -73,7 +73,7 @@ int initScreenProtect() {
 	POINT p;
 	p.x = 0;
 	p.y = 0;
-	__drawRectangle(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR, 0);
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR, 0);
 
 	sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
 	//ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize*2);
@@ -106,8 +106,8 @@ int stopScreenProtect() {
 
 	__memcpy((char*)dst, (char*)src, screensize);
 
-	enableMouse();
-	setMouseRate(200);
+	//enableMouse();
+	//setMouseRate(200);
 	__kDrawMouse();
 
 	return TRUE;

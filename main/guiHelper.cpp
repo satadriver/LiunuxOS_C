@@ -100,7 +100,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
 
-	__drawBackGroundWindow(window, FALSE);
+	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 
 	window->prev = 0;
 	window->next = 0;
@@ -118,7 +118,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 	__strcpy(window->caption, name);
 	__strcpy(window->winname, name);
 
-	window->backGround = 0;
+	window->backBuf = 0;
 
 	window->pos.x = FULLWINDOW_TOP;
 
@@ -145,9 +145,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 
 	window->id = addWindow(FALSE, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
 
-	__drawBackGroundWindow(window, FALSE);
-
-	__initMouse(gVideoWidth, gVideoHeight);
+	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 
 	window->prev = 0;
 	window->next = 0;
@@ -197,9 +195,12 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->capColor = 0x00ffff;
 	window->capHeight = GRAPHCHAR_HEIGHT * 2;
-	window->color = DEFAULT_FONT_COLOR;
+	
 	window->frameSize = GRAPHCHAR_WIDTH;
 	window->frameColor = FOLDERFONTBGCOLOR;
+
+	window->color = DEFAULT_FONT_COLOR;
+
 	__strcpy(window->caption, filename);
 	__strcpy(window->winname, "__Console");
 
@@ -231,7 +232,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 }
 
 
-void initBigClickItem(FILEMAP* clickitem, char* name, int tid, int id, int x, int y) {
+void initIcon(FILEMAP* clickitem, char* name, int tid, int id, int x, int y) {
 	__memset((char*)clickitem, 0, sizeof(FILEMAP));
 
 	clickitem->tid = tid;
@@ -257,37 +258,3 @@ void initBigClickItem(FILEMAP* clickitem, char* name, int tid, int id, int x, in
 }
 
 
-int __kTaskBar(unsigned int retaddr, int pid, char* filename, char* funcname, DWORD param) {
-	int ret = 0;
-
-	//char szout[1024];
-	// 	__printf(szout, "__console task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, pid, filename,funcname,param);
-	// 	__drawGraphChars((unsigned char*)szout, 0);
-
-	WINDOWCLASS window;
-	initTaskbarWindow(&window, filename, pid);
-
-	while (1)
-	{
-		unsigned int ck = __kGetKbd(window.id);
-		//unsigned int ck = __getchar(window.id);
-		unsigned int asc = ck & 0xff;
-
-		MOUSEINFO mouseinfo;
-		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-		ret = __kGetMouse(&mouseinfo, window.id);
-		if (mouseinfo.status & 1)	//left click
-		{
-
-		}
-		else if (mouseinfo.status & 4)	//middle click
-		{
-			// 			menu.pos.x = mouseinfo.x;
-			// 			menu.pos.y = mouseinfo.y;
-			// 			menu.action = mouseinfo.status;
-		}
-
-		__sleep(0);
-	}
-	return 0;
-}

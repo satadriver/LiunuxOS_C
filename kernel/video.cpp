@@ -36,7 +36,7 @@ int gShowY = 0;
 
 int g_ScreenMode = 0;
 
-
+//the RGB sequence of  the video screen pixel is BGR
 
 int __initVideo(LPVESAINFORMATION vesaInfo, DWORD fontbase) {
 	int result = 0;
@@ -72,11 +72,15 @@ int __initVideo(LPVESAINFORMATION vesaInfo, DWORD fontbase) {
 	POINT p;
 	p.x = 0;
 	p.y = 0;
-	__drawRectangle(&p, gVideoWidth, gVideoHeight, BACKGROUND_COLOR, 0);
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, BACKGROUND_COLOR, 0);
 
 	g_ScreenMode = TRUE;
 
 	return 0;
+}
+
+int __getpos(int x, int y) {
+	return y * gBytesPerLine + gBytesPerPixel * x;
 }
 
 int __drawShutdown(LPWINDOWCLASS window) {
@@ -97,21 +101,12 @@ int __drawShutdown(LPWINDOWCLASS window) {
 	unsigned char* pos = (unsigned char*)__getpos(x, y) + gGraphBase;
 
 	unsigned char* keepy = pos;
+
 	for (int i = 0; i < window->capHeight; i++)
 	{
 		for (int j = 0; j < window->capHeight; j++)
 		{
-			if (i == j || i == 0 || j == 0)
-			{
-				int color = DEFAULT_FONT_COLOR;
-				for (int k = 0; k < gBytesPerPixel; k++)
-				{
-					*pos = color;
-					pos++;
-					color = color >> 8;
-				}
-			}
-			else if (i + j == window->capHeight)		//y坐标轴反转,向下是正号，不是y=x - blocks,而是y=blocks - x
+			if (i == j || i == 0 || j == 0 || (i + j == window->capHeight) )	////y坐标轴向下是正号，y=8 - x
 			{
 				int color = DEFAULT_FONT_COLOR;
 				for (int k = 0; k < gBytesPerPixel; k++)
@@ -131,12 +126,6 @@ int __drawShutdown(LPWINDOWCLASS window) {
 
 	return (int)pos - gGraphBase;
 }
-
-
-
-
-
-
 
 
 
@@ -194,36 +183,34 @@ int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int
 	{
 		DWORD cappos = __getpos(p->x + singlefs, p->y + singlefs);
 
-		showend = __drawGraphCharPos((unsigned char*)capname, DEFAULT_FONT_COLOR, (unsigned int)cappos);
+		showend = __drawGraphChar(( char*)capname, DEFAULT_FONT_COLOR, (unsigned int)cappos,0);
 	}
 
 	return (int)showend - gGraphBase;
 }
 
+int __removeWindow(LPWINDOWCLASS window) {
 
-int __backupWindow(LPWINDOWCLASS window) {
-	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-	unsigned char* srcdata = (unsigned char*)window->backGround;
-	for (int i = 0; i < window->height; i++)
+	__kRestoreMouse();
+
+	removeWindow(window->id);
+
+	int size = __restoreWindow(window);
+
+	__kRefreshMouseBackup();
+
+	__kDrawMouse();
+
+	if (window->backBuf)
 	{
-		for (int j = 0; j < window->width; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				*srcdata = *ptr;
-				ptr++;
-				srcdata++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
+		__kFree(window->backBuf);
 	}
 
-	return (int)ptr - gGraphBase;
+	//__terminatePid(window->pid);
+
+	return size;
 }
+
 
 int __drawWindow(LPWINDOWCLASS window, int active) {
 
@@ -233,12 +220,12 @@ int __drawWindow(LPWINDOWCLASS window, int active) {
 
 	window->backsize = gBytesPerPixel * (window->height + window->frameSize + window->capHeight) * (window->width + window->frameSize);
 
-	window->backGround = __kMalloc(window->backsize);
+	window->backBuf = __kMalloc(window->backsize);
 
 	window->id = addWindow(active, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
 
 	ret = __drawRectangleFrameCaption(&window->pos, window->width, window->height, window->color, window->frameSize, window->frameColor,
-		window->capHeight, window->capColor, window->caption, (char*)window->backGround);
+		window->capHeight, window->capColor, window->caption, (char*)window->backBuf);
 
 	ret = __drawShutdown(window);
 
@@ -251,53 +238,11 @@ int __drawWindow(LPWINDOWCLASS window, int active) {
 
 
 
-int __refreshWindow(LPWINDOWCLASS window, int active) {
-
-	__restoreWindow(window);
-
-	return 0;
-}
-
-
-int __drawBackGroundWindow(LPWINDOWCLASS window, int active) {
-
-	int ret = 0;
-
-	if (active)
-	{
-		__kRestoreMouse();
-
-		window->backsize = gBytesPerPixel * (window->height + window->frameSize + window->capHeight) * (window->width + window->frameSize);
-
-		window->backGround = __kMalloc(window->backsize);
-	}
-
-	ret = __drawRectangle(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backGround);
-
-	if (active)
-	{
-		__kRefreshMouseBackup();
-
-		__kDrawMouse();
-	}
-
-	return 0;
-}
-
-
-
-
-
 int __restoreWindow(LPWINDOWCLASS window) {
-
-	__kRestoreMouse();
-
-	removeWindow(window->id);
-
 	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + gGraphBase;
 	unsigned char* ptr = (unsigned char*)startpos;
 	unsigned char* keep = ptr;
-	unsigned char* srcdata = (unsigned char*)window->backGround;
+	unsigned char* srcdata = (unsigned char*)window->backBuf;
 
 	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
 	{
@@ -314,31 +259,21 @@ int __restoreWindow(LPWINDOWCLASS window) {
 		keep += gBytesPerLine;
 		ptr = (unsigned char*)keep;
 	}
-	__kRefreshMouseBackup();
-	__kDrawMouse();
-
-	if (window->backGround)
-	{
-		__kFree(window->backGround);
-	}
-
-	//removeWindow(window->id);
-
-	//__terminatePid(window->pid);
 
 	return (int)ptr - gGraphBase;
 }
 
 
 
-int __getpos(int x, int y) {
-	return y * gBytesPerLine + gBytesPerPixel * x;
-}
+int __drawFileMapChars(FILEMAP* filemap) {
 
+	unsigned int pos = __getpos(filemap->showX, filemap->showY);
 
-int __showGraphString(FILEMAP* filemap) {
+	char* str = filemap->name;
 
-	int resultpos = __showGraphChar(filemap);
+	int color = filemap->namecolor;
+
+	int resultpos = __drawGraphChar(str,  color,  pos, 0);
 
 	filemap->showY = resultpos / gBytesPerLine;
 	filemap->showX = (resultpos % gBytesPerLine) / gBytesPerPixel;
@@ -353,100 +288,6 @@ int __showGraphString(FILEMAP* filemap) {
 
 
 
-int __showGraphChar(FILEMAP* filemap) {
-	int len = __strlen((char*)filemap->name);
-
-	unsigned int pos = __getpos(filemap->showX, filemap->showY);
-
-	unsigned char* showpos = pos + (unsigned char*)gGraphBase;
-
-	unsigned char* keepy = showpos;
-	unsigned char* keepx = keepy;
-
-	for (int i = 0; i < len; i++)
-	{
-		unsigned int ch = filemap->name[i];
-		if (ch == '\n')
-		{
-			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
-			unsigned int nowpos = __getpos(0, posy + GRAPHCHAR_HEIGHT * filemap->zoomin);
-			if (nowpos >= gWindowSize)
-			{
-				nowpos = 0;
-			}
-			showpos = (unsigned char*)nowpos + gGraphBase;
-			keepx = showpos;
-			keepy = showpos;
-			continue;
-		}
-		else if (ch == '\r')
-		{
-			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
-			showpos = (unsigned char*)__getpos(0, posy) + gGraphBase;
-			keepx = showpos;
-			keepy = showpos;
-			continue;
-		}
-
-		int idx = ch << 3;
-		unsigned char* p = (unsigned char*)gFontBase + idx;
-
-		for (int j = 0; j < GRAPHCHAR_HEIGHT; j++)
-		{
-			unsigned char f = p[j];
-			int m = 128;
-			for (int k = 0; k < GRAPHCHAR_WIDTH; k++)
-			{
-				unsigned int c = 0;
-				if (f & m)
-				{
-					c = filemap->namecolor;
-					for (int n = 0; n < gBytesPerPixel * filemap->zoomin; n++)
-					{
-						*showpos = c;
-						c = c >> 8;
-
-						showpos++;
-					}
-				}
-				else if (filemap->namebgcolor) {
-					c = filemap->namebgcolor;
-					for (int n = 0; n < gBytesPerPixel * filemap->zoomin; n++)
-					{
-						*showpos = c;
-						c = c >> 8;
-
-						showpos++;
-					}
-				}
-				else {
-					showpos += gBytesPerPixel * filemap->zoomin;
-				}
-
-				m = m >> 1;
-			}
-
-			keepx += gBytesPerLine * filemap->zoomin;
-			showpos = keepx;
-		}
-
-		keepy = keepy + GRAPHCHAR_WIDTH * gBytesPerPixel * filemap->zoomin;
-
-		int mod = (unsigned int)(keepy - gGraphBase) % gBytesPerLine;
-		if (mod == 0)
-		{
-			keepy = keepy + GRAPHCHAR_HEIGHT * gBytesPerLine * filemap->zoomin;
-			if ((unsigned int)(keepy - gGraphBase) >= gWindowSize)
-			{
-				keepy = (unsigned char*)gGraphBase;
-			}
-		}
-
-		keepx = keepy;
-		showpos = keepy;
-	}
-	return (int)(showpos - gGraphBase);
-}
 
 
 
@@ -471,19 +312,20 @@ int __backspaceChar() {
 	}
 
 	unsigned int pos = __getpos(gShowX, gShowY);
-	int showpos = __drawGraphChar((unsigned char*)" ", BACKGROUND_COLOR, pos, BACKGROUND_COLOR);
+	int showpos = __drawGraphChar(( char*)" ", BACKGROUND_COLOR, pos, BACKGROUND_COLOR);
 
 	return showpos;
 }
 
 
-int __drawGraphChars(unsigned char* font, int color) {
+
+int __drawGraphChars( char* str, int color) {
 	if (g_ScreenMode == 0) {
 		return FALSE;
 	}
 #ifdef LIUNUX_DEBUG_LOG_ON
 	unsigned int pos = __getpos(gShowX, gShowY);
-	int resultpos = __drawGraphChar(font, color, pos, 0);		//BACKGROUND_COLOR
+	int resultpos = __drawGraphChar(str, color, pos, 0);		//BACKGROUND_COLOR
 
 	gShowY = resultpos / gBytesPerLine;
 
@@ -501,32 +343,12 @@ int __drawGraphChars(unsigned char* font, int color) {
 }
 
 
-int __logShow(unsigned char* font, int color) {
-	unsigned int pos = __getpos(gShowX, gShowY);
-	int resultpos = __drawGraphChar(font, color, pos, 0);		//BACKGROUND_COLOR
 
-	gShowY = resultpos / gBytesPerLine;
-
-	gShowX = (resultpos % gBytesPerLine) / gBytesPerPixel;
-
-	if (gShowY >= gWindowHeight)
-	{
-		gShowY = 0;
-		gShowX = 0;
-	}
-	return 0;
-}
-
-int __drawGraphCharPos(unsigned char* font, int color, unsigned int pos) {
-	return __drawGraphChar(font, color, pos, 0);		//BACKGROUND_COLOR
-}
-
-
-int __drawGraphChar(unsigned char* font, int color, unsigned int pos, int bgcolor) {
+int __drawGraphChar( char* str, int color, unsigned int pos, int bgcolor) {
 	if (g_ScreenMode == 0) {
 		return FALSE;
 	}
-	int len = __strlen((char*)font);
+	int len = __strlen((char*)str);
 
 	unsigned char* showpos = pos + (unsigned char*)gGraphBase;
 
@@ -535,7 +357,7 @@ int __drawGraphChar(unsigned char* font, int color, unsigned int pos, int bgcolo
 
 	for (int i = 0; i < len; i++)
 	{
-		unsigned int ch = font[i];
+		unsigned int ch = str[i];
 		if (ch == '\n')
 		{
 			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
@@ -611,7 +433,7 @@ int __drawGraphChar(unsigned char* font, int color, unsigned int pos, int bgcolo
 		if (mod == 0)
 		{
 			keepy = keepy + (GRAPHCHAR_HEIGHT - 1) * gBytesPerLine;
-			if ((unsigned int)(keepy + GRAPHCHAR_HEIGHT * gBytesPerLine - gGraphBase) > gWindowSize)
+			if ((unsigned int)(keepy + GRAPHCHAR_HEIGHT * gBytesPerLine - gGraphBase) >= gWindowSize)		//keep one line to show
 			{
 				keepy = (unsigned char*)gGraphBase;
 			}
@@ -624,18 +446,19 @@ int __drawGraphChar(unsigned char* font, int color, unsigned int pos, int bgcolo
 }
 
 
-unsigned short* getCCIdxInGBK(unsigned short gbk) {
+unsigned short* getGBKCCIdx(unsigned short gbk) {
 	unsigned char low = (gbk & 0xff);
 	unsigned char high = (gbk >> 8);
 
 	unsigned int idx = ((low - 0xa1) * 94 + (high - 0xa1)) * 32;
+
 	return (unsigned short*)(gCCFontBase + idx);
 }
 
 
-int __drawCC(unsigned char* font, int color, DWORD pos, DWORD bgcolor) {
+int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor) {
 
-	int len = __strlen((char*)font);
+	int len = __strlen((char*)str);
 
 	unsigned char* showpos = pos + (unsigned char*)gGraphBase;
 
@@ -644,7 +467,7 @@ int __drawCC(unsigned char* font, int color, DWORD pos, DWORD bgcolor) {
 
 	for (int i = 0; i < len; )
 	{
-		unsigned char chlow = font[i];
+		unsigned char chlow = str[i];
 		if (chlow == '\n')
 		{
 			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
@@ -673,11 +496,11 @@ int __drawCC(unsigned char* font, int color, DWORD pos, DWORD bgcolor) {
 			break;
 		}
 
-		unsigned char chhigh = font[i + 1];
+		unsigned char chhigh = str[i + 1];
 
 		if (chlow >= 0xa0 && chhigh >= 0xa0)
 		{
-
+			//nothing to do
 		}
 		else if (chlow > 0 && chlow < 0x80)
 		{
@@ -685,17 +508,17 @@ int __drawCC(unsigned char* font, int color, DWORD pos, DWORD bgcolor) {
 			copychar[0] = chlow;
 			copychar[1] = 0;
 			i++;
-			__drawGraphChars(copychar, color);
+			__drawGraphChars((char*)copychar, color);
 			continue;
 		}
 		else {
 			break;
 		}
 
-		unsigned short chw = *(WORD*)(font + i);
+		unsigned short chw = *(WORD*)(str + i);
 		i += 2;
 
-		unsigned short* lpcc = getCCIdxInGBK(chw);
+		unsigned short* lpcc = getGBKCCIdx(chw);
 
 		for (int j = 0; j < 16; j++)
 		{
@@ -742,7 +565,7 @@ int __drawCC(unsigned char* font, int color, DWORD pos, DWORD bgcolor) {
 		if (mod == 0)
 		{
 			keepy = keepy + (GRAPH_CHINESECHAR_HEIGHT - 1) * gBytesPerLine;
-			if ((unsigned int)(keepy + GRAPH_CHINESECHAR_HEIGHT * gBytesPerLine - gGraphBase) > gWindowSize)
+			if ((unsigned int)(keepy + GRAPH_CHINESECHAR_HEIGHT * gBytesPerLine - gGraphBase) >= gWindowSize)
 			{
 				keepy = (unsigned char*)gGraphBase;
 			}
@@ -772,41 +595,7 @@ int __drawCCS(unsigned char* font, int color) {
 }
 
 
-int __drawHorizon(int x, int y, int len, int color) {
-	unsigned char* pos = (unsigned char*)__getpos(x, y);
-	for (int i = 0; i < len; i++)
-	{
-		int c = color;
-		for (int j = 0; j < gBytesPerPixel; j++)
-		{
-			*pos = (c & 0xff);
-			c = c >> 8;
-			pos++;
-		}
-	}
-	return len;
-}
-
-
-int __drawVertical(int x, int y, int len, int color) {
-	unsigned char* pos = (unsigned char*)__getpos(x, y);
-	unsigned char* keep = pos;
-	for (int i = 0; i < len; i++)
-	{
-		int c = color;
-		for (int j = 0; j < gBytesPerPixel; j++)
-		{
-			*pos = (c & 0xff);
-			c = c >> 8;
-			pos++;
-		}
-		keep += gBytesPerLine;
-		pos = keep;
-	}
-	return len;
-}
-
-int __drawGraphCharIntr(char* font, int color, int pos, int bgcolor) {
+int __drawGraphCharInt(char* font, int color, int pos, int bgcolor) {
 	int params[4];
 	__memset((char*)params, 0, 4 * sizeof(int));
 	params[0] = (int)font;
@@ -821,14 +610,6 @@ int __drawGraphCharIntr(char* font, int color, int pos, int bgcolor) {
 }
 
 
-
-//光标在屏幕上的位置保存在显卡内部的两个光标寄存器中，
-//每个寄存器是8 位，和起来形成一个 16 位的数值。比如，0 表示光标在屏幕上第 0 行第 0 列，
-//80 表示它在第 1 行第 0 列（因为标准 VGA 文本模式是 25 行，每行 80 个字符。所以，当光标在屏幕右下角时，该值为 25 * 80 - 1 = 1999。）
-
-//索引寄存器的端口号是0x03d4。通过给索引寄存器写入索引值读取对应的显卡内部寄存器的值。
-//两个 8 位光标寄存器，索引值分别是 14（0x0e）和 15（0x0f），分别存储光标位置的高 8 位和低 8 位。
-//指定了索引寄存器的值之后，通过数据端口0x03d5读取数据。
 
 
 int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
@@ -990,7 +771,7 @@ int __drawCircle(int x, int y, int radius, int color, unsigned char* backup) {
 }
 
 
-int __drawRectangle(LPPOINT p, int width, int height, int color, unsigned char* backup) {
+int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char* backup) {
 	__kRestoreMouse();
 
 	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
@@ -1024,7 +805,7 @@ int __drawRectangle(LPPOINT p, int width, int height, int color, unsigned char* 
 }
 
 
-int __restoreRectangle(LPPOINT p, int width, int height, unsigned char* backup) {
+int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char* backup) {
 	__kRestoreMouse();
 
 	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
@@ -1052,7 +833,32 @@ int __restoreRectangle(LPPOINT p, int width, int height, unsigned char* backup) 
 }
 
 
-int __drawRectangleFrame(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* back) {
+
+int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
+	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+
+	for (int i = 0; i < height + framesize; i++)
+	{
+		for (int j = 0; j < width + framesize; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				*ptr = *backup;
+				ptr++;
+				backup++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	return (int)ptr - gGraphBase;
+}
+
+int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* back) {
 	int startpos = __getpos(p->x, p->y) + gGraphBase;
 	unsigned char* ptr = (unsigned char*)startpos;
 	unsigned char* keep = ptr;
@@ -1098,6 +904,47 @@ int __drawRectangleFrame(LPPOINT p, int width, int height, int color, int frames
 }
 
 
+int removeFileManager(LPFMWINDOW w) {
+	__restoreRectWindow(&w->window.pos, w->window.width, w->window.height, (unsigned char*)w->window.backBuf);
+
+	removeWindow(w->window.id);
+
+	__kFree(w->window.backBuf);
+
+	//__terminatePid(w->pid);
+	return 0;
+}
+
+
+int drawFileManager(LPFMWINDOW w) {
+	w->window.capHeight = 0;
+	w->window.frameSize = 0;
+
+	w->window.next = 0;
+	w->window.prev = 0;
+
+	w->cpl = 3;
+	w->window.color = 0xffffff;
+	w->window.capColor = 0;
+	w->window.fontcolor = 0;
+	w->window.height = gVideoHeight;
+	w->window.width = gVideoWidth;
+	w->window.pos.x = 0;
+	w->window.pos.y = 0;
+	w->fsheight = GRAPHCHAR_HEIGHT * w->cpl;
+
+	w->window.backsize = gBytesPerPixel * (w->window.width) * (w->window.height);
+
+	w->window.backBuf = (DWORD)__kMalloc(w->window.backsize);
+
+	w->window.id = addWindow(TRUE, (DWORD*)&w->window.pos.x, (DWORD*)&w->window.pos.y, 0, w->window.winname);
+
+	__drawRectWindow(&w->window.pos, w->window.width, w->window.height, w->window.color, (unsigned char*)w->window.backBuf);
+
+	return 0;
+}
+
+
 
 int __drawFileMap(LPFILEMAP computer) {
 
@@ -1105,12 +952,12 @@ int __drawFileMap(LPFILEMAP computer) {
 
 	computer->backsize = gBytesPerPixel * (computer->width + computer->frameSize) * (computer->height + computer->frameSize);
 
-	unsigned int ptr = __drawRectangleFrame(&computer->pos, computer->width, computer->height,
+	unsigned int ptr = __drawRectFrameWindow(&computer->pos, computer->width, computer->height,
 		computer->color, computer->frameSize, computer->frameColor, (char*)computer->backGround);
 
 	DWORD offset = 0;
 	DWORD size = 0;
-	getResFromID(MAIN_DLL_BASE, computer->id, 3, &offset, &size);
+	int ret = getResFromID(MAIN_DLL_BASE, computer->id, 3, &offset, &size);
 	if (offset && size)
 	{
 		LPBITMAPINFOHEADER bmpinfo = (LPBITMAPINFOHEADER)offset;
@@ -1119,18 +966,192 @@ int __drawFileMap(LPFILEMAP computer) {
 		showBmpBits(computer->pos.x, computer->pos.y, (LPBITMAPINFOHEADER)offset, data);
 	}
 
-
 	ptr = ptr + GRAPHCHAR_HEIGHT * gBytesPerLine * computer->zoomin + GRAPHCHAR_HEIGHT * 4 * gBytesPerPixel * computer->zoomin;
 
 	computer->showX = (ptr % gBytesPerLine) / gBytesPerPixel;
 	computer->showY = ptr / gBytesPerLine;
 
-	int showend = __showGraphString(computer);
+	int showend = __drawFileMapChars(computer);
 
 	__kRefreshMouseBackup();
 	__kDrawMouse();
 
 	return showend;
+}
+
+
+
+
+int __clearWindowChar(WINDOWCLASS* window) {
+
+	window->showX -= GRAPHCHAR_WIDTH * window->zoomin;
+	if ((window->showX < window->pos.x + (window->frameSize >> 1)) && (window->showY > window->pos.y + window->capHeight + (window->frameSize >> 1)))
+	{
+		window->showX = window->pos.x + (window->frameSize >> 1) + window->width - GRAPHCHAR_WIDTH * window->zoomin;
+
+		window->showY -= (GRAPHCHAR_HEIGHT * window->zoomin);
+		if (window->showY < window->pos.y + window->capHeight + (window->frameSize >> 1))
+		{
+			window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
+		}
+	}
+	else if ((window->showX < window->pos.x + (window->frameSize >> 1)) && (window->showY <= window->pos.y + window->capHeight + (window->frameSize >> 1)))
+	{
+		window->showX = window->pos.x + (window->frameSize >> 1);
+		window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
+	}
+
+	int x = window->showX;
+	int y = window->showY;
+	int showpos = __drawWindowChars((unsigned char*)" ", DEFAULT_FONT_COLOR, window);
+	window->showX = x;
+	window->showY = y;
+	return showpos;
+}
+
+
+int __drawWindowChars(unsigned char* str, int color, WINDOWCLASS* window) {
+
+	int len = __strlen((char*)str);
+
+	unsigned int pos = __getpos(window->showX, window->showY) + gGraphBase;
+
+	unsigned char* showpos = (unsigned char*)pos;
+	unsigned char* keepy = showpos;
+	unsigned char* keepx = keepy;
+
+	for (int i = 0; i < len; i++)
+	{
+		unsigned int ch = str[i];
+		if (ch == '\n')
+		{
+			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
+			int posx = window->pos.x + (window->frameSize >> 1);
+
+			posy += (GRAPHCHAR_HEIGHT * window->zoomin);
+			if (posy >= window->pos.y + window->height + window->capHeight + (window->frameSize >> 1))
+			{
+				posy = window->pos.y + window->capHeight + (window->frameSize >> 1);
+			}
+			showpos = (unsigned char*)__getpos(posx, posy) + gGraphBase;
+
+			keepx = showpos;
+			keepy = showpos;
+			continue;
+		}
+		else if (ch == '\r')
+		{
+			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
+			int posx = window->pos.x + (window->frameSize >> 1);
+			showpos = (unsigned char*)__getpos(posx, posy) + gGraphBase;
+			keepx = showpos;
+			keepy = showpos;
+			continue;
+		}
+
+		int idx = ch << 3;
+		unsigned char* p = (unsigned char*)gFontBase + idx;
+		for (int j = 0; j < GRAPHCHAR_HEIGHT; j++)
+		{
+			unsigned char f = p[j];
+			int m = 128;
+			for (int k = 0; k < GRAPHCHAR_WIDTH; k++)
+			{
+				unsigned int c = 0;
+				if (f & m)
+				{
+					c = color;
+					for (int n = 0; n < gBytesPerPixel * window->zoomin; n++)
+					{
+						*showpos = c;
+						c = c >> 8;
+						showpos++;
+					}
+				}
+				else {
+					c = window->color;
+					for (int n = 0; n < gBytesPerPixel * window->zoomin; n++)
+					{
+						*showpos = c;
+						c = c >> 8;
+						showpos++;
+					}
+				}
+				m = m >> 1;
+			}
+
+			keepx += gBytesPerLine * window->zoomin;
+			showpos = keepx;
+		}
+
+		keepy = keepy + GRAPHCHAR_WIDTH * gBytesPerPixel * window->zoomin;
+
+		int posx = (((unsigned int)keepy - gGraphBase) % gBytesPerLine) / gBytesPerPixel;
+		if (posx >= window->pos.x + (window->frameSize >> 1) + window->width)
+		{
+			posx = (window->pos.x + (window->frameSize >> 1));
+			int posy = (unsigned int)(keepy - gGraphBase) / gBytesPerLine;
+			posy += (GRAPHCHAR_HEIGHT * window->zoomin);
+			if (posy >= window->pos.y + window->capHeight + (window->frameSize >> 1) + window->height)
+			{
+				posy = window->pos.y + window->capHeight + (window->frameSize >> 1);
+			}
+			keepy = (unsigned char*)__getpos(posx, posy) + gGraphBase;
+		}
+
+		keepx = keepy;
+		showpos = keepy;
+	}
+
+	int resultpos = (int)(showpos - gGraphBase);
+
+	window->showX = (resultpos % gBytesPerLine) / gBytesPerPixel;
+	window->showY = (resultpos / gBytesPerLine);
+
+	return (int)(showpos - gGraphBase);
+}
+
+
+
+
+
+
+
+
+
+
+int __drawHorizon(int x, int y, int len, int color) {
+	unsigned char* pos = (unsigned char*)__getpos(x, y);
+	for (int i = 0; i < len; i++)
+	{
+		int c = color;
+		for (int j = 0; j < gBytesPerPixel; j++)
+		{
+			*pos = (c & 0xff);
+			c = c >> 8;
+			pos++;
+		}
+	}
+	return len;
+}
+
+
+int __drawVertical(int x, int y, int len, int color) {
+	unsigned char* pos = (unsigned char*)__getpos(x, y);
+	unsigned char* keep = pos;
+	for (int i = 0; i < len; i++)
+	{
+		int c = color;
+		for (int j = 0; j < gBytesPerPixel; j++)
+		{
+			*pos = (c & 0xff);
+			c = c >> 8;
+			pos++;
+		}
+		keep += gBytesPerLine;
+		pos = keep;
+	}
+	return len;
 }
 
 int __drawDot(int x, int y, DWORD color) {

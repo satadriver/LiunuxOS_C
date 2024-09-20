@@ -435,7 +435,7 @@ void __kKeyboardProc() {
 			if (__memcmp(pb,"\xe1\x1d\x45\xe1\x9d\xc5",6) == 0 )
 			{
 				//make code is "\xe1\x1d\x45\xe1\x9d\xc5",but no break code!按下后6个字节扫描码，松开后不产生扫描码
-				__drawGraphChars((unsigned char*)"get Pause/Break key!\r\n",0);
+				__drawGraphChars(( char*)"get Pause/Break key!\r\n",0);
 				pauseBreak();
 			}
 
@@ -515,7 +515,7 @@ void kbdtest() {
 		DWORD pos = ( GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2)*gBytesPerPixel;
 
 		__sprintf(szout, "input key:%x,%s,status:%x\n", key,&key,status);
-		__drawGraphChar((unsigned char*)szout, 0, pos, TASKBARCOLOR);
+		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 
 		if (key == 0x1b) {
 			__kPutKbd(1,gKbdTest);

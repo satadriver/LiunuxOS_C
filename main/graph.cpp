@@ -10,7 +10,7 @@
 int showTxtFile(char * filename) {
 
 	int ret = 0;
-	unsigned char * data = 0;
+	char * data = 0;
 	int filesize = readFile(filename,(char**)&data);
 
 	*(data + filesize) = 0;
@@ -18,6 +18,7 @@ int showTxtFile(char * filename) {
 	__drawGraphChars(data, 0);
 
 	__kFree((DWORD)data);
+
 	return TRUE;
 }
 
@@ -44,20 +45,16 @@ int playWavFile(char *filename) {
 
 
 
-
-
-
 int showBmp(char * filename, unsigned char * data, int filesize,int x,int y) {
 	char szout[1024];
 
 	//__printf(szout, "show bmp file:%s\n", filename);
-	//__drawGraphChars((unsigned char*)szout, 0);
 
 	int ret = 0;
 	BITMAPFILEHEADER * bmphdr = (BITMAPFILEHEADER*)data;
 	if (bmphdr->bfType != 0x4d42)
 	{
-		__drawGraphChars((unsigned char*)"bmp file format error\n", 0);
+		__drawGraphChars(( char*)"bmp file format error\n", 0);
 		return FALSE;
 	}
 
@@ -66,7 +63,6 @@ int showBmp(char * filename, unsigned char * data, int filesize,int x,int y) {
 	ret = showBmpBits(x, y, info, data + bmphdr->bfOffBits);
 
 	__printf(szout, "bmp file:%s,size:%d,bit:%d,width:%d,height:%d\n", filename, filesize, info->biBitCount, info->biWidth, info->biHeight);
-
 
 	return ret;
 }

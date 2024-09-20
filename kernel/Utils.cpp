@@ -724,7 +724,7 @@ int __printf(char* buf, char* format, ...) {
 	int len = __kFormat(buf, format, (DWORD*)params);
 
 	if (g_ScreenMode) {
-		int showlen = __drawGraphChars((unsigned char*)buf, 0);
+		int showlen = __drawGraphChars(( char*)buf, 0);
 	}
 	return len;
 }

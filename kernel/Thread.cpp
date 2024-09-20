@@ -49,7 +49,7 @@ DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lppara
 	__kFree(tss[tid].espbase);
 
 	if (dwtid & 0x80000000) {
-		return;
+		return 0;
 	}
 	else {
 		__sleep(-1);

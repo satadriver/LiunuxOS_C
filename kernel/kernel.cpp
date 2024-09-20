@@ -174,9 +174,11 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 //注意二位数组在内存中的排列和结构
-void mytest(int p) {
+void mytest(LIGHT_ENVIRONMENT  * stack) {
 	__asm {
-		lea eax,p
+		mov eax,0x12345678
+		mov edx, stack
+		mov[edx + LIGHT_ENVIRONMENT.eax], eax
 
 	}
 	return;
@@ -189,7 +191,8 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	mytest(0);
+	LIGHT_ENVIRONMENT stack = { 0 };
+	mytest(&stack);
 	return TRUE;
 }
 #endif

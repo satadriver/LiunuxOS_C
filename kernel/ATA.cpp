@@ -288,7 +288,7 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 int waitComplete(WORD port) {
 
 	//waitInterval(0);
-	delay();
+	//delay();
 
 	int r = 0;
 	//r = inportb(port - 6);
@@ -301,7 +301,7 @@ int waitComplete(WORD port) {
 			//	return FALSE;
 			//}
 			//else 
-			if ((r & 8) == 8) {
+			if ((r & 0x88) == 8) {		//0xe9
 				return TRUE;
 			}
 			else {
@@ -372,7 +372,7 @@ int writesector(int port,int len,char* buf) {
 
 int readsector(int port,int len, char * buf) {
 	__asm {
-		//cli
+		cli
 
 		cld
 		mov edi,buf
@@ -380,7 +380,7 @@ int readsector(int port,int len, char * buf) {
 		mov edx, port
 		rep insd
 
-		//sti
+		sti
 	}
 }
 
@@ -560,6 +560,8 @@ int readSectorLBA48Mimo(unsigned int secnoLow, unsigned int secnoHigh, unsigned 
 
 int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨C A1h and  IDENTIFY  DEVICE ¨C ECh
 
+	char szout[1024];
+
 	waitFree(port + 7);
 
 	outportb(port + 1, 0);	//dma = 1,pio = 0
@@ -579,10 +581,12 @@ int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨
 
 		unsigned char szshow[0x1000];
 		__dump((char*)buffer, BYTES_PER_SECTOR, 0, szshow);
-		__drawGraphChars((unsigned char*)szshow, 0);
+		__drawGraphChars(( char*)szshow, 0);
 	}
-
-	//char szout[1024];
+	else {
+		__printf(szout, "%s waitComplete result:%d, cmd:%x,port:%x ERROR\r\n", __FUNCTION__,cmd, port);
+	}
+	
 	//__printf(szout, "harddisk sequence:%s,firmware version:%s,type:%s,type sequence:%s\r\n",
 	//	(char*)HARDDISK_INFO_BASE + 20, (char*)HARDDISK_INFO_BASE + 46, (char*)HARDDISK_INFO_BASE + 54, (char*)HARDDISK_INFO_BASE + 176 * 2);
 

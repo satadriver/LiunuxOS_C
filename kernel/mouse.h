@@ -3,8 +3,8 @@
 
 #define MOUSE_POS_LIMIT				256
 
-#define MOUSE_SHOW_COLOR			0x005C9C00
-#define MOUSE_BORDER_SIZE			4
+#define MOUSE_SHOW_COLOR			0x001366D9
+#define MOUSE_BORDER_SIZE			2
 #define MOUSE_SHOW_RATIO			40
 #define MOUSE_BORDER_COLOR			0
 
@@ -47,8 +47,12 @@ void mousetest();
 
 extern "C" void MouseIntProc();
 
+int getMouseID();
 
 
+int isGeometryBorder(int x, int y);
+
+int isGeometryMouse(int x, int y);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) DWORD gMouseID;
@@ -70,7 +74,6 @@ extern "C"  __declspec(dllexport) void __kRestoreMouse();
 
 extern "C"  __declspec(dllexport) void __kDrawMouse();
 
-void __initMouse(int x, int y);
 
 #else
 extern "C" __declspec(dllimport) DWORD gMouseID;

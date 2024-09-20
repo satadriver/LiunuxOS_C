@@ -110,7 +110,7 @@ void __kPeriodTimer() {
 	}
 
 	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT) * gVideoWidth * gBytesPerPixel;
-	__drawGraphChar((unsigned char*)szout, fontcolor, pos, TASKBARCOLOR);
+	__drawGraphChar(( char*)szout, fontcolor, pos, TASKBARCOLOR);
 
 	__kPeriodTimerProc();
 }

@@ -128,7 +128,7 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 		
 		if (lpdir == 0)
 		{
-			__drawGraphChars((unsigned char *)"not found empty dir\n", 0);
+			__drawGraphChars(( char *)"not found empty dir\n", 0);
 			secoff = 0;
 			break;
 		}
@@ -176,7 +176,7 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 				ret = updateFSINFO(gFsInfo.freeClusterCnt, nnfcn);
 			}
 			else {
-				__drawGraphChars((unsigned char *)"create file mode error\n", 0);
+				__drawGraphChars(( char *)"create file mode error\n", 0);
 				secoff = 0;
 				break;
 			}
@@ -214,7 +214,7 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 		ret = writeSector(secoff, 0, 1, (char*)dirdataoff);
 		if (ret <= 0)
 		{
-			__drawGraphChars((unsigned char *)"create file write error\n", 0);
+			__drawGraphChars(( char *)"create file write error\n", 0);
 			secoff = 0;
 			break;
 		}

@@ -18,7 +18,7 @@
 
 
 int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD runparam) {
-	//char szout[1024];
+	char szout[1024];
 
 	int retvalue = 0;
 
@@ -45,7 +45,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
-			__restoreWindow(&window);
+			__removeWindow(&window);
 			return 0;
 		}
 
@@ -59,7 +59,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 			{
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
-					__restoreWindow(&window);
+					__removeWindow(&window);
 					return 0;
 				}
 			}
@@ -74,7 +74,6 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 					pencilColor = *(unsigned int*)pos;
 
 // 					__printf(szout, "set color:%x\r\n", pencilColor);
-// 					__drawGraphChars((unsigned char*)szout, 0);
 
  					__kDrawMouse();
 					__sleep(0);

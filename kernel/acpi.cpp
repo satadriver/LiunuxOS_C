@@ -247,7 +247,7 @@ static int parseRSDP(XSDP_HEADER* xsdp)
 	}
 	if (sum)
 	{
-		__drawGraphChars((unsigned char*)"parseRSDP checksum error\r\n", 0);
+		__drawGraphChars(( char*)"parseRSDP checksum error\r\n", 0);
 		return FALSE;
 	}
 

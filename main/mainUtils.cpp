@@ -41,8 +41,7 @@ int getcrs(char * szout) {
 		mov eax, cr3
 		mov rcr3, eax
 
-		//mov eax, cr4
-		//db 0fh, 20h, 0e0h
+		//mov eax, cr4	//db 0fh, 20h, 0e0h
 		__emit 0xf
 		__emit 0x20
 		__emit 0xe0
@@ -148,22 +147,18 @@ int getGeneralRegs(char * szout) {
 	return len;
 }
 
+//sldt lldt, str ltr is all 16 bit instructions
 int getldt(char * szout) {
-	//char strldt[8];
 
 	WORD ldt = 0;
 
 	__asm {
 		sldt ax
 		mov ldt,ax
-		//sldt fword ptr [strldt]
 	}
 
 	int len = 0;
 	int outlen = 0;
-
-	//int ldtlen = *(WORD*)strldt + 1;
-	//DWORD ldtbase = *(DWORD*)(strldt + 2);
 
 	TssDescriptor * ldtbase = (TssDescriptor*)(GDT_BASE + ldtSelector);
 
@@ -171,7 +166,6 @@ int getldt(char * szout) {
 
 	__printf(szout, "ldt selector:%d,base:%x,size:%d\r\n",ldt, ldtbase, ldtlen);
 
-	//__int64 * pldts = (__int64*)ldtbase;
 	__int64 * pldts = (__int64*)((ldtbase->baseLow) + (ldtbase->baseMid << 16) + (ldtbase->baseHigh << 24));
 
 	int cnt = ldtlen >> 3;
@@ -229,8 +223,6 @@ int getidt(char * szout) {
 	DWORD idtbase = *(DWORD*)(stridt + 2);
 
 	__int64 * pidts = (__int64*)idtbase; 
-
-	//__int64 * pidts = (__int64*)(stridt + 2);
 
 	int cnt = idtlen >> 3;
 

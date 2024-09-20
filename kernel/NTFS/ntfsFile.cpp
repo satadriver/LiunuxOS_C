@@ -29,7 +29,7 @@ unsigned long long getIdxNextDir(char* filename, char* buf) {
 
 	if (__memcmp(buf, "INDX", 4))
 	{
-		__drawGraphChars((unsigned char*)"getIdxNextDir format error\n", 0);
+		__drawGraphChars(( char*)"getIdxNextDir format error\n", 0);
 		return FALSE;
 	}
 

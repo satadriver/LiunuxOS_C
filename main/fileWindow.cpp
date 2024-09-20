@@ -46,7 +46,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			{
 				__printf(szout, "__kFullWindowPic read file:%s error\n", filename);
 
-				__restoreWindow(&window);
+				__removeWindow(&window);
 				return -1;
 			}
 		}
@@ -61,9 +61,6 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			if (retvalue <= 0)
 			{
 				__printf(szout, "__kFullWindowPic showBmp:%s error\n", filename);
-
-				//__restoreWindow(&window);
-				//return -1;
 			}
 		}
 		else if (cmd == SHOW_WINDOW_TXT)
@@ -73,8 +70,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 
 			DWORD cappos = __getpos(window.showX, window.showY);
 			
-			int showend = __drawGraphChar((unsigned char*)data, DEFAULT_FONT_COLOR, (unsigned int)cappos,window.color);
-			//int showend = __drawGraphCharPos((unsigned char*)data, DEFAULT_FONT_COLOR, (unsigned int)cappos);
+			int showend = __drawGraphChar(( char*)data, DEFAULT_FONT_COLOR, (unsigned int)cappos,window.color);
 		}
 		else if (cmd == SHOW_WINDOW_JPEG) {
 			int bmpsize = filesize * 16;
@@ -86,7 +82,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 				retvalue = showBmp(filename, (unsigned char *)bmpdata, bmpsize, window.showX, window.showY);
 			}
 			else {
-				__drawGraphChars((unsigned char*)"decode jpeg error\r\n", 0);
+				__drawGraphChars(( char*)"decode jpeg error\r\n", 0);
 			}
 			__kFree((DWORD)bmpdata);
 		}
@@ -101,7 +97,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 
 		DWORD cappos = __getpos(window.showX, window.showY);
 
-		int showend = __drawGraphChar((unsigned char*)data, DEFAULT_FONT_COLOR, (unsigned int)cappos, window.color);
+		int showend = __drawGraphChar(( char*)data, DEFAULT_FONT_COLOR, (unsigned int)cappos, window.color);
 	}
 	else if (cmd == SHOW_TEST_WINDOW)
 	{
@@ -121,11 +117,8 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 				gKbdTest = FALSE;
 				gMouseTest = FALSE;
 			}
-			__restoreWindow(&window);
+			__removeWindow(&window);
 			return 0;
-
-// 			__terminatePid(pid);
-// 			__sleep(-1);
 		}
 
 
@@ -139,7 +132,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			{
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
-					__restoreWindow(&window);
+					__removeWindow(&window);
 					return 0;
 
 					//__terminatePid(pid);
@@ -153,67 +146,3 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 	return 0;
 }
 
-
-int restoreFileManager(LPFMWINDOW w) {
-	__restoreRectangle(&w->window.pos, w->window.width, w->window.height, (unsigned char*)w->window.backGround);
-	removeWindow(w->window.id);
-
-	__kFree(w->window.backGround);
-
-	//__terminatePid(w->pid);
-	return 0;
-}
-
-
-int drawFileManager(LPFMWINDOW w) {
-	w->window.capHeight = 0;
-	w->window.frameSize = 0;
-
-	w->window.next = 0;
-	w->window.prev = 0;
-
-	w->cpl = 3;
-	w->window.color = 0xffffff;
-	w->window.capColor = 0;
-	w->window.fontcolor = 0;
-	w->window.height = gVideoHeight;
-	w->window.width = gVideoWidth;
-	w->window.pos.x = 0;
-	w->window.pos.y = 0;
-	w->fsheight = GRAPHCHAR_HEIGHT * w->cpl;
-
-	w->window.backsize = gBytesPerPixel * (w->window.width) * (w->window.height);
-
-	w->window.backGround = (DWORD)__kMalloc(w->window.backsize);
-
-	w->window.id = addWindow(TRUE, (DWORD*)&w->window.pos.x, (DWORD*)&w->window.pos.y, 0, w->window.winname);
-
-	__drawRectangle(&w->window.pos, w->window.width, w->window.height, w->window.color, (unsigned char*)w->window.backGround);
-
-	return 0;
-
-}
-
-int __restoreRectangleFrame(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
-	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-
-	for (int i = 0; i < height + framesize; i++)
-	{
-		for (int j = 0; j < width + framesize; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				*ptr = *backup;
-				ptr++;
-				backup++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-
-	return (int)ptr - gGraphBase;
-}

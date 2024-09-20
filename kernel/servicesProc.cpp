@@ -36,7 +36,8 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 		call __kServicesProc
 		add esp, 8
 
-		mov stack.eax, eax		//may be error?  warning: "."应用于非 UDT 类型
+		mov edx,stack
+		mov [edx + LIGHT_ENVIRONMENT.eax],eax		//may be error?  warning: "."应用于非 UDT 类型
 	}
 
 	__asm {
@@ -78,6 +79,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
 		}
 		case GRAPH_CHAR_OUTPUT:
 		{
+			r = __drawGraphChars((char*)params[0], params[1]);
 			break;
 		}
 		case RANDOM:

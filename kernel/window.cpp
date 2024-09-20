@@ -187,7 +187,7 @@ int destroyWindows() {
 
 		while (next)
 		{
-			__restoreWindow(next);
+			__removeWindow(next);
 			next = next->prev;
 			cnt++;
 		}
@@ -353,7 +353,7 @@ int placeFocus(int x,int y) {
 					r2.right = w->right;
 					res = getOverlapRect(&r1,&r2,&r);
 
-					char* ol_src = (char*)surf->backGround + ( (r.top - surf->top) * surf->width + r.left - surf->left)*gBytesPerPixel;
+					char* ol_src = (char*)surf->backBuf + ( (r.top - surf->top) * surf->width + r.left - surf->left)*gBytesPerPixel;
 					int olsize = (r.bottom - r.top) * (r.right - r.left) * gBytesPerPixel;
 
 					char * ol_dst = (char*)__getpos(w->pos.x,w->pos.y) + ((r.top - surf->top) * w->width + r.left - w->left) * gBytesPerPixel;
@@ -361,7 +361,7 @@ int placeFocus(int x,int y) {
 					__memcpy(ol_dst, ol_src, olsize);
 
 
-					char* src = (char*)w->backGround + ((r.top - w->top) * w->width + r.left - w->left) * gBytesPerPixel;
+					char* src = (char*)w->backBuf + ((r.top - w->top) * w->width + r.left - w->left) * gBytesPerPixel;
 
 					char* dst = ol_src;
 

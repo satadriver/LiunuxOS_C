@@ -301,7 +301,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 		POINT p;
 		p.x = 0;
 		p.y = 0;
-		__drawRectangle(&p, gVideoWidth, gVideoHeight, window.window.color, 0);
+		ret = __drawRectWindow(&p, gVideoWidth, gVideoHeight, window.window.color, 0);
 
 		for (int j = 0; j < fpagecnt; j++)
 		{
@@ -315,20 +315,20 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 				int len = __sprintf(szinfo, "%s        DIR(%x)        %d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
-				__drawGraphChar((unsigned char*)szinfo, FILE_DIR_FONT_COLOR, pos, window.window.fontcolor);
+				__drawGraphChar(( char*)szinfo, FILE_DIR_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else if (files[number].attrib & FILE_ATTRIBUTE_ARCHIVE)
 			{
 				int len = __sprintf(szinfo, "%s        FILE(%x)       %d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
-				__drawGraphChar((unsigned char*)szinfo, FILE_FILE_FONT_COLOR, pos, window.window.fontcolor);
+				__drawGraphChar(( char*)szinfo, FILE_FILE_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else {
 				int len = __sprintf(szinfo, "%s        UNKNOWN(%x)    %d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
-				__drawGraphChar((unsigned char*)szinfo, FILE_UNKNOWN_FONT_COLOR, pos, window.window.fontcolor);
+				__drawGraphChar(( char*)szinfo, FILE_UNKNOWN_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			number++;
 		}
@@ -394,7 +394,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 				{
 					__kFree((DWORD)files);
 
-					restoreFileManager(&window);
+					removeFileManager(&window);
 					return 0;
 				}
 			}

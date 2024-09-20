@@ -42,7 +42,7 @@ int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
 	//iret = vm86ReadFloppy(getCylinder(secno),getHeader(secno),getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
 	if (iret <= 0)
 	{
-		__drawGraphChars((unsigned char*)"read floppy first sector error\n", 0);
+		__drawGraphChars(( char*)"read floppy first sector error\n", 0);
 		return FALSE;
 	}
 
@@ -118,14 +118,14 @@ int browseFat12File(LPFILEBROWSER files) {
 		//iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
 		if (iret <= 0)
 		{
-			__drawGraphChars((unsigned char*)"read floppy dbr sector error\n", 0);
+			__drawGraphChars(( char*)"read floppy dbr sector error\n", 0);
 			return FALSE;
 		}
 	}
 
 	if (__memcmp((CHAR*)&gFat12Dbr.BS_FileSysType,"FAT12",5))
 	{
-		__drawGraphChars((unsigned char*)"read floppy dbr sector format error\n", 0);
+		__drawGraphChars(( char*)"read floppy dbr sector format error\n", 0);
 		return FALSE;
 	}
 
@@ -154,7 +154,7 @@ int browseFat12File(LPFILEBROWSER files) {
 	//iret = vm86ReadFloppy(getCylinder(gFat12FatSecOff), getHeader(gFat12FatSecOff), getSector(gFat12FatSecOff),gFat12Dbr.BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
 	if (iret <= 0)
 	{
-		__drawGraphChars((unsigned char*)"read floppy fat sector error\n", 0);
+		__drawGraphChars(( char*)"read floppy fat sector error\n", 0);
 		return FALSE;
 	}
 
@@ -167,7 +167,7 @@ int browseFat12File(LPFILEBROWSER files) {
 	//iret = vm86ReadFloppy(getCylinder(gFat12RootDirSecOff),getHeader(gFat12RootDirSecOff),getSector(gFat12RootDirSecOff),gFat12RootSecCnt, (char*)gFat12RootDirBase, gFloppyDev);
 	if (iret <= 0)
 	{
-		__drawGraphChars((unsigned char*)"read floppy root dir sector error\n", 0);
+		__drawGraphChars(( char*)"read floppy root dir sector error\n", 0);
 		return FALSE;
 	}
 
@@ -244,7 +244,7 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 			readoksize += gFat12ClusterSize;
 		}
 		else {
-			__drawGraphChars((unsigned char*)"fat12 read cluster error\n", 0);
+			__drawGraphChars(( char*)"fat12 read cluster error\n", 0);
 			break;
 		}
 

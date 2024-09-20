@@ -39,7 +39,7 @@ int fat32Init() {
 	ret = getDBR();
 	if (ret <= 0)
 	{
-		__drawGraphChars((unsigned char*)"fat32 dbr format error\r\n", 0);
+		__drawGraphChars(( char*)"fat32 dbr format error\r\n", 0);
 		return FALSE;
 	}
 

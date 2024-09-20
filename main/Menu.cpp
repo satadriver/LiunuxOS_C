@@ -14,7 +14,8 @@
 
 int gMenuID = 0;
 
-int __restoreMenu(RIGHTMENU* menu) {
+int __restoreRightMenu(RIGHTMENU* menu) {
+
 	__kRestoreMouse();
 
 	int startpos = menu->pos.y * gBytesPerLine + menu->pos.x * gBytesPerPixel + gGraphBase;
@@ -44,7 +45,7 @@ int __restoreMenu(RIGHTMENU* menu) {
 
 	__kDrawMouse();
 
-	__free(menu->backGround);
+	__kFree(menu->backGround);
 
 	return (int)ptr - gGraphBase;
 }
@@ -111,7 +112,7 @@ int __drawRightMenu(RIGHTMENU *menu) {
 			break;
 		}
 
-		__drawGraphChar((unsigned char*)menu->menuname[i], 0, startpos - gGraphBase, 0);
+		__drawGraphChar(( char*)menu->menuname[i], 0, startpos - gGraphBase, 0);
 		startpos += GRAPHCHAR_HEIGHT*gBytesPerLine * 2;
 	}
 
@@ -178,7 +179,7 @@ extern "C" __declspec(dllexport) int __kDrawWindowsMenu() {
 }
 
 
-void initWindowsRightMenu(RIGHTMENU * menu,int tid) {
+void initRightMenu(RIGHTMENU * menu,int tid) {
 	__memset((char*)menu, 0, sizeof(RIGHTMENU));
 
 	__strcpy(menu->name, "WindowsRightClickMenu");

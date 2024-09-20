@@ -42,40 +42,14 @@
 #define EXPLORER_TASKNAME	"__kExplorer"
 
 
-int g_test1Cnt = 0;
-
-int g_test2Cnt = 0;
-
-int g_test3Cnt = 0;
-
-extern "C" __declspec(dllexport) void __taskTest1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test1Cnt++ < 10) {
-		__printf(szout, "__taskTest1 tid:%d running %d!\r\n",tid, g_test1Cnt);
-		__sleep(100);
-	}
-}
-
-extern "C" __declspec(dllexport) void __taskTest2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test2Cnt++ < 10) {
-		__printf(szout, "__taskTest2 tid:%d running %d!\r\n",tid, g_test2Cnt);
-		__sleep(100);
-	}
-}
-
-extern "C" __declspec(dllexport) void __taskTest3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test3Cnt++ < 10) {
-		__printf(szout, "__taskTest3 tid:%d running %d!\r\n", tid, g_test3Cnt);
-		__sleep(100);
-	}
-}
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
 
 	char szout[1024];
+
+	__initMouse(gVideoWidth, gVideoHeight);
+
 	initWindowList();
 
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
@@ -89,19 +63,19 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	initTaskbarWindow(&taskbar, filename, tid);
 
 	FILEMAP computer;
-	initBigClickItem(&computer, "My Computer", tid,1, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight);
+	initIcon(&computer, "My Computer", tid,1, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight);
 
 	FILEMAP atapi;
-	initBigClickItem(&atapi, "CD-ROM", tid,2, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
+	initIcon(&atapi, "CD-ROM", tid,2, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 
 	FILEMAP floppy;
-	initBigClickItem(&floppy, "Floppy", tid,3, gVideoWidth - 2 * gBigFolderWidth,
+	initIcon(&floppy, "Floppy", tid,3, gVideoWidth - 2 * gBigFolderWidth,
 		gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 
 	__kDrawWindowsMenu();
 
 	RIGHTMENU menu;
-	initWindowsRightMenu(&menu, tid);
+	initRightMenu(&menu, tid);
 
 	char cputype[1024];
 	getCpuType(cputype);
@@ -193,7 +167,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (menu.action)
 			{
-				__restoreMenu(&menu);
+				__restoreRightMenu(&menu);
 
 				if ((mouseinfo.x > menu.pos.x) && (mouseinfo.x < menu.pos.x + menu.width))
 				{
@@ -268,6 +242,14 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
+
+			if (mouseinfo.x >= 0  && mouseinfo.x < gVideoWidth - TASKBAR_HEIGHT)
+			{
+				if ((mouseinfo.y >= gWindowHeight) && mouseinfo.y < gVideoHeight)
+				{
+					ret = TaskbarOnClick(&window);
+				}
+			}		
 		}
 		else if (mouseinfo.status & 2)	//right click
 		{
@@ -282,6 +264,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				}
 			}
 		}
+
 		else if (mouseinfo.status & 4)	//middle click
 		{
 // 			menu.pos.x = mouseinfo.x;
@@ -295,13 +278,51 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 }
 
 
+int TaskbarOnClick(WINDOWCLASS *window) {
+	return 0;
+}
 
-DWORD isDesktop() {
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	if (__strcmp(tss->funcname, EXPLORER_TASKNAME) == 0)
+
+DWORD isDesktop(WINDOWCLASS * window) {
+	int pid = window->pid;
+
+	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	
+	if (__strcmp(tssbase[pid].funcname, EXPLORER_TASKNAME) == 0)
 	{
 		return TRUE;
 	}
 
 	return FALSE;
+}
+
+
+int g_test1Cnt = 0;
+
+int g_test2Cnt = 0;
+
+int g_test3Cnt = 0;
+
+extern "C" __declspec(dllexport) void __taskTest1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char szout[1024];
+	while (g_test1Cnt++ < 10) {
+		__printf(szout, "__taskTest1 tid:%d running %d!\r\n", tid, g_test1Cnt);
+		__sleep(100);
+	}
+}
+
+extern "C" __declspec(dllexport) void __taskTest2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char szout[1024];
+	while (g_test2Cnt++ < 10) {
+		__printf(szout, "__taskTest2 tid:%d running %d!\r\n", tid, g_test2Cnt);
+		__sleep(100);
+	}
+}
+
+extern "C" __declspec(dllexport) void __taskTest3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char szout[1024];
+	while (g_test3Cnt++ < 10) {
+		__printf(szout, "__taskTest3 tid:%d running %d!\r\n", tid, g_test3Cnt);
+		__sleep(100);
+	}
 }

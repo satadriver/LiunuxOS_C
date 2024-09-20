@@ -126,7 +126,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		process->level, process->status, process->counter, process->moduleaddr, process->sleep, process->funcname, process->filename);
 
 	if (g_ExceptionCounter++ < 4) {
-		__logShow((unsigned char*)showinfo, EXCEPTION_TIPS_COLOR);
+		__drawGraphChars(( char*)showinfo, EXCEPTION_TIPS_COLOR);
 	}
 	
 	if (pid == tid) {
