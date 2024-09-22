@@ -233,7 +233,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 int isGeometryMouse(int x,int y) {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	if ( (6 * y >= 4 * x) && (6 * y <= 9 * x) ) {
-		if ( (y > data->mouseWidth *2 / 3) && (x > data->mouseWidth * 2 / 3) ) {
+		if ( (y >= data->mouseWidth *2 / 3) && (x >= data->mouseWidth * 2 / 3) ) {
 			return FALSE;
 		}
 		return TRUE;
@@ -243,10 +243,10 @@ int isGeometryMouse(int x,int y) {
 
 int isGeometryBorder(int x, int y) {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
-	if ( (y + MOUSE_BORDER_SIZE > data->mouseWidth * 2 / 3) && (x + MOUSE_BORDER_SIZE > data->mouseWidth * 2 / 3) ) {
+	if ( (y + MOUSE_BORDER_WIDTH == data->mouseWidth * 2 / 3) && (x + MOUSE_BORDER_WIDTH == data->mouseWidth * 2 / 3) ) {
 		return TRUE;
 	}
-	if (6 * y >= 4 * (x + MOUSE_BORDER_SIZE) || 6 * y <= 9 * (x - MOUSE_BORDER_SIZE)) {
+	if (6 * y == 4 * (x + MOUSE_BORDER_WIDTH) || 6 * y == 9 * (x - MOUSE_BORDER_WIDTH)) {
 
 		return TRUE;
 	}

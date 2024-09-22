@@ -265,7 +265,7 @@ int __restoreWindow(LPWINDOWCLASS window) {
 
 
 
-int __drawFileMapChars(FILEMAP* filemap) {
+int __drawFileIconChars(FILEICON* filemap) {
 
 	unsigned int pos = __getpos(filemap->showX, filemap->showY);
 
@@ -946,7 +946,7 @@ int drawFileManager(LPFMWINDOW w) {
 
 
 
-int __drawFileMap(LPFILEMAP computer) {
+int __drawFileIcon(LPFILEICON computer) {
 
 	__kRestoreMouse();
 
@@ -971,7 +971,7 @@ int __drawFileMap(LPFILEMAP computer) {
 	computer->showX = (ptr % gBytesPerLine) / gBytesPerPixel;
 	computer->showY = ptr / gBytesPerLine;
 
-	int showend = __drawFileMapChars(computer);
+	int showend = __drawFileIconChars(computer);
 
 	__kRefreshMouseBackup();
 	__kDrawMouse();

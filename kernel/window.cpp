@@ -23,7 +23,7 @@ void initWindowList() {
 	initListEntry((LPLIST_ENTRY)&gWindowsList->list);
 }
 
-LPWINDOWSINFO checkWindowExist(char * wname) {
+LPWINDOWSINFO isWindowExist(char * wname) {
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO tmp = info;
 	do
@@ -43,7 +43,7 @@ LPWINDOWSINFO checkWindowExist(char * wname) {
 	return 0;
 }
 
-LPWINDOWSINFO checkWindowExist(DWORD wid) {
+LPWINDOWSINFO isWindowExist(DWORD wid) {
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO tmp = info;
 	do
@@ -79,6 +79,9 @@ LPWINDOWSINFO getFreeWindow() {
 }
 
 
+LPWINDOWSINFO getWindow(int wid) {
+	return gWindowsList + wid;
+}
 
 DWORD isTopWindow(int wid) {
 	LPWINDOWSINFO window = wid + gWindowsList;
@@ -101,7 +104,7 @@ DWORD getTopWindow() {
 int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	char szout[1024];
 
-	LPWINDOWSINFO window = checkWindowExist(wname);
+	LPWINDOWSINFO window = isWindowExist(wname);
 	if (window)
 	{
 		return FALSE;
@@ -168,7 +171,7 @@ int removeWindow(int id) {
 
 
 
-
+/*
 int destroyWindows() {
 	int cnt = 0;
 
@@ -378,3 +381,4 @@ int placeFocus(int x,int y) {
 	return 0;
 }
 
+*/

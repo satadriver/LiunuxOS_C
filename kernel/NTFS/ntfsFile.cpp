@@ -135,7 +135,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 	char msfinfo[MFTEntrySize * 2];
 
 	DWORD low = secoff & 0xffffffff;
-	DWORD high = (secoff >> 32);
+	DWORD high = (secoff >> 32) & 0xffff;
 	ret = readSector(low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
 	{
@@ -230,7 +230,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 					unsigned long long idxsecoff = gNtfsDbr.hideSectors + clsno * g_SecsPerCluster;
 
 					DWORD low = idxsecoff & 0xffffffff;
-					DWORD high = idxsecoff >> 32;
+					DWORD high = (idxsecoff >> 32) & 0xffff;
 
 					int buffer_size = (int)(g_SecsPerCluster * clscnt * g_bytesPerSec);
 
@@ -307,7 +307,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 	char msfinfo[MFTEntrySize];
 
 	DWORD low = secoff & 0xffffffff;
-	DWORD high = secoff >> 32;
+	DWORD high =( secoff >> 32) & 0xffff;
 	ret = readSector((DWORD)low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
 	{
@@ -397,7 +397,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 					//to search directory in INDEX,the cluster offset is not relative to mft offset,but relative to hidden sector offset
 					unsigned long long datasecoff = (clsno * g_SecsPerCluster + gNtfsDbr.hideSectors);
 					DWORD low = datasecoff & 0xffffffff;
-					DWORD high = datasecoff >> 32;
+					DWORD high = (datasecoff >> 32) & 0xffff;
 
 					ret = readSector(low, high, (DWORD)(clscnt * g_SecsPerCluster), (char*)*buf);
 					if (ret <= 0)

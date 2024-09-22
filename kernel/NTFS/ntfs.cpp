@@ -44,21 +44,17 @@ int initNTFS() {
 
 int getNtfsDBR() {
 	int ret = 0;
-	unsigned int partitionSize[4];
 
 	for (int i = 0; i < 4; i++)
 	{
-		partitionSize[i] = gMBR.dpt[i].sectortotal;
-	}
-
-	if (partitionSize[0] > partitionSize[1])
-	{
-		unsigned int secno = gMBR.dpt[0].offset;
-		int ret = readSector(secno, 0, 1, (char*)&gNtfsDbr);
-	}
-	else {
-		unsigned int secno = gMBR.dpt[1].offset;
-		int ret = readSector(secno, 0, 1, (char*)&gNtfsDbr);
+		if (gMBR.dpt[i].flag == 0x80) {
+			unsigned int secno = gMBR.dpt[i].offset;
+			ret = readSector(secno, 0, 1, (char*)&gNtfsDbr);
+			if (__memcmp((char*)gNtfsDbr.FsID, "NTFS    ", 8) == 0)
+			{
+				break;
+			}
+		}
 	}
 
 	return ret;
@@ -69,7 +65,7 @@ int getNtfsDBR() {
 int readMSFRoot() {
 
 	DWORD low = (gMsfOffset + MSF_ROOTDIR_OFFSET) & 0xffffffff;
-	DWORD high = (gMsfOffset + MSF_ROOTDIR_OFFSET) >> 32;
+	DWORD high = ( (gMsfOffset + MSF_ROOTDIR_OFFSET) >> 32 ) & 0xffff;
 	int ret = readSector(low, high, 2, gMsfRoot);
 	return ret;
 }

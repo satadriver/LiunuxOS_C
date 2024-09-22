@@ -93,7 +93,7 @@ void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparam
 
 
 
-int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, char * funcname,DWORD level, DWORD runparam) 
+int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, char * funcname,DWORD level, DWORD param) 
 {
 	int result = 0;
 
@@ -323,9 +323,12 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	__strcpy(params->szFuncName, funcname);
 	params->funcname = params->szFuncName;
 	params->lpcmdparams = &params->cmdparams;
-	if (runparam)
+	if (param)
 	{
-		__memcpy((char*)params->lpcmdparams, (char*)runparam, sizeof(TASKCMDPARAMS));
+		__memcpy((char*)params->lpcmdparams, (char*)param, sizeof(TASKCMDPARAMS));
+	}
+	else {
+		params->lpcmdparams = 0;
 	}
 
 	tss->counter = 0;

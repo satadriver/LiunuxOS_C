@@ -14,7 +14,7 @@
 
 
 
-unsigned long getIndexDirs(char* buf, LPFILEBROWSER pathname) {
+unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 
 	int cnt = 0;
 
@@ -49,18 +49,18 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER pathname) {
 
 		ret = upper2lower(ascfn, __strlen(ascfn));
 
-		__strcpy(pathname->pathname, ascfn);
-		pathname->secno = (DWORD)(idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff);
-		pathname->filesize = (DWORD)idxentry->SIE_FileRealSize;
-		pathname->attrib = (DWORD)idxentry->SIE_FileFlag;
-		if (pathname->attrib & 0x10000000)
+		__strcpy(files->pathname, ascfn);
+		files->secno = (idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff);
+		files->filesize = (DWORD)idxentry->SIE_FileRealSize;
+		files->attrib = (DWORD)idxentry->SIE_FileFlag;
+		if (files->attrib & 0x10000000)
 		{
-			pathname->attrib |= FILE_ATTRIBUTE_DIRECTORY;
+			files->attrib |= FILE_ATTRIBUTE_DIRECTORY;
 		}
 		else {
-			pathname->attrib |= FILE_ATTRIBUTE_ARCHIVE;
+			files->attrib |= FILE_ATTRIBUTE_ARCHIVE;
 		}
-		pathname++;
+		files++;
 		cnt++;
 
 		if ((idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff) == 0 &&
@@ -80,7 +80,7 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER pathname) {
 
 
 
-DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
+DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER files) {
 	int ret = 0;
 
 
@@ -118,20 +118,20 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
 
 			ret = upper2lower(ascfn, __strlen(ascfn));
 
-			__strcpy(pathname->pathname, ascfn);
-			pathname->secno = (DWORD)(entry->IE_MftReferNumber & 0x0000ffffffffffff);
+			__strcpy(files->pathname, ascfn);
+			files->secno = (entry->IE_MftReferNumber & 0x0000ffffffffffff);
 
-			pathname->filesize = (DWORD)entry->IE_FileRealSize;
-			pathname->attrib = (DWORD)entry->IE_FileFlag;
-			if (pathname->attrib & 0x10000000)
+			files->filesize = (DWORD)entry->IE_FileRealSize;
+			files->attrib = (DWORD)entry->IE_FileFlag;
+			if (files->attrib & 0x10000000)
 			{
-				pathname->attrib |= FILE_ATTRIBUTE_DIRECTORY;
+				files->attrib |= FILE_ATTRIBUTE_DIRECTORY;
 			}
 			else {
-				pathname->attrib |= FILE_ATTRIBUTE_ARCHIVE;
+				files->attrib |= FILE_ATTRIBUTE_ARCHIVE;
 			}
 
-			pathname++;
+			files++;
 			cnt++;
 
 			entry = (LPINDEX_ENTRY)((unsigned int)entry + entry->IE_Size);
@@ -142,31 +142,30 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER pathname) {
 }
 
 
-int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father) {
+int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
 	int ret = 0;
 
 	int cnt = 0;
 
 	//if (father)
 	{
-		__strcpy(pathname->pathname, "..");
-		pathname->secno = father;
-		pathname->attrib = FILE_ATTRIBUTE_DIRECTORY;
-		pathname->filesize = 0;
-		pathname++;
+		__strcpy(files->pathname, "..");
+		files->secno = father;
+		files->attrib = FILE_ATTRIBUTE_DIRECTORY;
+		files->filesize = 0;
+		files++;
 		cnt++;
 	}
 
 	char szout[1024];
 
 	DWORD low = secoff & 0xffffffff;
-	DWORD high = secoff >> 32;
+	DWORD high = ( secoff >> 32 )&0xffff;
 	char msfinfo[MFTEntrySize * 2];
 	ret = readSector(low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
 	{
 		__printf(szout, "getNtfsDirs readSector mft low:%x,high:%x error\n", low, high);
-
 		return cnt;
 	}
 
@@ -230,15 +229,13 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father)
 						nextclsno = nextclsno | 0xffffffff00000000;
 					}
 
-
 					clsno += nextclsno;
 
-					__printf(szout, "read filename:%s,sector:%x,cluster number:%x,count:%x\n", pathname, secoff, clsno, clscnt);
-
+					__printf(szout, "ntfs path:%s,sector:%x,cluster number:%x,cluster total:%x\n", files, secoff, clsno, clscnt);
 
 					unsigned long long idxsecoff = gNtfsDbr.hideSectors + clsno * g_SecsPerCluster;
 					DWORD low = idxsecoff & 0xffffffff;
-					DWORD high = idxsecoff >> 32;
+					DWORD high = (idxsecoff >> 32)&0xffff;
 
 					ret = readSector(low, high, (DWORD)(g_SecsPerCluster * clscnt), (char*)buffer);
 					if (ret <= 0)
@@ -252,8 +249,8 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father)
 						char* dirdata = (char*)buffer;
 						for (int i = 0; i < clscnt; i++)
 						{
-							cnt += getIndexDirs((char*)dirdata, pathname);
-							pathname += cnt;
+							cnt += getIndexDirs((char*)dirdata, files);
+							files += cnt;
 							dirdata += g_ClusterSize;
 						}
 
@@ -265,8 +262,8 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER pathname, DWORD father)
 		}
 		else if (attr->ATTR_Type == MSF_INDEXROOT_FLAG)
 		{
-			cnt += getDirsIndexRoot(attr, pathname);
-			pathname += cnt;
+			cnt += getDirsIndexRoot(attr, files);
+			files += cnt;
 		}
 		else if (attr->ATTR_Type == 0xffffffff)	//end with flag == 0xffffffff and len == 0
 		{

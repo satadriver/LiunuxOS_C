@@ -28,14 +28,16 @@
 #include "fileWindow.h"
 
 
-int gPartitionType = 0;
 
-int preparePartitionInfo() {
+
+int getPartitionInfo() {
 	int ret = 0;
+	int gPartitionType = 0;
+
 	gPartitionType = getMBR();
 	if (gPartitionType == FAT32_FILE_SYSTEM)
 	{
-		ret = getDBR();
+		ret = getFat32DBR();
 		if (ret <= 0)
 		{
 			return FALSE;
@@ -67,12 +69,12 @@ int preparePartitionInfo() {
 
 	}
 
-	return ret;
+	return gPartitionType;
 }
 
 
 
-int readFileDirs(DWORD secno, LPFILEBROWSER files, DWORD ntfslast) {
+int readFileDirs(int gPartitionType,DWORD secno, LPFILEBROWSER files, DWORD ntfslast) {
 	if (gPartitionType == 2)
 	{
 		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
@@ -95,7 +97,7 @@ int readFileDirs(DWORD secno, LPFILEBROWSER files, DWORD ntfslast) {
 }
 
 
-int readFileData(DWORD secno, int filesize, char* databuf, int readsize) {
+int readFileData(int gPartitionType,DWORD secno, int filesize, char* databuf, int readsize) {
 
 	if (gPartitionType == NTFS_FILE_SYSTEM)
 	{
@@ -126,7 +128,7 @@ int readFileData(DWORD secno, int filesize, char* databuf, int readsize) {
 }
 
 
-int doFileAction(LPFILEBROWSER files) {
+int doFileAction(int gPartitionType,LPFILEBROWSER files) {
 	int result = 0;
 	char szout[1024];
 	__printf(szout, "doFileAction readFileData:%s size:%x\n", files->pathname, files->filesize);
@@ -134,16 +136,14 @@ int doFileAction(LPFILEBROWSER files) {
 	if (files->filesize > 0x10000000)
 	{
 		__printf(szout, "doFileAction filename:%s size:%x error\n", files->pathname, files->filesize);
-
 		return FALSE;
 	}
 
 	char* buffer = (char*)__kMalloc(files->filesize);
-	int readsize = readFileData(files->secno, files->filesize, (char*)buffer, files->filesize);
+	int readsize = readFileData(gPartitionType,files->secno, files->filesize, (char*)buffer, files->filesize);
 	if (readsize <= 0)
 	{
 		__printf(szout, "doFileAction readFileData:%s size:%x error\n", files->pathname, files->filesize);
-
 		return FALSE;
 	}
 
@@ -210,14 +210,17 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	int ret = 0;
 	char szout[1024];
 
+	int gPartitionType = 0;
+
 	LPTASKCMDPARAMS cmd = (LPTASKCMDPARAMS)param;
 	__printf(szout, "__kFileManager task tid:%x,name:%s,cmd:%d\n", tid, filename, cmd->cmd);
 
 	if (cmd->cmd == UNKNOWN_FILE_SYSTEM)
 	{
-		ret = preparePartitionInfo();
-		if (ret <= 0)
+		gPartitionType = getPartitionInfo();
+		if (gPartitionType <= 0)
 		{
+			__printf(szout, "__kFileManager preparePartitionInfo error\n");
 			return 0;
 		}
 	}
@@ -264,7 +267,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	window.window.pid = p->pid;
 	__strcpy(window.window.caption, cmd->filename);
 
-	drawFileManager(&window);
+	//drawFileManager(&window);
 
 	int rowlimit = gVideoHeight / window.fsheight;
 
@@ -296,7 +299,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
  		//__printf(szout, "filetotal:%x,first:%s sector:%x size:%x,second:%s sector:%x size:%x,third:%s sector:%x size:%x,fourth:%s sector:%x size:%x\n", 
  		//	filetotal,files[0].pathname,files[0].secno,files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize, 
  		//	files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
- 		//__drawGraphChars((unsigned char*)szout, 0);
 
 		POINT p;
 		p.x = 0;
@@ -442,12 +444,12 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 
 					//sub root dir has directory ".." but without cluster number in ".."
-					if (gPartitionType == 1 && __memcmp(files[targetno].pathname, "..", 2) == 0 && files[targetno].secno < g_FirstClusterNO)
+					if (/*gPartitionType == 1 &&*/ __memcmp(files[targetno].pathname, "..", 2) == 0 && files[targetno].secno < g_FirstClusterNO)
 					{
 						files[targetno].secno = g_FirstClusterNO;
 					}
 
-					filetotal = readFileDirs(files[targetno].secno, (LPFILEBROWSER)files, ntfsprevs[ntfsseq - 1]);
+					filetotal = readFileDirs(gPartitionType, files[targetno].secno, (LPFILEBROWSER)files, ntfsprevs[ntfsseq - 1]);
 					if (filetotal > 0)
 					{
 						number = 0;
@@ -475,7 +477,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					}
 				}
 				else if (targetno < filetotal && files[targetno].attrib & FILE_ATTRIBUTE_ARCHIVE) {
-					doFileAction(&files[targetno]);
+					doFileAction(gPartitionType,&files[targetno]);
 				}
 			}
 

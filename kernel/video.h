@@ -201,10 +201,10 @@ typedef struct {
 
 }RECT,*LPRECT;
 
-typedef struct  _FILEMAP
+typedef struct  _FILEICON
 {
-	_FILEMAP* next;
-	_FILEMAP* prev;
+	_FILEICON* next;
+	_FILEICON* prev;
 	 POINT pos;		//window postion x and y
 
 	 int frameSize;
@@ -230,7 +230,7 @@ typedef struct  _FILEMAP
 	 unsigned int backsize;
 
 	 int namebgcolor;
-}FILEMAP,*LPFILEMAP;
+}FILEICON,*LPFILEICON;
 
 
 typedef struct __WINDOWCLASS {
@@ -363,7 +363,7 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 extern "C"  __declspec(dllexport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname,char * backdata);
 
-extern "C"  __declspec(dllexport) int __drawFileMapChars(FILEMAP *);
+extern "C"  __declspec(dllexport) int __drawFileIconChars(FILEICON*);
 
 extern "C"  __declspec(dllexport) int __drawCCS(unsigned char * font, int color);
 
@@ -377,7 +377,7 @@ extern "C"  __declspec(dllexport) int drawFileManager(LPFMWINDOW w);
 
 extern "C"  __declspec(dllexport) int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
 
-extern "C"  __declspec(dllexport) int __drawFileMap(LPFILEMAP);
+extern "C"  __declspec(dllexport) int __drawFileIcon(FILEICON*);
 
 extern "C"  __declspec(dllexport) int __drawShutdown(LPWINDOWCLASS window);
 
@@ -427,7 +427,7 @@ extern "C"  __declspec(dllimport) int __drawColorCircle(int x, int y, int radius
 extern "C"  __declspec(dllimport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname, char * backdata);
 
-extern "C"  __declspec(dllimport) int __drawFileMapChars(FILEMAP *);
+extern "C"  __declspec(dllimport) int __drawFileIconChars(FILEICON*);
 
 extern "C"  __declspec(dllimport) int __drawCCS(unsigned char * font, int color);
 
@@ -441,7 +441,7 @@ extern "C"  __declspec(dllimport) int drawFileManager(LPFMWINDOW w);
 
 extern "C"  __declspec(dllimport) int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
 
-extern "C"  __declspec(dllimport) int __drawFileMap(LPFILEMAP);
+extern "C"  __declspec(dllimport) int __drawFileIcon(FILEICON*);
 
 extern "C"  __declspec(dllimport) int __drawShutdown(LPWINDOWCLASS window);
 

@@ -63,7 +63,7 @@ typedef struct
 
 	DWORD status;
 
-	LPWINDOWCLASS window;
+	int window;
 
 	char fpu;
 

@@ -66,6 +66,7 @@ int beEndWith(char * str,char * flag) {
 
 
 
+
 void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	__memset((char*)window, 0, sizeof(WINDOWCLASS));
@@ -89,8 +90,9 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	window->tid = tid;
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	window->pid = p->pid;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	window->pid = proc->pid;
 
 	window->left = window->pos.x + (window->frameSize >> 1);
 	window->top = window->pos.y + (window->frameSize >> 1) + window->capHeight;
@@ -132,8 +134,10 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 
 	window->tid = tid;
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	window->pid = p->pid;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	window->pid = proc->pid;
+
 
 	window->left = (window->frameSize >> 1) + window->pos.x;
 	window->top = (window->frameSize >> 1) + window->capHeight + window->pos.y;
@@ -149,6 +153,9 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 
 	window->prev = 0;
 	window->next = 0;
+
+	proc->window = window->id;
+	tss[tid].window = window->id;
 }
 
 
@@ -174,8 +181,10 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 
 	window->tid = tid;
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	window->pid = p->pid;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	window->pid = proc->pid;
+
 
 	window->left = window->frameSize >> 1;
 	window->top = (window->frameSize >> 1) + window->capHeight;
@@ -189,6 +198,9 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 	window->next = 0;
 
 	__drawWindow(window, TRUE);
+
+	proc->window = window->id;
+	tss[tid].window = window->id;
 }
 
 
@@ -219,8 +231,10 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	window->zoomin = 1;
 	window->tid = tid;
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	window->pid = p->pid;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	window->pid = proc->pid;
+
 
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
@@ -229,11 +243,14 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->next = 0;
 
 	__drawWindow(window, TRUE);
+
+	proc->window = window->id;
+	tss[tid].window = window->id;
 }
 
 
-void initIcon(FILEMAP* clickitem, char* name, int tid, int id, int x, int y) {
-	__memset((char*)clickitem, 0, sizeof(FILEMAP));
+void initIcon(FILEICON* clickitem, char* name, int tid, int id, int x, int y) {
+	__memset((char*)clickitem, 0, sizeof(FILEICON));
 
 	clickitem->tid = tid;
 
@@ -254,7 +271,7 @@ void initIcon(FILEMAP* clickitem, char* name, int tid, int id, int x, int y) {
 	clickitem->frameSize = GRAPHCHAR_WIDTH;
 	clickitem->namebgcolor = DEFAULT_FONT_COLOR;
 
-	int ret = __drawFileMap(clickitem);
+	int ret = __drawFileIcon(clickitem);
 }
 
 

@@ -36,7 +36,7 @@ int fat32Init() {
 // 	__drawGraphChars((unsigned char*)szshow, 0);
 // #endif
 
-	ret = getDBR();
+	ret = getFat32DBR();
 	if (ret <= 0)
 	{
 		__drawGraphChars(( char*)"fat32 dbr format error\r\n", 0);
@@ -140,10 +140,19 @@ int isFAT32DBR(LPFAT32_DBR lpfat32dbr) {
 
 
 
-int getDBR() {
-	int secno = gMBR.dpt[0].offset;
-	int ret = readSector(secno,0, 1, (char*)&gFat32Dbr);
-	ret = isFAT32DBR(&gFat32Dbr);
+int getFat32DBR() {
+	int ret = 0;
+	
+	for (int i = 0; i < 4; i++) {
+		if (gMBR.dpt[i].flag & 0x80) {
+			int secno = gMBR.dpt[i].offset;
+			ret = readSector(secno, 0, 1, (char*)&gFat32Dbr);
+			ret = isFAT32DBR(&gFat32Dbr);
+			if (ret) {
+				break;
+			}
+		}
+	}
 
 	return ret;
 }

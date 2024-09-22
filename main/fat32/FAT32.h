@@ -214,7 +214,7 @@ extern "C" __declspec(dllexport) int				g_FirstClusterNO;
 extern "C" __declspec(dllexport) DWORD				g_SecsBeforeRootDir;
 extern "C" __declspec(dllexport) int				gMaxDirsInPath;
 
-extern "C" __declspec(dllexport) int getDBR();
+extern "C" __declspec(dllexport) int getFat32DBR();
 extern "C" __declspec(dllexport) int getFsinfo();
 extern "C" __declspec(dllexport) DWORD getRootDirOffset();
 
@@ -230,7 +230,7 @@ extern "C" __declspec(dllimport) int g_FirstClusterNO;
 extern "C" __declspec(dllimport) int g_SecsBeforeRootDir;
 extern "C" __declspec(dllimport) int gMaxDirsInPath;
 
-extern "C" __declspec(dllimport) int getDBR();
+extern "C" __declspec(dllimport) int getFat32DBR();
 extern "C" __declspec(dllimport) int getFsinfo();
 extern "C" __declspec(dllimport) DWORD getRootDirOffset();
 extern "C" __declspec(dllimport) int getNextFAT32Cluster(DWORD no);

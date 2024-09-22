@@ -62,13 +62,13 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	WINDOWCLASS taskbar;
 	initTaskbarWindow(&taskbar, filename, tid);
 
-	FILEMAP computer;
+	FILEICON computer;
 	initIcon(&computer, "My Computer", tid,1, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight);
 
-	FILEMAP atapi;
+	FILEICON atapi;
 	initIcon(&atapi, "CD-ROM", tid,2, gVideoWidth - 2 * gBigFolderWidth, gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 
-	FILEMAP floppy;
+	FILEICON floppy;
 	initIcon(&floppy, "Floppy", tid,3, gVideoWidth - 2 * gBigFolderWidth,
 		gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 

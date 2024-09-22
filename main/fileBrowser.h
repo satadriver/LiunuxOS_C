@@ -14,13 +14,13 @@
 #define FILE_FILE_FONT_COLOR		0X9F9F
 #define FILE_UNKNOWN_FONT_COLOR		0
 
-int doFileAction(LPFILEBROWSER files);
+int doFileAction(int gPartitionType,LPFILEBROWSER files);
 
-int readFileData(DWORD secno, int filesize, char * databuf, int readsize);
+int readFileData(int gPartitionType,DWORD secno, int filesize, char * databuf, int readsize);
 
-int preparePartitionInfo();
+int getPartitionInfo();
 
-int readFileDirs(DWORD secno, LPFILEBROWSER files,DWORD ntfsseq);
+int readFileDirs(int gPartitionType,DWORD secno, LPFILEBROWSER files,DWORD ntfsseq);
 
 
 extern "C" __declspec(dllexport) int __kFileManager(unsigned int retaddr, int tid,char * filename, char * funcname, DWORD param);

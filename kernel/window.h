@@ -25,13 +25,14 @@ typedef struct  _WINDOWSINFO
 
 
 
-LPWINDOWSINFO checkWindowExist(char * wname);
-LPWINDOWSINFO checkWindowExist(DWORD wid);
+LPWINDOWSINFO isWindowExist(char * wname);
+LPWINDOWSINFO isWindowExist(DWORD wid);
 LPWINDOWSINFO getFreeWindow();
 
 int getOverlapRect(LPRECT r1, LPRECT r2, LPRECT res);
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) LPWINDOWSINFO getWindow(int wid);
 extern "C" __declspec(dllexport) DWORD getTopWindow();
 extern "C" __declspec(dllexport) void initWindowList();
 extern "C" __declspec(dllexport) DWORD isTopWindow(int wid);
@@ -49,6 +50,7 @@ extern "C" __declspec(dllexport) int destroyWindows();
 
 extern "C" __declspec(dllexport) LPWINDOWCLASS getWindowFromName(char * winname);
 #else
+extern "C" __declspec(dllimport) LPWINDOWSINFO getWindow(int wid);
 extern "C" __declspec(dllimport) DWORD getTopWindow();
 extern "C" __declspec(dllimport) void initWindowList();
 extern "C" __declspec(dllimport) DWORD isTopWindow(int wid);

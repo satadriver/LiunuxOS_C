@@ -5,6 +5,8 @@
 #include "cmosPeriodTimer.h"
 #include "acpi.h"
 #include "hardware.h"
+#include "process.h"
+#include "window.h"
 
 
 int unicode2asc(short* unicode, int unicodelen, char* asc) {
@@ -724,7 +726,26 @@ int __printf(char* buf, char* format, ...) {
 	int len = __kFormat(buf, format, (DWORD*)params);
 
 	if (g_ScreenMode) {
-		int showlen = __drawGraphChars(( char*)buf, 0);
+		/*
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		if (proc->window) {
+			LPWINDOWCLASS window = getWindow(proc->window);
+
+			unsigned int pos = __getpos(window->showX, window->showY);
+			int endpos = __drawGraphChar((char*)buf, window->fontcolor,pos,window->color);
+			int y = endpos / gBytesPerLine;
+
+			int x = (endpos % gBytesPerLine) / gBytesPerPixel;
+
+			if (y >= gWindowHeight)
+			{
+				y = 0;
+				x = 0;
+			}
+		}
+		*/
+		int endpos = __drawGraphChars((char*)buf, 0);
 	}
 	return len;
 }

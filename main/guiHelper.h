@@ -21,6 +21,6 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid);
 
 void initDesktopWindow(WINDOWCLASS* window, char* filename, int tid);
 
-void initIcon(FILEMAP* clickitem, char* name, int tid, int id, int x, int y);
+void initIcon(FILEICON* clickitem, char* name, int tid, int id, int x, int y);
 
 void initFullWindow(WINDOWCLASS* window, char* filename, int tid);
