@@ -32,10 +32,10 @@
 
 int getPartitionInfo() {
 	int ret = 0;
-	int gPartitionType = 0;
+	int partitionType = 0;
 
-	gPartitionType = getMBR();
-	if (gPartitionType == FAT32_FILE_SYSTEM)
+	partitionType = getMBR();
+	if (partitionType == FAT32_FILE_SYSTEM)
 	{
 		ret = getFat32DBR();
 		if (ret <= 0)
@@ -54,7 +54,7 @@ int getPartitionInfo() {
 
 		fat32Init();
 	}
-	else if (gPartitionType == NTFS_FILE_SYSTEM)
+	else if (partitionType == NTFS_FILE_SYSTEM)
 	{
 		ret = getNtfsDBR();
 
@@ -69,46 +69,46 @@ int getPartitionInfo() {
 
 	}
 
-	return gPartitionType;
+	return partitionType;
 }
 
 
 
-int readFileDirs(int gPartitionType,DWORD secno, LPFILEBROWSER files, DWORD ntfslast) {
-	if (gPartitionType == 2)
+int readFileDirs(int partitionType,unsigned __int64 secno, LPFILEBROWSER files, DWORD ntfslast) {
+	if (partitionType == 2)
 	{
 		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
 		return getNtfsDirs(secoff, files, ntfslast);
 	}
-	else if (gPartitionType == 1)
+	else if (partitionType == 1)
 	{
-		return getFat32NextDirs(secno, files);
+		return getFat32NextDirs((DWORD)secno, files);
 	}
-	else if (gPartitionType == 3)
+	else if (partitionType == 3)
 	{
-		return readIso9660Dirs(secno, files);
+		return readIso9660Dirs((DWORD)secno, files);
 	}
-	else if (gPartitionType == 4)
+	else if (partitionType == 4)
 	{
-		return readFat12Dirs(secno, files);
+		return readFat12Dirs((DWORD)secno, files);
 	}
 
 	return 0;
 }
 
 
-int readFileData(int gPartitionType,DWORD secno, int filesize, char* databuf, int readsize) {
+int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 filesize, char* databuf, unsigned __int64 readsize) {
 
-	if (gPartitionType == NTFS_FILE_SYSTEM)
+	if (partitionType == NTFS_FILE_SYSTEM)
 	{
-		DWORD secoff = secno * 2 + gNtfsDbr.hideSectors + (DWORD)gNtfsDbr.MFT * g_SecsPerCluster;
+		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + (DWORD)gNtfsDbr.MFT * g_SecsPerCluster;
 		return (DWORD)getNtfsFileData(secoff, &databuf);
 	}
-	else if (gPartitionType == FAT32_FILE_SYSTEM)
+	else if (partitionType == FAT32_FILE_SYSTEM)
 	{
-		return fat32FileReader(secno, filesize, databuf, readsize);
+		return fat32FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
 	}
-	else if (gPartitionType == CDROM_FILE_SYSTEM)
+	else if (partitionType == CDROM_FILE_SYSTEM)
 	{
 		int seccnt = filesize / ATAPI_SECTOR_SIZE;
 		int mod = filesize % ATAPI_SECTOR_SIZE;
@@ -116,11 +116,11 @@ int readFileData(int gPartitionType,DWORD secno, int filesize, char* databuf, in
 		{
 			seccnt++;
 		}
-		return readIso9660File(secno, seccnt, &databuf);
+		return readIso9660File((DWORD)secno, seccnt, &databuf);
 	}
-	else if (gPartitionType == FLOPPY_FILE_SYSTEM)
+	else if (partitionType == FLOPPY_FILE_SYSTEM)
 	{
-		return fat12FileReader(secno, filesize, databuf, readsize);
+		return fat12FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
 	}
 	else {
 		return FALSE;
@@ -128,22 +128,22 @@ int readFileData(int gPartitionType,DWORD secno, int filesize, char* databuf, in
 }
 
 
-int doFileAction(int gPartitionType,LPFILEBROWSER files) {
+int doFileAction(int partitionType,LPFILEBROWSER files) {
 	int result = 0;
 	char szout[1024];
-	__printf(szout, "doFileAction readFileData:%s size:%x\n", files->pathname, files->filesize);
+	__printf(szout, "doFileAction readFileData:%s size:%I64x\n", files->pathname, files->filesize);
 
 	if (files->filesize > 0x10000000)
 	{
-		__printf(szout, "doFileAction filename:%s size:%x error\n", files->pathname, files->filesize);
+		__printf(szout, "doFileAction filename:%s size:%I64x error\n", files->pathname, files->filesize);
 		return FALSE;
 	}
 
-	char* buffer = (char*)__kMalloc(files->filesize);
-	int readsize = readFileData(gPartitionType,files->secno, files->filesize, (char*)buffer, files->filesize);
+	char* buffer = (char*)__kMalloc((DWORD)files->filesize);
+	int readsize = readFileData(partitionType,files->secno, files->filesize, (char*)buffer, files->filesize);
 	if (readsize <= 0)
 	{
-		__printf(szout, "doFileAction readFileData:%s size:%x error\n", files->pathname, files->filesize);
+		__printf(szout, "doFileAction readFileData:%s size:%I64d error\n", files->pathname, files->filesize);
 		return FALSE;
 	}
 
@@ -154,7 +154,7 @@ int doFileAction(int gPartitionType,LPFILEBROWSER files) {
 	TASKCMDPARAMS cmd;
 	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 	cmd.addr = (DWORD)buffer;
-	cmd.filesize = files->filesize;
+	cmd.filesize = (DWORD)files->filesize;
 	__strcpy(cmd.filename, files->pathname);
 	if (__memcmp(files->pathname + fnlen - 4, ".bmp", 4) == 0)
 	{
@@ -195,7 +195,7 @@ int doFileAction(int gPartitionType,LPFILEBROWSER files) {
 	}
 	else if (__memcmp(files->pathname + fnlen - 4, ".exe", 4) == 0 || __memcmp(files->pathname + fnlen - 4, ".com", 4) == 0)
 	{
-		cmd.filesize = files->filesize;
+		cmd.filesize = (DWORD)files->filesize;
 		//return __kCreateThread((DWORD)__kShowWindow, (DWORD)&cmd, "__kShowWindow");
 		return __kCreateProcess((unsigned int)cmd.addr, cmd.filesize, files->pathname, files->pathname, 3, (DWORD)&cmd);
 	}
@@ -210,47 +210,47 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	int ret = 0;
 	char szout[1024];
 
-	int gPartitionType = 0;
+	int partitionType = 0;
 
 	LPTASKCMDPARAMS cmd = (LPTASKCMDPARAMS)param;
 	__printf(szout, "__kFileManager task tid:%x,name:%s,cmd:%d\n", tid, filename, cmd->cmd);
 
 	if (cmd->cmd == UNKNOWN_FILE_SYSTEM)
 	{
-		gPartitionType = getPartitionInfo();
-		if (gPartitionType <= 0)
+		partitionType = getPartitionInfo();
+		if (partitionType <= 0)
 		{
 			__printf(szout, "__kFileManager preparePartitionInfo error\n");
 			return 0;
 		}
 	}
 	else {
-		gPartitionType = cmd->cmd;
+		partitionType = cmd->cmd;
 	}
 
 	char fullpath[MAX_PATH_SIZE];
 	__memset(fullpath, 0, MAX_PATH_SIZE);
 
-	DWORD ntfsprevs[MAX_PATH_SIZE];
-	int ntfsseq = 0;
+	unsigned __int64 ntfsprevs[MAX_PATH_SIZE];
+	DWORD ntfsseq = 0;
 
 	int filetotal = 0;
-	LPFILEBROWSER files = (LPFILEBROWSER)__kMalloc(g_ClusterSize * 2);
-	if (gPartitionType == NTFS_FILE_SYSTEM)
+	LPFILEBROWSER files = (LPFILEBROWSER)__kMalloc(sizeof(FILEBROWSER)*1024);
+	if (partitionType == NTFS_FILE_SYSTEM)
 	{
 		unsigned __int64 ntfssecno = gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
 		ntfsprevs[ntfsseq] = MSF_ROOTDIR_OFFSET / 2;
 		filetotal = getNtfsDirs(ntfssecno + MSF_ROOTDIR_OFFSET, files, 0);
 	}
-	else if (gPartitionType == FAT32_FILE_SYSTEM) {
+	else if (partitionType == FAT32_FILE_SYSTEM) {
 
 		filetotal = getFat32RootDirs((LPFAT32DIRECTORY)glpRootDir, files);
 	}
-	else if (gPartitionType == CDROM_FILE_SYSTEM)
+	else if (partitionType == CDROM_FILE_SYSTEM)
 	{
 		filetotal = browseISO9660File(files);
 	}
-	else if (gPartitionType == FLOPPY_FILE_SYSTEM)
+	else if (partitionType == FLOPPY_FILE_SYSTEM)
 	{
 		filetotal = browseFat12File(files);
 	}
@@ -267,12 +267,30 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	window.window.pid = p->pid;
 	__strcpy(window.window.caption, cmd->filename);
 
-	//drawFileManager(&window);
+	__printf(szout, "filetotal:%x,first:%s sector:%I64x size:%I64x,"
+		"second:%s sector:%I64x size:%I64x,third:%s sector:%I64x size:%I64x,fourth:%s sector:%I64x size:%I64x\n", 
+		filetotal,files[0].pathname,files[0].secno,files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize, 
+		files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
+
+	drawFileManager(&window);
+	//__printf(szout, "end drawFileManager \n");
+
+	/*
+	while (TRUE)
+	{
+		unsigned int asc = __kGetKbd(window.window.id) & 0xff;
+		if (asc == 0x1b)
+		{
+			__kFree((DWORD)files);
+			removeFileManager(&window);
+			return 0;
+		}
+	}*/
 
 	int rowlimit = gVideoHeight / window.fsheight;
 
 	int fpagecnt = 0;
-	if (filetotal < rowlimit)
+	if (filetotal <= rowlimit)
 	{
 		fpagecnt = filetotal;
 	}
@@ -296,9 +314,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	while (TRUE)
 	{
- 		//__printf(szout, "filetotal:%x,first:%s sector:%x size:%x,second:%s sector:%x size:%x,third:%s sector:%x size:%x,fourth:%s sector:%x size:%x\n", 
- 		//	filetotal,files[0].pathname,files[0].secno,files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize, 
- 		//	files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
 
 		POINT p;
 		p.x = 0;
@@ -314,20 +329,20 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			char szinfo[4096];
 			if (files[number].attrib & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				int len = __sprintf(szinfo, "%s        DIR(%x)        %d(bytes)",
+				int len = __sprintf(szinfo, "%s        DIR(%x)        %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
 				__drawGraphChar(( char*)szinfo, FILE_DIR_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else if (files[number].attrib & FILE_ATTRIBUTE_ARCHIVE)
 			{
-				int len = __sprintf(szinfo, "%s        FILE(%x)       %d(bytes)",
+				int len = __sprintf(szinfo, "%s        FILE(%x)       %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
 				__drawGraphChar(( char*)szinfo, FILE_FILE_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else {
-				int len = __sprintf(szinfo, "%s        UNKNOWN(%x)    %d(bytes)",
+				int len = __sprintf(szinfo, "%s        UNKNOWN(%x)    %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 				*(szinfo + len) = 0;
 				__drawGraphChar(( char*)szinfo, FILE_UNKNOWN_FONT_COLOR, pos, window.window.fontcolor);
@@ -349,8 +364,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 		//number是最后一个目录的序号
 		while (TRUE)
 		{
-			unsigned int ck = __kGetKbd(window.window.id);
-			unsigned int asc = ck & 0xff;
+			unsigned int asc = __kGetKbd(window.window.id) & 0xff;
 			if (asc)
 			{
 				// 				__printf(szout, "__getchar:%s", &asc);
@@ -395,7 +409,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 				else if (asc == 0x1b)
 				{
 					__kFree((DWORD)files);
-
 					removeFileManager(&window);
 					return 0;
 				}
@@ -444,12 +457,12 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 
 					//sub root dir has directory ".." but without cluster number in ".."
-					if (/*gPartitionType == 1 &&*/ __memcmp(files[targetno].pathname, "..", 2) == 0 && files[targetno].secno < g_FirstClusterNO)
+					if (partitionType == 1 && __memcmp(files[targetno].pathname, "..", 2) == 0 && files[targetno].secno < g_FirstClusterNO)
 					{
 						files[targetno].secno = g_FirstClusterNO;
 					}
 
-					filetotal = readFileDirs(gPartitionType, files[targetno].secno, (LPFILEBROWSER)files, ntfsprevs[ntfsseq - 1]);
+					filetotal = readFileDirs(partitionType, files[targetno].secno, (LPFILEBROWSER)files, ntfsprevs[ntfsseq - 1]);
 					if (filetotal > 0)
 					{
 						number = 0;
@@ -477,7 +490,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					}
 				}
 				else if (targetno < filetotal && files[targetno].attrib & FILE_ATTRIBUTE_ARCHIVE) {
-					doFileAction(gPartitionType,&files[targetno]);
+					doFileAction(partitionType,&files[targetno]);
 				}
 			}
 

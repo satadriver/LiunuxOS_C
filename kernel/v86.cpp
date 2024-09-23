@@ -17,7 +17,7 @@
 int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize) {
 
 	unsigned int counter = 0;
-
+	char szout[1024];
 	LPV86VMIPARAMS params = (LPV86VMIPARAMS)V86VMIPARAMS_ADDRESS;
 	while (params->bwork == 1)
 	{
@@ -25,7 +25,7 @@ int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, cha
 		counter++;
 		if (counter && (counter % VM_OUTPUT_BUSY_CONSTANT == 0))
 		{
-			__drawGraphChars(( char*)"wait bwork to be free\n", 0);
+			__printf(szout, ( char*)"wait bwork to be free\n");
 		}
 	}
 
@@ -69,7 +69,7 @@ int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, cha
 		return seccnt * sectorsize;
 	}
 	else {
-		__drawGraphChars(( char*)"vm read sector error\n", 0);
+		__printf(szout, ( char*)"vm read sector error\n");
 	}
 
 	return 0;

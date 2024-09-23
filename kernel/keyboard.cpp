@@ -244,6 +244,8 @@ void __kKeyboardProc() {
 
 	unsigned int c = inportb(0x60);
 
+	char szout[1024];
+
 	unsigned int result = 0;
 
 	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
@@ -435,7 +437,7 @@ void __kKeyboardProc() {
 			if (__memcmp(pb,"\xe1\x1d\x45\xe1\x9d\xc5",6) == 0 )
 			{
 				//make code is "\xe1\x1d\x45\xe1\x9d\xc5",but no break code!按下后6个字节扫描码，松开后不产生扫描码
-				__drawGraphChars(( char*)"get Pause/Break key!\r\n",0);
+				__printf(szout, ( char*)"get Pause/Break key!\r\n");
 				pauseBreak();
 			}
 

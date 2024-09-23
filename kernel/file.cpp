@@ -69,46 +69,52 @@ int initFileSystem() {
 }
 
 int getMBR() {
+	char szout[1024];
 	int ret = readSector(0, 0, 1, (char*)&gMBR);
 
 	if (*(WORD*)gMBR.systemFlag != 0xaa55)
 	{
-		__drawGraphChars(( char*)"MBR format error\r\n", 0);
+		__printf(szout,( char*)"MBR format error\r\n");
 		return FALSE;
 	}
-	else {
-		char szout[1024];
+	else {	
 		__printf(szout, "getMBR ok\r\n");
 	}
 
-	g_mpartOffset = gMBR.dpt[0].offset;
-	g_epartOffset = gMBR.dpt[1].offset;
+	for (int i = 0; i < 4; i++) {
+		if (gMBR.dpt[i].flag & 0x80) {
+			g_mpartOffset = gMBR.dpt[i].offset;
+			g_epartOffset = gMBR.dpt[i+1].offset;
 
-	if (gMBR.dpt[0].type == FAT32_PARTITION || gMBR.dpt[0].type == FAT32_PARTITION_2 ||
-		gMBR.dpt[0].type == FAT32_LBA_PARTITION || gMBR.dpt[0].type == FAT32_HIDDEN)
-	{
-		return 1;
+			if (gMBR.dpt[i].type == FAT32_PARTITION || gMBR.dpt[i].type == FAT32_PARTITION_2 ||
+				gMBR.dpt[i].type == FAT32_LBA_PARTITION || gMBR.dpt[i].type == FAT32_HIDDEN)
+			{
+				return 1;
+			}
+			else if (gMBR.dpt[i].type == NTFS_PARTITION || gMBR.dpt[i].type == NTFS_HIDDEN)
+			{
+				return 2;
+			}
+			else if (gMBR.dpt[i].type == LINUX_SWAP_PARTITION || gMBR.dpt[i].type == LINUX_PARTITION || 
+				gMBR.dpt[i].type == LINUX_EXTENDED_PARTITION)
+			{
+				return 3;
+			}
+			else if (gMBR.dpt[i].type == FAT16_OLD_PARTITION || gMBR.dpt[i].type == FAT16_OLD2_PARTITION ||
+				gMBR.dpt[i].type == FAT16_PARTITION || gMBR.dpt[i].type == FAT16_HIDDEN)
+			{
+				return 4;
+			}
+			else if (gMBR.dpt[i].type == FAT12_PARTITION || gMBR.dpt[i].type == FAT12_HIDDEN)
+			{
+				return 5;
+			}
+			else {
+				return 0;
+			}
+		}
 	}
-	else if (gMBR.dpt[0].type == NTFS_PARTITION || gMBR.dpt[0].type == NTFS_HIDDEN)
-	{
-		return 2;
-	}
-	else if (gMBR.dpt[0].type == LINUX_SWAP_PARTITION || gMBR.dpt[0].type == LINUX_PARTITION || gMBR.dpt[0].type == LINUX_EXTENDED_PARTITION)
-	{
-		return 3;
-	}
-	else if (gMBR.dpt[0].type == FAT16_OLD_PARTITION || gMBR.dpt[0].type == FAT16_OLD2_PARTITION ||
-		gMBR.dpt[0].type == FAT16_PARTITION || gMBR.dpt[0].type == FAT16_HIDDEN)
-	{
-		return 4;
-	}
-	else if (gMBR.dpt[0].type == FAT12_PARTITION || gMBR.dpt[0].type == FAT12_HIDDEN)
-	{
-		return 5;
-	}
-	else {
-		return 0;
-	}
+
 	return 0;
 }
 

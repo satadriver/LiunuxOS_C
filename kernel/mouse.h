@@ -4,7 +4,7 @@
 #define MOUSE_POS_LIMIT				256
 
 #define MOUSE_SHOW_COLOR			0xffffffff
-#define MOUSE_BORDER_WIDTH			0
+#define MOUSE_BORDER_WIDTH			2
 #define MOUSE_SHOW_RATIO			40
 #define MOUSE_BORDER_COLOR			0
 

@@ -87,7 +87,7 @@ DWORD openFile(const char* fn, int writemode, LPFAT32DIRECTORY outdir,int *dirin
 DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternum,LPFAT32DIRECTORY lpdirectory, LPFAT32DIRECTORY outdir,int * dirinsec) 
 {
 	int ret = 0;
-	//char szout[1024];
+	char szout[1024];
 
 	int writesize = outdir->size;
 
@@ -128,7 +128,8 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 		
 		if (lpdir == 0)
 		{
-			__drawGraphChars(( char *)"not found empty dir\n", 0);
+
+			__printf(szout, ( char *)"not found empty dir\n");
 			secoff = 0;
 			break;
 		}
@@ -176,7 +177,7 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 				ret = updateFSINFO(gFsInfo.freeClusterCnt, nnfcn);
 			}
 			else {
-				__drawGraphChars(( char *)"create file mode error\n", 0);
+				__printf(szout, ( char *)"create file mode error\n");
 				secoff = 0;
 				break;
 			}
@@ -214,7 +215,7 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 		ret = writeSector(secoff, 0, 1, (char*)dirdataoff);
 		if (ret <= 0)
 		{
-			__drawGraphChars(( char *)"create file write error\n", 0);
+			__printf(szout, ( char *)"create file write error\n");
 			secoff = 0;
 			break;
 		}

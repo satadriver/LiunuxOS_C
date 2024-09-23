@@ -147,7 +147,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 	window->showX = window->left;
 	window->showY = window->top;
 
-	window->id = addWindow(FALSE, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
+	window->id = addWindow((DWORD)window, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
 
 	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 
@@ -197,7 +197,7 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 	window->prev = 0;
 	window->next = 0;
 
-	__drawWindow(window, TRUE);
+	__drawWindow(window);
 
 	proc->window = window->id;
 	tss[tid].window = window->id;
@@ -242,7 +242,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->prev = 0;
 	window->next = 0;
 
-	__drawWindow(window, TRUE);
+	__drawWindow(window);
 
 	proc->window = window->id;
 	tss[tid].window = window->id;

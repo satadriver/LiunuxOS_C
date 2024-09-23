@@ -34,8 +34,8 @@ typedef struct
 typedef struct
 {
 	char pathname[256];
-	__int64 secno;
-	DWORD filesize;
+	unsigned __int64 secno;
+	unsigned __int64 filesize;
 	DWORD attrib;
 }FILEBROWSER, *LPFILEBROWSER;
 

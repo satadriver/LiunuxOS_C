@@ -332,7 +332,7 @@ unsigned short* getGBKCCIdx(unsigned short gbk);
 
 extern "C"   int __initVideo(LPVESAINFORMATION vesa,DWORD fontbase);
 
-extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window,int active);
+extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllexport) int __restoreWindow(LPWINDOWCLASS window);
 
@@ -391,12 +391,12 @@ extern "C"  __declspec(dllexport) int __diamond(int startx, int starty, int radu
 
 extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS* window);
 
-extern "C"  __declspec(dllexport) int __drawWindowChars(unsigned char* font, int color, WINDOWCLASS* window);
+extern "C"  __declspec(dllexport) int __drawWindowChars( char* font, int color, WINDOWCLASS* window);
 #else
 
 extern "C" int __initVideo(LPVESAINFORMATION vesa, DWORD fontbase);
 
-extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window, int active);
+extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __restoreWindow(LPWINDOWCLASS window);
 
@@ -455,7 +455,7 @@ extern "C"  __declspec(dllimport) int __diamond(int startx, int starty, int radu
 
 extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS * window);
 
-extern "C"  __declspec(dllexport) int __drawWindowChars(unsigned char* font, int color, WINDOWCLASS * window);
+extern "C"  __declspec(dllexport) int __drawWindowChars( char* font, int color, WINDOWCLASS * window);
 #endif
 
 #endif

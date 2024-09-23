@@ -79,8 +79,9 @@ LPWINDOWSINFO getFreeWindow() {
 }
 
 
-LPWINDOWSINFO getWindow(int wid) {
-	return gWindowsList + wid;
+LPWINDOWCLASS getWindow(int wid) {
+	LPWINDOWSINFO window = wid + gWindowsList;
+	return window->window;
 }
 
 DWORD isTopWindow(int wid) {
@@ -101,7 +102,7 @@ DWORD getTopWindow() {
 }
 
 
-int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
+int addWindow(DWORD wc, DWORD *x, DWORD *y, int color,char * wname) {
 	char szout[1024];
 
 	LPWINDOWSINFO window = isWindowExist(wname);
@@ -117,6 +118,8 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 		return -1;
 	}
 
+	window->window =(WINDOWCLASS*) wc;
+
 	window->valid = TRUE;
 	int i = window - gWindowsList;
 
@@ -128,14 +131,6 @@ int addWindow(int active, DWORD *x, DWORD *y, int color,char * wname) {
 	window->cursorY = y;
 
 	__strncpy(window->windowname, wname, WINDOW_NAME_LIMIT - 1);
-
-	if (active)
-	{
-		window->valid |= 0x80000000;		
-	}
-	else {
-		
-	}
 
 	addlistTail(&gWindowsList->list, &window->list);
 

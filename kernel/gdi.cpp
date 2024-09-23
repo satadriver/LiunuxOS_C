@@ -75,11 +75,11 @@ void sphere(int x,int y,int raduis,DWORD color,unsigned char * backup) {
 
 
 void sphere7(int x, int y, int raduis,DWORD color,unsigned char *backup) {
-// 	__asm {
-// 		clts
-// 		fwait
-// 		fninit
-// 	}
+ 	__asm {
+ 		clts
+ 		fwait
+ 		fninit
+ 	}
 	unsigned int pos = __getpos(x-raduis, y-raduis);
 	unsigned char * showpos = pos + (unsigned char *)gGraphBase;
 	unsigned char * keepy = showpos;
@@ -177,9 +177,10 @@ DWORD showIcon(int x,int y, LPBITMAPINFOHEADER lpbmpinfo) {
 
 int showBmpBits(int x, int y, BITMAPINFOHEADER* info, unsigned char * data) {
 
+	char szout[1024];
 	if (info->biBitCount < 8)
 	{
-		__drawGraphChars(( char*)"bmp file bit error\n", 0);
+		__printf(szout, ( char*)"bmp file bit error\n");
 		return FALSE;
 	}
 

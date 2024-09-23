@@ -105,13 +105,15 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		sti
 	}
 
-	//__printf(szout, "Hello world of Liunux!\r\n");
+	
 
 #ifdef SINGLE_TASK_TSS
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #endif
+
+	__printf(szout, "Hello world of Liunux!\r\n");
 
 	initFileSystem();
 

@@ -13,6 +13,7 @@
 typedef struct  _WINDOWSINFO
 {
 	LIST_ENTRY list;
+	WINDOWCLASS * window;
 	DWORD valid;
 	DWORD id;
 	DWORD *cursorX;
@@ -32,14 +33,14 @@ LPWINDOWSINFO getFreeWindow();
 int getOverlapRect(LPRECT r1, LPRECT r2, LPRECT res);
 
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) LPWINDOWSINFO getWindow(int wid);
+extern "C" __declspec(dllexport) LPWINDOWCLASS getWindow(int wid);
 extern "C" __declspec(dllexport) DWORD getTopWindow();
 extern "C" __declspec(dllexport) void initWindowList();
 extern "C" __declspec(dllexport) DWORD isTopWindow(int wid);
 
 extern "C" __declspec(dllexport) int removeWindow(int id);
 
-extern "C" __declspec(dllexport) int addWindow(int valid, DWORD *x, DWORD *y,int color,char * name);
+extern "C" __declspec(dllexport) int addWindow(DWORD , DWORD *x, DWORD *y,int color,char * name);
 
 extern "C" __declspec(dllexport) LPWINDOWCLASS insertProcWindow (LPWINDOWCLASS window);
 
@@ -50,14 +51,14 @@ extern "C" __declspec(dllexport) int destroyWindows();
 
 extern "C" __declspec(dllexport) LPWINDOWCLASS getWindowFromName(char * winname);
 #else
-extern "C" __declspec(dllimport) LPWINDOWSINFO getWindow(int wid);
+extern "C" __declspec(dllimport) LPWINDOWCLASS getWindow(int wid);
 extern "C" __declspec(dllimport) DWORD getTopWindow();
 extern "C" __declspec(dllimport) void initWindowList();
 extern "C" __declspec(dllimport) DWORD isTopWindow(int wid);
 
 extern "C" __declspec(dllimport) int removeWindow(int id);
 
-extern "C" __declspec(dllimport) int addWindow(int valid, DWORD *x, DWORD *y, int color,char * name);
+extern "C" __declspec(dllimport) int addWindow(DWORD , DWORD *x, DWORD *y, int color,char * name);
 
 extern "C" __declspec(dllimport) LPWINDOWCLASS insertProcWindow(LPWINDOWCLASS window);
 

@@ -212,7 +212,7 @@ int __removeWindow(LPWINDOWCLASS window) {
 }
 
 
-int __drawWindow(LPWINDOWCLASS window, int active) {
+int __drawWindow(LPWINDOWCLASS window) {
 
 	int ret = 0;
 
@@ -222,7 +222,7 @@ int __drawWindow(LPWINDOWCLASS window, int active) {
 
 	window->backBuf = __kMalloc(window->backsize);
 
-	window->id = addWindow(active, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
+	window->id = addWindow((DWORD)window, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
 
 	ret = __drawRectangleFrameCaption(&window->pos, window->width, window->height, window->color, window->frameSize, window->frameColor,
 		window->capHeight, window->capColor, window->caption, (char*)window->backBuf);
@@ -686,7 +686,7 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 			{
 
 				unsigned int c = color;
-				(color)++;
+				//(color)++;
 
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
@@ -935,11 +935,14 @@ int drawFileManager(LPFMWINDOW w) {
 
 	w->window.backsize = gBytesPerPixel * (w->window.width) * (w->window.height);
 
+	__strcpy(w->window.winname, "FileManagerWindow");
+
 	w->window.backBuf = (DWORD)__kMalloc(w->window.backsize);
+	if (w->window.backBuf) {
+		__drawRectWindow(&w->window.pos, w->window.width, w->window.height, w->window.color, (unsigned char*)w->window.backBuf);
+	}
 
-	w->window.id = addWindow(TRUE, (DWORD*)&w->window.pos.x, (DWORD*)&w->window.pos.y, 0, w->window.winname);
-
-	__drawRectWindow(&w->window.pos, w->window.width, w->window.height, w->window.color, (unsigned char*)w->window.backBuf);
+	w->window.id = addWindow((DWORD)&(w->window), (DWORD*)&w->window.pos.x, (DWORD*)&w->window.pos.y, 0, w->window.winname);
 
 	return 0;
 }
@@ -1003,14 +1006,14 @@ int __clearWindowChar(WINDOWCLASS* window) {
 
 	int x = window->showX;
 	int y = window->showY;
-	int showpos = __drawWindowChars((unsigned char*)" ", DEFAULT_FONT_COLOR, window);
+	int showpos = __drawWindowChars(( char*)" ", DEFAULT_FONT_COLOR, window);
 	window->showX = x;
 	window->showY = y;
 	return showpos;
 }
 
 
-int __drawWindowChars(unsigned char* str, int color, WINDOWCLASS* window) {
+int __drawWindowChars( char* str, int color, WINDOWCLASS* window) {
 
 	int len = __strlen((char*)str);
 

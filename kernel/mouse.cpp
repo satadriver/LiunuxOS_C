@@ -118,34 +118,20 @@ void __kMouseProc() {
 			return;
 		}
 	}
-
-	/*
-	if (data->mintrData.status & 0x40) {
-		data->mintrData.x = 0;
+	
+	if (data->mintrData.status & 0x20) {	//y = 1
+		
 	}
-	if (data->mintrData.status & 0x80) {
-		data->mintrData.y = 0;
+	else{
+		//data->mintrData.y = -data->mintrData.y;
 	}
 
-	if (data->mintrData.status & 0x10) {
-		data->mintrData.x = -data->mintrData.x;
-		if (data->mintrData.status & 0x20) {
-
-		}
-		else {
-			data->mintrData.y = - data->mintrData.y;
-		}
+	if (data->mintrData.status & 0x10) {	//x = 1
+		//data->mintrData.x = -data->mintrData.x;
 	}
 	else {
-		if (data->mintrData.status & 0x20) {
 
-		}
-		else {
-			data->mintrData.y = - data->mintrData.y;
-		}
 	}
-	*/
-	//data->mintrData.y = (256 - data->mintrData.y)&0xff;
 
 	data->mintrData.y = -data->mintrData.y;
 
@@ -243,10 +229,10 @@ int isGeometryMouse(int x,int y) {
 
 int isGeometryBorder(int x, int y) {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
-	if ( (y + MOUSE_BORDER_WIDTH == data->mouseWidth * 2 / 3) && (x + MOUSE_BORDER_WIDTH == data->mouseWidth * 2 / 3) ) {
+	if ( (y + MOUSE_BORDER_WIDTH >= data->mouseWidth * 2 / 3) && (x + MOUSE_BORDER_WIDTH >= data->mouseWidth * 2 / 3) ) {
 		return TRUE;
 	}
-	if (6 * y == 4 * (x + MOUSE_BORDER_WIDTH) || 6 * y == 9 * (x - MOUSE_BORDER_WIDTH)) {
+	if (6 * y <= 4 * (x + MOUSE_BORDER_WIDTH) || 6 * y >= 9 * (x - MOUSE_BORDER_WIDTH)) {
 
 		return TRUE;
 	}
@@ -272,7 +258,7 @@ void __kDrawMouse() {
 				}
 				else {
 					color = gMouseColor;
-					gMouseColor += 0x0f0f0f;
+					//gMouseColor += 0x0f0f0f;
 				}
 				unsigned char * showpos = (unsigned char*)__getpos(x, y) + pos;
 
@@ -432,6 +418,7 @@ __declspec(naked) void MouseIntProc() {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		mov ss,ax
 	}
 	{
 		__kMouseProc();

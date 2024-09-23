@@ -82,7 +82,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 				retvalue = showBmp(filename, (unsigned char *)bmpdata, bmpsize, window.showX, window.showY);
 			}
 			else {
-				__drawGraphChars(( char*)"decode jpeg error\r\n", 0);
+				__printf(szout, ( char*)"decode jpeg error\r\n");
 			}
 			__kFree((DWORD)bmpdata);
 		}

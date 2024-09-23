@@ -138,6 +138,12 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		}
 		else if (asc == VK_F2)
 		{
+			__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+			continue;
+		}
+		/*
+		else if (asc == VK_F3)
+		{
 			if (__findProcessFileName("__kLogWatch") == FALSE)
 			{
 				TASKCMDPARAMS cmd;
@@ -154,11 +160,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			}
 			continue;
 		}
-		else if (asc == VK_F3)
-		{
-			__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
-			continue;
-		}
+		*/
+
 
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));

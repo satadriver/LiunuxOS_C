@@ -72,6 +72,7 @@ int getFat32NextDirs(DWORD clusterno, LPFILEBROWSER files) {
 
 int fat32FileReader(DWORD clusterno, int filesize,char * lpdata, int readsize) {
 
+	char szout[1024];
 	int ret = 0;
 	if (readsize > filesize)
 	{
@@ -99,7 +100,7 @@ int fat32FileReader(DWORD clusterno, int filesize,char * lpdata, int readsize) {
 			lpdata += g_ClusterSize;
 		}
 		else {
-			__drawGraphChars(( char*)"fat32 read cluster error\n", 0);
+			__printf(szout,( char*)"fat32 read cluster error\n");
 			break;
 		}
 

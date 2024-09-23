@@ -22,7 +22,7 @@ int		gMaxDirsInPath		= 256;
 
 int fat32Init() {
 	int ret = 0;
-	
+	char szout[1024];
 	readFile = readFat32File;
 	writeFile = writeFat32File;
 
@@ -39,7 +39,8 @@ int fat32Init() {
 	ret = getFat32DBR();
 	if (ret <= 0)
 	{
-		__drawGraphChars(( char*)"fat32 dbr format error\r\n", 0);
+		
+		__printf(szout, ( char*)"fat32 dbr format error\r\n");
 		return FALSE;
 	}
 

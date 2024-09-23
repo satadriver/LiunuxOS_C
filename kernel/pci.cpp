@@ -151,10 +151,10 @@ int showPciDevs() {
 
 	showAllPciDevs();
 
-	__drawGraphChars(( char*)"\n\npci devices:\n", 0);
+	char szout[1024];
+	__printf(szout, ( char*)"\n\npci devices:\n");
 
 	int ret = 0;
-	char szout[1024];
 
 	DWORD svgaregs[64];
 	DWORD svgadev = 0;

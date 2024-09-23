@@ -667,7 +667,10 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			__memcpy(dst + dpos, numstr+2, len-2);
 			dpos += (len-2);
 		}
-		else if (format[spos] == '%' && __memcmp(format + spos + 1, "i64x", 4) == 0) {
+		else if (format[spos] == '%' && (__memcmp(format + spos + 1, "i64x", 4) == 0 ||
+			__memcmp(format + spos + 1, "I64x", 4) == 0 ||
+			__memcmp(format + spos + 1, "I64X", 4) == 0 ||
+			__memcmp(format + spos + 1, "i64X", 4) == 0) ) {
 			spos += 5;
 
 			DWORD numl = *params;
@@ -726,12 +729,14 @@ int __printf(char* buf, char* format, ...) {
 	int len = __kFormat(buf, format, (DWORD*)params);
 
 	if (g_ScreenMode) {
-		/*
+		
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		if (proc->window) {
 			LPWINDOWCLASS window = getWindow(proc->window);
 
+			__drawWindowChars(buf, 0, window);
+			/*
 			unsigned int pos = __getpos(window->showX, window->showY);
 			int endpos = __drawGraphChar((char*)buf, window->fontcolor,pos,window->color);
 			int y = endpos / gBytesPerLine;
@@ -743,9 +748,14 @@ int __printf(char* buf, char* format, ...) {
 				y = 0;
 				x = 0;
 			}
+			window->showX = x;
+			window->showY = y;
+			*/
 		}
-		*/
-		int endpos = __drawGraphChars((char*)buf, 0);
+		else {
+			int endpos = __drawGraphChars((char*)buf, 0);
+		}
+		
 	}
 	return len;
 }

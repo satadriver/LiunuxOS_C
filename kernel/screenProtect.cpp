@@ -28,6 +28,8 @@ int gScreenProtectWindowID = 0;
 
 int gTimerID = 0;
 
+int gCircleColor = 0xffffff;
+
 
 
 int initScreenProtect() {
@@ -55,9 +57,8 @@ int initScreenProtect() {
 		gCircleCenterY = gRadius;
 	}
 
-	__kRestoreMouse();
-
-	disableMouse();
+	//__kRestoreMouse();
+	//disableMouse();
 
 	int screensize = gVideoHeight*gVideoWidth*gBytesPerPixel;
 
@@ -75,8 +76,8 @@ int initScreenProtect() {
 	p.y = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR, 0);
 
-	sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	//ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize*2);
+	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize*2);
 
 	gScreenProtectWindowID = addWindow(0, 0, 0, 0,"__screenProtect");
 
@@ -108,7 +109,7 @@ int stopScreenProtect() {
 
 	//enableMouse();
 	//setMouseRate(200);
-	__kDrawMouse();
+	//__kDrawMouse();
 
 	return TRUE;
 }
@@ -117,11 +118,10 @@ int stopScreenProtect() {
 
 extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int p4) {
 
-	unsigned int ck = __kGetKbd(gScreenProtectWindowID);
-	//unsigned int ck = __getchar(gScreenProtectWindowID);
-	unsigned int asc = ck & 0xff;
+	unsigned int asc = __kGetKbd(gScreenProtectWindowID) & 0xff;
+	//unsigned int asc = __getchar(gScreenProtectWindowID);
 	if(asc)
-	//if (asc == 0x1b || asc == 0x0a)
+	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
 	{
 		stopScreenProtect();
 		return;
@@ -129,7 +129,7 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 
 	MOUSEINFO mouseinfo;
 	mouseinfo.status = 0;
-	getmouse(&mouseinfo, gScreenProtectWindowID);
+	__kGetMouse(&mouseinfo, gScreenProtectWindowID);
 	if (mouseinfo.status )	
 	{
 		stopScreenProtect();
@@ -169,8 +169,8 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 	
 	ret = __restoreCircle(oldx, oldy, gRadius, (unsigned char*)gGraphBase + screensize * 2);
 
-	sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	//ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 	return ;
 }
 

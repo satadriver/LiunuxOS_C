@@ -358,6 +358,10 @@ DWORD __kMalloc(DWORD s) {
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
+	if (ret <= 0) {
+		char szout[1024];
+		int len = __printf(szout, "__kMalloc error\n");
+	}
 	return ret;
 }
 

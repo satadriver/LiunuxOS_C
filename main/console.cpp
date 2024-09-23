@@ -62,7 +62,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 		else if (asc == 9)
 		{
 			char* sztab = "    ";
-			__drawWindowChars((unsigned char*)sztab, DEFAULT_FONT_COLOR, &window);
+			__drawWindowChars(( char*)sztab, DEFAULT_FONT_COLOR, &window);
 		}
 		else if (asc == 0x0a)
 		{
@@ -97,7 +97,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 			szcmd[cmdptr] = 0;
 
 			//ret = putchar((char*)&asc);
-			ret = __drawWindowChars((unsigned char*)&asc, CONSOLE_FONT_COLOR, &window);
+			ret = __drawWindowChars(( char*)&asc, CONSOLE_FONT_COLOR, &window);
 		}
 
 		MOUSEINFO mouseinfo;

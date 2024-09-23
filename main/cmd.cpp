@@ -110,12 +110,12 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	{
 		*szout = 0;
 		__sprintf(szout, "keyboard id:%x", gKeyboardID);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "mouseID") == 0) {
 		*szout = 0;
 		__sprintf(szout, "mouse id:%x", gMouseID);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "reg") == 0 && paramcnt >= 2)
 	{
@@ -123,31 +123,31 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		{
 			*szout = 0;
 			getidt(szout);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 		else if (__strcmp(params[1], "gdt") == 0)
 		{
 			*szout = 0;
 			getgdt(szout);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 		else if (__strcmp(params[1], "ldt") == 0)
 		{
 			*szout = 0;
 			getldt(szout);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 		else if (__strcmp(params[1], "cr") == 0)
 		{
 			*szout = 0;
 			getcrs(szout);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 		else if (__strcmp(params[1], "general") == 0)
 		{
 			*szout = 0;
 			getGeneralRegs(szout);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
 	else if (__strcmp(params[0], "loadfiles") == 0)
@@ -158,19 +158,19 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			&info->_flags, info->_bakMbrSecOff, info->_bakMbr2SecOff, info->_loaderSecOff, info->_loaderSecCnt,
 			info->_kernelSecOff, info->_kernelSecCnt, info->_kdllSecOff, info->_kdllSecCnt,
 			info->_maindllSecOff, info->_maindllSecCnt, info->_fontSecOff, info->_fontSecCnt);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "segments") == 0)
 	{
 		__sprintf(szout, "Kernel:%x,Kernel16:%x,KernelData:%x\r\n", gKernel32, gKernel16, gKernelData);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		return 0;
 	}
 	else if (__strcmp(params[0], "threads") == 0)
 	{
 		*szout = 0;
 		getpids(szout);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "thread") == 0)
 	{
@@ -179,7 +179,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			int i = __strd2i(params[1]);
 			*szout = 0;
 			getpid(i, szout);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
 	else if (__strcmp(params[0], "run") == 0)
@@ -202,7 +202,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		TssDescriptor* descrptor = (TssDescriptor*)(GDT_BASE + kTssTaskSelector);
 		__sprintf(szout, "tid:%d, pid:%d ,link:%d,NT:%x,busy:%x\r\n",
 			process->tid, process->pid, process->tss.link, process->tss.trap, eflags & 0x4000, descrptor->type & 2);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		process->tss.link = 0;
 	}
 	else if (__strcmp(params[0], "alloc") == 0)
@@ -215,7 +215,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			{
 				DWORD addr = __malloc(size);
 				__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
-				ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+				ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 			}
 		}
 		else if (paramcnt >= 2)
@@ -223,7 +223,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			int size = __strh2i((unsigned char*)params[1]);
 			DWORD addr = __malloc(size);
 			__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
 	else if (__strcmp(params[0], "free") == 0)
@@ -233,7 +233,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			DWORD addr = __strh2i((unsigned char*)params[1]);
 			int size = __free(addr);
 			__sprintf(szout, "free size:%x,address:%x\r\n", size, addr);
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
 	else if (__strcmp(params[0], "dumpm") == 0)
@@ -250,7 +250,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			}
 			__dump((char*)addr, len, TRUE, (unsigned char*)szout);
 
-			ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
 	else if (__strcmp(params[0], "editmem") == 0)
@@ -267,7 +267,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		int pid = __strh2i((unsigned char*)params[1]);
 		*szout = 0;
 		int len = getmemmap(pid, szout);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "testme") == 0)
 	{
@@ -280,12 +280,12 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	{
 		DWORD cnt = *(DWORD*)TIMER0_TICK_COUNT;
 		__sprintf(szout, "%x\r\n", cnt);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "time") == 0)
 	{
 		__sprintf(szout, "%s\n", (char*)CMOS_DATETIME_STRING);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdtsc") == 0)
 	{
@@ -297,7 +297,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			mov h, edx
 		}
 		__sprintf(szout, "rdtsc:%x%x\n", h, l);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdpmc") == 0)
 	{
@@ -310,14 +310,14 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			mov h, edx
 		}
 		__sprintf(szout, "rdpmc:%x%x\n", h, l);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "cpu_temprature") == 0)
 	{
 		DWORD tj = 0;
 		DWORD temp = __readTemperature(&tj);
 		__sprintf(szout, "tj:%x,temprature:%d\n", temp);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "exit") == 0)
 	{
@@ -363,7 +363,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		getCpuType(cputype);
 
 		__sprintf(szout, "cpuinfo:%s,cpu type:%s\n", cpuinfo, cputype);
-		ret = __drawWindowChars((unsigned char*)&szout, CONSOLE_FONT_COLOR, window);
+		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "pcidev") == 0)
 	{

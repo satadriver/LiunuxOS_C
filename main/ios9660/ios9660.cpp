@@ -20,12 +20,13 @@ int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
 	int cnt = 0;
 	int iret = 0;
 	char buf[ATAPI_SECTOR_SIZE * 2];
+	char szout[1024];
 
 	//iret = readAtapiSector(buf, secno, 1);
 	iret = v86Int13Read(secno, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 	if (iret <= 0)
 	{
-		__drawGraphChars(( char*)"readIso9660Dirs iso9660 file system read sector error\n", 0);
+		__printf(szout,( char*)"readIso9660Dirs iso9660 file system read sector error\n");
 		return FALSE;
 	}
 
@@ -89,7 +90,7 @@ int browseISO9660File(LPFILEBROWSER files) {
 		gAtapiDev = getAtapiDev(0x81,0xff);
 		if (gAtapiDev == -1)
 		{
-			__drawGraphChars(( char*)"not found atapi device\n", 0);
+			__printf(szout,( char*)"not found atapi device\n");
 			return FALSE;
 		}
 		else {
@@ -103,13 +104,13 @@ int browseISO9660File(LPFILEBROWSER files) {
 	iret = v86Int13Read(ISO9660FS_VOLUME_DESCRIPTOR_NO, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 	if (iret <= 0)
 	{
-		__drawGraphChars(( char*)"browseISO9660File read cdrom sector 16 error\n", 0);
+		__printf(szout,( char*)"browseISO9660File read cdrom sector 16 error\n");
 		return FALSE;
 	}
 
 	if (*buf != 1 || __memcmp(buf + 1, "CD001", 5) /*|| *(buf+6) != 1*/)
 	{
-		__drawGraphChars(( char*)"iso 9660 file system format error\n", 0);
+		__printf(szout,( char*)"iso 9660 file system format error\n");
 		return FALSE;
 	}
 
@@ -119,7 +120,7 @@ int browseISO9660File(LPFILEBROWSER files) {
 	iret = v86Int13Read(vterminate.lba, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 	if (iret <= 0)
 	{
-		__drawGraphChars(( char*)"iso 9660 file system read sector error\n", 0);
+		__printf(szout,( char*)"iso 9660 file system read sector error\n");
 		return FALSE;
 	}
 

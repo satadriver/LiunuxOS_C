@@ -15,7 +15,7 @@ int showTxtFile(char * filename) {
 
 	*(data + filesize) = 0;
 
-	__drawGraphChars(data, 0);
+	__drawGraphChars( data, 0);
 
 	__kFree((DWORD)data);
 
@@ -54,7 +54,7 @@ int showBmp(char * filename, unsigned char * data, int filesize,int x,int y) {
 	BITMAPFILEHEADER * bmphdr = (BITMAPFILEHEADER*)data;
 	if (bmphdr->bfType != 0x4d42)
 	{
-		__drawGraphChars(( char*)"bmp file format error\n", 0);
+		__printf(szout, ( char*)"bmp file format error\n");
 		return FALSE;
 	}
 

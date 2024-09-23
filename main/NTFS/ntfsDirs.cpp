@@ -19,10 +19,11 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 	int cnt = 0;
 
 	int ret = 0;
+	char szout[1024];
 
 	if (__memcmp(buf, "INDX", 4))
 	{
-		__drawGraphChars(( char*)"getIdxNextDir format error\n", 0);
+		__printf(szout,( char*)"getIdxNextDir format error\n");
 		return cnt;
 	}
 
@@ -32,12 +33,13 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 
 	while (1)
 	{
-		if (idxentry->SIE_IndexEntrySize >= hdr->SIH_IndexEntryAllocSize || idxentry->SIE_IndexEntrySize <= 0)
+		if ((unsigned int)idxentry - (unsigned int)buf >= hdr->SIH_IndexEntryAllocSize)
 		{
 			break;
 		}
 
-		if ((unsigned int)idxentry - (unsigned int)buf >= hdr->SIH_IndexEntryAllocSize)
+		if (idxentry->SIE_IndexEntrySize >= hdr->SIH_IndexEntryAllocSize || idxentry->SIE_IndexEntrySize < sizeof(STD_INDEX_ENTRY) ||
+			idxentry->SIE_MFTReferNumber == 0)
 		{
 			break;
 		}
@@ -63,15 +65,7 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 		files++;
 		cnt++;
 
-		if ((idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff) == 0 &&
-			(idxentry->SIE_IndexEntrySize < sizeof(STD_INDEX_ENTRY) /*|| idxentry->SIE_IndexEntrySize >= 0x200*/))
-		{
-			//break;
-			//idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + 0x60);
-		}
-		else {
-
-		}
+		//MFT idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff  is 1
 		idxentry = (LPSTD_INDEX_ENTRY)((unsigned int)idxentry + idxentry->SIE_IndexEntrySize);
 	}
 
@@ -165,7 +159,7 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
 	ret = readSector(low, high, 2, (char*)msfinfo);
 	if (ret <= 0)
 	{
-		__printf(szout, "getNtfsDirs readSector mft low:%x,high:%x error\n", low, high);
+		__printf(szout, "getNtfsDirs readSector:%I64x error\n", secoff);
 		return cnt;
 	}
 
@@ -194,7 +188,6 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
 					if (clscntbytes == 0 || clscntbytes > 4 || clsnobytes == 0 || clsnobytes > 4)
 					{
 						return FALSE;
-						break;
 					}
 
 					i++;
@@ -231,8 +224,6 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
 
 					clsno += nextclsno;
 
-					__printf(szout, "ntfs path:%s,sector:%x,cluster number:%x,cluster total:%x\n", files, secoff, clsno, clscnt);
-
 					unsigned long long idxsecoff = gNtfsDbr.hideSectors + clsno * g_SecsPerCluster;
 					DWORD low = idxsecoff & 0xffffffff;
 					DWORD high = (idxsecoff >> 32)&0xffff;
@@ -240,12 +231,14 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
 					ret = readSector(low, high, (DWORD)(g_SecsPerCluster * clscnt), (char*)buffer);
 					if (ret <= 0)
 					{
-						__printf(szout, "getNtfsDirs readSector at sector:%x,count:%x error in 0xA0\n",
-							(DWORD)idxsecoff, g_SecsPerCluster * clscnt);
-
+						__printf(szout, "getNtfsDirs readSector at sector:%I64x,count:%I64x error in 0xA0\n",
+							idxsecoff, g_SecsPerCluster * clscnt);
 						break;
 					}
 					else {
+						__printf(szout, "ntfs path:%s,sector:%I64x,cluster number:%I64x,cluster total:%I64x\n",
+							files->pathname, idxsecoff, clsno, clscnt);
+
 						char* dirdata = (char*)buffer;
 						for (int i = 0; i < clscnt; i++)
 						{

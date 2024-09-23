@@ -220,7 +220,7 @@ void __doAlarmTask(DWORD  param) {
 
 	DWORD backGround = __kMalloc(backsize);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0,"__cmosAlarm");
+	
 
 	POINT p;
 	p.x = 0;
@@ -229,6 +229,8 @@ void __doAlarmTask(DWORD  param) {
 	int color = 0;
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
+
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "__cmosAlarm");
 
 	while (1)
 	{

@@ -144,24 +144,25 @@ int getIDEPort() {
 
 	ret = checkIDEPort(0x3f0);
 
-	//__printf((char*)szshow, "getIDEPort 3f0 over\n");
+	__printf((char*)szshow, "getIDEPort 3f0 over\n");
 
 	ret = checkIDEPort(0x370);
 
-	//__printf((char*)szshow, "getIDEPort 370 over\n");
+	__printf((char*)szshow, "getIDEPort 370 over\n");
 
 	//1f7 = 3f6 = 3f7,376=377=177
 	ret = checkIDEPort(0x1f0);
 
-	//__printf((char*)szshow, "getIDEPort 1f0 over\n");
+	__printf((char*)szshow, "getIDEPort 1f0 over\n");
 
 	ret = checkIDEPort(0x170);
+	__printf((char*)szshow, "getIDEPort 170 over\n");
 
 	ret = checkIDEPort(0x168);
 
 	ret = checkIDEPort(0x1e8);
 
-	//__printf((char*)szshow, "getIDEPort 170 over\n");
+	
 
 	DWORD hdport[1024];
 	DWORD dev = 0;
@@ -560,7 +561,7 @@ int readSectorLBA48Mimo(unsigned int secnoLow, unsigned int secnoHigh, unsigned 
 
 int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨C A1h and  IDENTIFY  DEVICE ¨C ECh
 
-	char szout[1024];
+	char szout[0x1000];
 
 	waitFree(port + 7);
 
@@ -581,7 +582,7 @@ int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨
 
 		unsigned char szshow[0x1000];
 		__dump((char*)buffer, BYTES_PER_SECTOR, 0, szshow);
-		__drawGraphChars(( char*)szshow, 0);
+		__printf(szout,( char*)szshow);
 	}
 	else {
 		__printf(szout, "%s waitComplete result:%d, cmd:%x,port:%x ERROR\r\n", __FUNCTION__,cmd, port);
