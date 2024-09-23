@@ -45,8 +45,11 @@ unsigned int __getchar(int wid) {
 	if (isTopWindow(wid))
 	{
 		__asm {
+			push wid
+			mov edi,esp
 			mov eax, 1
 			int 80h
+			add esp,4
 		}
  	}
 	else {

@@ -52,7 +52,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-		retvalue = getmouse(&mouseinfo, window.id);
+		retvalue = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
 			if (mouseinfo.x >= window.shutdownx && mouseinfo.x <= window.shutdownx + window.capHeight)

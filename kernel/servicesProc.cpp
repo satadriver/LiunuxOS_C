@@ -64,7 +64,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
 	{
 		case KBD_OUTPUT:
 		{
-			r = __kGetKbd(0);
+			r = __kGetKbd(params[0]);
 			break;
 		}
 		case KBD_INPUT:
@@ -74,7 +74,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
 		}
 		case MOUSE_OUTPUT:
 		{
-			r= __kGetMouse((LPMOUSEINFO)params,0);
+			r= __kGetMouse((LPMOUSEINFO)params[0], params[1]);
 			break;
 		}
 		case GRAPH_CHAR_OUTPUT:
@@ -294,6 +294,20 @@ DWORD __cpuinfo(unsigned long* params) {
 	}
 }
 
+unsigned int getcpuFreq() {
+	unsigned int f1 = 0;
+	unsigned int f2 = 0;
+	__asm {
+		rdtsc
+		mov [f1],eax
+		mov [f1 + 4],edx
+		xor eax,eax
+		rdtsc
+		mov[f2], eax
+		mov[f2 + 4], edx
+	}
+	return f2 - f1;
+}
 
 
 //https://www.felixcloutier.com/x86/cpuid
@@ -341,8 +355,10 @@ unsigned __int64 getCpuFreq() {
 		mov dword ptr  [maxfreq],eax
 		mov dword ptr [maxfreq+4],edx
 	}
-
-	return ((maxfreq <<32)+ maxfreq)*(aperf_var_hi - aperf_var_lo) / (mperf_var_hi- mperf_var_lo);
+	if (aperf_var_hi != aperf_var_lo && mperf_var_hi != mperf_var_lo) {
+		return ((maxfreq << 32) + maxfreq) * (aperf_var_hi - aperf_var_lo) / (mperf_var_hi - mperf_var_lo);
+	}
+	return 0;
 }
 
 unsigned __int64 __rdtsc() {
