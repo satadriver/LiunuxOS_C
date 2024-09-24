@@ -165,9 +165,7 @@ void addAlarmTimer(DWORD interval) {
 void __kAlarmTimerProc() {
 
 	char szout[1024];
-	__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
-
-	return ;
+	//__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
 
 	//can only exist one alarm
 	DWORD addr = gCmosAlarmProc.addr;
@@ -216,41 +214,7 @@ void __doAlarmTask(DWORD  param) {
 	char szout[1024];
 	__printf(szout, "__doAlarmTask running\n");
 
-	DWORD backsize = gBytesPerPixel*(gVideoWidth)*(gVideoHeight);
 
-	DWORD backGround = __kMalloc(backsize);
-
-	
-
-	POINT p;
-	p.x = 0;
-	p.y = 0;
-
-	int color = 0;
-
-	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
-
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "__cmosAlarm");
-
-	while (1)
-	{
-		unsigned int ck = __kGetKbd(windowid);
-		//unsigned int ck = __getchar(windowid);
-		unsigned int asc = ck & 0xff;
-		if (asc == 0x1b)
-		{
-			__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
-			removeWindow(windowid);
-
-			__kFree(backGround);
-
-			//__terminatePid(pid);
-			return;
-		}
-
-		__sleep(0);
-
-		color += 0x00010f;
-		__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, 0);
-	}
 }
+
+

@@ -93,20 +93,21 @@ LIST_ENTRY * searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
 	}
 
 	LPLIST_ENTRY n = head->next;
+	LPLIST_ENTRY base = n;
 
 	do
 	{
 		if (n == 0) {
 			break;
 		}
-		if ( n == list)
+		else if ( n == list)
 		{
 			return n;
 		}
 
 		n = n->next;
 		
-	} while (TRUE);
+	} while (n != base);
 
 	return FALSE;
 }

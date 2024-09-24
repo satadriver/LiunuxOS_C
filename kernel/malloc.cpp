@@ -12,6 +12,7 @@
 
 
 DWORD gAvailableSize = 0;
+
 DWORD gAvailableBase = 0;
 
 DWORD gAllocLimitSize = 0;
@@ -129,12 +130,11 @@ int initMemory() {
 }
 
 
-LPMEMALLOCINFO getExistAddr(DWORD addr,int size) {
-	LPMEMALLOCINFO base = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+LPMEMALLOCINFO isAddrExist(DWORD addr,int size) {
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)base->list.next;
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gMemAllocList->list.next;
 
-	LPMEMALLOCINFO tmp = info;
+	LPMEMALLOCINFO base = info;
 
 	do
 	{
@@ -153,7 +153,7 @@ LPMEMALLOCINFO getExistAddr(DWORD addr,int size) {
 		else {
 			info = (LPMEMALLOCINFO)info->list.next;
 		}
-	} while (info != tmp);
+	} while (info != base);
 
 	return 0;
 }
@@ -162,8 +162,7 @@ LPMEMALLOCINFO getExistAddr(DWORD addr,int size) {
 
 
 void resetAllMemAllocInfo() {
-	gMemAllocList = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
-
+	
 	LPMEMALLOCINFO item = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
 	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO);
 	for (int i = 0; i < cnt; i++)
@@ -171,15 +170,15 @@ void resetAllMemAllocInfo() {
 		__memset((char*)&item[i], 0, sizeof(MEMALLOCINFO));
 	}
 
-	LPMEMALLOCINFO memList = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
-	initListEntry(&memList->list);
+	gMemAllocList = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+	initListEntry(&gMemAllocList->list);
 }
 
 
 int resetMemAllocInfo(LPMEMALLOCINFO item) {
 	DWORD size = item->size;
 
-	removelist(&gMemAllocList->list,(LPLIST_ENTRY)item);
+	removelist(&gMemAllocList->list,(LPLIST_ENTRY)&item->list);
 	item->addr = 0;
 	item->size = 0;
 	item->vaddr = 0;
@@ -216,8 +215,8 @@ int setMemAllocInfo(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid)
 	item->size = size;
 	item->addr = addr;
 
-	LPMEMALLOCINFO meminfo = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
-	addlistTail(& (meminfo->list), & item->list);
+
+	addlistTail(& (gMemAllocList->list), & item->list);
 	return 0;
 }
 
@@ -254,7 +253,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	while (TRUE)
 	{
-		LPMEMALLOCINFO info = getExistAddr(addr,size);
+		LPMEMALLOCINFO info = isAddrExist(addr,size);
 		if (info == 0)
 		{
 			info = getMemAllocInfo();
@@ -276,7 +275,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			break;
 		}
 		else {
-
+			
 			if ( (info->size <= size) && (factor > 1) )		// important
 			{
 				for (int i = 0; i < factor - 1; i++)
@@ -288,7 +287,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 						break;
 					}
 
-					info = getExistAddr(addr,size);
+					info = isAddrExist(addr,size);
 					if (info == 0)
 					{
 						info = getMemAllocInfo();
@@ -311,7 +310,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			else {
 				//nothing to do
 			}
-
+			
 			if (res == 0) {
 				factor = (factor << 1);
 				addr = MEMMORY_ALLOC_BASE + size * factor;
@@ -355,12 +354,16 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 //return phisical address
 DWORD __kMalloc(DWORD s) {
 
+	char szout[1024];
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
-	if (ret <= 0) {
-		char szout[1024];
-		int len = __printf(szout, "__kMalloc error\n");
+	if (ret == 0) {
+		
+		int len = __printf(szout, "__kMalloc size:%x pid:%d error\n",s,process->pid);
+	}
+	else {
+		int len = __printf(szout, "__kMalloc size:%x pid:%d addr:%x\n", s, process->pid,ret);
 	}
 	return ret;
 }
@@ -371,7 +374,7 @@ int __kFree(DWORD physicalAddr) {
 
 	__enterSpinlock(&gAllocLock);
 
-	LPMEMALLOCINFO info = getExistAddr(physicalAddr, 0);
+	LPMEMALLOCINFO info = isAddrExist(physicalAddr, 0);
 	if (info)
 	{
 		DWORD size = resetMemAllocInfo(info);
@@ -435,7 +438,7 @@ int __free(DWORD linearAddr) {
 	DWORD phyaddr = linear2phy(linearAddr);
 	if (phyaddr)
 	{
-		LPMEMALLOCINFO info = getExistAddr(phyaddr,0);
+		LPMEMALLOCINFO info = isAddrExist(phyaddr,0);
 		if (info)
 		{
 			DWORD size = resetMemAllocInfo(info);

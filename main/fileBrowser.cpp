@@ -236,6 +236,8 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	int filetotal = 0;
 	LPFILEBROWSER files = (LPFILEBROWSER)__kMalloc(sizeof(FILEBROWSER)*1024);
+	//FILEBROWSER filelist[256];
+	//LPFILEBROWSER files = (LPFILEBROWSER)filelist;
 	if (partitionType == NTFS_FILE_SYSTEM)
 	{
 		unsigned __int64 ntfssecno = gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
@@ -267,25 +269,12 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	window.window.pid = p->pid;
 	__strcpy(window.window.caption, cmd->filename);
 
-	__printf(szout, "filetotal:%x,first:%s sector:%I64x size:%I64x,"
-		"second:%s sector:%I64x size:%I64x,third:%s sector:%I64x size:%I64x,fourth:%s sector:%I64x size:%I64x\n", 
-		filetotal,files[0].pathname,files[0].secno,files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize, 
-		files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
-
 	drawFileManager(&window);
-	//__printf(szout, "end drawFileManager \n");
 
-	/*
-	while (TRUE)
-	{
-		unsigned int asc = __kGetKbd(window.window.id) & 0xff;
-		if (asc == 0x1b)
-		{
-			__kFree((DWORD)files);
-			removeFileManager(&window);
-			return 0;
-		}
-	}*/
+	__printf(szout, "filetotal:%x,first:%s sector:%I64x size:%I64x,"
+		"second:%s sector:%I64x size:%I64x,third:%s sector:%I64x size:%I64x,fourth:%s sector:%I64x size:%I64x\n",
+		filetotal, files[0].pathname, files[0].secno, files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize,
+		files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
 
 	int rowlimit = gVideoHeight / window.fsheight;
 
@@ -331,20 +320,20 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			{
 				int len = __sprintf(szinfo, "%s        DIR(%x)        %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
-				*(szinfo + len) = 0;
+
 				__drawGraphChar(( char*)szinfo, FILE_DIR_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else if (files[number].attrib & FILE_ATTRIBUTE_ARCHIVE)
 			{
 				int len = __sprintf(szinfo, "%s        FILE(%x)       %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
-				*(szinfo + len) = 0;
+
 				__drawGraphChar(( char*)szinfo, FILE_FILE_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else {
 				int len = __sprintf(szinfo, "%s        UNKNOWN(%x)    %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
-				*(szinfo + len) = 0;
+
 				__drawGraphChar(( char*)szinfo, FILE_UNKNOWN_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			number++;

@@ -42,16 +42,11 @@ void resetAllMemAllocInfo();
 
 int resetMemAllocInfo(LPMEMALLOCINFO item);
 
-LPMEMALLOCINFO getExistAddr_size(DWORD addr,int size);
-
-LPMEMALLOCINFO getExistAddr_none_size(DWORD addr);
-
 LPMEMALLOCINFO getMemAllocInfo();
 
 int getAlignedSize(int size, int allignsize);
 
-
-LPMEMALLOCINFO getExistAddr(DWORD addr, int size);
+LPMEMALLOCINFO isAddrExist(DWORD addr, int size);
 
 int initMemory();
 

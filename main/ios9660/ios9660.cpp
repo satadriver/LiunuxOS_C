@@ -12,8 +12,12 @@
 
 
 
-int gAtapiDev = -1;
+#define APAPI_INT13_READWRITE
 
+
+#ifdef APAPI_INT13_READWRITE
+int gAtapiDev = -1;
+#endif
 
 
 int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
@@ -22,8 +26,11 @@ int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
 	char buf[ATAPI_SECTOR_SIZE * 2];
 	char szout[1024];
 
-	//iret = readAtapiSector(buf, secno, 1);
+#ifndef APAPI_INT13_READWRITE
+	iret = readAtapiSector(buf, secno, 1);
+#else
 	iret = v86Int13Read(secno, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#endif
 	if (iret <= 0)
 	{
 		__printf(szout,( char*)"readIso9660Dirs iso9660 file system read sector error\n");
@@ -100,8 +107,11 @@ int browseISO9660File(LPFILEBROWSER files) {
 	
 
 	char buf[ATAPI_SECTOR_SIZE * 2];
-	//iret = readAtapiSector(buf, ISO9660FS_VOLUME_DESCRIPTOR_NO, 1);
+#ifndef APAPI_INT13_READWRITE
+	iret = readAtapiSector(buf, ISO9660FS_VOLUME_DESCRIPTOR_NO, 1);
+#else
 	iret = v86Int13Read(ISO9660FS_VOLUME_DESCRIPTOR_NO, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#endif
 	if (iret <= 0)
 	{
 		__printf(szout,( char*)"browseISO9660File read cdrom sector 16 error\n");
@@ -116,8 +126,11 @@ int browseISO9660File(LPFILEBROWSER files) {
 
 	ISO9660FSDIR vterminate;
 	__memcpy((char*)&vterminate, buf + 0x9c, *(buf + 0x9c));
-	//iret = readAtapiSector(buf, vterminate.lba, 1);
+#ifndef APAPI_INT13_READWRITE
+	iret = readAtapiSector(buf, vterminate.lba, 1);
+#else
 	iret = v86Int13Read(vterminate.lba, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#endif
 	if (iret <= 0)
 	{
 		__printf(szout,( char*)"iso 9660 file system read sector error\n");
@@ -193,8 +206,11 @@ int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
 	int mod = seccnt % 32;
 	for (int i = 0; i < times; i ++)
 	{
-		//iret = readAtapiSector(*buf, secno, 32);
+#ifndef APAPI_INT13_READWRITE
+		iret = readAtapiSector(*buf, secno, 32);
+#else
 		iret = v86Int13Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#endif
 		if (iret <= 0)
 		{
 			return FALSE;
@@ -206,8 +222,11 @@ int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
 
 	if (mod)
 	{
-		//iret = readAtapiSector(*buf, secno, mod);
+#ifndef APAPI_INT13_READWRITE
+		iret = readAtapiSector(*buf, secno, mod);
+#else
 		iret = v86Int13Read(secno, 0, mod, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#endif
 		if (iret <= 0)
 		{
 			return FALSE;

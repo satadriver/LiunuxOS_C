@@ -116,6 +116,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 		}
 	}
 	else {
+		
 		while (1)
 		{
 			if (factor > 1 && info->size <= size)

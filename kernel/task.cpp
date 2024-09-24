@@ -432,7 +432,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,"\
-			"new task pid : %d, tid : %d, old task pid : %d, tid : %d, timestamp : %i64x, cpurate : %i64x\r\n",
+			"new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
 			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
 			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
 	}
@@ -634,7 +634,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,"\
-			"new task pid : %d, tid : %d, old task pid : %d, tid : %d, timestamp : %i64x, cpurate : %i64x\r\n",
+			"new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
 			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
 			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
 	}

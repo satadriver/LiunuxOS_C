@@ -20,7 +20,7 @@
 
 int gCircleCenterX = 0;
 int gCircleCenterY = 0;
-int gRadius = 128;
+int gRadius = 64;
 int gDeltaX = 6;
 int gDeltaY = 6;
 
@@ -129,8 +129,10 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 
 	MOUSEINFO mouseinfo;
 	mouseinfo.status = 0;
+	mouseinfo.x = 0;
+	mouseinfo.y = 0;
 	__kGetMouse(&mouseinfo, gScreenProtectWindowID);
-	if (mouseinfo.status )	
+	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)	
 	{
 		stopScreenProtect();
 		return;
@@ -173,6 +175,167 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 	ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 	return ;
 }
+
+
+
+
+
+
+
+
+
+
+
+int gVectorGraphWid = 0;
+int gBaseColor = 0;
+int gVectorGraphTiD = 0;
+char gVectorGraphBuf = 0;
+
+void stopVectorGraph() {
+	int ret = 0;
+
+	__kRemoveExactTimer(gVectorGraphTiD);
+
+	removeWindow(gVectorGraphWid);
+	
+	//DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+	//__memcpy((char*)gGraphBase,(char*) gVectorGraphBuf, backsize);
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+	int color = 0;
+	__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)gVectorGraphBuf);
+
+	__kFree(gVectorGraphBuf);
+	return;
+}
+
+
+void VectorGraph() {
+
+	unsigned int asc = __kGetKbd(gVectorGraphWid) & 0xff;
+	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
+	{
+		stopVectorGraph();
+		return;
+	}
+
+	MOUSEINFO mouseinfo;
+	mouseinfo.status = 0;
+	mouseinfo.x = 0;
+	mouseinfo.y = 0;
+	__kGetMouse(&mouseinfo, gVectorGraphWid);
+	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)
+	{
+		stopVectorGraph();
+		return;
+	}
+
+	DWORD cx = gVideoWidth / 2;
+	DWORD cy = gVideoHeight / 2;
+
+	for (DWORD y = 0; y < gVideoHeight; y++) {
+		for (DWORD x = 0; x < gVideoWidth; x++) {
+			//DWORD r = ((x - cx) ^ 2) + ((y - cy) ^ 2);
+			DWORD r = ((x - cx)*(x - cx)) + ((y - cy) * (y - cy));
+			DWORD c = 0;
+			//DWORD c = r + (r << 8) + (r << 16);
+			c = r + gBaseColor* gBaseColor;
+			//__asm {
+			//	mov eax,r
+			//	mov ecx, gBaseColor
+			//	rol eax, cl
+			//	mov c,eax
+			//}
+			//DWORD c = r << gBaseColor;
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+			for (int k = 0; k < gBytesPerPixel; k++) {
+
+
+				*ptr = c&0xff;
+				c = c >> 8;
+
+				ptr++;
+			}
+		}
+	}
+
+	gBaseColor = gBaseColor+1;
+	//gBaseColor = (gBaseColor + 1)%32;
+}
+
+void initVectorGraph() {
+	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+
+	gVectorGraphBuf = __kMalloc(backsize);
+
+	gVectorGraphWid = addWindow(FALSE, 0, 0, 0, "VectorGraph");
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+	int color = 0;
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
+
+	gVectorGraphTiD = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+}
+
+
+
+
+
+
+
+
+void refreshScreenColor() {
+	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+
+	DWORD backGround = __kMalloc(backsize);
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+
+	int color = 0;
+
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
+
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen");
+
+	while (1)
+	{
+		unsigned int ck = __kGetKbd(windowid);
+		//unsigned int ck = __getchar(windowid);
+		unsigned int asc = ck & 0xff;
+		if (asc == 0x1b)
+		{
+			__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			removeWindow(windowid);
+
+			__kFree(backGround);
+
+			//__terminatePid(pid);
+			return;
+		}
+
+		__sleep(0);
+
+		color += 0x00010f;
+		__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, 0);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 int g_PauseBreakFlag = 0;

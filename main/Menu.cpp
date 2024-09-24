@@ -188,23 +188,24 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->width = RIGHTCLICK_MENU_WIDTH;
 	__strcpy(menu->menuname[0], "Shutdown System");
 	__strcpy(menu->menuname[1], "Reset System");
-	__strcpy(menu->menuname[2], "ScreenProtect");
-
+	__strcpy(menu->menuname[2], "Screen Protect");
 	__strcpy(menu->menuname[3], "cmd");
 	__strcpy(menu->menuname[4], "Paint");
-	__strcpy(menu->menuname[5], "SreenCover");
+	__strcpy(menu->menuname[5], "Screen Color");
 	__strcpy(menu->menuname[6], "Reject CDROM");
+	__strcpy(menu->menuname[7], "Vector Graph");
 
-	menu->menuname[7][0] = 0;
+	menu->menuname[8][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
 	menu->funcaddr[2] = (DWORD)initScreenProtect;
 	menu->funcaddr[3] = (DWORD)__kConsole;
 	menu->funcaddr[4] = (DWORD)__kPaint;
-	menu->funcaddr[5] = (DWORD)__doAlarmTask;
+	menu->funcaddr[5] = (DWORD)refreshScreenColor;
 	menu->funcaddr[6] = (DWORD)rejectCDROM;
-	menu->validItem = 7;
+	menu->funcaddr[7] = (DWORD)initVectorGraph;
+	menu->validItem = 8;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
@@ -213,6 +214,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->paramcnt[4] = 6;
 	menu->paramcnt[5] = 1;
 	menu->paramcnt[6] = 1;
+	menu->paramcnt[7] = 0;
 
 	menu->funcparams[3][5] = 0;
 	menu->funcparams[3][4] = (DWORD)menu->name;
@@ -232,6 +234,9 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 
 	menu->funcparams[6][0] = 0;
 
+	menu->funcparams[7][0] = 0;
+
 	menu->id = 0;
+
 	menu->tid = tid;
 }

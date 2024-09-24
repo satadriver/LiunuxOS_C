@@ -32,5 +32,5 @@ int getDayOfMonth(int year, int month);
 
 extern "C" __declspec(dllexport) void __doAlarmTask(DWORD  param);
 
-//void __doAlarmTask(DWORD retaddr, DWORD pid, char * fname, char * funcname, DWORD param);
+void refreshScreenColor();
 
