@@ -105,8 +105,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		sti
 	}
 
-	
-
 #ifdef SINGLE_TASK_TSS
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
@@ -125,7 +123,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
 		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
-		__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
+		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");
@@ -139,6 +137,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		if (__findProcessFuncName("__kExplorer") == FALSE)
 		{
 			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
+			__printf(szout, "__kCreateProcess __kExplorer\r\n");
 		}
 
 		__asm {

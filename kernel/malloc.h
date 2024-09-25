@@ -48,6 +48,8 @@ int getAlignedSize(int size, int allignsize);
 
 LPMEMALLOCINFO isAddrExist(DWORD addr, int size);
 
+LPMEMALLOCINFO findAddr(DWORD addr);
+
 int initMemory();
 
 DWORD pageAlignmentSize(DWORD size,int max);

@@ -68,6 +68,10 @@ int checkIDEPort(unsigned short port) {
 
 		gATADev = inportb(port + 6);
 
+		if ( (gATADev & 0xa0) != 0xa0) {
+			//gATADev = gATADev | 0xa0;
+		}
+
 		gATADrv = gATADev & 0x10;
 
 		r = identifyDevice(port, 0xec,(char*) ATA_INFO_BASE);
@@ -88,6 +92,9 @@ int checkIDEPort(unsigned short port) {
 		gAtapiBasePort = port;
 
 		gATAPIDev = inportb(port + 6);
+		if ( (gATAPIDev & 0xa0) != 0xa0) {
+			//gATAPIDev = gATAPIDev | 0xa0;
+		}
 
 		gATAPIDrv = gATAPIDev & 0x10;
 
@@ -161,8 +168,6 @@ int getIDEPort() {
 	ret = checkIDEPort(0x168);
 
 	ret = checkIDEPort(0x1e8);
-
-	
 
 	DWORD hdport[1024];
 	DWORD dev = 0;
@@ -585,7 +590,7 @@ int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨
 		__printf(szout,( char*)szshow);
 	}
 	else {
-		__printf(szout, "%s waitComplete result:%d, cmd:%x,port:%x ERROR\r\n", __FUNCTION__,cmd, port);
+		__printf(szout, "%s waitComplete result:%d, cmd:%x,port:%x ERROR\r\n", __FUNCTION__,res,cmd, port);
 	}
 	
 	//__printf(szout, "harddisk sequence:%s,firmware version:%s,type:%s,type sequence:%s\r\n",

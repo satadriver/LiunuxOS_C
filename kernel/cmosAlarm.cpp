@@ -180,6 +180,9 @@ void __kAlarmTimerProc() {
 			call eax
 			add esp, 4
 		}
+		gCmosAlarmProc.addr = 0;
+		gCmosAlarmProc.interval = 0;
+
 	}
 }
 

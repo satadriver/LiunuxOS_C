@@ -158,6 +158,29 @@ LPMEMALLOCINFO isAddrExist(DWORD addr,int size) {
 	return 0;
 }
 
+LPMEMALLOCINFO findAddr(DWORD addr) {
+
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gMemAllocList->list.next;
+
+	LPMEMALLOCINFO base = info;
+
+	do
+	{
+		if (info == 0)
+		{
+			return (LPMEMALLOCINFO)0;
+		}
+		else if (info->addr == addr)
+		{
+			return info;
+		}
+		else {
+			info = (LPMEMALLOCINFO)info->list.next;
+		}
+	} while (info != base);
+
+	return 0;
+}
 
 
 
@@ -233,97 +256,57 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 		__printf(szout, "__kProcessMalloc pageAlignmentSize:%x gAllocLimitSize:%x\r\n", size, gAllocLimitSize);
 		return FALSE;
 	}
-
-	if (size < PAGE_SIZE)
+	else if (size < PAGE_SIZE)
 	{
 		size = PAGE_SIZE;
 	}
 
 	*retsize = size;
 
-	int factor = 1;
-	DWORD addr = MEMMORY_ALLOC_BASE + size*factor;
-	if (addr + size > gAvailableBase + gAvailableSize)
-	{
-		__printf(szout, "__kProcessMalloc addr:%x available size:%x\r\n", addr + size, gAvailableBase + gAvailableSize);
-		return FALSE;
-	}
-
 	__enterSpinlock(&gAllocLock);
 
-	while (TRUE)
+	int factor = 1;
+
+	do
 	{
-		LPMEMALLOCINFO info = isAddrExist(addr,size);
-		if (info == 0)
+		for (int i = factor/2 ; i && i < factor; i++)
 		{
-			info = getMemAllocInfo();
-			if (info)
+			DWORD addr = MEMMORY_ALLOC_BASE + size * (i);
+			if (addr + size > gAvailableBase + gAvailableSize)
 			{
-				setMemAllocInfo(info, addr, vaddr, size, pid);
-
-				res = addr;
-			}
-			else {
 				res = -1;
-			}
-
-			break;
-		}
-		else if (info == (LPMEMALLOCINFO)-1)
-		{
-			res = -1;
-			break;
-		}
-		else {
-			
-			if ( (info->size <= size) && (factor > 1) )		// important
-			{
-				for (int i = 0; i < factor - 1; i++)
-				{
-					addr += size;
-					if (addr + size > gAvailableBase + gAvailableSize)
-					{
-						res = -1;
-						break;
-					}
-
-					info = isAddrExist(addr,size);
-					if (info == 0)
-					{
-						info = getMemAllocInfo();
-						if (info)
-						{
-							setMemAllocInfo(info, addr, vaddr, size, pid);
-
-							res = addr;
-						}
-						else {
-							res = -1;
-						}
-						break;
-					}
-					else {
-						break;
-					}
-				}
-			}
-			else {
-				//nothing to do
-			}
-			
-			if (res == 0) {
-				factor = (factor << 1);
-				addr = MEMMORY_ALLOC_BASE + size * factor;
-			}
-			else {
+				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%x,size:%x\r\n", 
+					addr, size, gAvailableBase, gAvailableSize);
 				break;
 			}
-		}
-	}
 
-	if (res == -1) {
-		res = 0;
-	}
+			LPMEMALLOCINFO info = isAddrExist(addr, size);
+			if (info == 0)
+			{
+				info = getMemAllocInfo();
+				if (info)
+				{
+					setMemAllocInfo(info, addr, vaddr, size, pid);
+
+					res = addr;
+					break;
+				}
+				else {
+					__printf(szout, "getMemAllocInfo failed\r\n");
+					res = -1;
+					break;
+				}
+			}
+
+			factor = (factor << 1);
+		}
+
+		if (res == -1) {
+			res = 0;
+			break;
+		}
+
+	} while (res == 0);
 
 	if (res ) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -374,7 +357,7 @@ int __kFree(DWORD physicalAddr) {
 
 	__enterSpinlock(&gAllocLock);
 
-	LPMEMALLOCINFO info = isAddrExist(physicalAddr, 0);
+	LPMEMALLOCINFO info = findAddr(physicalAddr);
 	if (info)
 	{
 		DWORD size = resetMemAllocInfo(info);
@@ -438,7 +421,7 @@ int __free(DWORD linearAddr) {
 	DWORD phyaddr = linear2phy(linearAddr);
 	if (phyaddr)
 	{
-		LPMEMALLOCINFO info = isAddrExist(phyaddr,0);
+		LPMEMALLOCINFO info = findAddr(phyaddr);
 		if (info)
 		{
 			DWORD size = resetMemAllocInfo(info);

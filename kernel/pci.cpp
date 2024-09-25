@@ -113,6 +113,32 @@ int listpci(DWORD* dst) {
 			*lpdst = bdf;
 			lpdst++;
 
+			
+			if ( (v == 0x200) ||  (v== 0x0300) || (v== 0x0401) || (v == 0x0c03) || (v == 0x0c05) ) {
+				int baseregidx = (bdf & 0xffffff00) + 0x10;
+				int regcnt = 0;
+				DWORD regs[8];
+				for (int i = 0; i < 4; i++)
+				{
+					outportd(0xcf8, baseregidx);
+					DWORD r = inportd(0xcfc);
+					if (r && r != 0xffffffff) {
+
+						baseregidx += 4;
+						regs[i] = r;
+						regcnt++;
+					}
+					else {
+						break;
+					}
+				}
+
+				if (regcnt == 4) {
+					char szout[1024];
+					__printf(szout, "dev:%x,type:%x, regs:%x,%x,%x,%x\n", bdf, v, regs[0], regs[1], regs[2], regs[3]);
+				}
+			}
+			
 			cnt++;
 		}
 	}
@@ -137,7 +163,6 @@ void showAllPciDevs() {
 			char szout[1024];
 			__printf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
 
-
 			i += 2;
 		}
 	}
@@ -150,6 +175,8 @@ void showAllPciDevs() {
 int showPciDevs() {
 
 	showAllPciDevs();
+	return 0;
+
 
 	char szout[1024];
 	__printf(szout, ( char*)"\n\npci devices:\n");
