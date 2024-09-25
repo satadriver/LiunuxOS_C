@@ -250,7 +250,10 @@ int __restoreWindow(LPWINDOWCLASS window) {
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				*ptr = *srcdata;
+				if (*ptr != *srcdata) {
+
+					*ptr = *srcdata;
+				}
 				ptr++;
 				srcdata++;
 			}
@@ -639,7 +642,9 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 			{
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
-					*showpos = *backup;
+					if (*showpos != *backup) {
+						*showpos = *backup;
+					}
 					showpos++;
 					backup++;
 				}
@@ -659,13 +664,15 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 	return (unsigned int)showpos - gGraphBase;
 }
 
-extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char* backup) {
+extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char* back) {
 
 	__kRestoreMouse();
 
 	int squreRadius = radius * radius;
 
 	int pixelcnt = 0;
+
+	unsigned char* backup = back;
 
 	int startx = x - radius;
 	int endx = x + radius;
@@ -691,12 +698,15 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
 
-					if (backup) {
+					if (back && (*backup != *showpos)) {
 						*backup = *showpos;
-						backup++;
+						
 					}
+					backup++;
 
-					*showpos = c;
+					if (*showpos != (c&0xff)) {
+						*showpos = c;
+					}
 					showpos++;
 					c = (c >> 8);
 				}
@@ -718,12 +728,14 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 
 
 
-int __drawCircle(int x, int y, int radius, int color, unsigned char* backup) {
+int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
 	__kRestoreMouse();
 
 	int squreRadius = radius * radius;
 
 	int pixelcnt = 0;
+
+	unsigned char* backup = back;
 
 	int startx = x - radius;
 	int endx = x + radius;
@@ -745,12 +757,15 @@ int __drawCircle(int x, int y, int radius, int color, unsigned char* backup) {
 				unsigned int c = color;
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
-					if (backup) {
+					if (back && (*backup != *showpos)) {
 						*backup = *showpos;
-						backup++;
+						
 					}
+					backup++;
 
-					*showpos = c;
+					if (*showpos != (c & 0xff)) {
+						*showpos = c;
+					}
 					showpos++;
 					c = (c >> 8);
 				}
@@ -785,13 +800,17 @@ int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char*
 			int c = color;
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (backbuf)
+				if (backbuf && (*backup != *ptr))
 				{
 					*backup = *ptr;
-					backup++;
+					
 				}
+				backup++;
 
-				*ptr = (c & 0xff);
+				if (*ptr != (c & 0xff)) {
+					*ptr = (c & 0xff);
+				}
+				
 				ptr++;
 				c = (c >> 8);
 			}
@@ -819,7 +838,9 @@ int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char* backup)
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				*ptr = *backup;
+				if (*ptr != *backup) {
+					*ptr = *backup;
+				}
 				ptr++;
 				backup++;
 			}
@@ -846,7 +867,9 @@ int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, un
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				*ptr = *backup;
+				if (*ptr != *backup) {
+					*ptr = *backup;
+				}
 				ptr++;
 				backup++;
 			}
@@ -859,10 +882,12 @@ int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, un
 	return (int)ptr - gGraphBase;
 }
 
-int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* back) {
+int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* backbuf) {
 	int startpos = __getpos(p->x, p->y) + gGraphBase;
 	unsigned char* ptr = (unsigned char*)startpos;
 	unsigned char* keep = ptr;
+
+	char* back = backbuf;
 
 	int singlefs = framesize >> 1;
 
@@ -886,11 +911,12 @@ int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int frame
 
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (back)
+				if (backbuf && (* back != *ptr))
 				{
 					*back = *ptr;
-					back++;
 				}
+				back++;
+
 				*ptr = (c & 0xff);
 				ptr++;
 				c = (c >> 8);
@@ -1173,56 +1199,45 @@ int __drawDot(int x, int y, DWORD color) {
 
 int __drawLine(int x1, int y1, int x2, int y2, DWORD color) {
 
-	if (x1 == x2 && y1 == y2)
-	{
-		return __drawDot(x1, y1, color);
+	int ret = 0;
+	if (x1 == x2) {
+		if (y1 == y2) {
+			return __drawDot(x1, y1, color);
+		}
+		else {
+			if (y1 >= y2) {
+				return __drawVertical(x2, y2, y1-y2, color);
+			}
+			else {
+				return __drawVertical(x1, y1, y2-y1, color);
+			}	
+		}
 	}
 
-	int highx = x1;
-	int lowx = x2;
-	int deltax = x1 - x2;
-	if (x1 < x2)
-	{
-		highx = x2;
-		lowx = x1;
-		deltax = x2 - x1;
+	double k = (y2 - y1) / (x2 - x1);
+	if (k == 0) {
+		//
 	}
 
-	int highy = y1;
-	int lowy = y2;
-	int deltay = y1 - y2;
-	if (y1 < y2)
-	{
-		highy = y2;
-		lowy = y1;
-		deltay = y2 - y1;
+	int lx = x1;
+	int sx = x2;
+	int ly = y1;
+	int sy = y2;
+	if (lx < x2) {
+		lx = x2;
+		sx = x1;
+
+		ly = y2;
+		sy = y1;
 	}
 
-	int direction = deltax > deltay ? deltax : deltay;
-
-	float rate = (x2 - x1) / (y2 - y1);
-	if (deltax > deltay)
-	{
-		rate = (y2 - y1) / (x2 - x1);
+	int dx = lx - sx;
+	for (int i = 0; i < dx; i++) {
+		int px = sx + i;
+		int py = k*i + sy;
+		ret = __drawDot(px, py,color);
 	}
-
-	float x = lowx;
-	float y = y1;
-
-	int delta = 1;
-	if (x2 < x1)
-	{
-		delta = -1;
-	}
-
-	while (x != x2)
-	{
-		y = rate * (x - x1) + y1;
-		__drawDot((int)x, (int)y, color);
-		x++;
-	}
-
-	return 0;
+	return ret;
 }
 
 

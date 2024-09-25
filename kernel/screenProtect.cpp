@@ -259,7 +259,7 @@ void VectorGraph() {
 	}
 	//gBaseColor = gBaseColor + 1;
 
-	gBaseColor = (gBaseColor + 1) % gVideoWidth;
+	gBaseColor = (gBaseColor + 3) % 0x100000;
 }
 
 void initVectorGraph() {
@@ -280,11 +280,6 @@ void initVectorGraph() {
 
 
 
-
-
-
-
-
 void refreshScreenColor() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
@@ -299,6 +294,60 @@ void refreshScreenColor() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
 	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen");
+
+	while (1)
+	{
+		unsigned int ck = __kGetKbd(windowid);
+		//unsigned int ck = __getchar(windowid);
+		unsigned int asc = ck & 0xff;
+		if (asc == 0x1b)
+		{
+			__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			removeWindow(windowid);
+
+			__kFree(backGround);
+
+			//__terminatePid(pid);
+			return;
+		}
+
+		__sleep(0);
+
+		
+		for (DWORD y = 0; y < gVideoHeight; y++) {
+
+			for (DWORD x = 0; x < gVideoWidth; x++) {
+
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				int c = color;
+				for (int k = 0; k < gBytesPerPixel; k++) {
+					*ptr = c & 0xff;
+					c = c >> 8;
+					ptr++;
+				}		
+			}
+			color = (color + 1);
+		}
+	}
+}
+
+
+
+
+void refreshScreenColor2() {
+	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+
+	DWORD backGround = __kMalloc(backsize);
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+
+	int color = 0;
+
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
+
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen2");
 
 	while (1)
 	{

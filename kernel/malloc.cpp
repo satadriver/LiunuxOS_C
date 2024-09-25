@@ -364,8 +364,9 @@ int __kFree(DWORD physicalAddr) {
 	LPMEMALLOCINFO info = findAddr(physicalAddr);
 	if (info)
 	{
+		int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr, info->size, info->pid, info->vaddr);
 		DWORD size = resetMemAllocInfo(info);
-		int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr,info->size,info->pid,info->vaddr);
+		
 	}
 	else {
 		
