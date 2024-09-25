@@ -12,7 +12,29 @@ DWORD gPageAllocLock = FALSE;
 
 LPMEMALLOCINFO gPageAllocList = 0;
 
+LPMEMALLOCINFO findPageIdx(DWORD addr) {
 
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(base->list.next);
+	LPMEMALLOCINFO tmp = info;
+
+	do
+	{
+		if (info == 0) {
+			break;
+		}
+
+		if (info->addr == addr)
+		{
+			return info;
+		}
+		else {
+			info = (LPMEMALLOCINFO)info->list.next;
+		}
+	} while (info && (info != tmp));
+
+	return 0;
+}
 
 LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 
@@ -90,79 +112,46 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 		return FALSE;
 	}
 
-	int factor = 1;
-	DWORD addr = PAGE_TABLE_BASE + size*factor;
-	if (addr + size > PAGE_TABLE_BASE + PAGE_TABLE_SIZE)
-	{
-		return FALSE;
-	}
-
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 	__enterSpinlock(&gPageAllocLock);
 
-	LPMEMALLOCINFO info = isPageIdxExist(addr,size);
-	if (info == 0)
+	int factor = 1;
+	while (1)
 	{
-		info = getFreePageIdx();
-		if (info)
+		for (int i = factor / 2; i && i < factor; i++)
 		{
-			insertPageIdx(info, addr, size, tss->pid, addr);
-
-			res = addr;
-		}
-		else {
-			res = -1;
-		}
-	}
-	else {
-		
-		while (1)
-		{
-			if (factor > 1 && info->size <= size)
+			DWORD addr = PAGE_TABLE_BASE + size * i;
+			if (addr + size > PAGE_TABLE_BASE + PAGE_TABLE_SIZE)
 			{
-				for (int i = 0; i < factor - 1; i++)
+				res = -1;
+				break;
+			}
+
+			LPMEMALLOCINFO info = isPageIdxExist(addr, size);
+			if (info == 0)
+			{
+				info = getFreePageIdx();
+				if (info)
 				{
-					addr += size;
-					if (addr + size > PAGE_TABLE_BASE + PAGE_TABLE_SIZE)
-					{
-						res = -1;
-						break;
-					}
-
-					info = isPageIdxExist(addr,size);
-					if (info == 0)
-					{
-						info = getFreePageIdx();
-						if (info)
-						{
-							insertPageIdx(info, addr, size, tss->pid, addr);
-							res = addr;
-						}
-						else {
-							res = -1;
-						}
-						break;
-					}
-					else {
-						break;
-					}
+					insertPageIdx(info, addr, size, tss->pid, addr);
+					res = addr;
 				}
-			}
-			else {
-				//noting to do
-			}
-
-			if (res == 0) {
-				factor = (factor << 1);
-				addr = PAGE_TABLE_BASE + size * factor;
-			}
-			else {
+				else {
+					res = -1;
+				}
 				break;
 			}
 		}
-	}
 
+		if (res == 0) {
+			factor = (factor << 1);
+		}
+		else {
+			break;
+		}
+	}
+	
 	__leaveSpinlock(&gPageAllocLock);
 
 	if (res == -1) {
@@ -181,7 +170,7 @@ extern "C"  __declspec(dllexport) int __kFreePage(DWORD addr) {
 
 	__enterSpinlock(&gPageAllocLock);
 
-	LPMEMALLOCINFO info = isPageIdxExist(addr,0);
+	LPMEMALLOCINFO info = findPageIdx(addr);
 	if (info)
 	{
 		DWORD size = resetPageIdx(info);

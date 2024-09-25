@@ -453,8 +453,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 
-
-
 	if (process->tid != prev->tid) {
 		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
 		return 0;

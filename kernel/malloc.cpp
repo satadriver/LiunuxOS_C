@@ -110,13 +110,13 @@ int initMemory() {
 
 				if (gAvailableBase > MEMMORY_ALLOC_BASE )
 				{
-					gAllocLimitSize = (gAvailableSize - gAvailableBase) / 2;
+					gAllocLimitSize = (gAvailableSize - gAvailableBase) / 1;
 				}
 				else {
-					gAllocLimitSize = (gAvailableSize - MEMMORY_ALLOC_BASE) / 2;
+					gAllocLimitSize = (gAvailableSize - MEMMORY_ALLOC_BASE) / 1;
 				}
 				
-				gAllocLimitSize = pageAlignmentSize(gAllocLimitSize, 0);
+				//gAllocLimitSize = pageAlignmentSize(gAllocLimitSize, 0);
 
 				int len = __printf(szout, "available memory address:%x,size:%x,alloc limit size:%x\n",
 					gAvailableBase,gAvailableSize, gAllocLimitSize);
@@ -272,7 +272,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 		for (int i = factor/2 ; i && i < factor; i++)
 		{
 			DWORD addr = MEMMORY_ALLOC_BASE + size * (i);
-			if (addr + size > gAvailableBase + gAvailableSize)
+			if ( (addr + size > gAvailableBase + gAvailableSize) )
 			{
 				res = -1;
 				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%x,size:%x\r\n", 
@@ -297,16 +297,19 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 					break;
 				}
 			}
-
-			factor = (factor << 1);
 		}
 
-		if (res == -1) {
-			res = 0;
+		if (res) {
 			break;
 		}
 
+		factor = (factor << 1);
+
 	} while (res == 0);
+
+	if (res == -1) {
+		res = 0;
+	}
 
 	if (res ) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
