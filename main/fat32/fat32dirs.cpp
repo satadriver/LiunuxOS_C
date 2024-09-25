@@ -1,13 +1,13 @@
 
-#include "FAT32.h"
-#include "fat32file.h"
-#include "fileutils.h"
-#include "../Utils.h"
-#include "../ata.h"
-#include "../video.h"
-#include "FAT32Utils.h"
+#include "fat32/FAT32.h"
+#include "fat32/fat32file.h"
+#include "fat32/fileutils.h"
+#include "Utils.h"
+#include "ata.h"
+#include "video.h"
+#include "fat32/FAT32Utils.h"
 #include "../FileBrowser.h"
-#include "../malloc.h"
+#include "malloc.h"
 
 
 int getFat32RootDirs(LPFAT32DIRECTORY dir,LPFILEBROWSER files) {
