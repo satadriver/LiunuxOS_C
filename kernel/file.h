@@ -98,10 +98,6 @@ extern "C" __declspec(dllexport) int getMBR();
 
 extern "C" int logFile(char * log);
 
-extern "C" __declspec(dllexport) char * gLogDataPtr;
-
-void logInMem(char * data, int len);
-
 extern "C" __declspec(dllexport) int readFileTo(char * filename);
 
 extern "C" int initFileSystem();

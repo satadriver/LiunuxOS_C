@@ -1,14 +1,14 @@
 #include "ios9660.h"
-#include "../ata.h"
-#include "../Utils.h"
-#include "../atapi.h"
+#include "ata.h"
+#include "Utils.h"
+#include "atapi.h"
 #include "../FileBrowser.h"
-#include "../file.h"
+#include "file.h"
 #include "../guiHelper.h"
-#include "../def.h"
-#include "../malloc.h"
-#include "../v86.h"
-#include "../atapi.h"
+#include "def.h"
+#include "malloc.h"
+#include "v86.h"
+#include "atapi.h"
 
 
 

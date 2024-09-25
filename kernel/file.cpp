@@ -20,21 +20,7 @@ int		g_SecsPerCluster = 16;
 int		g_ClusterSize = g_SecsPerCluster * g_bytesPerSec;
 
 
-char * gLogDataPtr = (char*) LOG_BUFFER_BASE;
 
-void logInMem(char * data,int len) {
-	if (len >= 1024)
-	{
-		return;
-	}
-
-	if ((DWORD)gLogDataPtr + len >= LOG_BUFFER_BASE + 0x10000)
-	{
-		gLogDataPtr = (char*)LOG_BUFFER_BASE;
-	}
-	__memcpy(gLogDataPtr, data, len);
-	gLogDataPtr += len;
-}
 
 
 int readFileTo(char * filename) {

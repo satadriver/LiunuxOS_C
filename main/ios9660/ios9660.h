@@ -1,6 +1,6 @@
 #pragma once
-#include "../def.h"
-#include "../file.h"
+#include "def.h"
+#include "file.h"
 
 
 //Unused by ISO 9660(0-0x8000)

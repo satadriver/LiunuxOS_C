@@ -73,26 +73,26 @@
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.exe</TargetExt>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../kernel;../kernel/def.h;../kernel/;$(IncludePath)</IncludePath>
+    <IncludePath>../kernel;$(IncludePath)</IncludePath>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>../release/kernel.lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>../kernel;../kernel/def.h;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
-    <ReferencePath>../kernel;../kernel/def.h;$(ReferencePath)</ReferencePath>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSdk_71A_IncludePath);</IncludePath>
+    <ReferencePath>../kernel;$(ReferencePath)</ReferencePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -137,6 +137,7 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalOptions>/Gs8192 %(AdditionalOptions)</AdditionalOptions>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

@@ -20,12 +20,14 @@ typedef struct
 
 
 
+void logInMem(char* data, int len);
+
 #define  __kPrintf(buf,format, ...) __printf(buf,format,__VA_ARGS__)
 
 int __kFormat(char* buf, char* format, DWORD* params);
 
 #ifdef DLL_EXPORT
-
+extern "C" __declspec(dllexport) char* gLogDataPtr;
 
 extern "C"  __declspec(dllexport) int __strlen(char * str);
 

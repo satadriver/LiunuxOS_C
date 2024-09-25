@@ -1,14 +1,14 @@
 #include "fat12.h"
-#include "../Utils.h"
+#include "Utils.h"
 #include "../FileBrowser.h"
-#include "../file.h"
+#include "file.h"
 
-#include "../ata.h"
-#include "../atapi.h"
-#include "../fat32/FAT32.h"
-#include "../v86.h"
-#include "../malloc.h"
-#include "../floppy.h"
+#include "ata.h"
+#include "atapi.h"
+#include "fat32/FAT32.h"
+#include "v86.h"
+#include "malloc.h"
+#include "floppy.h"
 
 FAT12DBR gFat12Dbr;
 FAT12DBR gFat12Dbr2;

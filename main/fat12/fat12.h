@@ -1,5 +1,5 @@
 #pragma once
-#include "../def.h"
+#include "def.h"
 #include "../FileBrowser.h"
 
 #pragma pack(1)

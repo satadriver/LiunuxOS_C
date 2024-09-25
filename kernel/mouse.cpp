@@ -261,7 +261,7 @@ void __kDrawMouse() {
 				}
 				else {
 					color = gMouseColor;
-					//gMouseColor += 0x0f0f0f;
+					
 				}
 				unsigned char * showpos = (unsigned char*)__getpos(x, y) + pos;
 
@@ -275,6 +275,7 @@ void __kDrawMouse() {
 				}
 			}
 		}
+		gMouseColor += 0x01010101;
 	}
 }
 

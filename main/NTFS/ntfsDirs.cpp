@@ -1,16 +1,16 @@
 
-#include "../def.h"
-#include "ntfs.h"
-#include "ntfsDirs.h"
-#include "ntfsFile.h"
-#include "../Utils.h"
-#include "../video.h"
-#include "../ata.h"
-#include "../file.h"
+#include "def.h"
+#include "ntfs/ntfs.h"
+#include "../ntfs/ntfsDirs.h"
+#include "ntfs/ntfsFile.h"
+#include "Utils.h"
+#include "video.h"
+#include "ata.h"
+#include "file.h"
 #include "../FileBrowser.h"
-#include "../fat32/fileutils.h"
-#include "../file.h"
-#include "../malloc.h"
+#include "fat32/fileutils.h"
+#include "file.h"
+#include "malloc.h"
 
 
 

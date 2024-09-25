@@ -771,7 +771,8 @@ int __drawCircle(int x, int y, int radius, int color, unsigned char* backup) {
 }
 
 
-int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char* backup) {
+int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char* backbuf) {
+	unsigned char* backup = backbuf;
 	__kRestoreMouse();
 
 	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
@@ -784,7 +785,7 @@ int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char*
 			int c = color;
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (backup)
+				if (backbuf)
 				{
 					*backup = *ptr;
 					backup++;

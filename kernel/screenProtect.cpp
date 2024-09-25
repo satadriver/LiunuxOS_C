@@ -21,8 +21,8 @@
 int gCircleCenterX = 0;
 int gCircleCenterY = 0;
 int gRadius = 64;
-int gDeltaX = 6;
-int gDeltaY = 6;
+int gDeltaX = 1;
+int gDeltaY = 1;
 
 int gScreenProtectWindowID = 0;
 
@@ -189,7 +189,7 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 int gVectorGraphWid = 0;
 int gBaseColor = 0;
 int gVectorGraphTiD = 0;
-char gVectorGraphBuf = 0;
+char *gVectorGraphBuf = 0;
 
 void stopVectorGraph() {
 	int ret = 0;
@@ -206,7 +206,7 @@ void stopVectorGraph() {
 	int color = 0;
 	__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)gVectorGraphBuf);
 
-	__kFree(gVectorGraphBuf);
+	__kFree((DWORD)gVectorGraphBuf);
 	return;
 }
 
@@ -236,38 +236,36 @@ void VectorGraph() {
 
 	for (DWORD y = 0; y < gVideoHeight; y++) {
 		for (DWORD x = 0; x < gVideoWidth; x++) {
-			//DWORD r = ((x - cx) ^ 2) + ((y - cy) ^ 2);
-			DWORD r = ((x - cx)*(x - cx)) + ((y - cy) * (y - cy));
-			DWORD c = 0;
-			//DWORD c = r + (r << 8) + (r << 16);
-			c = r + gBaseColor* gBaseColor;
-			//__asm {
-			//	mov eax,r
-			//	mov ecx, gBaseColor
-			//	rol eax, cl
-			//	mov c,eax
-			//}
-			//DWORD c = r << gBaseColor;
+
+//#define VECTOR_GRAPH_VIDEO_1
+#define VECTOR_GRAPH_VIDEO_2
+
+#ifdef VECTOR_GRAPH_VIDEO_1
+			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) + gBaseColor * gBaseColor * gBaseColor;
+			
+#elif defined VECTOR_GRAPH_VIDEO_2
+			DWORD c = ((x - cx)* (x - cx)) + ((y - cy) * (y - cy)) + gBaseColor * gBaseColor;
+			
+#else
+
+#endif
 			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
 			for (int k = 0; k < gBytesPerPixel; k++) {
-
-
 				*ptr = c&0xff;
 				c = c >> 8;
-
 				ptr++;
 			}
 		}
 	}
+	//gBaseColor = gBaseColor + 1;
 
-	gBaseColor = gBaseColor+1;
-	//gBaseColor = (gBaseColor + 1)%32;
+	gBaseColor = (gBaseColor + 1) % gVideoWidth;
 }
 
 void initVectorGraph() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
-	gVectorGraphBuf = __kMalloc(backsize);
+	gVectorGraphBuf = (char*)__kMalloc(backsize);
 
 	gVectorGraphWid = addWindow(FALSE, 0, 0, 0, "VectorGraph");
 

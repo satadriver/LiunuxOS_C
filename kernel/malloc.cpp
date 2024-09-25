@@ -358,15 +358,17 @@ DWORD __kMalloc(DWORD s) {
 
 int __kFree(DWORD physicalAddr) {
 
+	char szout[1024];
 	__enterSpinlock(&gAllocLock);
 
 	LPMEMALLOCINFO info = findAddr(physicalAddr);
 	if (info)
 	{
 		DWORD size = resetMemAllocInfo(info);
+		int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr,info->size,info->pid,info->vaddr);
 	}
 	else {
-		char szout[1024];
+		
 		int len = __printf(szout, "__kFree not found address:%x\n", physicalAddr);
 	}
 

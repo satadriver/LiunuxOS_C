@@ -2,11 +2,11 @@
 //---yk--- add
 //#include "memory.h"
 //#include "math.h"
-#include "../def.h"
-#include "../Utils.h"
+#include "def.h"
+#include "Utils.h"
 #include "jpeg.h"
 #include "../graph.h"
-#include "../gdi.h"
+#include "gdi.h"
 
 #define M_SOF0  0xc0
 #define M_DHT   0xc4
