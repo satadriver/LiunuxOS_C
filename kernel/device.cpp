@@ -412,7 +412,7 @@ void getKeyboardID() {
 void initCMOS() {
 
 	outportb(CMOS_NUM_PORT, 0X0A);
-	outportb(CMOS_DATA_PORT, 0XAA);
+	outportb(CMOS_DATA_PORT, 0X2A);
 
 	outportb(CMOS_NUM_PORT, 0X0B);
 	outportb(CMOS_DATA_PORT, 0X7A);

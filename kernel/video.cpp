@@ -363,9 +363,8 @@ int __restoreWindow(LPWINDOWCLASS window) {
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				//if (*ptr != *srcdata) 
+				if (window->backBuf  && *ptr != *srcdata)
 				{
-
 					*ptr = *srcdata;
 				}
 				ptr++;
@@ -382,6 +381,7 @@ int __restoreWindow(LPWINDOWCLASS window) {
 
 int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char* backup) {
 	__kRestoreMouse();
+	unsigned char* back = backup;
 
 	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
 	unsigned char* ptr = (unsigned char*)startpos;
@@ -393,7 +393,7 @@ int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char* backup)
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (*ptr != *backup) {
+				if (back && *ptr != *backup) {
 					*ptr = *backup;
 				}
 				ptr++;

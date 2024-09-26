@@ -183,6 +183,7 @@ void __kAlarmTimerProc() {
 		gCmosAlarmProc.addr = 0;
 		gCmosAlarmProc.interval = 0;
 
+		__kAddAlarmTimer(60, (DWORD)__doAlarmTask, 0);
 	}
 }
 

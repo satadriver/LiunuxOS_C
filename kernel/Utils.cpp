@@ -708,8 +708,13 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			params++;
 
 			len = __i2strd(numh, numstr);
-			__memcpy(dst + dpos, numstr, len);
-			dpos += len;
+			if (len == 1 && numstr[0] == '0') {
+
+			}
+			else {
+				__memcpy(dst + dpos, numstr, len);
+				dpos += len;
+			}
 			len = __i2strd(numl, numstr);
 			__memcpy(dst + dpos, numstr, len);
 			dpos += (len);
@@ -726,12 +731,19 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			params++;
 
 			len = __i2strh(numh, 1, (unsigned char*)numstr);
-			__memcpy(dst + dpos, numstr, len);
-			dpos += len;
+			if (len == 3 && numstr[2] == '0') {
+				len = __i2strh(numl, 1, (unsigned char*)numstr);
+				__memcpy(dst + dpos, numstr , len );
+				dpos += (len );
+			}
+			else {
+				__memcpy(dst + dpos, numstr, len);
+				dpos += len;
 
-			len = __i2strh(numl, 1, (unsigned char*)numstr);
-			__memcpy(dst + dpos, numstr+2, len - 2);
-			dpos += ( len - 2);
+				len = __i2strh(numl, 1, (unsigned char*)numstr);
+				__memcpy(dst + dpos, numstr + 2, len - 2);
+				dpos += (len - 2);
+			}
 		}
 		else if (format[spos] == '%' && format[spos + 1] == 'S') {
 			wchar_t* wstr = (wchar_t*)*params;

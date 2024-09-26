@@ -313,7 +313,7 @@ void refreshScreenColor() {
 
 		__sleep(0);
 
-		
+		/*
 		for (int y = 0; y < gVideoHeight; y++) {
 
 			for (int x = 0; x < gVideoWidth; x++) {
@@ -326,9 +326,26 @@ void refreshScreenColor() {
 					ptr++;
 				}		
 				color = (color + 1);
+			}	
+		}*/
+
+		int cx = gVideoWidth / 2;
+		int cy = gVideoHeight / 2;
+
+		for (int y = 0; y < gVideoHeight; y++) {
+			for (int x = 0; x < gVideoWidth; x++) {
+				DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) + gBaseColor * gBaseColor * gBaseColor;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				for (int k = 0; k < gBytesPerPixel; k++) {
+					*ptr = c & 0xff;
+					c = c >> 8;
+					ptr++;
+				}
 			}
-			
 		}
+		//gBaseColor = gBaseColor + 1;
+
+		gBaseColor = (gBaseColor + 3) % 0x100000;
 	}
 }
 

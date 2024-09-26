@@ -1336,7 +1336,10 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
+
+
 		outportb(0x70, 0x0c);
+
 		int flag = inportb(0x71);
 		//IRQF = (PF * PIE) + (AF * AIE) + (UF * UFE), if double interruptions, will not be 1
 		if (flag & 0x20) {
