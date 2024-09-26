@@ -37,6 +37,8 @@ extern WORD gAtaBasePort;
 extern WORD gAtapiBasePort;
 
 
+
+
 int writesector(int port, int size, char* buf);
 
 int readsector(int port, int size, char* buf);
@@ -78,9 +80,25 @@ void resetPort(int port);
 
 #ifdef DLL_EXPORT
 
+extern "C"  __declspec(dllexport)  int getIdeSeq(char* buf);
+
+extern "C"  __declspec(dllexport)  int getIdeFirmVersion(char* buf);
+
+extern "C"  __declspec(dllexport)  int getIdeType(char* buf);
+
+extern "C"  __declspec(dllexport)  int getIdeMediumSeq(char* buf);
+
 extern "C"  __declspec(dllexport)  int(__cdecl * readSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
 extern "C"  __declspec(dllexport)  int(__cdecl * writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
 #else
+extern "C"  __declspec(dllimport)  int getIdeSeq(char* buf);
+
+extern "C"  __declspec(dllimport)  int getIdeFirmVersion(char* buf);
+
+extern "C"  __declspec(dllimport)  int getIdeType(char* buf);
+
+extern "C"  __declspec(dllimport)  int getIdeMediumSeq(char* buf);
+
 
 extern "C"  __declspec(dllimport)  int(__cdecl * readSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);
 extern "C"  __declspec(dllimport)  int(__cdecl * writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int seccnt, char* buf);

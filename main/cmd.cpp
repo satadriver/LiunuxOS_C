@@ -44,7 +44,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 
 	int paramcnt = parseCmdParams(cmd, params);
 
-	if (__strcmp(params[0], "dump") == 0 && paramcnt >= 2)
+	if (__strcmp(params[0], "open") == 0 && paramcnt >= 2)
 	{
 		char* filename = params[1];
 		int fnlen = __strlen(filename);
@@ -105,6 +105,12 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		{
 			return playWavFile(filename);
 		}
+	}
+	else if (__strcmp(params[0], "ls") == 0) {
+
+	}
+	else if (__strcmp(params[0], "cd") == 0) {
+
 	}
 	else if (__strcmp(params[0], "keyboardID") == 0)
 	{
@@ -288,15 +294,8 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdtsc") == 0)
-	{
-		DWORD l = 0;
-		DWORD h = 0;
-		__asm {
-			rdtsc
-			mov l, eax
-			mov h, edx
-		}
-		__sprintf(szout, "rdtsc:%x%x\n", h, l);
+	{	
+		__sprintf(szout, "rdtsc:%I64x\n", __krdtsc());
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdpmc") == 0)
@@ -321,12 +320,12 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	}
 	else if (__strcmp(params[0], "exit") == 0)
 	{
-		__removeWindow(window);
+		__DestroyWindow(window);
 		return 0;
 	}
 	else if (__strcmp(params[0], "cleans") == 0)
 	{
-		__removeWindow(window);
+		__DestroyWindow(window);
 		//__drawWindow(window, FALSE);
 		initConsoleWindow(window, pidname, pid);
 	}
@@ -368,6 +367,26 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	else if (__strcmp(params[0], "pcidev") == 0)
 	{
 		//showAllPciDevs();
+	}
+	else if (__strcmp(params[0], "hdseq") == 0) {
+		char seq[1024];
+		getIdeSeq(seq);
+		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "hdfirmver") == 0) {
+		char seq[1024];
+		getIdeFirmVersion(seq);
+		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "hdtype") == 0) {
+		char seq[1024];
+		getIdeType(seq);
+		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "hdmedium") == 0) {
+		char seq[1024];
+		getIdeMediumSeq(seq);
+		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
 	}
 	return 0;
 }

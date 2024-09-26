@@ -85,7 +85,7 @@ DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
 		tboffset = 0;
 	}
 
-	for (int i = tboffset; i <tboffset + tablecnt; i++)
+	for (DWORD i = tboffset; i <tboffset + tablecnt; i++)
 	{
 		tables[i] = backcr3[i];
 	}
@@ -118,7 +118,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD 
 
 	DWORD phyaddr = physicaladdr;
 
-	for (int i = tboffset; i < tboffset + tablecnt; i++)
+	for (DWORD i = tboffset; i < tboffset + tablecnt; i++)
 	{
 		DWORD * pagetable = (DWORD *)(cr3[i] & PAGE_MASK);
 		if (pagetable == 0)

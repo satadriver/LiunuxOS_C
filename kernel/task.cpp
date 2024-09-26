@@ -293,7 +293,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	char szout[1024];
 
-	__int64 timeh1 = __rdtsc();
+	__int64 timeh1 = __krdtsc();
 
 	__k8254TimerProc();
 
@@ -426,7 +426,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		}
 	}
 	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
-		__int64 timeh2 = __rdtsc() - timeh1;
+		__int64 timeh2 = __krdtsc() - timeh1;
 
 		__int64 cpurate = getcpuFreq();
 
@@ -442,7 +442,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env) {
 
 	char szout[1024];
-	__int64 timeh1 = __rdtsc();
+	__int64 timeh1 = __krdtsc();
 	__asm {
 		clts			//before all fpu instructions
 	}
@@ -626,7 +626,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->ss = process->tss.ss;
 
 	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
-		__int64 timeh2 = __rdtsc() - timeh1;
+		__int64 timeh2 = __krdtsc() - timeh1;
 
 		__int64 cpurate = getcpuFreq();
 

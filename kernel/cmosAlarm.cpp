@@ -129,7 +129,7 @@ void addAlarmTimer(DWORD interval) {
 
 				dstday = dstday + carray;
 
-				int daysinmonth = getDayOfMonth(cy, month);
+				unsigned int daysinmonth = getDayOfMonth(cy, month);
 				if (dstday >= daysinmonth)
 				{
 					carray = dstday / daysinmonth + 1;

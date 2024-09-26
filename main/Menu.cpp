@@ -23,9 +23,9 @@ int __restoreRightMenu(RIGHTMENU* menu) {
 	unsigned char * keep = ptr;
 	unsigned char * srcdata = (unsigned char *)menu->backGround;
 
-	for (int i = 0; i <= menu->height; i++)
+	for (DWORD i = 0; i <= menu->height; i++)
 	{
-		for (int j = 0; j <= menu->width; j++)
+		for (DWORD j = 0; j <= menu->width; j++)
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
@@ -55,12 +55,12 @@ int __restoreRightMenu(RIGHTMENU* menu) {
 int __drawRightMenu(RIGHTMENU *menu) {
 	__kRestoreMouse();
 
-	if (menu->pos.x + menu->width + TASKBAR_HEIGHT >= gVideoWidth)
+	if (menu->pos.x + menu->width + TASKBAR_HEIGHT >=(DWORD) gVideoWidth)
 	{
 		menu->pos.x = gVideoWidth - menu->width - TASKBAR_HEIGHT;
 	}
 
-	if (menu->pos.y + menu->height + TASKBAR_HEIGHT >= gVideoHeight)
+	if (menu->pos.y + menu->height + TASKBAR_HEIGHT >= (DWORD)gVideoHeight)
 	{
 		menu->pos.y = gVideoHeight - menu->height - TASKBAR_HEIGHT;
 	}
@@ -76,9 +76,9 @@ int __drawRightMenu(RIGHTMENU *menu) {
 	unsigned char * keep = ptr;
 	unsigned char * save = (unsigned char*)menu->backGround;
 
-	for (int i = 0; i <= menu->height; i++)	//height
+	for (DWORD i = 0; i <= menu->height; i++)	//height
 	{
-		for (int j = 0; j <= menu->width; j++)		//width
+		for (DWORD j = 0; j <= menu->width; j++)		//width
 		{
 			unsigned int c = menu->color;
 
@@ -105,7 +105,7 @@ int __drawRightMenu(RIGHTMENU *menu) {
 		ptr = (unsigned char*)keep;
 	}
 
-	for (int i = 0; i < menu->height / GRAPHCHAR_WIDTH / 2; i++)
+	for (DWORD i = 0; i < menu->height / GRAPHCHAR_WIDTH / 2; i++)
 	{
 		if (menu->menuname[i][0] == 0)
 		{

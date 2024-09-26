@@ -128,6 +128,54 @@ int __drawShutdown(LPWINDOWCLASS window) {
 }
 
 
+int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* backbuf) {
+	int startpos = __getpos(p->x, p->y) + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+
+	char* back = backbuf;
+
+	int singlefs = framesize >> 1;
+
+	for (int i = 0; i < height + framesize; i++)
+	{
+		for (int j = 0; j < width + framesize; j++)
+		{
+			int c = 0;
+
+			if ((i <= singlefs) || (i >= height + singlefs))
+			{
+				c = framecolor;
+			}
+			else if ((j <= singlefs) || (j >= width + singlefs))
+			{
+				c = framecolor;
+			}
+			else {
+				c = color;
+			}
+
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				if (backbuf && (*back != *ptr))
+				{
+					*back = *ptr;
+				}
+				back++;
+
+				*ptr = (c & 0xff);
+				ptr++;
+				c = (c >> 8);
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	return (int)ptr - gGraphBase;
+}
+
 
 int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize, int framecolor, int capsize,
 	int capcolor, char* capname, char* backdata) {
@@ -179,7 +227,7 @@ int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int
 
 	int showend = (int)ptr;
 
-	if (*capname && capsize)
+	if (capname && *capname && capsize)
 	{
 		DWORD cappos = __getpos(p->x + singlefs, p->y + singlefs);
 
@@ -189,7 +237,35 @@ int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int
 	return (int)showend - gGraphBase;
 }
 
-int __removeWindow(LPWINDOWCLASS window) {
+int __restoreWindow(LPWINDOWCLASS window) {
+	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+	unsigned char* srcdata = (unsigned char*)window->backBuf;
+
+	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
+	{
+		for (int j = 0; j < window->width + window->frameSize; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				if (*ptr != *srcdata) {
+
+					*ptr = *srcdata;
+				}
+				ptr++;
+				srcdata++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	return (int)ptr - gGraphBase;
+}
+
+int __DestroyWindow(LPWINDOWCLASS window) {
 
 	__kRestoreMouse();
 
@@ -238,24 +314,92 @@ int __drawWindow(LPWINDOWCLASS window) {
 
 
 
-int __restoreWindow(LPWINDOWCLASS window) {
-	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + gGraphBase;
+
+int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char* backbuf) {
+	unsigned char* backup = backbuf;
+	__kRestoreMouse();
+
+	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
 	unsigned char* ptr = (unsigned char*)startpos;
 	unsigned char* keep = ptr;
-	unsigned char* srcdata = (unsigned char*)window->backBuf;
-
-	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
+	for (int i = 0; i < height; i++)
 	{
-		for (int j = 0; j < window->width + window->frameSize; j++)
+		for (int j = 0; j < width; j++)
+		{
+			int c = color;
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				if (backbuf && (*backup != *ptr))
+				{
+					*backup = *ptr;
+				}
+				backup++;
+
+				if (*ptr != (c & 0xff)) {
+					*ptr = (c & 0xff);
+				}
+
+				ptr++;
+				c = (c >> 8);
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+	__kRefreshMouseBackup();
+	__kDrawMouse();
+	return (int)ptr - gGraphBase;
+}
+
+
+int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char* backup) {
+	__kRestoreMouse();
+
+	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+
+	for (int i = 0; i < height; i++)
+	{
+		for (int j = 0; j < width; j++)
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (*ptr != *srcdata) {
-
-					*ptr = *srcdata;
+				if (*ptr != *backup) {
+					*ptr = *backup;
 				}
 				ptr++;
-				srcdata++;
+				backup++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+	__kRefreshMouseBackup();
+	__kDrawMouse();
+	return (int)ptr - gGraphBase;
+}
+
+
+
+int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
+	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+
+	for (int i = 0; i < height + framesize; i++)
+	{
+		for (int j = 0; j < width + framesize; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				if (*ptr != *backup) {
+					*ptr = *backup;
+				}
+				ptr++;
+				backup++;
 			}
 		}
 
@@ -265,6 +409,7 @@ int __restoreWindow(LPWINDOWCLASS window) {
 
 	return (int)ptr - gGraphBase;
 }
+
 
 
 
@@ -700,7 +845,6 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 
 					if (back && (*backup != *showpos)) {
 						*backup = *showpos;
-						
 					}
 					backup++;
 
@@ -759,7 +903,6 @@ int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
 				{
 					if (back && (*backup != *showpos)) {
 						*backup = *showpos;
-						
 					}
 					backup++;
 
@@ -786,149 +929,7 @@ int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
 }
 
 
-int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char* backbuf) {
-	unsigned char* backup = backbuf;
-	__kRestoreMouse();
 
-	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-		{
-			int c = color;
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				if (backbuf && (*backup != *ptr))
-				{
-					*backup = *ptr;
-					
-				}
-				backup++;
-
-				if (*ptr != (c & 0xff)) {
-					*ptr = (c & 0xff);
-				}
-				
-				ptr++;
-				c = (c >> 8);
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-	__kRefreshMouseBackup();
-	__kDrawMouse();
-	return (int)ptr - gGraphBase;
-}
-
-
-int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char* backup) {
-	__kRestoreMouse();
-
-	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				if (*ptr != *backup) {
-					*ptr = *backup;
-				}
-				ptr++;
-				backup++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-	__kRefreshMouseBackup();
-	__kDrawMouse();
-	return (int)ptr - gGraphBase;
-}
-
-
-
-int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
-	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-
-	for (int i = 0; i < height + framesize; i++)
-	{
-		for (int j = 0; j < width + framesize; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				if (*ptr != *backup) {
-					*ptr = *backup;
-				}
-				ptr++;
-				backup++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-
-	return (int)ptr - gGraphBase;
-}
-
-int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* backbuf) {
-	int startpos = __getpos(p->x, p->y) + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-
-	char* back = backbuf;
-
-	int singlefs = framesize >> 1;
-
-	for (int i = 0; i < height + framesize; i++)
-	{
-		for (int j = 0; j < width + framesize; j++)
-		{
-			int c = 0;
-
-			if ((i <= singlefs) || (i >= height + singlefs))
-			{
-				c = framecolor;
-			}
-			else if ((j <= singlefs) || (j >= width + singlefs))
-			{
-				c = framecolor;
-			}
-			else {
-				c = color;
-			}
-
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				if (backbuf && (* back != *ptr))
-				{
-					*back = *ptr;
-				}
-				back++;
-
-				*ptr = (c & 0xff);
-				ptr++;
-				c = (c >> 8);
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-
-	return (int)ptr - gGraphBase;
-}
 
 
 int removeFileManager(LPFMWINDOW w) {

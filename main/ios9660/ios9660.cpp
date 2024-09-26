@@ -143,7 +143,7 @@ int browseISO9660File(LPFILEBROWSER files) {
 	LPISO9660FSDIR dir = (LPISO9660FSDIR)buf;
 	while (1)
 	{
-		if ((char*)dir - buf >= vterminate.datasize || dir->len < ISO9660FS_LEAST_DIR_SIZE)
+		if ((DWORD)dir - (DWORD)buf >= vterminate.datasize || dir->len < ISO9660FS_LEAST_DIR_SIZE)
 		{
 			break;
 		}

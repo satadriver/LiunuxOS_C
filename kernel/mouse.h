@@ -35,8 +35,9 @@ typedef struct {
 	int			mouseBufHdr;
 	int			mouseBufTail;
 	int			bInvalid;
-	DWORD		mouseCoverData[4096];
+	
 	DWORD		mouseColor;
+	DWORD		mouseCoverData[0x4000];
 }MOUSEDATA,*LPMOUSEDATA;
 
 #pragma pack()

@@ -128,7 +128,7 @@ void makeTaskGateDescriptor(DWORD selector, int dpl, TaskGateDescriptor* descrip
 	descriptor->system = 0;
 	descriptor->dp1 = dpl;
 	descriptor->present = 1;
-	descriptor->selector = selector;
+	descriptor->selector = (USHORT)selector;
 	descriptor->unused1 = 0;
 	descriptor->unused2 = 0;
 	descriptor->unused3 = 0;
@@ -142,7 +142,7 @@ void makeCallGateDescriptor(DWORD base, DWORD selector, int dpl, int paramcnt, C
 	descriptor->system = 0;
 	descriptor->type = CALLGATE_DESCRIPTOR;
 	descriptor->dpl = dpl;
-	descriptor->selector = selector;
+	descriptor->selector = (USHORT)selector;
 	descriptor->baseLow = base & 0xffff;
 	descriptor->baseHigh = (base >> 16) & 0xffff;
 }
@@ -153,7 +153,7 @@ void makeIntGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDescr
 	descriptor->type = INTGATE_DESCRIPTOR;
 	descriptor->dpl = dpl;
 	descriptor->unused = 0;
-	descriptor->selector = selector;
+	descriptor->selector = (USHORT)selector;
 	descriptor->baseLow = base & 0xffff;
 
 	descriptor->baseHigh = (base >> 16) & 0xffff;
@@ -165,7 +165,7 @@ void makeTrapGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDesc
 	descriptor->type = TRAPGATE_DESCRIPTOR;
 	descriptor->unused = 0;
 	descriptor->dpl = dpl;
-	descriptor->selector = selector;
+	descriptor->selector = (USHORT)selector;
 	descriptor->baseLow = base & 0xffff;
 	descriptor->baseHigh = (base >> 16) & 0xffff;
 }

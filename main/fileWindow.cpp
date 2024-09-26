@@ -46,7 +46,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			{
 				__printf(szout, "__kFullWindowPic read file:%s error\n", filename);
 
-				__removeWindow(&window);
+				__DestroyWindow(&window);
 				return -1;
 			}
 		}
@@ -117,7 +117,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 				gKbdTest = FALSE;
 				gMouseTest = FALSE;
 			}
-			__removeWindow(&window);
+			__DestroyWindow(&window);
 			return 0;
 		}
 
@@ -132,7 +132,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			{
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
-					__removeWindow(&window);
+					__DestroyWindow(&window);
 					return 0;
 
 					//__terminatePid(pid);

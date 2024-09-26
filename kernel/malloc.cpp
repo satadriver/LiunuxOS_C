@@ -269,9 +269,9 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	do
 	{
-		for (int i = factor/2 ; i && i < factor; i++)
+		for (int n = factor/2 ; n && n < factor; )
 		{
-			DWORD addr = MEMMORY_ALLOC_BASE + size * (i);
+			DWORD addr = MEMMORY_ALLOC_BASE + size * n;
 			if ( (addr + size > gAvailableBase + gAvailableSize) )
 			{
 				res = -1;
@@ -297,6 +297,21 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 					break;
 				}
 			}
+			else {
+				if (info->size > size) {
+					int t = info->size / size;
+					n += t;
+					if (n >= factor) {
+						while (n >= factor) {
+							factor = factor << 1;
+						}
+					}
+
+					continue;
+				}
+			}
+
+			n++;
 		}
 
 		if (res) {
@@ -304,7 +319,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 		}
 
 		factor = (factor << 1);
-
+		
 	} while (res == 0);
 
 	if (res == -1) {
@@ -346,10 +361,10 @@ DWORD __kMalloc(DWORD s) {
 	DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
 	if (ret == 0) {
 		
-		int len = __printf(szout, "__kMalloc size:%x pid:%d error\n",s,process->pid);
+		int len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
 	}
 	else {
-		int len = __printf(szout, "__kMalloc size:%x pid:%d addr:%x\n", s, process->pid,ret);
+		int len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
 	}
 	return ret;
 }

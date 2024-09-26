@@ -235,7 +235,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	DWORD ntfsseq = 0;
 
 	int filetotal = 0;
-	LPFILEBROWSER files = (LPFILEBROWSER)__kMalloc(sizeof(FILEBROWSER)*1024);
+	LPFILEBROWSER files = (LPFILEBROWSER)__kMalloc(sizeof(FILEBROWSER)* MAX_PATH_SIZE);
 	//FILEBROWSER filelist[256];
 	//LPFILEBROWSER files = (LPFILEBROWSER)filelist;
 	if (partitionType == NTFS_FILE_SYSTEM)
@@ -303,11 +303,10 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	while (TRUE)
 	{
+		__printf(szout, "before __drawRectWindow\r\n");
+		ret = __drawRectWindow(&window.window.pos, window.window.width, window.window.height, window.window.color, 0);
 
-		POINT p;
-		p.x = 0;
-		p.y = 0;
-		ret = __drawRectWindow(&p, gVideoWidth, gVideoHeight, window.window.color, 0);
+		__printf(szout, "after __drawRectWindow\r\n");
 
 		for (int j = 0; j < fpagecnt; j++)
 		{
@@ -437,7 +436,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						__strcat(fullpath, files[targetno].pathname);
 						__strcat(fullpath, "/");
 						ntfsseq++;
-						if (ntfsseq >= 1024 / sizeof(DWORD))
+						if (ntfsseq >= MAX_PATH_SIZE )
 						{
 							ntfsseq = 1;
 						}

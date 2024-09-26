@@ -95,7 +95,7 @@ int readAtapiSector(char * buf,unsigned int secnum,unsigned int seccnt) {
 	writeAtapiCMD((unsigned short*)gAtapiCmdRead);
 
 	char* lpbuf = buf;
-	for (int i = 0; i < seccnt; i++) {
+	for (DWORD i = 0; i < seccnt; i++) {
 		int res = waitComplete(gAtapiBasePort + 7);
 		res = readsector(gAtapiBasePort, ATAPI_SECTOR_SIZE / 4,lpbuf);
 		lpbuf += ATAPI_SECTOR_SIZE;
@@ -137,7 +137,7 @@ int writeAtapiSector(char* buf, unsigned int secnum, unsigned int seccnt) {
 	writeAtapiCMD((unsigned short*)gAtapiCmdWrite);
 
 	char* lpbuf = buf;
-	for (int i = 0; i < seccnt; i++) {
+	for (DWORD i = 0; i < seccnt; i++) {
 		int res = waitComplete(gAtapiBasePort + 7);
 		res = writesector(gAtapiBasePort, ATAPI_SECTOR_SIZE / 4, lpbuf);
 		lpbuf += ATAPI_SECTOR_SIZE;

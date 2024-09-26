@@ -258,7 +258,7 @@ int getNextFAT32EmptyCluster(DWORD clusterno) {
 	
 	DWORD max = (gFat32Dbr.BPB_FATSz32*g_bytesPerSec) / sizeof(int);
 
-	int nextfreeclusno = clusterno;
+	DWORD nextfreeclusno = clusterno;
 	for (; nextfreeclusno < max;  nextfreeclusno++)
 	{
 		int clustervalue = glpFAT[nextfreeclusno];
@@ -278,7 +278,7 @@ unsigned int getLastClusterNo(LPFAT32DIRECTORY lpdir) {
 	unsigned int cno = getFirstClusterNo(lpdir);
 	while (1)
 	{
-		unsigned int value = glpFAT[cno];
+		int value = glpFAT[cno];
 		if (value == FAT_END_FLAG)
 		{
 			return cno;
@@ -314,7 +314,7 @@ unsigned short getClusterNoHigh(unsigned int clusterno) {
 	return (clusterno >> 16);
 }
 
-int isValidCluster(unsigned int no) {
+int isValidCluster( int no) {
 	if (no >= g_FirstClusterNO && no <= FAT_END_FLAG)
 	{
 		return TRUE;

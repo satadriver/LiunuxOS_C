@@ -83,7 +83,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 		else if (asc == 0x1b)
 		{
 			removeCursor();
-			__removeWindow(&window);
+			__DestroyWindow(&window);
 			return 0;
 		}
 		else if (asc)
@@ -110,7 +110,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
 					removeCursor();
-					__removeWindow(&window);
+					__DestroyWindow(&window);
 					return 0;
 
 					//__terminatePid(pid);

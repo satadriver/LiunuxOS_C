@@ -248,9 +248,9 @@ void __kDrawMouse() {
 
 	unsigned char * storeptr = (unsigned char*)data->mouseCoverData;
 
-	for (unsigned int y = 0; y < data->mouseHeight; y++)
+	for ( int y = 0; y < data->mouseHeight; y++)
 	{
-		for (unsigned int x = 0; x < data->mouseWidth; x++)
+		for ( int x = 0; x < data->mouseWidth; x++)
 		{
 			int color = 0;
 			if (isGeometryMouse(x,y) ) {
@@ -267,8 +267,13 @@ void __kDrawMouse() {
 
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
-					*storeptr = *showpos;
-					*showpos = color;
+					if (*showpos != *storeptr) {
+						*storeptr = *showpos;
+					}
+					if (*showpos != ( color & 0xff)) {
+						*showpos = color;
+					}
+					
 					color >>= 8;
 					showpos++;
 					storeptr++;
@@ -286,9 +291,9 @@ void __kRestoreMouse() {
 
 	unsigned char * storeptr = (unsigned char*)data->mouseCoverData;
 
-	for (unsigned int y = 0; y < data->mouseHeight; y++)
+	for ( int y = 0; y < data->mouseHeight; y++)
 	{
-		for (unsigned int x = 0; x < data->mouseWidth; x++)
+		for ( int x = 0; x < data->mouseWidth; x++)
 		{
 			if (isGeometryMouse(x, y))
 			{
@@ -296,7 +301,9 @@ void __kRestoreMouse() {
 
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
-					*showpos = *storeptr;
+					if (*showpos != *storeptr) {
+						*showpos = *storeptr;
+					}
 					showpos++;
 					storeptr++;
 				}
@@ -313,9 +320,9 @@ void __kRefreshMouseBackup() {
 
 	unsigned char * storebuf = (unsigned char*)data->mouseCoverData;
 
-	for (unsigned int y = 0; y < data->mouseHeight; y ++)
+	for ( int y = 0; y < data->mouseHeight; y ++)
 	{
-		for (unsigned int x = 0; x < data->mouseWidth; x ++)
+		for ( int x = 0; x < data->mouseWidth; x ++)
 		{
 			if (isGeometryMouse(x, y))
 			{
@@ -323,7 +330,9 @@ void __kRefreshMouseBackup() {
 
 				for (int i = 0;i < gBytesPerPixel;i ++)
 				{
-					*storebuf = *showpos;
+					if (*showpos != *storebuf) {
+						*storebuf = *showpos;
+					}
 					storebuf++;
 					showpos++;
 				}

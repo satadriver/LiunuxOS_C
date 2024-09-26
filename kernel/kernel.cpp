@@ -178,7 +178,12 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 //注意二位数组在内存中的排列和结构
 void mytest(LIGHT_ENVIRONMENT  * stack) {
 
-	char test[0x28] = { 0x41 };
+	for (int i = 0; i < 0x100; i++) {
+		if (i == 2) {
+			i+=3;
+			continue;
+		}
+	}
 
 	__asm {
 		mov eax,0x12345678

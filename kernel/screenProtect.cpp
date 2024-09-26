@@ -231,11 +231,11 @@ void VectorGraph() {
 		return;
 	}
 
-	DWORD cx = gVideoWidth / 2;
-	DWORD cy = gVideoHeight / 2;
+	int cx = gVideoWidth / 2;
+	int cy = gVideoHeight / 2;
 
-	for (DWORD y = 0; y < gVideoHeight; y++) {
-		for (DWORD x = 0; x < gVideoWidth; x++) {
+	for (int y = 0; y < gVideoHeight; y++) {
+		for (int x = 0; x < gVideoWidth; x++) {
 
 //#define VECTOR_GRAPH_VIDEO_1
 #define VECTOR_GRAPH_VIDEO_2
@@ -314,9 +314,9 @@ void refreshScreenColor() {
 		__sleep(0);
 
 		
-		for (DWORD y = 0; y < gVideoHeight; y++) {
+		for (int y = 0; y < gVideoHeight; y++) {
 
-			for (DWORD x = 0; x < gVideoWidth; x++) {
+			for (int x = 0; x < gVideoWidth; x++) {
 
 				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
 				int c = color;
@@ -325,8 +325,9 @@ void refreshScreenColor() {
 					c = c >> 8;
 					ptr++;
 				}		
+				color = (color + 1);
 			}
-			color = (color + 1);
+			
 		}
 	}
 }

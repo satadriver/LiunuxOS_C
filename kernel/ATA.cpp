@@ -603,3 +603,31 @@ int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨
 int readDmaSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char seccnt, char* buf, int device) {
 	return 0;
 }
+
+
+
+int getIdeSeq(char* buf) {
+	char* str = (char*)(ATA_INFO_BASE + 20);
+	__strncpy(buf, str,20);
+	return 20;
+}
+
+
+int getIdeFirmVersion(char* buf) {
+	char* str = (char*)(ATA_INFO_BASE + 46);
+	__strncpy(buf, str,8);
+	return 8;
+}
+
+int getIdeType(char* buf) {
+	char* str = (char*)(ATA_INFO_BASE + 54);
+	__strncpy(buf, str, 40);
+	return 40;
+}
+
+
+int getIdeMediumSeq(char* buf) {
+	char* str = (char*)(ATA_INFO_BASE + 176*2);
+	__strncpy(buf, str, 60);
+	return 60;
+}

@@ -264,7 +264,8 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
 		}
 
 		attr = (LPCommonAttributeHeader)((unsigned int)attr + attr->ATTR_Size);
-		if ((char*)attr - msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
+		if ((unsigned int)attr - (unsigned int)msfinfo >= frh->BytesInUse ||
+			(unsigned int)attr - (unsigned int)msfinfo >= MFTEntrySize || (unsigned int)attr - (unsigned int)msfinfo <= 0)
 		{
 			break;
 		}

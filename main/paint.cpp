@@ -45,7 +45,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
-			__removeWindow(&window);
+			__DestroyWindow(&window);
 			return 0;
 		}
 
@@ -59,7 +59,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 			{
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
-					__removeWindow(&window);
+					__DestroyWindow(&window);
 					return 0;
 				}
 			}

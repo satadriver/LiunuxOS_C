@@ -47,6 +47,12 @@ unsigned int getcpuFreq();
 
 unsigned __int64 getCpuFreq();
 
-unsigned __int64 __rdtsc();
+
 
 extern "C" __declspec(dllexport) int __readTemperature(DWORD * temp);
+
+#ifdef DLL_EXPORT
+extern "C"  __declspec(dllexport) unsigned __int64 __krdtsc();
+#else
+extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
+#endif

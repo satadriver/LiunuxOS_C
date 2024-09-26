@@ -284,7 +284,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 		}
 
 		attr = (LPCommonAttributeHeader)((unsigned int)attr + attr->ATTR_Size);
-		if ((char*)attr - msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
+		if ((unsigned int)attr - (unsigned int)msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
 		{
 			break;
 		}
@@ -428,7 +428,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 		}
 
 		attr = (LPCommonAttributeHeader)((unsigned int)attr + attr->ATTR_Size);
-		if ((char*)attr - msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
+		if ((unsigned int)attr -(unsigned int) msfinfo >= frh->BytesInUse || (char*)attr - msfinfo >= MFTEntrySize || (char*)attr - msfinfo <= 0)
 		{
 			break;
 		}

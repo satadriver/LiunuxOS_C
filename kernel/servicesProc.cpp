@@ -69,7 +69,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
 		}
 		case KBD_INPUT:
 		{
-			__kPutKbd((DWORD)params, 0);
+			__kPutKbd((unsigned char)params[0], 0);
 			break;
 		}
 		case MOUSE_OUTPUT:
@@ -84,7 +84,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
 		}
 		case RANDOM:
 		{
-			r = __random((unsigned long)params);
+			r = __random((unsigned long)params[0]);
 			break;
 		}
 		case SLEEP:
@@ -361,7 +361,7 @@ unsigned __int64 getCpuFreq() {
 	return 0;
 }
 
-unsigned __int64 __rdtsc() {
+unsigned __int64 __krdtsc() {
 	__asm {
 
 		rdtsc

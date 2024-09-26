@@ -267,7 +267,7 @@ int initdma16(int addr, int firstsize, int bits) {
 }
 
 
-int dspplay(unsigned short rate,int mode,int firstsize) {
+int dspplay(unsigned int rate,int mode,int firstsize) {
 	 
 	writedsp(0x41);
 	writedsp(rate >> 8);

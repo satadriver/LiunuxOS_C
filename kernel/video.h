@@ -336,7 +336,7 @@ extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllexport) int __restoreWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllexport) int __removeWindow(LPWINDOWCLASS window);
+extern "C"  __declspec(dllexport) int __DestroyWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllexport) int __drawGraphCharInt(char * font, int color, int pos, int bgcolor);
 
@@ -400,7 +400,7 @@ extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __restoreWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllimport) int __removeWindow(LPWINDOWCLASS window);
+extern "C"  __declspec(dllimport) int __DestroyWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __drawGraphCharInt(char * font, int color, int pos, int bgcolor);
 

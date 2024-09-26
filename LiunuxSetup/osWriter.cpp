@@ -26,8 +26,8 @@ int osWriter() {
 		return FALSE;
 	}
 
-	unsigned int endsecno = 0;
-	unsigned int startsecoff = 0;
+	unsigned __int64 endsecno = 0;
+	unsigned __int64 startsecoff = 0;
 
 	if (lpmbr->dpt[0].type == FAT32_PARTITION || lpmbr->dpt[0].type == FAT32_PARTITION_2 ||
 		lpmbr->dpt[0].type == FAT32_LBA_PARTITION || lpmbr->dpt[0].type == FAT32_HIDDEN)
@@ -62,14 +62,14 @@ int osWriter() {
 		}
 	}
 	else {
-		wsprintfA(szout, "write liunux os from sector number:%d to sector number:%d error\n", startsecoff, endsecno);
+		wsprintfA(szout, "write liunux os from sector number:%I64d to sector number:%I64d error\n", startsecoff, endsecno);
 		MessageBoxA(0, szout, szout, MB_OK);
 		return FALSE;
 	}
 
 	endsecno = startsecoff + EMPTY_SECTOR_NEED;
 
-	wsprintfA(szout, "write liunux os from sector number:%d to sector number:%d\n", startsecoff, endsecno);
+	wsprintfA(szout, "write liunux os from sector number:%I64d to sector number:%I64d\n", startsecoff, endsecno);
 	MessageBoxA(0, szout, szout, MB_OK);
 
 	char * buf = new char[0x1000000];
@@ -77,7 +77,7 @@ int osWriter() {
 
 	int flag = 0;
 
-	int freesecno = startsecoff;
+	DWORD freesecno = startsecoff;
 
 	flag = 2;
 
