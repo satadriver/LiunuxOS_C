@@ -178,6 +178,10 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 //注意二位数组在内存中的排列和结构
 void mytest(LIGHT_ENVIRONMENT  * stack) {
 
+
+	char buf[1024];
+	__sprintf(buf, "%i64x", 0x1234567890);
+
 	for (int i = 0; i < 0x100; i++) {
 		if (i == 2) {
 			i+=3;

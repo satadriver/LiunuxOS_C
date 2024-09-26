@@ -53,7 +53,7 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 
 		__strcpy(files->pathname, ascfn);
 		files->secno = (idxentry->SIE_MFTReferNumber & 0x0000ffffffffffff);
-		files->filesize = (DWORD)idxentry->SIE_FileRealSize;
+		files->filesize = idxentry->SIE_FileRealSize;
 		files->attrib = (DWORD)idxentry->SIE_FileFlag;
 		if (files->attrib & 0x10000000)
 		{
@@ -115,7 +115,7 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER files) {
 			__strcpy(files->pathname, ascfn);
 			files->secno = (entry->IE_MftReferNumber & 0x0000ffffffffffff);
 
-			files->filesize = (DWORD)entry->IE_FileRealSize;
+			files->filesize = entry->IE_FileRealSize;
 			files->attrib = (DWORD)entry->IE_FileFlag;
 			if (files->attrib & 0x10000000)
 			{
@@ -136,7 +136,7 @@ DWORD getDirsIndexRoot(LPCommonAttributeHeader hdr, LPFILEBROWSER files) {
 }
 
 
-int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, DWORD father) {
+int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, unsigned __int64 father) {
 	int ret = 0;
 
 	int cnt = 0;

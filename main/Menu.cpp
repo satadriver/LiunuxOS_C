@@ -210,29 +210,27 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
 	menu->paramcnt[2] = 0;
-	menu->paramcnt[3] = 6;
-	menu->paramcnt[4] = 6;
-	menu->paramcnt[5] = 1;
+	menu->paramcnt[3] = 5;
+	menu->paramcnt[4] = 5;
+	menu->paramcnt[5] = 0;
 	menu->paramcnt[6] = 1;
 	menu->paramcnt[7] = 0;
 
-	menu->funcparams[3][5] = 0;
-	menu->funcparams[3][4] = (DWORD)menu->name;
-	menu->funcparams[3][3] = (DWORD)menu->name;
-	menu->funcparams[3][2] = tid;
-	menu->funcparams[3][1] = (DWORD)__terminateProcess;
+	menu->funcparams[3][4] = 0;
+	menu->funcparams[3][3] = (DWORD)"__kConsole";
+	menu->funcparams[3][2] = (DWORD)"main.dll";
+	menu->funcparams[3][1] = tid;
 	menu->funcparams[3][0] = (DWORD)__terminateProcess;
-	
-	menu->funcparams[4][5] = 0;
-	menu->funcparams[4][4] = (DWORD)menu->name;
-	menu->funcparams[4][3] = (DWORD)menu->name;
-	menu->funcparams[4][2] = tid;
-	menu->funcparams[4][1] = (DWORD)__terminateProcess;
+
+	menu->funcparams[4][4] = 0;
+	menu->funcparams[4][3] = (DWORD)"__kPaint";
+	menu->funcparams[4][2] = (DWORD)"main.dll";
+	menu->funcparams[4][1] = tid;
 	menu->funcparams[4][0] = (DWORD)__terminateProcess;
 
 	menu->funcparams[5][0] = 0;
 
-	menu->funcparams[6][0] = 0;
+	menu->funcparams[6][0] = 0x81;
 
 	menu->funcparams[7][0] = 0;
 

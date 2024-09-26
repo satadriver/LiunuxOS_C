@@ -74,7 +74,7 @@ int getPartitionInfo() {
 
 
 
-int readFileDirs(int partitionType,unsigned __int64 secno, LPFILEBROWSER files, DWORD ntfslast) {
+int readFileDirs(int partitionType,unsigned __int64 secno, LPFILEBROWSER files, unsigned __int64 ntfslast) {
 	if (partitionType == 2)
 	{
 		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
@@ -110,7 +110,7 @@ int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 fil
 	}
 	else if (partitionType == CDROM_FILE_SYSTEM)
 	{
-		int seccnt = filesize / ATAPI_SECTOR_SIZE;
+		int seccnt =(DWORD)( filesize / ATAPI_SECTOR_SIZE);
 		int mod = filesize % ATAPI_SECTOR_SIZE;
 		if (mod)
 		{
@@ -143,7 +143,7 @@ int doFileAction(int partitionType,LPFILEBROWSER files) {
 	int readsize = readFileData(partitionType,files->secno, files->filesize, (char*)buffer, files->filesize);
 	if (readsize <= 0)
 	{
-		__printf(szout, "doFileAction readFileData:%s size:%I64d error\n", files->pathname, files->filesize);
+		__printf(szout, "doFileAction readFileData:%s size:%I64x error\n", files->pathname, files->filesize);
 		return FALSE;
 	}
 

@@ -204,14 +204,14 @@ void stopVectorGraph() {
 	p.x = 0;
 	p.y = 0;
 	int color = 0;
-	__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)gVectorGraphBuf);
+	__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)gVectorGraphBuf);
 
 	__kFree((DWORD)gVectorGraphBuf);
 	return;
 }
 
 
-void VectorGraph() {
+void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	unsigned int asc = __kGetKbd(gVectorGraphWid) & 0xff;
 	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
@@ -302,7 +302,7 @@ void refreshScreenColor() {
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
-			__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
 			removeWindow(windowid);
 
 			__kFree(backGround);
@@ -357,7 +357,7 @@ void refreshScreenColor2() {
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
-			__restoreRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
 			removeWindow(windowid);
 
 			__kFree(backGround);

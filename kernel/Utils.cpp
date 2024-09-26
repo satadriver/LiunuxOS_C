@@ -469,6 +469,53 @@ int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
 	}
 }
 
+
+
+int __i64ToStrd64(unsigned int h, char* strd) {
+
+	__memset(strd, 0, 11);
+
+	unsigned __int64 divid = 4400000000* 4400000000;
+
+	int flag = FALSE;
+
+	int cnt = 0;
+
+	for (int i = 0; i < 10; i++)
+	{
+
+		unsigned int d = h / divid;
+		if (d)
+		{
+			*strd = d + 0x30;
+
+			strd++;
+
+			cnt++;
+
+			h = h % divid;;
+
+			flag = TRUE;
+		}
+		else if (flag) {
+			*strd = 0x30;
+			strd++;
+			cnt++;
+		}
+
+		divid = divid / 10;
+	}
+
+	if (cnt == 0)
+	{
+		*strd = 0x30;
+		return 1;
+	}
+	return cnt;
+}
+
+
+
 int __i2strd(unsigned int h, char * strd) {
 
 	__memset(strd, 0, 11);
@@ -664,8 +711,8 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			__memcpy(dst + dpos, numstr, len);
 			dpos += len;
 			len = __i2strd(numl, numstr);
-			__memcpy(dst + dpos, numstr+2, len-2);
-			dpos += (len-2);
+			__memcpy(dst + dpos, numstr, len);
+			dpos += (len);
 		}
 		else if (format[spos] == '%' && (__memcmp(format + spos + 1, "i64x", 4) == 0 ||
 			__memcmp(format + spos + 1, "I64x", 4) == 0 ||

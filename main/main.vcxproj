@@ -190,11 +190,7 @@
     <ClInclude Include="explorer.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="fat12\fat12.h" />
-    <ClInclude Include="fat32\FAT32.h" />
     <ClInclude Include="fat32\fat32dirs.h" />
-    <ClInclude Include="fat32\Fat32File.h" />
-    <ClInclude Include="fat32\FAT32Utils.h" />
-    <ClInclude Include="fat32\FileUtils.h" />
     <ClInclude Include="fileBrowser.h" />
     <ClInclude Include="ios9660\ios9660.h" />
     <ClInclude Include="paint.h" />
@@ -202,10 +198,7 @@
     <ClInclude Include="graph.h" />
     <ClInclude Include="gdi\jpeg.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="NTFS\ntfs.h" />
     <ClInclude Include="NTFS\ntfsDirs.h" />
-    <ClInclude Include="NTFS\ntfsFile.h" />
-    <ClInclude Include="soundBlaster\sbPlay.h" />
     <ClInclude Include="mainUtils.h" />
     <ClInclude Include="guiHelper.h" />
   </ItemGroup>

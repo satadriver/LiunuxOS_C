@@ -205,7 +205,7 @@ int drawCursor(int p1, int p2, int p3, int p4) {
 			p.y = *gCursorY + GRAPHCHAR_HEIGHT;
 		}
 		
-		ret = __restoreRectWindow(&p, cw, ch, (unsigned char*)gCursorBackup);
+		ret = __DestroyRectWindow(&p, cw, ch, (unsigned char*)gCursorBackup);
 
 		gTag = FALSE;
 	}

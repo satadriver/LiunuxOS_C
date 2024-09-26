@@ -119,9 +119,9 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 	int factor = 1;
 	while (1)
 	{
-		for (int i = factor / 2; i && i < factor; i++)
+		for (int n = factor / 2; n && n < factor; )
 		{
-			DWORD addr = PAGE_TABLE_BASE + size * i;
+			DWORD addr = PAGE_TABLE_BASE + size * n;
 			if (addr + size > PAGE_TABLE_BASE + PAGE_TABLE_SIZE)
 			{
 				res = -1;
@@ -142,6 +142,21 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 				}
 				break;
 			}
+			else {
+				if (info->size > size) {
+					int t = info->size / size;
+					n += t;
+					if (n >= factor) {
+						while (n >= factor) {
+							factor = factor << 1;
+						}
+					}
+
+					continue;
+				}
+			}
+
+			n++;
 		}
 
 		if (res == 0) {

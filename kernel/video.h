@@ -367,15 +367,15 @@ extern "C"  __declspec(dllexport) int __drawFileIconChars(FILEICON*);
 
 extern "C"  __declspec(dllexport) int __drawCCS(unsigned char * font, int color);
 
-extern "C"  __declspec(dllexport) int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
+extern "C"  __declspec(dllexport) int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
 
-extern "C"  __declspec(dllexport) int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
+extern "C"  __declspec(dllexport) int __drawRectFrame(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
 
 extern "C"  __declspec(dllexport) int removeFileManager(LPFMWINDOW w);
 
 extern "C"  __declspec(dllexport) int drawFileManager(LPFMWINDOW w);
 
-extern "C"  __declspec(dllexport) int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
+extern "C"  __declspec(dllexport) int __restoreRectFrame(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
 
 extern "C"  __declspec(dllexport) int __drawFileIcon(FILEICON*);
 
@@ -431,7 +431,7 @@ extern "C"  __declspec(dllimport) int __drawFileIconChars(FILEICON*);
 
 extern "C"  __declspec(dllimport) int __drawCCS(unsigned char * font, int color);
 
-extern "C"  __declspec(dllimport) int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
+extern "C"  __declspec(dllimport) int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
 
 extern "C"  __declspec(dllimport) int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
 

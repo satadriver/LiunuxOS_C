@@ -20,7 +20,7 @@ int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 fil
 
 int getPartitionInfo();
 
-int readFileDirs(int partitionType, unsigned __int64 secno, LPFILEBROWSER files,DWORD ntfsseq);
+int readFileDirs(int partitionType, unsigned __int64 secno, LPFILEBROWSER files, unsigned __int64 ntfsseq);
 
 
 extern "C" __declspec(dllexport) int __kFileManager(unsigned int retaddr, int tid,char * filename, char * funcname, DWORD param);

@@ -183,26 +183,25 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 							int cnt = menu.paramcnt[funcno];
 
-							int stacksize = cnt * 4;
+							int paramSize = cnt * sizeof(DWORD);
 
-							DWORD * thisparams = (DWORD*)&menu.funcparams[funcno][0];
+							DWORD * params = (DWORD*)&menu.funcparams[funcno][0];
 
 							__asm {
 								mov ecx, cnt
 								cmp ecx, 0
-								jz _callfunc
-								mov esi, thisparams
-								add esi, stacksize
-								sub esi,4
-								_params :
+								jz __callfunc
+								mov esi, params
+								add esi, paramSize
+								__copyParams :
+								sub esi, 4
 								mov eax, [esi]
 								push eax
-								sub esi, 4
-								loop _params
-								_callfunc :
+								loop __copyParams
+								__callfunc :
 								mov eax, func
 								call eax
-								add esp, stacksize
+								add esp, paramSize
 							}
 						}
 					}

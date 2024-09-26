@@ -61,7 +61,11 @@ int(__cdecl* writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int s
 //而一个扇区共有512Byte，这样使用CHS寻址一块硬盘最大容量为256 * 1024 * 63 * 512B = 8064 MB
 int checkIDEPort(unsigned short port) {
 
+	char szout[1024];
+
 	int r = inportb(port + 7);
+
+	__printf(szout, "checkIDEPort port:%x,value:%x\r\n", port, r);
 	if (r == 0x50)
 	{	
 		gAtaBasePort = port;
@@ -151,19 +155,19 @@ int getIDEPort() {
 
 	ret = checkIDEPort(0x3f0);
 
-	__printf((char*)szshow, "getIDEPort 3f0 over\n");
+	//__printf((char*)szshow, "getIDEPort 3f0 over\n");
 
 	ret = checkIDEPort(0x370);
 
-	__printf((char*)szshow, "getIDEPort 370 over\n");
+	//__printf((char*)szshow, "getIDEPort 370 over\n");
 
 	//1f7 = 3f6 = 3f7,376=377=177
 	ret = checkIDEPort(0x1f0);
 
-	__printf((char*)szshow, "getIDEPort 1f0 over\n");
+	//__printf((char*)szshow, "getIDEPort 1f0 over\n");
 
 	ret = checkIDEPort(0x170);
-	__printf((char*)szshow, "getIDEPort 170 over\n");
+	//__printf((char*)szshow, "getIDEPort 170 over\n");
 
 	ret = checkIDEPort(0x168);
 

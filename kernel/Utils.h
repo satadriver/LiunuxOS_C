@@ -174,7 +174,7 @@ extern "C" __declspec(dllimport) int lower2upper(char *data, int len);
 
 extern "C" __declspec(dllimport) int upper2lower(char *data, int len);
 
-extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
+
 
 extern "C" __declspec(dllimport)DWORD __ntohs(WORD v);
 extern "C" __declspec(dllimport)DWORD __ntohl(DWORD v);

@@ -25,9 +25,6 @@
     <Filter Include="头文件\ntfs">
       <UniqueIdentifier>{882d6e4f-3ce2-45ff-8f96-c297fa279025}</UniqueIdentifier>
     </Filter>
-    <Filter Include="头文件\sbplayer">
-      <UniqueIdentifier>{789cbe3f-f289-43b7-98e1-772d3a47097e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="源文件\fat32">
       <UniqueIdentifier>{d179e208-d8b7-4816-95b4-b0bae4a8d081}</UniqueIdentifier>
     </Filter>
@@ -112,27 +109,6 @@
     </ClInclude>
     <ClInclude Include="fileBrowser.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="fat32\FAT32.h">
-      <Filter>头文件\fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="fat32\Fat32File.h">
-      <Filter>头文件\fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="fat32\FAT32Utils.h">
-      <Filter>头文件\fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="fat32\FileUtils.h">
-      <Filter>头文件\fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="NTFS\ntfs.h">
-      <Filter>头文件\ntfs</Filter>
-    </ClInclude>
-    <ClInclude Include="NTFS\ntfsFile.h">
-      <Filter>头文件\ntfs</Filter>
-    </ClInclude>
-    <ClInclude Include="soundBlaster\sbPlay.h">
-      <Filter>头文件\sbplayer</Filter>
     </ClInclude>
     <ClInclude Include="NTFS\ntfsDirs.h">
       <Filter>头文件\ntfs</Filter>

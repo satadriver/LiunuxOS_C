@@ -299,6 +299,10 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			}
 			else {
 				if (info->size > size) {
+					if (info->size % size) {
+						__printf(szout, "isAddrExist size:%x size:%x error\r\n",info->size,size);
+					}
+
 					int t = info->size / size;
 					n += t;
 					if (n >= factor) {

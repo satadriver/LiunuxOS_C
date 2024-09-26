@@ -128,7 +128,7 @@ int __drawShutdown(LPWINDOWCLASS window) {
 }
 
 
-int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* backbuf) {
+int __drawRectFrame(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char* backbuf) {
 	int startpos = __getpos(p->x, p->y) + gGraphBase;
 	unsigned char* ptr = (unsigned char*)startpos;
 	unsigned char* keep = ptr;
@@ -176,6 +176,31 @@ int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int frame
 	return (int)ptr - gGraphBase;
 }
 
+int __restoreRectFrame(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
+	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+
+	for (int i = 0; i < height + framesize; i++)
+	{
+		for (int j = 0; j < width + framesize; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				if (*ptr != *backup) {
+					*ptr = *backup;
+				}
+				ptr++;
+				backup++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	return (int)ptr - gGraphBase;
+}
 
 int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize, int framecolor, int capsize,
 	int capcolor, char* capname, char* backdata) {
@@ -188,23 +213,23 @@ int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int
 
 	int singlefs = framesize >> 1;
 
-	for (int i = 0; i < height + framesize + capsize; i++)
+	for (int y = 0; y < height + framesize + capsize; y++)
 	{
-		for (int j = 0; j < width + framesize; j++)
+		for (int x = 0; x < width + framesize; x++)
 		{
 			int c = 0;
 
-			if ((i < singlefs) || (i >= height + singlefs + capsize))
+			if ((y < singlefs) || (y >= height + singlefs + capsize))
 			{
 				c = framecolor;
 			}
-			else if ((j < singlefs) || (j >= width + singlefs))
-			{
-				c = framecolor;
-			}
-			else if ((i >= singlefs) && (i < capsize + singlefs))
+			else if ((y >= singlefs) && (y < capsize + singlefs))
 			{
 				c = capcolor;
+			}
+			else if ((x < singlefs) || (x >= width + singlefs))
+			{
+				c = framecolor;
 			}
 			else {
 				c = color;
@@ -237,33 +262,7 @@ int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int
 	return (int)showend - gGraphBase;
 }
 
-int __restoreWindow(LPWINDOWCLASS window) {
-	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-	unsigned char* srcdata = (unsigned char*)window->backBuf;
 
-	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
-	{
-		for (int j = 0; j < window->width + window->frameSize; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				if (*ptr != *srcdata) {
-
-					*ptr = *srcdata;
-				}
-				ptr++;
-				srcdata++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-
-	return (int)ptr - gGraphBase;
-}
 
 int __DestroyWindow(LPWINDOWCLASS window) {
 
@@ -352,8 +351,36 @@ int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char*
 	return (int)ptr - gGraphBase;
 }
 
+int __restoreWindow(LPWINDOWCLASS window) {
+	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+	unsigned char* srcdata = (unsigned char*)window->backBuf;
 
-int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char* backup) {
+	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
+	{
+		for (int j = 0; j < window->width + window->frameSize; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				//if (*ptr != *srcdata) 
+				{
+
+					*ptr = *srcdata;
+				}
+				ptr++;
+				srcdata++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	return (int)ptr - gGraphBase;
+}
+
+int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char* backup) {
 	__kRestoreMouse();
 
 	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
@@ -384,31 +411,7 @@ int __restoreRectWindow(LPPOINT p, int width, int height, unsigned char* backup)
 
 
 
-int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup) {
-	int startpos = p->y * gBytesPerLine + p->x * gBytesPerPixel + gGraphBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
 
-	for (int i = 0; i < height + framesize; i++)
-	{
-		for (int j = 0; j < width + framesize; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				if (*ptr != *backup) {
-					*ptr = *backup;
-				}
-				ptr++;
-				backup++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-
-	return (int)ptr - gGraphBase;
-}
 
 
 
@@ -933,7 +936,7 @@ int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
 
 
 int removeFileManager(LPFMWINDOW w) {
-	__restoreRectWindow(&w->window.pos, w->window.width, w->window.height, (unsigned char*)w->window.backBuf);
+	__DestroyRectWindow(&w->window.pos, w->window.width, w->window.height, (unsigned char*)w->window.backBuf);
 
 	removeWindow(w->window.id);
 
@@ -983,7 +986,7 @@ int __drawFileIcon(LPFILEICON computer) {
 
 	computer->backsize = gBytesPerPixel * (computer->width + computer->frameSize) * (computer->height + computer->frameSize);
 
-	unsigned int ptr = __drawRectFrameWindow(&computer->pos, computer->width, computer->height,
+	unsigned int ptr = __drawRectFrame(&computer->pos, computer->width, computer->height,
 		computer->color, computer->frameSize, computer->frameColor, (char*)computer->backGround);
 
 	DWORD offset = 0;
