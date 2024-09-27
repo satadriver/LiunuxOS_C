@@ -259,7 +259,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 	//gBaseColor = gBaseColor + 1;
 
-	gBaseColor = (gBaseColor + 3) % 0x100000;
+	gBaseColor = (gBaseColor + 3) % 0x1000000;
 }
 
 void initVectorGraph() {
@@ -334,7 +334,8 @@ void refreshScreenColor() {
 
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
-				DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) + gBaseColor * gBaseColor * gBaseColor;
+				DWORD c = ((x - cx) * (x - cx) * (x - cx)* (x - cx)) + ((y - cy) * (y - cy) * (y - cy) * (y - cy)) + 
+					gBaseColor * gBaseColor * gBaseColor* gBaseColor;
 				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = c & 0xff;
@@ -345,7 +346,7 @@ void refreshScreenColor() {
 		}
 		//gBaseColor = gBaseColor + 1;
 
-		gBaseColor = (gBaseColor + 3) % 0x100000;
+		gBaseColor = (gBaseColor + 1) ;
 	}
 }
 

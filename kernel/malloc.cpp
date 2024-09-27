@@ -22,7 +22,7 @@ DWORD gAllocLock = FALSE;
 LPMEMALLOCINFO gMemAllocList = 0;
 
 
-int getAlignedSize(int size, int allignsize) {
+int getAlignSize(int size, int allignsize) {
 	int allocsize = size;
 	int mod = size % allignsize;
 	if (mod)
@@ -49,7 +49,7 @@ int getAlignedSize(int size, int allignsize) {
 
 
 //direction 1:upward 0:downward
-DWORD pageAlignmentSize(DWORD blocksize,int direction)
+DWORD pageAlignSize(DWORD blocksize,int direction)
 {
 	DWORD result = 0;
 
@@ -250,7 +250,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	char szout[1024];
 
-	DWORD size = pageAlignmentSize(s, 1);
+	DWORD size = pageAlignSize(s, 1);
 	if ( size > gAllocLimitSize)
 	{
 		__printf(szout, "__kProcessMalloc pageAlignmentSize:%x gAllocLimitSize:%x\r\n", size, gAllocLimitSize);

@@ -101,7 +101,7 @@ int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 fil
 
 	if (partitionType == NTFS_FILE_SYSTEM)
 	{
-		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + (DWORD)gNtfsDbr.MFT * g_SecsPerCluster;
+		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
 		return (DWORD)getNtfsFileData(secoff, &databuf);
 	}
 	else if (partitionType == FAT32_FILE_SYSTEM)
@@ -128,7 +128,7 @@ int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 fil
 }
 
 
-int doFileAction(int partitionType,LPFILEBROWSER files) {
+int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	int result = 0;
 	char szout[1024];
 	__printf(szout, "doFileAction readFileData:%s size:%I64x\n", files->pathname, files->filesize);
@@ -242,6 +242,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	{
 		unsigned __int64 ntfssecno = gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
 		ntfsprevs[ntfsseq] = MSF_ROOTDIR_OFFSET / 2;
+		__printf(szout, "ntfs root dir sector:%i64x\r\n", ntfssecno + MSF_ROOTDIR_OFFSET);
 		filetotal = getNtfsDirs(ntfssecno + MSF_ROOTDIR_OFFSET, files, 0);
 	}
 	else if (partitionType == FAT32_FILE_SYSTEM) {
@@ -259,8 +260,14 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	if (filetotal <= 0)
 	{
+		__printf(szout, "not found any files\r\n");
 		__kFree((DWORD)files);
 		return FALSE;
+	}
+	else {
+		for (int i = 0; i < filetotal; i++) {
+			__printf(szout, "num:%d file:%s type:%i64x size:%i64d\r\n",i, files[i].pathname, files[i].attrib, files[i].filesize);
+		}
 	}
 
 	FMWINDOW window;
@@ -271,10 +278,10 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	drawFileManager(&window);
 
-	__printf(szout, "filetotal:%x,first:%s sector:%I64x size:%I64x,"
-		"second:%s sector:%I64x size:%I64x,third:%s sector:%I64x size:%I64x,fourth:%s sector:%I64x size:%I64x\n",
-		filetotal, files[0].pathname, files[0].secno, files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize,
-		files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
+	//__printf(szout, "filetotal:%x,first:%s sector:%I64x size:%I64x,"
+	//	"second:%s sector:%I64x size:%I64x,third:%s sector:%I64x size:%I64x,fourth:%s sector:%I64x size:%I64x\n",
+	//	filetotal, files[0].pathname, files[0].secno, files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize,
+	//	files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
 
 	int rowlimit = gVideoHeight / window.fsheight;
 
@@ -308,7 +315,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 		__printf(szout, "after __drawRectWindow\r\n");
 
-		for (int j = 0; j < fpagecnt; j++)
+		for (number = 0; number < fpagecnt; number++)
 		{
 			//calc positon of char
 			int y = (((number + 1) % rowlimit) * window.cpl - 1 - (window.cpl / 2)) * GRAPHCHAR_HEIGHT;
@@ -317,25 +324,24 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			char szinfo[4096];
 			if (files[number].attrib & FILE_ATTRIBUTE_DIRECTORY)
 			{
-				int len = __sprintf(szinfo, "%s        DIR(%x)        %I64d(bytes)",
+				int len = __sprintf(szinfo, "%s        DIR(%I64x)        %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 
 				__drawGraphChar(( char*)szinfo, FILE_DIR_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else if (files[number].attrib & FILE_ATTRIBUTE_ARCHIVE)
 			{
-				int len = __sprintf(szinfo, "%s        FILE(%x)       %I64d(bytes)",
+				int len = __sprintf(szinfo, "%s        FILE(%I64x)       %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 
 				__drawGraphChar(( char*)szinfo, FILE_FILE_FONT_COLOR, pos, window.window.fontcolor);
 			}
 			else {
-				int len = __sprintf(szinfo, "%s        UNKNOWN(%x)    %I64d(bytes)",
+				int len = __sprintf(szinfo, "%s        UNKNOWN(%I64x)    %I64d(bytes)",
 					files[number].pathname, files[number].attrib, files[number].filesize);
 
 				__drawGraphChar(( char*)szinfo, FILE_UNKNOWN_FONT_COLOR, pos, window.window.fontcolor);
 			}
-			number++;
 		}
 
 		//number is last dir
@@ -478,7 +484,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					}
 				}
 				else if (targetno < filetotal && files[targetno].attrib & FILE_ATTRIBUTE_ARCHIVE) {
-					doFileAction(partitionType,&files[targetno]);
+					doOpenFile(partitionType,&files[targetno]);
 				}
 			}
 

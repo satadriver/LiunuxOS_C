@@ -143,7 +143,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 				break;
 			}
 			else {
-				if (info->size > size) {
+				if (info->size > (DWORD)size) {
 					int t = info->size / size;
 					n += t;
 					if (n >= factor) {

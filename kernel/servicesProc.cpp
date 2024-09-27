@@ -171,6 +171,7 @@ void sleep(DWORD * params) {
 	while(1)
 	{
 		__asm {
+			sti
 			hlt
 		}
 

@@ -298,7 +298,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	__k8254TimerProc();
 
 	__asm {
-		clts			//before all fpu instructions
+		//clts			//before all fpu instructions
 	}
 
 	//__printf(szout, "__kTaskSchedule entry\r\n");
@@ -329,7 +329,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	}
 	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
 	{
-
 		if (process->sleep) {
 			process->sleep--;
 			prev->sleep = process->sleep;
@@ -495,7 +494,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
 		return 0;
 	}
-	process->counter++;
+
 
 	LPPROCESS_INFO next = prev;
 	do {

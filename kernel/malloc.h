@@ -26,10 +26,9 @@ typedef struct
 
 typedef struct  
 {
-	DWORD addr;
-	USHORT size;
-	UCHAR flag;
-	UCHAR reserved;
+	WORD addr;
+	WORD size;
+
 }MS_HEAP_STRUCT;
 
 
@@ -44,7 +43,7 @@ int resetMemAllocInfo(LPMEMALLOCINFO item);
 
 LPMEMALLOCINFO getMemAllocInfo();
 
-int getAlignedSize(int size, int allignsize);
+int getAlignSize(int size, int allignsize);
 
 LPMEMALLOCINFO isAddrExist(DWORD addr, int size);
 
@@ -52,7 +51,7 @@ LPMEMALLOCINFO findAddr(DWORD addr);
 
 int initMemory();
 
-DWORD pageAlignmentSize(DWORD size,int max);
+DWORD pageAlignSize(DWORD size,int max);
 
 DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr);
 

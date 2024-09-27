@@ -105,7 +105,6 @@ int browseISO9660File(LPFILEBROWSER files) {
 		}
 	}
 	
-
 	char buf[ATAPI_SECTOR_SIZE * 2];
 #ifndef APAPI_INT13_READWRITE
 	iret = readAtapiSector(buf, ISO9660FS_VOLUME_DESCRIPTOR_NO, 1);

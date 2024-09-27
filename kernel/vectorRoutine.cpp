@@ -1023,7 +1023,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		MOV GS, AX
 		mov ss, ax
 
-		//sti
+		//clts
 	}
 
 	{
@@ -1056,7 +1056,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss: [esp - 20]
 #endif	
-		clts
+		//clts
 		
 		iretd
 
@@ -1283,6 +1283,8 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 		MOV FS, ax
 		MOV GS, AX
 		mov ss, ax
+
+		
 	}
 
 	{
@@ -1336,8 +1338,6 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-
-
 		outportb(0x70, 0x0c);
 
 		int flag = inportb(0x71);

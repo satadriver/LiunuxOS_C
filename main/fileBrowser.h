@@ -14,7 +14,7 @@
 #define FILE_FILE_FONT_COLOR		0X9F9F
 #define FILE_UNKNOWN_FONT_COLOR		0
 
-int doFileAction(int partitionType,LPFILEBROWSER files);
+int doOpenFile(int partitionType,LPFILEBROWSER files);
 
 int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 filesize, char * databuf, unsigned __int64 readsize);
 

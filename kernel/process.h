@@ -63,6 +63,8 @@ typedef struct
 
 	DWORD status;
 
+	int retValue;
+
 	int window;
 
 	char fpu;

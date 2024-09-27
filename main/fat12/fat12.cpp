@@ -10,7 +10,14 @@
 #include "malloc.h"
 #include "floppy.h"
 
+
+#define FAT12_FIRST_CLUSTER_NO 2
+
+//#define FLOPPY_INT13_READWRITE
+
+
 FAT12DBR gFat12Dbr;
+
 FAT12DBR gFat12Dbr2;
 
 DWORD gFat12FatSecOff;
@@ -23,13 +30,12 @@ DWORD gFat12ClusterSize;
 
 DWORD gFat12RootSecCnt;
 
-#define FAT12_FIRST_CLUSTER_NO 2
-
-int gFloppyDev = -1;
-
 DWORD gFat12FatBase = 0;
 
 DWORD gFat12RootDirBase = 0;
+
+int gFloppyDev = -1;
+
 
 
 int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
@@ -38,8 +44,11 @@ int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
 
 	char fattmpbuf[2048];
 	char szout[1024];
+#ifndef FLOPPY_INT13_READWRITE
 	iret = readFloppySector(gFloppyDev, (unsigned long)fattmpbuf, secno,1);
-	//iret = vm86ReadFloppy(getCylinder(secno),getHeader(secno),getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
+#else
+	iret = vm86ReadFloppy(getCylinder(secno),getHeader(secno),getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
+#endif
 	if (iret <= 0)
 	{
 		__printf(szout,( char*)"read floppy first sector error\n");
@@ -77,8 +86,6 @@ int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
 		}
 	}
 
-	//__free((DWORD)fattmpbuf);
-
 	return cnt;
 }
 
@@ -106,14 +113,20 @@ int browseFat12File(LPFILEBROWSER files) {
 	*/
 	
 	gFloppyDev = 0;
+#ifndef FLOPPY_INT13_READWRITE
 	iret = readFloppySector(gFloppyDev, (unsigned long)&gFat12Dbr, 0, 1);
-	//iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+#else
+	iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+#endif
 	if (iret <= 0)
 	{
 		gFloppyDev = 1;
 
+#ifndef FLOPPY_INT13_READWRITE
 		iret = readFloppySector(gFloppyDev, (unsigned long)&gFat12Dbr, 0, 1);
-		//iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+#else
+		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+#endif
 		if (iret <= 0)
 		{
 			__printf(szout, ( char*)"read floppy dbr sector error\n");
@@ -123,8 +136,18 @@ int browseFat12File(LPFILEBROWSER files) {
 
 	if (__memcmp((CHAR*)&gFat12Dbr.BS_FileSysType,"FAT12",5))
 	{
-		__printf(szout, ( char*)"read floppy dbr sector format error\n");
-		return FALSE;
+		gFloppyDev = gFloppyDev ^ 1;
+
+#ifndef FLOPPY_INT13_READWRITE
+		iret = readFloppySector(gFloppyDev, (unsigned long)&gFat12Dbr, 0, 1);
+#else
+		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+#endif
+		if (iret <= 0 || __memcmp((CHAR*)&gFat12Dbr.BS_FileSysType, "FAT12", 5))
+		{
+			__printf(szout, (char*)"read floppy dbr sector error\n");
+			return FALSE;
+		}
 	}
 
 	gFat12ClusterSize = gFat12Dbr.BPB_SecPerClus*gFat12Dbr.BPB_BytesPerSec;	//512
@@ -147,9 +170,12 @@ int browseFat12File(LPFILEBROWSER files) {
 	{
 		gFat12FatBase = __kMalloc(0x10000);
 	}
-
+#ifndef FLOPPY_INT13_READWRITE
 	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12FatBase, gFat12FatSecOff, gFat12Dbr.BPB_FATSz16);
-	//iret = vm86ReadFloppy(getCylinder(gFat12FatSecOff), getHeader(gFat12FatSecOff), getSector(gFat12FatSecOff),gFat12Dbr.BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
+#else
+	iret = vm86ReadFloppy(getCylinder(gFat12FatSecOff), getHeader(gFat12FatSecOff), 
+		getSector(gFat12FatSecOff),gFat12Dbr.BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
+#endif
 	if (iret <= 0)
 	{
 		__printf(szout, ( char*)"read floppy fat sector error\n");
@@ -160,9 +186,12 @@ int browseFat12File(LPFILEBROWSER files) {
 	{
 		gFat12RootDirBase = (DWORD)__kMalloc(0x10000);
 	}
-
+#ifndef FLOPPY_INT13_READWRITE
 	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12RootDirBase, gFat12RootDirSecOff, gFat12RootSecCnt);
-	//iret = vm86ReadFloppy(getCylinder(gFat12RootDirSecOff),getHeader(gFat12RootDirSecOff),getSector(gFat12RootDirSecOff),gFat12RootSecCnt, (char*)gFat12RootDirBase, gFloppyDev);
+#else
+	iret = vm86ReadFloppy(getCylinder(gFat12RootDirSecOff),getHeader(gFat12RootDirSecOff),
+		getSector(gFat12RootDirSecOff),gFat12RootSecCnt, (char*)gFat12RootDirBase, gFloppyDev);
+#endif
 	if (iret <= 0)
 	{
 		__printf(szout, ( char*)"read floppy root dir sector error\n");
@@ -192,7 +221,7 @@ int browseFat12File(LPFILEBROWSER files) {
 				*(files->pathname + 12) = 0;
 			}
 
-			files->secno = (dir->clusterLow + ((DWORD)dir->clusterHigh << 16)) /*- FAT12_FIRST_CLUSTER_NO*/;
+			files->secno = (dir->clusterLow + ((DWORD)dir->clusterHigh << 16)) /*FAT12_FIRST_CLUSTER_NO*/;
 			files->attrib = dir->attr;
 			files->filesize = dir->size;
 
@@ -232,9 +261,11 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 	for (int i = 0; i < readtimes; i++)
 	{
 		DWORD sectorno = gFat12DataSecOff + (clusterno - FAT12_FIRST_CLUSTER_NO) * gFat12Dbr.BPB_SecPerClus;
-
+#ifndef FLOPPY_INT13_READWRITE
 		ret = readFloppySector(gFloppyDev, (unsigned long)lpdata, sectorno, gFat12Dbr.BPB_SecPerClus);
-		//ret = vm86ReadFloppy(getCylinder(sectorno), getHeader(sectorno), getSector(sectorno),gFat12Dbr.BPB_SecPerClus, lpdata, gFloppyDev);
+#else
+		ret = vm86ReadFloppy(getCylinder(sectorno), getHeader(sectorno), getSector(sectorno),gFat12Dbr.BPB_SecPerClus, lpdata, gFloppyDev);
+#endif
 		if (ret )
 		{
 			lpdata += gFat12ClusterSize;

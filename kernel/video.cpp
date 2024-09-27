@@ -334,7 +334,8 @@ int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char*
 				}
 				backup++;
 
-				if (*ptr != (c & 0xff)) {
+				if (*ptr != (c & 0xff)) 
+				{
 					*ptr = (c & 0xff);
 				}
 
@@ -962,7 +963,11 @@ int drawFileManager(LPFMWINDOW w) {
 	w->window.width = gVideoWidth;
 	w->window.pos.x = 0;
 	w->window.pos.y = 0;
+	w->window.showX = w->window.pos.x;
+	w->window.showY = w->window.pos.y;
 	w->fsheight = GRAPHCHAR_HEIGHT * w->cpl;
+
+	w->window.zoomin = 1;
 
 	w->window.backsize = gBytesPerPixel * (w->window.width) * (w->window.height);
 

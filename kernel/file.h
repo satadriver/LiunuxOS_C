@@ -33,10 +33,10 @@ typedef struct
 
 typedef struct
 {
-	char pathname[256];
 	unsigned __int64 secno;
 	unsigned __int64 filesize;
-	DWORD attrib;
+	unsigned __int64 attrib;
+	char pathname[256];
 }FILEBROWSER, *LPFILEBROWSER;
 
 #pragma pack()

@@ -80,9 +80,8 @@ void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparam
 	}
 
 	int retvalue = 0;
-	__asm {
-		mov eax, retvalue
-	}
+
+	tss[process->pid].retValue = retvalue;
 	if (dwtid & 0x80000000) {
 		return;
 	}

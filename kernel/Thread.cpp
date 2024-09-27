@@ -48,6 +48,10 @@ DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lppara
 
 	__kFree(tss[tid].espbase);
 
+	int retvalue = 0;
+
+	tss[tid].retValue = retvalue;
+
 	if (dwtid & 0x80000000) {
 		return 0;
 	}
@@ -72,7 +76,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	}
 
 	DWORD imagesize = getSizeOfImage((char*)module);
-	DWORD alignsize = getAlignedSize(imagesize, PAGE_SIZE);
+	DWORD alignsize = getAlignSize(imagesize, PAGE_SIZE);
 	
 	//如果想要修改父进程的信息，必须在CURRENT_TASK_TSS_BASE中修改，否则线程切换时信息还是会被替换
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;

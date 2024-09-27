@@ -290,8 +290,8 @@ typedef struct {
 	POINT pos;
 	int action;
 
-	unsigned int width;
-	unsigned int height;
+	int width;
+	int height;
 	unsigned int color;
 	DWORD funcaddr[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2];
 	char menuname[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2][RIGHTCLICK_MENU_WIDTH / GRAPHCHAR_WIDTH ];

@@ -475,7 +475,7 @@ int __i64ToStrd64(unsigned int h, char* strd) {
 
 	__memset(strd, 0, 11);
 
-	unsigned __int64 divid = 4400000000* 4400000000;
+	unsigned __int64 divid = 4400* 4400;
 
 	int flag = FALSE;
 
@@ -793,23 +793,12 @@ int __printf(char* buf, char* format, ...) {
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		if (proc->window) {
 			LPWINDOWCLASS window = getWindow(proc->window);
-
-			__drawWindowChars(buf, 0, window);
-			/*
-			unsigned int pos = __getpos(window->showX, window->showY);
-			int endpos = __drawGraphChar((char*)buf, window->fontcolor,pos,window->color);
-			int y = endpos / gBytesPerLine;
-
-			int x = (endpos % gBytesPerLine) / gBytesPerPixel;
-
-			if (y >= gWindowHeight)
-			{
-				y = 0;
-				x = 0;
+			if (window) {
+				__drawWindowChars(buf, 0, window);
 			}
-			window->showX = x;
-			window->showY = y;
-			*/
+			else {
+				int endpos = __drawGraphChars((char*)buf, 0);
+			}
 		}
 		else {
 			int endpos = __drawGraphChars((char*)buf, 0);

@@ -27,6 +27,9 @@
 #include "pci.h"
 
 
+#pragma comment(linker, "/STACK:0x100000")
+
+
 int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 
 	//cmd size is always less than 256 bytes
@@ -143,7 +146,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			getldt(szout);
 			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
-		else if (__strcmp(params[1], "cr") == 0)
+		else if (__strcmp(params[1], "crs") == 0)
 		{
 			*szout = 0;
 			getcrs(szout);
@@ -198,7 +201,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kPaint", 3, (DWORD)&taskcmd);
 		}
 	}
-	else if (__strcmp(params[0], "tssStatus") == 0) {
+	else if (__strcmp(params[0], "tss") == 0) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		DWORD eflags = 0;
 		__asm {
@@ -259,7 +262,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
-	else if (__strcmp(params[0], "editmem") == 0)
+	else if (__strcmp(params[0], "editm") == 0)
 	{
 		if (paramcnt >= 3)
 		{
@@ -304,6 +307,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		DWORD h = 0;
 		__asm {
 			mov eax, 0
+			mov ecx,0
 			rdpmc
 			mov l, eax
 			mov h, edx
@@ -311,7 +315,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		__sprintf(szout, "rdpmc:%x%x\n", h, l);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "cpu_temprature") == 0)
+	else if (__strcmp(params[0], "temprature") == 0)
 	{
 		DWORD tj = 0;
 		DWORD temp = __readTemperature(&tj);
@@ -323,21 +327,21 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		__DestroyWindow(window);
 		return 0;
 	}
-	else if (__strcmp(params[0], "cleans") == 0)
+	else if (__strcmp(params[0], "cls") == 0)
 	{
 		__DestroyWindow(window);
 		//__drawWindow(window, FALSE);
 		initConsoleWindow(window, pidname, pid);
 	}
-	else if (__strcmp(params[0], "resetsystem") == 0)
+	else if (__strcmp(params[0], "reset") == 0)
 	{
 		__reset();
 	}
-	else if (__strcmp(params[0], "inp ") == 0 || __strcmp(params[0], "outp ") == 0)
+	else if (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outpport") == 0)
 	{
 		DWORD n = __strh2i((unsigned char*)params[1]);
 		DWORD port = __strh2i((unsigned char*)params[2]);
-		if (__strcmp(params[0], "inp ") == 0)
+		if (__strcmp(params[0], "inport") == 0)
 		{
 			__asm {
 				mov edx, port
@@ -345,7 +349,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 				out dx, eax
 			}
 		}
-		else if (__strcmp(params[0], "outp ") == 0)
+		else if (__strcmp(params[0], "outport") == 0)
 		{
 			__asm {
 				mov edx, port
@@ -366,7 +370,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	}
 	else if (__strcmp(params[0], "pcidev") == 0)
 	{
-		//showAllPciDevs();
+		showAllPciDevs();
 	}
 	else if (__strcmp(params[0], "hdseq") == 0) {
 		char seq[1024];

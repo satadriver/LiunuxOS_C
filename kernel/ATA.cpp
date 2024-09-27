@@ -297,6 +297,8 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 
 int waitComplete(WORD port) {
 
+	char szout[1024];
+
 	//waitInterval(0);
 	//delay();
 
@@ -304,18 +306,18 @@ int waitComplete(WORD port) {
 	//r = inportb(port - 6);
 	//if (r == 0) 
 	{
-		int cnt = 64;
+		int cnt = 16;
 		while (cnt--) {
 			r = inportb(port);
 			//if (r & 1) {
 			//	return FALSE;
 			//}
 			//else 
-			if ((r & 0x88) == 8) {		//0xe9
+			if ((r & 0x58) == 0x58) {		//0xe9
 				return TRUE;
 			}
 			else {
-				char szout[1024];
+				
 				if ( (r & 0x80) == 0) 
 				{
 					__printf(szout, "waitComplete:%x,port:%x\r\n",r,port);
@@ -325,6 +327,10 @@ int waitComplete(WORD port) {
 				//waitInterval0(1);
 				continue;
 			}
+		}
+
+		if ((r & 8) == 8) {
+			return TRUE;
 		}
 	}
 	return FALSE;
