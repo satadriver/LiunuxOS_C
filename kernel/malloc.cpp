@@ -361,6 +361,7 @@ DWORD __kMalloc(DWORD s) {
 
 	char szout[1024];
 	DWORD size = 0;
+
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
 	if (ret == 0) {
@@ -399,9 +400,13 @@ int __kFree(DWORD physicalAddr) {
 
 //return virtual address
 DWORD __malloc(DWORD s) {
-	if (s < PAGE_SIZE)
+	DWORD res = 0;
+	if (s <= HEAP_SIZE/4)
 	{
-		return __heapAlloc(s);
+		res = __heapAlloc(s);
+		if (res) {
+			return res;
+		}
 	}
 
 	char szout[1024];
@@ -409,7 +414,7 @@ DWORD __malloc(DWORD s) {
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	DWORD vaddr = process->vaddr + process->vasize;
-	DWORD res = __kProcessMalloc(s,&size, process->pid,vaddr);
+	res = __kProcessMalloc(s,&size, process->pid,vaddr);
 	if (res)
 	{
 		if (vaddr >= USER_SPACE_END)

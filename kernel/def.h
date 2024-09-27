@@ -42,7 +42,7 @@
 #define MAIN_DLL_MODULE_NAME	"main.dll"
 #define KERNEL_DLL_MODULE_NAME	"kernel.dll"
 
-#define SINGLE_TASK_TSS
+//#define SINGLE_TASK_TSS
 
 #define DISABLE_PAGE_REDIRECTION
 
@@ -70,6 +70,8 @@
 #define V86_STACK_SIZE				0X10000
 #define UTASK_STACK_SIZE			0x100000
 #define KTASK_STACK_SIZE			0x10000
+
+#define HEAP_SIZE					0x100000
 
 #define WINDOW_NAME_LIMIT			64
 

@@ -18,10 +18,12 @@ DWORD __heapFree(DWORD addr) {
 	}
 
 	MS_HEAP_STRUCT test;
-	test.size = 0x8000;
+	test.size = 0x80000000;
 
 	MS_HEAP_STRUCT* heap = (MS_HEAP_STRUCT*)((UCHAR*)addr - sizeof(MS_HEAP_STRUCT));
-	MS_HEAP_STRUCT* heapEnd = (MS_HEAP_STRUCT*)((UCHAR*)heap + sizeof(MS_HEAP_STRUCT) + heap->size );
+
+	int heapsize = heap->size & 0x7fffffff;
+	MS_HEAP_STRUCT* heapEnd = (MS_HEAP_STRUCT*)((UCHAR*)heap + sizeof(MS_HEAP_STRUCT) + heapsize);
 
 	if (heap->addr == addr)
 	{
@@ -33,10 +35,10 @@ DWORD __heapFree(DWORD addr) {
 		}
 		else {
 			prevEnd = (MS_HEAP_STRUCT*)((UCHAR*)heap - sizeof(MS_HEAP_STRUCT));
-			prev = (MS_HEAP_STRUCT*)((UCHAR*)prevEnd - prevEnd->size - sizeof(MS_HEAP_STRUCT));
+			prev = (MS_HEAP_STRUCT*)((UCHAR*)prevEnd - sizeof(MS_HEAP_STRUCT) - (prevEnd->size &0x7fffffff) );
 		}
 
-		MS_HEAP_STRUCT* next = (MS_HEAP_STRUCT*)((UCHAR*)heap + (heap->size) + (sizeof(MS_HEAP_STRUCT) << 1));
+		MS_HEAP_STRUCT* next = (MS_HEAP_STRUCT*)((UCHAR*)heap + (heapsize) + (sizeof(MS_HEAP_STRUCT) << 1));
 		MS_HEAP_STRUCT* nextEnd = 0;
 		if ((DWORD)next  >= tss->heapbase + tss->heapsize ) {
 			next = (MS_HEAP_STRUCT*)&test;
@@ -47,33 +49,33 @@ DWORD __heapFree(DWORD addr) {
 			nextEnd = (MS_HEAP_STRUCT*)&test;
 		}
 		else {
-			nextEnd = (MS_HEAP_STRUCT*)((UCHAR*)next + sizeof(MS_HEAP_STRUCT) + (next->size));
+			nextEnd = (MS_HEAP_STRUCT*)((UCHAR*)next + sizeof(MS_HEAP_STRUCT) + (next->size & 0x7fffffff));
 		}
 
-		if ((prev->size & 0x8000) && (next->size & 0x8000) )
+		if ((prev->size & 0x80000000) && (next->size & 0x80000000) )
 		{
-			heap->size = heap->size & 0x7fff;
-			heapEnd->size = heapEnd->size & 0x7fff;
+			heap->size = heap->size & 0x7fffffff;
+			heapEnd->size = heap->size;
 		}
-		else if ((prev->size & 0x8000) == 0 && (next->size & 0x8000) == 0)
+		else if ((prev->size & 0x80000000) == 0 && (next->size & 0x80000000) == 0)
 		{
 			prev->addr = (DWORD)prev + sizeof(MS_HEAP_STRUCT);
-			prev->size = (prev->size + heap->size + next->size + (sizeof(MS_HEAP_STRUCT) << 1) *2 )| 0x8000;
+			prev->size = (prev->size + heap->size + next->size + (sizeof(MS_HEAP_STRUCT) << 1) *2 )| 0x80000000;
 			nextEnd->size = prev->size;
 			nextEnd->addr = prev->addr;
 		}
-		else if ((prev->size & 0x8000) && (next->size & 0x8000) == 0)
+		else if ((prev->size & 0x80000000) && (next->size & 0x80000000) == 0)
 		{
 			heap->addr = (DWORD)heap + sizeof(MS_HEAP_STRUCT);
-			heap->size = heap->size + next->size + (sizeof(MS_HEAP_STRUCT) << 1) | 0x8000;
+			heap->size = heap->size + next->size + (sizeof(MS_HEAP_STRUCT) << 1) | 0x80000000;
 
 			nextEnd->addr = heap->addr;
 			nextEnd->size = heap->size;
 		}
-		else if ((prev->size & 0x8000) == 0 && (next->size & 0x8000))
+		else if ((prev->size & 0x80000000) == 0 && (next->size & 0x80000000))
 		{
 			prev->addr = (DWORD)prev + sizeof(MS_HEAP_STRUCT);
-			prev->size = prev->size + heap->size + (sizeof(MS_HEAP_STRUCT) << 1) | 0x8000;
+			prev->size = prev->size + heap->size + (sizeof(MS_HEAP_STRUCT) << 1) | 0x80000000;
 
 			heapEnd->addr = prev->addr;
 			heapEnd->size = prev->size;
@@ -100,29 +102,29 @@ DWORD __heapAlloc(int size) {
 
 	while ((DWORD)lpheap + allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->heapbase + tss->heapsize)
 	{
-		if ((lpheap->size & 0x8000) && lpheap->size && lpheap->addr)
+		if ((lpheap->size & 0x80000000) && lpheap->size && lpheap->addr)
 		{
-			lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size<<4) + (sizeof(MS_HEAP_STRUCT) << 1));
+			lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size) + (sizeof(MS_HEAP_STRUCT) << 1));
 			continue;
 		}
 		else if (lpheap->size && lpheap->addr)
 		{
-			if ( (lpheap->size<<4) > allocsize + (sizeof(MS_HEAP_STRUCT)*2))
+			int oldsize = (lpheap->size );
+			if (oldsize >= allocsize + (sizeof(MS_HEAP_STRUCT)*2))
 			{
-				int oldsize = (lpheap->size)<<4;
 				
-				lpheap->addr = (WORD)(((DWORD)lpheap + sizeof(MS_HEAP_STRUCT))>>4);
-				lpheap->size = (allocsize>>4) | 0x8000;
+				lpheap->addr = (DWORD)(((DWORD)lpheap + sizeof(MS_HEAP_STRUCT)));
+				lpheap->size = allocsize | 0x80000000;
 
-				MS_HEAP_STRUCT* heapend = (MS_HEAP_STRUCT*)((DWORD)lpheap + (lpheap->size) + sizeof(MS_HEAP_STRUCT));
+				MS_HEAP_STRUCT* heapend = (MS_HEAP_STRUCT*)((DWORD)lpheap + sizeof(MS_HEAP_STRUCT) + (allocsize));
 				heapend->addr = lpheap->addr;
 				heapend->size = lpheap->size;
 
-				MS_HEAP_STRUCT* next = (MS_HEAP_STRUCT*)((DWORD)lpheap + (lpheap->size) + (sizeof(MS_HEAP_STRUCT) << 1));
-				next->size = (oldsize - allocsize - (sizeof(MS_HEAP_STRUCT)*2))>>4;
-				next->addr = (WORD)(((DWORD)next + sizeof(MS_HEAP_STRUCT))>>4);
+				MS_HEAP_STRUCT* next = (MS_HEAP_STRUCT*)((DWORD)lpheap + (allocsize) + (sizeof(MS_HEAP_STRUCT) << 1));
+				next->size = (oldsize - allocsize - (sizeof(MS_HEAP_STRUCT)*2));
+				next->addr = (DWORD)(((DWORD)next + sizeof(MS_HEAP_STRUCT)));
 
-				MS_HEAP_STRUCT* nextEnd = (MS_HEAP_STRUCT*)((DWORD)next + (next->size<<4) + sizeof(MS_HEAP_STRUCT) );
+				MS_HEAP_STRUCT* nextEnd = (MS_HEAP_STRUCT*)((DWORD)next + sizeof(MS_HEAP_STRUCT) + (next->size) );
 				nextEnd->size = next->size;
 				nextEnd->addr = next->addr;
 
@@ -134,10 +136,10 @@ DWORD __heapAlloc(int size) {
 			}
 		}
 		else {
-			lpheap->addr = (DWORD)(((DWORD)lpheap + sizeof(MS_HEAP_STRUCT))>>4);
-			lpheap->size = (allocsize>>4) | 0x8000;
+			lpheap->addr = (DWORD)(((DWORD)lpheap + sizeof(MS_HEAP_STRUCT)));
+			lpheap->size = (allocsize)|0x80000000 ;
 
-			MS_HEAP_STRUCT* heapend = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size) + sizeof(MS_HEAP_STRUCT));
+			MS_HEAP_STRUCT* heapend = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + sizeof(MS_HEAP_STRUCT) + (lpheap->size) );
 			heapend->addr = lpheap->addr;
 			heapend->size = lpheap->size;
 

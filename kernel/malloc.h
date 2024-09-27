@@ -26,8 +26,8 @@ typedef struct
 
 typedef struct  
 {
-	WORD addr;
-	WORD size;
+	DWORD addr;
+	DWORD size;
 
 }MS_HEAP_STRUCT;
 

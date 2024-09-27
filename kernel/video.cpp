@@ -766,16 +766,28 @@ int __drawGraphCharInt(char* font, int color, int pos, int bgcolor) {
 
 int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 
-	__kRestoreMouse();
+	//__kRestoreMouse();
 
 	int squreRadius = radius * radius;
 
 	int pixelcnt = 0;
 
 	int startx = x - radius;
+	if (startx < 0) {
+		startx = 0;
+	}
 	int endx = x + radius;
+	if (startx > gVideoWidth - radius) {
+		startx = gVideoWidth - radius;
+	}
 	int starty = y - radius;
+	if (starty < 0) {
+		starty = 0;
+	}
 	int endy = y + radius;
+	if (endy > gVideoHeight - radius) {
+		endy = gVideoHeight - radius;
+	}
 
 	unsigned int pos = __getpos(startx, starty);
 	unsigned char* showpos = pos + (unsigned char*)gGraphBase;
@@ -807,15 +819,15 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 		keepy += gBytesPerLine;
 		showpos = keepy;
 	}
-	__kRefreshMouseBackup();
-	__kDrawMouse();
+	//__kRefreshMouseBackup();
+	//__kDrawMouse();
 
 	return (unsigned int)showpos - gGraphBase;
 }
 
 extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char* back) {
 
-	__kRestoreMouse();
+	//__kRestoreMouse();
 
 	int squreRadius = radius * radius;
 
@@ -824,9 +836,21 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 	unsigned char* backup = back;
 
 	int startx = x - radius;
+	if (startx < 0){
+		startx = 0;
+	}
 	int endx = x + radius;
+	if (startx > gVideoWidth - radius) {
+		startx = gVideoWidth - radius;
+	}
 	int starty = y - radius;
+	if (starty < 0) {
+		starty = 0;
+	}
 	int endy = y + radius;
+	if (endy > gVideoHeight - radius) {
+		endy = gVideoHeight - radius;
+	}
 
 	unsigned int pos = __getpos(startx, starty);
 	unsigned char* showpos = pos + (unsigned char*)gGraphBase;
@@ -868,69 +892,15 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 		keepy += gBytesPerLine;
 		showpos = keepy;
 	}
-	__kRefreshMouseBackup();
-	__kDrawMouse();
+	//__kRefreshMouseBackup();
+	//__kDrawMouse();
 
 	return (unsigned int)showpos - gGraphBase;
 }
 
 
 
-int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
-	__kRestoreMouse();
 
-	int squreRadius = radius * radius;
-
-	int pixelcnt = 0;
-
-	unsigned char* backup = back;
-
-	int startx = x - radius;
-	int endx = x + radius;
-	int starty = y - radius;
-	int endy = y + radius;
-
-	unsigned int pos = __getpos(startx, starty);
-	unsigned char* showpos = pos + (unsigned char*)gGraphBase;
-	//unsigned char * keepx = showpos;
-	unsigned char* keepy = showpos;
-	for (int i = starty; i <= endy; i++)
-	{
-		for (int j = startx; j <= endx; j++)
-		{
-			int deltaX2 = (j - x) * (j - x);
-			int deltaY2 = (i - y) * (i - y);
-			if (deltaY2 + deltaX2 <= squreRadius)
-			{
-				unsigned int c = color;
-				for (int i = 0; i < gBytesPerPixel; i++)
-				{
-					if (back && (*backup != *showpos)) {
-						*backup = *showpos;
-					}
-					backup++;
-
-					if (*showpos != (c & 0xff)) {
-						*showpos = c;
-					}
-					showpos++;
-					c = (c >> 8);
-				}
-
-				pixelcnt++;
-			}
-			else {
-				showpos += gBytesPerPixel;
-			}
-		}
-		keepy += gBytesPerLine;
-		showpos = keepy;
-	}
-	__kRefreshMouseBackup();
-	__kDrawMouse();
-
-	return (unsigned int)showpos - gGraphBase;
-}
 
 
 
@@ -1225,7 +1195,7 @@ int __drawLine(int x1, int y1, int x2, int y2, DWORD color) {
 
 	double k = (y2 - y1) / (x2 - x1);
 	if (k == 0) {
-		//
+		return 0;
 	}
 
 	int lx = x1;
@@ -1239,7 +1209,7 @@ int __drawLine(int x1, int y1, int x2, int y2, DWORD color) {
 		ly = y2;
 		sy = y1;
 	}
-
+	 
 	int dx = lx - sx;
 	for (int i = 0; i < dx; i++) {
 		int px = sx + i;
