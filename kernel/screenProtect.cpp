@@ -12,12 +12,12 @@
 #include "cmosExactTimer.h"
 #include "hardware.h"
 #include "device.h"
-
+#include "math.h"
 
 #define SCREENPROTECT_BACKGROUND_COLOR 0		//0XBBFFFF		0X87CEEB
 
 
-
+int gCircleColor = 0xffffff;
 int gCircleCenterX = 0;
 int gCircleCenterY = 0;
 int gRadius = 64;
@@ -28,7 +28,7 @@ int gScreenProtectWindowID = 0;
 
 int gTimerID = 0;
 
-int gCircleColor = 0xffffff;
+
 
 
 
@@ -446,3 +446,156 @@ extern "C" __declspec(dllexport) int __kPrintScreen() {
 	__kFree((DWORD)data);
 	return 0;
 }
+
+
+
+
+#define  GRAVITY_ACC  9.8
+
+char * gTrajectBuf = 0;
+char* g_circle_buf = 0;
+int gTrajectWid = 0;
+int gTrajectTid = 0;
+int g_x_s;
+int g_y_s;
+
+int g_circle_color = 0xffffff;
+int g_centerX = 0;
+int g_centerY = 0;
+int g_radius = 32;
+
+void stopTrajectory() {
+	int ret = 0;
+
+	__kRemoveExactTimer(gTrajectTid);
+
+	removeWindow(gTrajectWid);
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+	int color = 0;
+	__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)gTrajectBuf);
+
+	__kFree((DWORD)gTrajectBuf);
+
+	__kFree((DWORD)g_circle_buf);
+	return;
+}
+
+int resist_air(int v, int radius) {
+	return (v * v + radius*radius) / 10000;
+}
+
+int resist_bounce(int v, int radius) {
+	return -(v*v/radius);
+}
+
+void TrajectoryProc() {
+	int ret = 0;
+
+	unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
+	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
+	{
+		stopTrajectory();
+		return;
+	}
+
+	MOUSEINFO mouseinfo;
+	mouseinfo.status = 0;
+	mouseinfo.x = 0;
+	mouseinfo.y = 0;
+	__kGetMouse(&mouseinfo, gVectorGraphWid);
+	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)
+	{
+		stopTrajectory();
+		return;
+	}
+
+	int xa = 0;
+
+	g_x_s = g_x_s - resist_air(g_x_s,g_radius);
+	if (g_x_s < 0) {
+		g_x_s = 0;
+	}
+
+	g_y_s = g_y_s - GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000;
+
+
+	int x = 0;
+	int y = 0;
+	x = g_centerX + g_x_s ;
+
+	y = g_centerY - g_y_s ;
+
+	if (x + g_radius > gVideoWidth) {
+
+		g_x_s = resist_bounce(g_x_s, g_radius);
+	}
+	else if (y + g_radius > gVideoHeight) {
+
+		g_y_s = resist_bounce(g_y_s, g_radius);
+	}
+	else if (x - g_radius < 0) {
+
+		g_x_s = resist_bounce(g_x_s, g_radius);
+	}
+	else if (y - g_radius < 0) {
+
+		g_y_s = resist_bounce(g_y_s, g_radius);
+	}
+
+
+	ret = __restoreCircle(g_centerX, g_centerY, g_radius, (unsigned char*)g_circle_buf);
+
+	g_centerX = (int)x;
+	g_centerY = (int)y;
+
+	ret = __drawColorCircle(g_centerX, g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+
+}
+
+
+
+
+void initTrajectory() {
+	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+
+	gTrajectBuf = (char*)__kMalloc(backsize);
+
+	g_circle_buf = (char*)__kMalloc( g_radius * 2 * 2 * g_radius * gBytesPerPixel);
+
+	gTrajectWid = addWindow(FALSE, 0, 0, 0, "Trajectory");
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+	int color = 0x00ff00;
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gTrajectBuf);
+
+	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+
+	int velocity = __random(TIMER0_TICK_COUNT) % 100;
+
+	int angle = __random(TIMER0_TICK_COUNT) % 64;
+
+	g_x_s = GetCos(angle) * velocity / 256;
+
+	g_y_s = GetSin(angle) * velocity/256;
+
+	g_centerY = gVideoHeight - g_radius - 20;
+
+	g_centerX = g_radius + 20;
+
+	int ret = __drawColorCircle(g_centerX, g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+}
+
+
+
+
+
+
+
+
+
+

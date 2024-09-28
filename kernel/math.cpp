@@ -163,3 +163,16 @@ int g_sincos[256] =
  - 152, -147, -142, -137, -132, -126, -121, -115, -109, -104,
  - 98, -92, -86, -80, -74, -68, -62, -56, -50, -44,
  - 38, -31, -25, -19, -13, -6 };
+
+
+
+
+int GetCos(int angle) {
+	int idx = (angle + 64)&0xff;
+	return g_sincos[idx];
+}
+
+int GetSin(int angle) {
+	return g_sincos[angle];
+}
+

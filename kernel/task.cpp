@@ -443,7 +443,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	char szout[1024];
 	__int64 timeh1 = __krdtsc();
 	__asm {
-		//clts			//before all fpu instructions
+		clts			//before all fpu instructions
 	}
 
 	__k8254TimerProc();

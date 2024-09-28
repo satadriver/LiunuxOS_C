@@ -19,5 +19,8 @@ double sqrt(double x);
 
 #endif
 
+int GetCos(int angle);
+
+int GetSin(int angle);
 
 extern "C" int g_sincos[256];
