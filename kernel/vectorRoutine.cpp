@@ -137,11 +137,14 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 		int v1 = inportb(0x92);
 
 		int v2 = inportb(0x61);
+
+		int v3 = inportb(0x70);
+
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 		char szout[1024];
-		__printf(szout, "NMI interruption 61 port:%x, 92 port:%x\r\n", v1, v2);
+		__printf(szout, "NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
 		//__kException((const char*)"NmiInterrupt", 2, stack);
 
 	}
@@ -192,7 +195,7 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 		char szout[1024];
-		__printf(szout, "OverflowException eip:%x,pid:%d,tid:%d\r\n", stack->eip, current->pid, current->tid);
+		__printf(szout, "OverflowException eip:%x,cs:%x,pid:%d,tid:%d\r\n", stack->eip,stack->cs, current->pid, current->tid);
 
 	}
 
@@ -354,8 +357,8 @@ void __declspec(naked) DeviceUnavailable(LIGHT_ENVIRONMENT* stack) {
 }
 
 
-
-
+//A double fault will always generate an error code with a value of zero.
+//A Double Fault occurs when an exception is unhandled or when an exception occurs while the CPU is trying to call an exception handler. 
 void __declspec(naked) DoubleFault(LIGHT_ENVIRONMENT* stack) {
 	__asm {
 
@@ -867,6 +870,9 @@ void __declspec(naked) MachineCheck(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
+//The SIMD Floating-Point Exception occurs when an unmasked 128-bit media floating-point exception occurs and the CR4.
+//OSXMMEXCPT bit is set to 1. If the OSXMMEXCPT flag is not set, 
+//then SIMD floating-point exceptions will cause an Undefined Opcode exception instead of this.
 __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 	__asm {
 
@@ -1001,6 +1007,143 @@ __declspec(naked) void CtrlProtectException(LIGHT_ENVIRONMENT* stack) {
 }
 
 
+
+__declspec(naked) void HypervisorInjectException(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+	}
+	{
+		__kException((const char*)"HypervisorInjectException", 28, stack);
+
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+	}
+}
+
+
+__declspec(naked) void VMMCommException(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+	}
+	{
+		__kException((const char*)"VMMCommException", 29, stack);
+
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		add esp, 4
+		iretd
+	}
+}
+
+__declspec(naked) void SecurityException(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+	}
+	{
+		__kException((const char*)"SecurityException", 30, stack);
+
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		add esp,4
+		iretd
+	}
+}
+
+
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
@@ -1054,7 +1197,9 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		pop ds
 		popad
 #ifdef SINGLE_TASK_TSS
-		mov esp, dword ptr ss: [esp - 20]
+		nop
+		mov esp, ss: [esp - 20]
+		nop
 #endif	
 		//clts
 		
@@ -1064,6 +1209,11 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
+//Prefixes 指令代码的前缀，每指令最多能够有4个/种前缀修饰。
+//有操作数大小前缀。如前面提到的 66。它指定 32 - bit 操作数大小，FE 前缀则表示 8 - bit 操作数。按 16 位机上的传统，默认的操作为 16 位，不使用前缀。
+//有反复类型前缀，如最常见的 F3 表示 REP、REPE、REPZ 反复前缀。还有 F2 表示 REPNE、REPNZ 前缀。
+//有段超越前缀，2E 相应 CS、36 相应 SS、3E 相应 DS、26 相应 ES。64、65 则相应 FS、GS，段超越是可内存寻址有关的内容。
+//还有寻址地址大小前缀，67 表示 32 - bit 内存寻址。以及官方手冊中提及的一些特别功能的前缀。这些前缀能够按随意的顺序与指令码组合；
 
 
 

@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>E:\virtualbox\vmshare\liunux\liunuxos_c\Release\main.dll</FullPath>
+      <FullPath>E:\virtualbox\vmshare\liunux\liunuxos_c\Debug\kernel.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

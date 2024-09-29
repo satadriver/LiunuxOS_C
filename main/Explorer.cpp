@@ -48,8 +48,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	char szout[1024];
 
-	__initMouse(gVideoWidth, gVideoHeight);
-
 	initWindowList();
 
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
@@ -72,10 +70,10 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	initIcon(&floppy, "Floppy", tid,3, gVideoWidth - 2 * gBigFolderWidth,
 		gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight + gBigFolderHeight);
 
-	__kDrawWindowsMenu();
-
 	RIGHTMENU menu;
 	initRightMenu(&menu, tid);
+
+	__initMouse(gVideoWidth, gVideoHeight);
 
 	char cputype[1024];
 	getCpuType(cputype);
@@ -87,9 +85,13 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	__enableBreakPoint();
 
+	enableSingleStep();
+
+	disableSingleStep();
+
 	enableOverflow();
 
-	__kAddAlarmTimer(60, (DWORD)__doAlarmTask, 0);
+	//__kAddAlarmTimer(60, (DWORD)__doAlarmTask, 0);
 
 	sysEntryProc();
 

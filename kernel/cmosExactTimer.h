@@ -1,7 +1,7 @@
 #pragma once
 #include "def.h"
 
-#define REALTIMER_CALLBACK_MAX	256
+#define REALTIMER_CALLBACK_MAX	64
 
 #define CMOS_EXACT_INTERVAL		15		//15.625 ms
 

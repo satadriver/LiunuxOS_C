@@ -422,6 +422,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			mov eax, fenvnext
 			//frstor [fenv]
 			fxrstor[eax]
+			FNCLEX
+			fninit
 		}
 	}
 	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
@@ -607,6 +609,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 			mov eax, fenvnext
 			//frstor [fenv]
 			fxrstor[eax]
+			FNCLEX
+			fninit
 		}
 	}
 

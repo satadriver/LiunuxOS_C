@@ -240,4 +240,6 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->id = 0;
 
 	menu->tid = tid;
+
+	__kDrawWindowsMenu();
 }

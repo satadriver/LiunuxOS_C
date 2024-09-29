@@ -306,8 +306,9 @@ int waitComplete(WORD port) {
 	//r = inportb(port - 6);
 	//if (r == 0) 
 	{
-		int cnt = 16;
+		int cnt = 64;
 		while (cnt--) {
+		//while (1) {
 			r = inportb(port);
 			//if (r & 1) {
 			//	return FALSE;
@@ -316,8 +317,7 @@ int waitComplete(WORD port) {
 			if ((r & 0x58) == 0x58) {		//0xe9
 				return TRUE;
 			}
-			else {
-				
+			else {		
 				if ( (r & 0x80) == 0) 
 				{
 					__printf(szout, "waitComplete:%x,port:%x\r\n",r,port);

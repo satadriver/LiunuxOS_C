@@ -18,7 +18,11 @@ extern "C" __declspec(dllexport) int __kPrintScreen();
 
 extern "C" __declspec(dllexport) void __kScreenProtect(int p1, int p2, int p3, int p4);
 
+extern "C" __declspec(dllexport)  void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4);
+
 extern "C" __declspec(dllexport) void initTrajectory();
+
+extern "C" __declspec(dllexport) void TrajectoryProc();
 #else
 extern "C" __declspec(dllimport) void initVectorGraph();
 extern "C" __declspec(dllimport) void refreshScreenColor();

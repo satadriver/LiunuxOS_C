@@ -666,10 +666,10 @@ int codeBreakPoint(unsigned int * addr,int len) {
 void __enableBreakPoint() {
 
 	__asm {
-		_emit 0xcd
-		_emit 03
+		//_emit 0xcd
+		//_emit 03
 
-		int 3
+		int 3	//int 3 is different with int3 in linux gcc
 	}
 }
 
@@ -711,7 +711,7 @@ int disableGdDebugger() {
 	}
 }
 
-
+//only be effective in ring0
 void enableOverflow() {
 	__asm {
 		pushfd
@@ -722,6 +722,8 @@ void enableOverflow() {
 	}
 }
 
+
+//int 1
 void enableDebugger() {
 	__asm {
 		_emit 0xF1

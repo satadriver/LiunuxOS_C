@@ -360,6 +360,10 @@ void initIDT() {
 	makeTrapGateDescriptor((DWORD)VirtualizationException, KERNEL_MODE_CODE, 3, descriptor + 20);
 	makeTrapGateDescriptor((DWORD)CtrlProtectException, KERNEL_MODE_CODE, 3, descriptor + 21);
 
+	makeTrapGateDescriptor((DWORD)HypervisorInjectException, KERNEL_MODE_CODE, 3, descriptor + 28);
+	makeTrapGateDescriptor((DWORD)VMMCommException, KERNEL_MODE_CODE, 3, descriptor + 29);
+	makeTrapGateDescriptor((DWORD)SecurityException, KERNEL_MODE_CODE, 3, descriptor + 30);
+
 #ifdef SINGLE_TASK_TSS
 	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
 #else

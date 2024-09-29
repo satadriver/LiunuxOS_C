@@ -222,7 +222,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 int isGeometryMouse(int x,int y) {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	if ( (6 * y >= 4 * x) && (6 * y <= 9 * x) ) {
-		if ( (y >= data->mouseWidth *2 / 3) && (x >= data->mouseWidth * 2 / 3) ) {
+		if ( (y > data->mouseWidth *2 / 3) && (x > data->mouseWidth * 2 / 3) ) {
 			return FALSE;
 		}
 		return TRUE;
@@ -314,6 +314,7 @@ void __kRestoreMouse() {
 
 //4x< 6y < 9x
 void __kRefreshMouseBackup() {
+	return;
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
@@ -391,7 +392,7 @@ void __initMouse(int x,int y) {
 		data->mouseHeight = x / MOUSE_FACTOR_SIZE;
 	}
 
-	//__kRefreshMouseBackup();
+	__kRefreshMouseBackup();
 	__kDrawMouse();
 }
 

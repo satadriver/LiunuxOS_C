@@ -45,7 +45,7 @@ int getUsb(DWORD* regs, DWORD* dev, DWORD* irq) {
 
 
 int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin) {
-
+	__asm{cli}
 	int cnt = 0;
 
 	DWORD* lpdst = (DWORD*)baseregs;
@@ -89,6 +89,7 @@ int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irq
 		}
 	}
 
+	__asm{sti}
 	return cnt;
 }
 
@@ -99,6 +100,8 @@ int listpci(DWORD* dst) {
 	int cnt = 0;
 
 	DWORD* lpdst = (DWORD*)dst;
+
+	__asm{cli}
 
 	for (int bdf = 0x80000008; bdf <= 0x80fff808; bdf += 0x100)			//offset 8,read class type,vender type
 	{
@@ -143,6 +146,7 @@ int listpci(DWORD* dst) {
 		}
 	}
 
+	__asm{sti}
 	return cnt;
 }
 
@@ -154,7 +158,7 @@ int listpci(DWORD* dst) {
 
 
 void showAllPciDevs() {
-	unsigned long devbuf[0x1000];
+	unsigned long devbuf[1024];
 	int cnt = listpci(devbuf);
 	if (cnt > 0)
 	{

@@ -75,6 +75,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 
 // 					__printf(szout, "set color:%x\r\n", pencilColor);
 
+					__kRefreshMouseBackup();
  					__kDrawMouse();
 					__sleep(0);
 					continue;

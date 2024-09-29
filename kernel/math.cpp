@@ -88,10 +88,10 @@ double sqrt(double x)
 
 float sin(float x)
 {
-	const float B = 1.2732395447;
-	const float C = -0.4052847346;
-	const float P = 0.2310792853;		//0.225; 
-	float y = B * x + C * x * abs(x);
+	const double B = 1.2732395447;
+	const double C = -0.4052847346;
+	const double P = 0.2310792853;		//0.225; 
+	double y = B * x + C * x * abs(x);
 	y = P * (y * abs(y) - y) + y;
 	return y;
 }

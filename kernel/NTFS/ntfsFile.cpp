@@ -214,7 +214,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 
 					clsno += nextclsno;
 
-					__printf(szout, "ntfs search filename:%s,sector:%I64x,cluster:%I64x,cluster total:%I64x in mft\n",
+					__printf(szout, "ntfs read file:%s,sector:%I64x,cluster:%I64x,cluster total:%I64x in MFT\n",
 						filename, secoff, clsno, clscnt);
 		
 					//索引值的计算:隐藏扇区数+每簇扇区数 *索引簇号
@@ -233,7 +233,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 					{
 						__kFree((DWORD)buffer);
 
-						__printf(szout, "getNtfsDir readSector error file:%s,sector:%I64x,sector count:%I64x in 0xA0\n",
+						__printf(szout, "getNtfsDir readSector error file:%s,sector:%I64x,sector count:%I64x\n",
 							filename, idxsecoff, g_SecsPerCluster * clscnt);
 
 						break;
