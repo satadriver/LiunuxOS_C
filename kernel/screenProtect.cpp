@@ -441,8 +441,8 @@ char* g_circle_buf = 0;
 int gTrajectWid = 0;
 int gTrajectTid = 0;
 
-double g_x_s;
-double g_y_s;
+double g_x_s = 0;
+double g_y_s = 0;
 double GRAVITY_ACC = 9.8;
 double g_centerX = 0;
 double g_centerY = 0;
@@ -482,7 +482,7 @@ double resist_bounce(double v, double radius) {
 
 
 
-void TrajectoryProc() {
+void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
 
 	unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
@@ -505,8 +505,11 @@ void TrajectoryProc() {
 
 	int xa = 0;
 
-	float dx = resist_air(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
-	float dy = GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000/40 ;
+	//double dx = resist_air(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
+	//double dy = GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000/40 ;
+
+	double dx = 0.01;
+	double dy = 0.01;
 
 	g_x_s = g_x_s - dx;
 	if (g_x_s < 0) {
@@ -580,7 +583,7 @@ void initTrajectory() {
 
 	double angle = __random(TIMER0_TICK_COUNT) % 64;
 
-	velocity = 10;
+	velocity = 3;
 	angle = PI/6;
 
 	//g_x_s = GetCos(angle) * velocity / 256;
@@ -595,7 +598,8 @@ void initTrajectory() {
 
 	int ret = __drawColorCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 
-
+	char szout[1024];
+	__printf(szout, "g_centerX:%d,g_centerY:%d,g_x_s:%d,g_y_s:%d\r\n", (int)g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
 }
 
 

@@ -73,8 +73,10 @@ unsigned short makehalf(unsigned char low, unsigned char high) {
 
 
 
-void addAlarmTimer(DWORD interval) {
-	
+void addAlarmTimer() {
+	if (gCmosAlarmProc.addr == 0 || gCmosAlarmProc.interval == 0) {
+		return;
+	}
 	int ret = 0;
 
 	unsigned char bcentury = readCmosPort(0x32);
@@ -105,7 +107,7 @@ void addAlarmTimer(DWORD interval) {
 
 	int carray = 0;
 
-	dstsecond = second + interval;
+	dstsecond = second + gCmosAlarmProc.interval;
 	if (dstsecond >= 60)
 	{
 		dstsecond = dstsecond % 60;
@@ -183,7 +185,7 @@ void __kAlarmTimerProc() {
 		gCmosAlarmProc.addr = 0;
 		gCmosAlarmProc.interval = 0;
 
-		__kAddAlarmTimer(60, (DWORD)__doAlarmTask, 0);
+		__kAddAlarmTimer(interval, (DWORD)__doAlarmTask, 0);
 	}
 }
 
@@ -195,7 +197,7 @@ int __kAddAlarmTimer( DWORD interval, DWORD linearaddr, DWORD param) {
 		gCmosAlarmProc.interval = interval;
 		gCmosAlarmProc.param = param;
 
-		addAlarmTimer(interval);
+		
 		return TRUE;
 	}
 

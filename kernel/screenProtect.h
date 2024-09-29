@@ -22,7 +22,7 @@ extern "C" __declspec(dllexport)  void VectorGraph(DWORD p1, DWORD p2, DWORD p3,
 
 extern "C" __declspec(dllexport) void initTrajectory();
 
-extern "C" __declspec(dllexport) void TrajectoryProc();
+extern "C" __declspec(dllexport) void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4);
 #else
 extern "C" __declspec(dllimport) void initVectorGraph();
 extern "C" __declspec(dllimport) void refreshScreenColor();

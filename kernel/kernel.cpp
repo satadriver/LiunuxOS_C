@@ -185,18 +185,31 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 
-
+#include "servicesProc.h"
 #ifdef _DEBUG
 
 
 #include "math.h"
 
 void mytest(LIGHT_ENVIRONMENT  * stack) {
+	int g_radius = 32;
+	double velocity = __random(TIMER0_TICK_COUNT) % 100;
 
-	int velocity = 50;
-	float y = sin(PI/6) *  velocity;;
+	double angle = __random(TIMER0_TICK_COUNT) % 64;
 
-	float x = cos(PI/ 6) * velocity;
+	velocity = 10;
+	angle = PI / 6;
+
+	//g_x_s = GetCos(angle) * velocity / 256;
+	//g_y_s = GetSin(angle) * velocity/256;
+
+	double g_x_s = cos(angle) * velocity;
+	double g_y_s = sin(angle) * velocity;
+
+	int k = (int)g_x_s;
+	double g_centerY = gVideoHeight - g_radius - 20;
+
+	double g_centerX = g_radius + 20;
 	return;
 }
 

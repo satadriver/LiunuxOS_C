@@ -14,7 +14,7 @@ typedef struct
 #pragma pack()
 
 
-
+void addAlarmTimer();
 unsigned char bcd2b(unsigned char bcd);
 unsigned char b2bcd(unsigned char b);
 
