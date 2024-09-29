@@ -552,11 +552,15 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	ret = __drawColorCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 
-
+	char szout[1024];
 	if ((g_counter++) % 10 == 0 && g_counter <= 200) {
-		char szout[1024];
-		__printf(szout,"g_centerX:%d,g_centerY:%d,g_x_s:%d,g_y_s:%d\r\n",(int) g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
+
+		//__printf(szout,"g_centerX:%d,g_centerY:%d,g_x_s:%d,g_y_s:%d\r\n",(int) g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
 	}
+	
+	//__sprintf(szout, "%d,%d\r\n%d,%d", (int)g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
+	//int showPos = __getpos(g_centerX - g_radius + GRAPHCHAR_HEIGHT, g_centerY ) + gGraphBase;
+	//__drawGraphChar(szout, g_circle_color, showPos, 0);
 }
 
 
@@ -574,17 +578,16 @@ void initTrajectory() {
 	POINT p;
 	p.x = 0;
 	p.y = 0;
-	int color = 0xff00;
+	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gTrajectBuf);
 
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
 
-	double velocity = __random(TIMER0_TICK_COUNT) % 100;
+	double velocity = __random(0) % 1000 + 100;
+	velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
 
-	double angle = __random(TIMER0_TICK_COUNT) % 64;
-
-	velocity = 3;
-	angle = PI/6;
+	double angle = __random(0) % 6;
+	angle = PI/2/(angle+1);
 
 	//g_x_s = GetCos(angle) * velocity / 256;
 	//g_y_s = GetSin(angle) * velocity/256;
@@ -599,7 +602,9 @@ void initTrajectory() {
 	int ret = __drawColorCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 
 	char szout[1024];
-	__printf(szout, "g_centerX:%d,g_centerY:%d,g_x_s:%d,g_y_s:%d\r\n", (int)g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
+	__sprintf(szout, "X:%d,Y:%d,x rate:%d,y rate:%d\r\n", (int)g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
+	int showPos = __getpos(0 + GRAPHCHAR_HEIGHT, gWindowHeight - GRAPHCHAR_HEIGHT) + gGraphBase;
+	__drawGraphChar(szout, ~color, showPos, 0);
 }
 
 

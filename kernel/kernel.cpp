@@ -106,7 +106,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	}
 
 #ifdef SINGLE_TASK_TSS
-	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #endif

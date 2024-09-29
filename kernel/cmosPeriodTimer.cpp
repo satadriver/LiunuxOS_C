@@ -188,8 +188,6 @@ void __kRemovePeriodTimer(int no) {
 
 void __kPeriodTimerProc() {
 
-	//addAlarmTimer();
-
 	int result = 0;
 	DWORD* lptickcnt = (DWORD*)CMOS_PERIOD_TICK_COUNT;
 	DWORD tickcnt = *lptickcnt;

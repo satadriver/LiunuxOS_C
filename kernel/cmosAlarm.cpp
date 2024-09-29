@@ -79,6 +79,14 @@ void addAlarmTimer() {
 	}
 	int ret = 0;
 
+	__asm {
+		cli
+	}
+
+	outportb(0x70, 0x0b);
+	int v = inportb(0x71)|0x80;
+	outportb(0x71, v);
+	
 	unsigned char bcentury = readCmosPort(0x32);
 	unsigned char byear = readCmosPort(9);
 	unsigned int cy = ((unsigned int)bcd2b(bcentury) * 100) + (unsigned int)bcd2b(byear);
@@ -154,6 +162,12 @@ void addAlarmTimer() {
 	writeCmosPort(0x03, b2bcd(dstmin));
 	writeCmosPort(0x01, b2bcd(dstsecond));
 
+	outportb(0x70, 0x0b);
+	v = inportb(0x71) & 0x7f;
+	outportb(0x71, v);
+
+	__asm{sti}
+
 	char szout[1024];
 	__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);
 
@@ -197,7 +211,7 @@ int __kAddAlarmTimer( DWORD interval, DWORD linearaddr, DWORD param) {
 		gCmosAlarmProc.interval = interval;
 		gCmosAlarmProc.param = param;
 
-		
+		addAlarmTimer();
 		return TRUE;
 	}
 
