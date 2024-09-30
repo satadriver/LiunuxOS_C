@@ -20,7 +20,6 @@
 int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcname,DWORD runparam) {
  	char szout[1024];
 //  	__printf(szout, "__kShowWindow task tid:%x,filename:%s,funcname:%s,param:%x\n", tid, filename,funcname,runparam);
-//  	__drawGraphChars((unsigned char*)szout, 0);
 
 	int retvalue = 0;
 
@@ -28,7 +27,6 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 	int cmd = taskcmd->cmd;
 
 // 	__printf(szout, "cmd:%d,addr:%x,filesize:%d,filename:%s\n", taskcmd->cmd, taskcmd->addr, taskcmd->filesize, taskcmd->filename);
-// 	__drawGraphChars((unsigned char*)szout, 0);
 
 	WINDOWCLASS window;
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
