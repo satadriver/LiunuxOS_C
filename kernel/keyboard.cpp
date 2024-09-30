@@ -555,7 +555,6 @@ __declspec(naked) void KeyboardIntProc() {
 	{
 		__kKeyboardProc();
 		outportb(0x20, 0x20);
-		//outportb(0xa0, 0xa0);
 	}
 
 	__asm {

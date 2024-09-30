@@ -1502,8 +1502,8 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 			__kPeriodTimer();
 		}
 
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0x20, 0x20);		//ocw2
+		outportb(0xa0, 0x20);
 	}
 
 	__asm {
@@ -1599,7 +1599,7 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, "Slave1IntProc!\r\n");
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 	}
 
 	__asm {
@@ -1647,7 +1647,7 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, "NetcardIntProc!\r\n");
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 	}
 
 	__asm {
@@ -1695,7 +1695,7 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, "USBIntProc!\r\n");
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 	}
 
 	__asm {
@@ -1747,7 +1747,7 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, "CoprocessorIntProc!\r\n");
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 
 		outportb(0xf0, 0xf0);
 	}
@@ -1820,7 +1820,7 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 		//__printf(szout, "IDEMasterIntProc size:%x tid:%d port:%x status:%x\r\n", size,proc->tid,gAtaBasePort+7,status);
 
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 	}
 
 	__asm {
@@ -1881,7 +1881,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, "IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
 
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 	}
 
 	__asm {

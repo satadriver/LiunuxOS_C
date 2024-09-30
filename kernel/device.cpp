@@ -440,8 +440,11 @@ void init8259() {
 	outportb(0x21, 0x1);
 	outportb(0xa1, 0x1);
 
-	outportb(0x20, 0x40);
-	outportb(0xa0, 0xc0);
+	outportb(0x21, 0x40);	//ocw1
+	outportb(0xa1, 0xc0);
+
+	//outportb(0x20, 0x20);	//ocw2
+	//outportb(0xa0, 0x20);
 
 	//0: level trigger,1: pulse trigger
 	outportb(0x4d0, 0);
@@ -449,3 +452,36 @@ void init8259() {
 }
 
 
+
+
+#define PIC1			0x20		/* IO base address for master PIC */
+#define PIC2			0xA0		/* IO base address for slave PIC */
+#define PIC1_COMMAND	PIC1
+#define PIC1_DATA		(PIC1+1)
+#define PIC2_COMMAND	PIC2
+#define PIC2_DATA		(PIC2+1)
+
+#define PIC_READ_IRR    0x0a    /* OCW3 irq ready next CMD read */
+#define PIC_READ_ISR    0x0b    /* OCW3 irq service next CMD read */
+
+/* Helper func */
+static uint16_t __pic_get_irq_reg(int ocw3)		//ocw3
+{
+	/* OCW3 to PIC CMD to get the register values.  PIC2 is chained, and
+	 * represents IRQs 8-15.  PIC1 is IRQs 0-7, with 2 being the chain */
+	outportb(PIC1_COMMAND, ocw3);
+	outportb(PIC2_COMMAND, ocw3);
+	return (inportb(PIC2_COMMAND) << 8) | inportb(PIC1_COMMAND);
+}
+
+/* Returns the combined value of the cascaded PICs irq request register */
+uint16_t pic_get_irr(void)
+{
+	return __pic_get_irq_reg(PIC_READ_IRR);
+}
+
+/* Returns the combined value of the cascaded PICs in-service register */
+uint16_t pic_get_isr(void)
+{
+	return __pic_get_irq_reg(PIC_READ_ISR);
+}

@@ -437,7 +437,7 @@ __declspec(naked) void MouseIntProc() {
 	{
 		__kMouseProc();
 		outportb(0x20, 0x20);
-		outportb(0xa0, 0xa0);
+		outportb(0xa0, 0x20);
 	}
 	__asm {
 		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0

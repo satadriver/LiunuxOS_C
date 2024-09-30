@@ -49,3 +49,11 @@ void waitInterval2(int cnt);
 void waitInterval1(int cnt);
 
 void waitInterval0(unsigned short v);
+
+
+static uint16_t __pic_get_irq_reg(int ocw3);
+
+/* Returns the combined value of the cascaded PICs irq request register */
+uint16_t pic_get_irr(void);
+/* Returns the combined value of the cascaded PICs in-service register */
+uint16_t pic_get_isr(void);
