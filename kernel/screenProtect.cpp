@@ -238,7 +238,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) + gBaseColor * gBaseColor * gBaseColor;
 			
 #elif defined VECTOR_GRAPH_VIDEO_2
-			DWORD c = ((x - cx)* (x - cx)) + ((y - cy) * (y - cy)) + gBaseColor * gBaseColor;
+			DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy)) +gBaseColor * gBaseColor;
 			
 #else
 
@@ -251,7 +251,6 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			}
 		}
 	}
-	//gBaseColor = gBaseColor + 1;
 
 	gBaseColor = (gBaseColor + 1) % 0x10000;
 	return;
@@ -339,6 +338,72 @@ void refreshScreenColor() {
 	}
 }
 
+
+
+void refreshScreenColor3() {
+	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+
+	DWORD backGround = __kMalloc(backsize);
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+
+	int color = 0;
+
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
+
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen3");
+
+	int cx = gVideoWidth / 2;
+	int cy = gVideoHeight / 2;
+
+	for (int x = 0; x < gVideoWidth; x++) {
+		DWORD y = (x - cx) * (x - cx);
+		if (cy - y >= 0 ) {
+			DWORD c = 0xff0000;
+			unsigned char* ptr = (unsigned char*)__getpos(x, cy - y) + gGraphBase;
+			for (int k = 0; k < gBytesPerPixel; k++) {
+				*ptr = c & 0xff;
+				c = c >> 8;
+				ptr++;
+			}
+		}
+	}
+
+	/*
+	for (int y = 0; y < gVideoHeight; y++) {
+		for (int x = 0; x < gVideoWidth; x++) {
+			DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy));
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+			for (int k = 0; k < gBytesPerPixel; k++) {
+				*ptr = c & 0xff;
+				c = c >> 8;
+				ptr++;
+			}
+		}
+	}*/
+
+	while (1)
+	{
+		unsigned int ck = __kGetKbd(windowid);
+		//unsigned int ck = __getchar(windowid);
+		unsigned int asc = ck & 0xff;
+		if (asc == 0x1b)
+		{
+			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			removeWindow(windowid);
+
+			__kFree(backGround);
+
+			//__terminatePid(pid);
+			return;
+		}
+
+		__sleep(0);
+
+	}
+}
 
 
 
@@ -559,7 +624,20 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		y =  g_radius;
 	}
 
-	if ( abs(g_y_s) <= 0.01 && abs(g_x_s) <= 0.01 && (g_centerY >= (double)gVideoHeight - (double)g_radius - 1) ) {
+	if (x == g_centerX && y == g_centerY) {
+
+	}
+	else {
+		ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
+
+		g_centerX = x;
+		g_centerY = y;
+
+		ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+	}
+
+
+	if ( abs(g_y_s) <= 0.01 && abs(g_x_s) <= 0.01 && (y >= (double)gVideoHeight - (double)g_radius - 3 ) ) {
 		g_counter++;
 		if (g_counter >= 256) {
 			g_counter = 0;
@@ -583,22 +661,11 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 	else {
-		if (x == g_centerX && y == g_centerY) {
-			return;
-		}
-
-		ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
-
-		g_centerX = x;
-		g_centerY = y;
-
-		ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
-
-		//__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
-		//int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
-		//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
-
 	}
+
+	//__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
+	//int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
+	//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
 
 }
 

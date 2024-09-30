@@ -195,7 +195,8 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	__strcpy(menu->menuname[6], "Reject CDROM");
 	__strcpy(menu->menuname[7], "Vector Graph");
 	__strcpy(menu->menuname[8], "Trajectory Ball");
-	menu->menuname[9][0] = 0;
+	__strcpy(menu->menuname[9], "Graph test");
+	menu->menuname[10][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
@@ -206,7 +207,8 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcaddr[6] = (DWORD)rejectCDROM;
 	menu->funcaddr[7] = (DWORD)initVectorGraph;
 	menu->funcaddr[8] = (DWORD)initTrajectory;
-	menu->validItem = 9;
+	menu->funcaddr[9] = (DWORD)refreshScreenColor3;
+	menu->validItem = 10;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
@@ -217,6 +219,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->paramcnt[6] = 1;
 	menu->paramcnt[7] = 0;
 	menu->paramcnt[8] = 0;
+	menu->paramcnt[9] = 0;
 
 	menu->funcparams[3][4] = 0;
 	menu->funcparams[3][3] = (DWORD)"__kConsole";
@@ -236,6 +239,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 
 	menu->funcparams[7][0] = 0;
 	menu->funcparams[8][0] = 0;
+	menu->funcparams[9][0] = 0;
 
 	menu->id = 0;
 
