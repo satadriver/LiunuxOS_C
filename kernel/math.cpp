@@ -30,7 +30,7 @@ double pown(double x, int n)
 }
 
 
-float pow(float a, int b)
+double pow(double a, int b)
 {
 	float r = a;
 	if (b > 0)
@@ -49,7 +49,7 @@ float pow(float a, int b)
 	return r;
 }
 
-double __sqrt(float a)
+double __sqrt(double a)
 {
 	double x, y;
 	x = 0.0;
@@ -86,7 +86,7 @@ double sqrt(double x)
 
 
 
-float sin(float x)
+double sin(double x)
 {
 	const double B = 1.2732395447;
 	const double C = -0.4052847346;
@@ -97,7 +97,7 @@ float sin(float x)
 }
 
 
-float cos(float x)
+double cos(double x)
 {
 	double Q = 1.5707963268;
 

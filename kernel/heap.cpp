@@ -110,7 +110,7 @@ DWORD __heapAlloc(int size) {
 		else if (lpheap->size && lpheap->addr)
 		{
 			int oldsize = (lpheap->size );
-			if (oldsize >= allocsize + (sizeof(MS_HEAP_STRUCT)*2))
+			if (oldsize >= allocsize + (int)(sizeof(MS_HEAP_STRUCT)*2))
 			{
 				
 				lpheap->addr = (DWORD)(((DWORD)lpheap + sizeof(MS_HEAP_STRUCT)));

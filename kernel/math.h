@@ -12,10 +12,11 @@ extern "C" __declspec(dllexport) DWORD __sqrtInteger(DWORD i);
 
 double abs(double x);
 double pown(double x, int n);
-float cos(float x);
-float sin(float x);
-float pow(float a, int b);
+double cos(double x);
+double sin(double x);
+double pow(double a, int b);
 double sqrt(double x);
+double __sqrt(double a);
 
 #endif
 

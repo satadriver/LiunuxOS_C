@@ -358,8 +358,6 @@ extern "C"  __declspec(dllexport) int __restoreCircle(int x, int y, int radius, 
 
 extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int color, unsigned char * backup);
 
-extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char * backup);
-
 extern "C"  __declspec(dllexport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname,char * backdata);
 

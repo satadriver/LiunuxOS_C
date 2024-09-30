@@ -106,7 +106,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	}
 
 #ifdef SINGLE_TASK_TSS
-	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #endif
@@ -192,6 +192,22 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 #include "math.h"
 
 void mytest(LIGHT_ENVIRONMENT  * stack) {
+
+	char szout[1024];
+	__sprintf(szout, "(X:%lf,Y:%lf) (X speed:%lf,Y speed:%lf)", 13.567, 459.098, 123.5, 478.123456);
+	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
+	//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
+
+	float t = __sqrt(3);
+	float t1 = sqrt(2);
+
+	float f = 910.2345678;
+	char buf[1024];
+	__printf(buf, "%f\r\n", f);
+	__int64 il = 1234567890123;
+	__printf(buf, "%i64d\r\n", il);
+
+	
 	int g_radius = 32;
 	double velocity = __random(TIMER0_TICK_COUNT) % 100;
 

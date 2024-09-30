@@ -29,7 +29,7 @@ int gScreenProtectWindowID = 0;
 int gTimerID = 0;
 
 
-
+#define OUTPUT_INFO_COLOR	0XFF0000
 
 
 int initScreenProtect() {
@@ -71,7 +71,7 @@ int initScreenProtect() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR,dst );
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize*2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize*2);
 
 	gScreenProtectWindowID = addWindow(0, 0, 0, 0,"__screenProtect");
 
@@ -166,7 +166,7 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 	ret = __restoreCircle(oldx, oldy, gRadius, (unsigned char*)gGraphBase + screensize * 2);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawColorCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 	return ;
 }
 
@@ -182,13 +182,13 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 
 int gVectorGraphWid = 0;
 int gBaseColor = 0;
-int gVectorGraphTiD = 0;
+int gVectorGraphTid = 0;
 char *gVectorGraphBuf = 0;
 
 void stopVectorGraph() {
 	int ret = 0;
 
-	__kRemoveExactTimer(gVectorGraphTiD);
+	__kRemoveExactTimer(gVectorGraphTid);
 
 	removeWindow(gVectorGraphWid);
 	
@@ -253,7 +253,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 	//gBaseColor = gBaseColor + 1;
 
-	gBaseColor = (gBaseColor + 3) % 0x10000;
+	gBaseColor = (gBaseColor + 1) % 0x10000;
 	return;
 }
 
@@ -270,7 +270,9 @@ void initVectorGraph() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
 
-	gVectorGraphTiD = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+
+	gBaseColor = 0x100000;
 }
 
 
@@ -285,6 +287,8 @@ void refreshScreenColor() {
 	p.y = 0;
 
 	int color = 0;
+
+	gBaseColor = 0;
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
@@ -449,8 +453,9 @@ double g_centerY = 0;
 
 int g_circle_color = 0xffffff;
 int g_radius = 32;
-
 int g_counter = 0;
+
+
 
 void stopTrajectory() {
 	int ret = 0;
@@ -471,19 +476,27 @@ void stopTrajectory() {
 	return;
 }
 
+
+//F = 1/2 * ro * v*v * s * 1300*c
 double resist_air(double v, double radius) {
-	return (v/1000 + radius / 1000);
+	return ( v*v*0.47* __sqrt(radius) / 1300/2);
 }
 
 double resist_bounce(double v, double radius) {
-	return -(v/10 - radius / 1000);
+	return -v / 3;
+
+	double least = v / 10;
+	if (least < radius / 100) {
+		return - radius / 100;
+	}
+	return -(least - radius / 100);
 }
-
-
 
 
 void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
+
+	char szout[1024];
 
 	unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
 	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
@@ -503,14 +516,15 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		return;
 	}
 
-	int xa = 0;
-
-	//double dx = resist_air(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
-	//double dy = GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000/40 ;
-
-	double dx = 0.01;
-	double dy = 0.01;
-
+	double dx = resist_air(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
+	double dy = 0;
+	double gy = GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000;
+	double ry = resist_air(g_y_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
+	//if (gy > ry) 
+	{
+		dy = gy - ry;
+	}
+	
 	g_x_s = g_x_s - dx;
 	if (g_x_s < 0) {
 		g_x_s = 0;
@@ -527,46 +541,74 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	if (x + g_radius > gVideoWidth) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
-		x = gVideoWidth - g_radius;
+		x = (double)gVideoWidth - g_radius;
 	}
-	else if (y + g_radius > gVideoHeight) {
+	if (y + g_radius > gVideoHeight) {
 
 		g_y_s = resist_bounce(g_y_s, g_radius);
-		y = gVideoHeight - g_radius;
+		y = (double)gVideoHeight - g_radius;
 	}
-	else if (x - g_radius < 0) {
+	if (x - g_radius < 0) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
 		x =  g_radius;
 	}
-	else if (y - g_radius < 0) {
+	if (y - g_radius < 0) {
 
 		g_y_s = resist_bounce(g_y_s, g_radius);
 		y =  g_radius;
 	}
 
-	ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
+	if ( abs(g_y_s) <= 0.01 && abs(g_x_s) <= 0.01 && (g_centerY >= (double)gVideoHeight - (double)g_radius - 1) ) {
+		g_counter++;
+		if (g_counter >= 256) {
+			g_counter = 0;
+			ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
 
-	g_centerX = x;
-	g_centerY = y;
+			double velocity = (double)(__random(0) % 2000) + 100;
 
-	ret = __drawColorCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+			velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
 
-	char szout[1024];
-	if ((g_counter++) % 10 == 0 && g_counter <= 200) {
+			double angle = __random(0) % 3;
+			angle = PI / 2 / (angle + 1);
 
-		//__printf(szout,"g_centerX:%d,g_centerY:%d,g_x_s:%d,g_y_s:%d\r\n",(int) g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
+			g_x_s = cos(angle) * velocity;
+			g_y_s = sin(angle) * velocity;
+
+			g_centerY = (double)gVideoHeight - (double)g_radius - 50;
+
+			g_centerX = (double)g_radius + 20;
+
+			ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+		}
 	}
-	
-	//__sprintf(szout, "%d,%d\r\n%d,%d", (int)g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
-	//int showPos = __getpos(g_centerX - g_radius + GRAPHCHAR_HEIGHT, g_centerY ) + gGraphBase;
-	//__drawGraphChar(szout, g_circle_color, showPos, 0);
+	else {
+		if (x == g_centerX && y == g_centerY) {
+			return;
+		}
+
+		ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
+
+		g_centerX = x;
+		g_centerY = y;
+
+		ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+
+		//__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
+		//int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
+		//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
+
+	}
+
 }
 
 
 
 
 void initTrajectory() {
+	int ret = 0;
+	char szout[1024];
+
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	gTrajectBuf = (char*)__kMalloc(backsize);
@@ -583,7 +625,8 @@ void initTrajectory() {
 
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
 
-	double velocity = __random(0) % 1000 + 100;
+	double velocity = (double)(__random(0) % 2000 )+ 100;
+
 	velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
 
 	double angle = __random(0) % 6;
@@ -595,16 +638,17 @@ void initTrajectory() {
 	g_x_s = cos(angle) * velocity ;
 	g_y_s = sin(angle) * velocity ;
 
-	g_centerY = gVideoHeight - g_radius - 20;
+	g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT*2);
 
-	g_centerX = g_radius + 20;
+	g_centerX = (double)g_radius + 20;
 
-	int ret = __drawColorCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+	g_counter = 0;
 
-	char szout[1024];
-	__sprintf(szout, "X:%d,Y:%d,x rate:%d,y rate:%d\r\n", (int)g_centerX, (int)g_centerY, (int)g_x_s, (int)g_y_s);
-	int showPos = __getpos(0 + GRAPHCHAR_HEIGHT, gWindowHeight - GRAPHCHAR_HEIGHT) + gGraphBase;
-	__drawGraphChar(szout, ~color, showPos, 0);
+	ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+
+	//__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
+	//int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
+	//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
 }
 
 

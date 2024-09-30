@@ -189,12 +189,42 @@ void sleep(DWORD * params) {
 
 
 
-DWORD __random(DWORD init) {
-	if (init == 0) {
-		init = *(DWORD*)TIMER0_TICK_COUNT;
+DWORD g_random_seed = 0;
+
+DWORD __random(DWORD r) {
+
+	const int u = 65537;
+	const int v = 997;
+	const int w = 9973;
+
+	const int base = 0x10000;
+
+	if (g_random_seed) {
+		
 	}
-	init = (init * 7 ^ 5) % 0xffffffff;
-	return init;
+	else {
+		if (r) {
+			g_random_seed = r;
+		}
+		else {
+			g_random_seed = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		}
+	}
+	g_random_seed = (w * g_random_seed + v)% u;
+	return g_random_seed;
+
+
+
+}
+
+DWORD __random_old(DWORD init) {
+	unsigned __int64 t = init;
+	if (t == 0) {
+		DWORD dt = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		t = dt;
+	}
+	t = (t *( 7 *7*7*7*7 )) % 0xffffffff;
+	return (DWORD)t;
 }
 
 

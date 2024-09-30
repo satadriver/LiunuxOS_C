@@ -85,6 +85,7 @@ void addAlarmTimer() {
 
 	outportb(0x70, 0x0b);
 	int v = inportb(0x71)|0x80;
+	outportb(0x70, 0x0b);
 	outportb(0x71, v);
 	
 	unsigned char bcentury = readCmosPort(0x32);
@@ -164,6 +165,7 @@ void addAlarmTimer() {
 
 	outportb(0x70, 0x0b);
 	v = inportb(0x71) & 0x7f;
+	outportb(0x70, 0x0b);
 	outportb(0x71, v);
 
 	__asm{sti}

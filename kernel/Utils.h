@@ -26,6 +26,11 @@ void logInMem(char* data, int len);
 
 int __kFormat(char* buf, char* format, DWORD* params);
 
+extern "C" __declspec(dllexport) int strlf2lf(double f, char* buf);
+extern "C" __declspec(dllexport) int strf2f(float f, char* buf);
+
+extern "C" __declspec(dllexport) int __i64ToStrd64(unsigned __int64 v, char* strd);
+
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) char* gLogDataPtr;
 

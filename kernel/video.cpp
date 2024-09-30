@@ -777,16 +777,16 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 		startx = 0;
 	}
 	int endx = x + radius;
-	if (startx > gVideoWidth - radius) {
-		startx = gVideoWidth - radius;
+	if (endx > gVideoWidth) {
+		endx = gVideoWidth ;
 	}
 	int starty = y - radius;
 	if (starty < 0) {
 		starty = 0;
 	}
 	int endy = y + radius;
-	if (endy > gVideoHeight - radius) {
-		endy = gVideoHeight - radius;
+	if (endy > gVideoHeight ) {
+		endy = gVideoHeight ;
 	}
 
 	unsigned int pos = __getpos(startx, starty);
@@ -825,7 +825,7 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 	return (unsigned int)showpos - gGraphBase;
 }
 
-extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius, int color, unsigned char* back) {
+extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
 
 	//__kRestoreMouse();
 
@@ -840,16 +840,16 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 		startx = 0;
 	}
 	int endx = x + radius;
-	if (startx > gVideoWidth - radius) {
-		startx = gVideoWidth - radius;
+	if (endx > gVideoWidth ) {
+		endx = gVideoWidth ;
 	}
 	int starty = y - radius;
 	if (starty < 0) {
 		starty = 0;
 	}
 	int endy = y + radius;
-	if (endy > gVideoHeight - radius) {
-		endy = gVideoHeight - radius;
+	if (endy > gVideoHeight ) {
+		endy = gVideoHeight;
 	}
 
 	unsigned int pos = __getpos(startx, starty);
@@ -864,7 +864,6 @@ extern "C"  __declspec(dllexport) int __drawColorCircle(int x, int y, int radius
 			int deltaY2 = (i - y) * (i - y);
 			if (deltaY2 + deltaX2 <= squreRadius)
 			{
-
 				unsigned int c = color;
 				//(color)++;
 
