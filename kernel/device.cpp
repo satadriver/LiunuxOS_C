@@ -420,7 +420,7 @@ void initCMOS() {
 	outportb(CMOS_DATA_PORT, 0X2A);
 
 	outportb(CMOS_NUM_PORT, 0X0B);
-	delay();
+	//delay();
 	outportb(CMOS_DATA_PORT, 0X7A);
 
 	outportb(CMOS_NUM_PORT, 0X0D);
