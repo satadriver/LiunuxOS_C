@@ -66,7 +66,9 @@ extern "C"  __declspec(dllexport) int __i2strh(unsigned int n, int lowercase, un
 
 extern "C"  __declspec(dllexport) int __strh2i(unsigned char * str);
 
-extern "C"  __declspec(dllexport) int __i2strd(unsigned int h, char * strd);
+extern "C"  __declspec(dllexport) int __i2strd(int h, char* strd);
+
+extern "C"  __declspec(dllexport) int __i2stru(unsigned int h, char * strd);
 
 extern "C"  __declspec(dllexport) int __strd2i(char * istr);
 

@@ -505,7 +505,7 @@ extern "C" __declspec(dllexport) int __kPrintScreen() {
 
 
 
-
+#define ANGLE_DIVISION  9
 
 char * gTrajectBuf = 0;
 char* g_circle_buf = 0;
@@ -550,12 +550,12 @@ double resist_air(double v, double radius) {
 }
 
 double resist_bounce(double v, double radius) {
-	return -v / 5;
+	return -v / 3;
 }
 
 
 double friction(double v, double radius) {
-	return (v / 10);
+	return (v / 8);
 }
 void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
@@ -573,7 +573,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	mouseinfo.status = 0;
 	mouseinfo.x = 0;
 	mouseinfo.y = 0;
-	__kGetMouse(&mouseinfo, gVectorGraphWid);
+	__kGetMouse(&mouseinfo, gTrajectWid);
 	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)
 	{
 		stopTrajectory();
@@ -652,19 +652,19 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			g_counter = 0;
 			ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
 
-			double velocity = (double)(__random(0) % 2000) + 100;
+			double velocity = (double)(__random(0) % 6000) + 200;
 
 			velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
 
-			double angle = __random(0) % 3;
-			angle = PI / 2 / (angle + 1);
+			double angle = __random(0) % ANGLE_DIVISION;
+			angle = PI / (angle + 1);
 
 			g_x_s = cos(angle) * velocity;
 			g_y_s = sin(angle) * velocity;
 
-			g_centerY = (double)gVideoHeight - (double)g_radius - 50;
+			//g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT * 2);
 
-			g_centerX = (double)g_radius + 20;
+			//g_centerX = (double)g_radius + TASKBAR_HEIGHT;
 
 			ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 		}
@@ -673,7 +673,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 
-	__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
+	__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)                ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) ;
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 
@@ -706,7 +706,7 @@ void initTrajectory() {
 
 	velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
 
-	double angle = __random(0) % 9;
+	double angle = __random(0) % ANGLE_DIVISION;
 	angle = PI/2/(angle+1);
 
 	//g_x_s = GetCos(angle) * velocity / 256;

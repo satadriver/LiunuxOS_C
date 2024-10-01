@@ -194,7 +194,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 void mytest(LIGHT_ENVIRONMENT  * stack) {
 
 	char szout[1024];
-	__sprintf(szout, "(X:%lf,Y:%lf) (X speed:%lf,Y speed:%lf)", 13.567, 459.098, 123.5, 478.123456);
+	__sprintf(szout, "(X:%lf,Y:%lf) (X speed:%lf,Y speed:%lf)", -13.567, -459.098, -123.5, -478.123456);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
 	//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
 
@@ -208,24 +208,7 @@ void mytest(LIGHT_ENVIRONMENT  * stack) {
 	__printf(buf, "%i64d\r\n", il);
 
 	
-	int g_radius = 32;
-	double velocity = __random(TIMER0_TICK_COUNT) % 100;
 
-	double angle = __random(TIMER0_TICK_COUNT) % 64;
-
-	velocity = 10;
-	angle = PI / 6;
-
-	//g_x_s = GetCos(angle) * velocity / 256;
-	//g_y_s = GetSin(angle) * velocity/256;
-
-	double g_x_s = cos(angle) * velocity;
-	double g_y_s = sin(angle) * velocity;
-
-	int k = (int)g_x_s;
-	double g_centerY = gVideoHeight - g_radius - 20;
-
-	double g_centerX = g_radius + 20;
 	return;
 }
 

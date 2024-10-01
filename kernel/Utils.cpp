@@ -471,17 +471,23 @@ int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
 
 
 
-int __i64ToStrd64(unsigned __int64 v, char* strd) {
+int __i64ToStrd64( __int64 v, char* strd) {
 	*strd = 0;
-	unsigned __int64 h = v;
-	unsigned __int64 i = v;
+	__int64 h = v;
+	__int64 i = v;
 	int len = 0;
+	if (v < 0) {
+		v = -v;
+		strd[0] = '-';
+		len = 1;
+	}
+
 	do {
 		i = h % 10;
 
 		h = h / 10;
 		
-		strd[len] = i + '30';
+		strd[len] = (unsigned char)i + '30';
 		len++;
 
 		if (h ) {
@@ -497,8 +503,24 @@ int __i64ToStrd64(unsigned __int64 v, char* strd) {
 }
 
 
+int __i2strd( int h, char* strd) {
+	int n = h;
+	int len = 0;
+	if (h < 0) {
+		strd[0] = '-';
+		n = -h;
+		len = 1;
+	}
+	else {
+	}
+	int sublen = __i2stru(n, strd + len);
 
-int __i2strd(unsigned int h, char * strd) {
+	return len + sublen;
+}
+
+
+
+int __i2stru(unsigned int h, char * strd) {
 
 	__memset(strd, 0, 11);
 
@@ -618,9 +640,12 @@ int strlf2lf(double f,char * buf) {
 	buf[len] = '.';
 	len++;
 
-	float s = f - i;
+	double s = f - i;
+	if (s < 0) {
+		s = -s;
+	}
 
-	float tf = s;
+	double tf = s;
 	int pos = 0;
 	for (int p = 0; p < 4; p++) {
 		tf = tf * 10;
@@ -668,7 +693,7 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 
 		if (format[spos] == '%' && format[spos + 1] == 'd') {
 			spos += 2;
-			DWORD num = *params;
+			int num = *params;
 			params++;
 
 			len = __i2strd(num, numstr);
@@ -692,7 +717,7 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			DWORD num = *params;
 			params++;
 
-			len = __i2strd(num, numstr);
+			len = __i2stru(num, numstr);
 			__memcpy(dst + dpos, numstr, len);
 			dpos += len;
 		}
@@ -721,25 +746,7 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			__memcmp(format + spos + 1, "i64D", 4) == 0) ){
 			spos += 5;
 
-			/*
-			DWORD numl = *params;
-			params++;
-			DWORD numh = *params;
-			params++;
-
-			len = __i2strd(numh, numstr);
-			if (len == 1 && numstr[0] == '0') {
-
-			}
-			else {
-				__memcpy(dst + dpos, numstr, len);
-				dpos += len;
-			}
-			len = __i2strd(numl, numstr);
-			__memcpy(dst + dpos, numstr, len);
-			dpos += (len);
-			*/
-			unsigned __int64 li = *(unsigned __int64*)params;
+			__int64 li = *( __int64*)params;
 			int len = __i64ToStrd64(li, dst + dpos);
 			dpos += len;
 
