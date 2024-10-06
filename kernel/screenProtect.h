@@ -6,17 +6,21 @@ void pauseBreak();
 
 extern int gScreenProtectWindowID ;
 
+extern "C" __declspec(dllexport) void refreshScreenColor();
+
 extern "C" __declspec(dllexport) void refreshScreenColor2();
+
 extern "C" __declspec(dllexport) void refreshScreenColor3();
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) void initVectorGraph();
-extern "C" __declspec(dllexport) void refreshScreenColor();
+
 extern "C" __declspec(dllexport) int initScreenProtect();
 extern "C" __declspec(dllexport) int stopScreenProtect();
 
 extern "C" __declspec(dllexport) int __kPrintScreen();
 
 extern "C" __declspec(dllexport) void __kScreenProtect(int p1, int p2, int p3, int p4);
+
+extern "C" __declspec(dllexport) void initVectorGraph();
 
 extern "C" __declspec(dllexport)  void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4);
 

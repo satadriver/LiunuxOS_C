@@ -271,7 +271,7 @@ void initVectorGraph() {
 
 	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
 
-	gBaseColor = 0x100000;
+	gBaseColor = 0x1000;
 }
 
 
@@ -335,6 +335,10 @@ void refreshScreenColor() {
 		}
 
 		gBaseColor = (gBaseColor + 1) %0x1000;
+
+		//int tmp = A;
+		//A = B;
+		//B = tmp;
 	}
 }
 
@@ -371,7 +375,7 @@ void refreshScreenColor3() {
 		}
 	}
 
-	__diamond2(cx, cy, 64, 5, 0xffffffff);
+	//__diamond(cx, cy, 64, 5, 0xffffffff);
 
 	/*
 	for (int y = 0; y < gVideoHeight; y++) {
@@ -505,7 +509,7 @@ extern "C" __declspec(dllexport) int __kPrintScreen() {
 
 
 
-#define ANGLE_DIVISION  9
+#define ANGLE_DIVISION  30
 
 char * gTrajectBuf = 0;
 char* g_circle_buf = 0;
@@ -546,7 +550,7 @@ void stopTrajectory() {
 
 //F = 1/2 * ro * v*v * s * 1300*c
 double resist_air(double v, double radius) {
-	return ( v*v*0.47* __sqrt(radius) / 1300/2);
+	return abs(( v*v*0.47* __sqrt(radius) / 1300/2));
 }
 
 double resist_bounce(double v, double radius) {
@@ -555,7 +559,7 @@ double resist_bounce(double v, double radius) {
 
 
 double friction(double v, double radius) {
-	return (v / 8);
+	return abs(v / 8);
 }
 void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
@@ -584,12 +588,28 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	if ( abs(g_centerY - ( gVideoHeight - g_radius)) < 1) {
 		dx += friction(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
 	}
-	double dy = 0;
+	
 	double gy = GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000;
 	double ry = resist_air(g_y_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
-	//if (gy > ry) 
+	if (g_y_s > 0) 
 	{
-		dy = gy - ry;
+		g_y_s = g_y_s - gy - ry;
+		if (g_y_s < 0) 
+		{
+			//g_y_s = 0;
+		}
+	}
+	else {
+		g_y_s = g_y_s - gy + ry;
+		if (g_y_s < 0) 
+		{
+			//g_y_s = 0;
+		}
+	}
+
+	int max_y = gVideoHeight - g_radius;
+	if (abs(g_y_s) < 0.1 ) {
+		//g_y_s = 0;
 	}
 	
 	if (g_x_s < 0) {
@@ -604,8 +624,6 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			g_x_s = 0;
 		}
 	}
-
-	g_y_s = g_y_s - dy;
 
 	double x = g_centerX + g_x_s;
 
@@ -644,7 +662,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 	}
 
-	int max_y = gVideoHeight - g_radius;
+	
 	if ( abs(g_y_s) <= 0.5 && abs(g_x_s) <= 0.5 && ( abs(y - max_y) < 0.1 ||
 		abs(g_centerY - max_y) < 0.1) ) {
 		g_counter++;

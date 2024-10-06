@@ -631,7 +631,11 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
 		__int64 timeh2 = __krdtsc() - timeh1;
 
-		__int64 cpurate = getcpuFreq();
+		DWORD cpureq;
+		DWORD maxreq;
+		DWORD busreq;
+		__cpuFreq(&cpureq, &maxreq, &busreq);
+		__int64 cpurate = cpureq;
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,"\

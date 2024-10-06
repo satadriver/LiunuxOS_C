@@ -168,13 +168,12 @@ int __strncpy(char* dst, char* src, int limit) {
 		return FALSE;
 	}
 
-	int l = __strlen(src);
-	if (l >= limit)
+	int len = __strlen(src);
+	if (len >= limit)
 	{
-		l = limit;
-		__memcpy(dst, src, l);
-		*(dst + l) = 0;
-		return l;
+		__memcpy(dst, src, limit);
+		*(dst + limit) = 0;
+		return limit;
 	}
 	else {
 		return __strcpy(dst, src);
@@ -1182,3 +1181,30 @@ void logInMem(char* data, int len) {
 	__memcpy(gLogDataPtr, data, len);
 	gLogDataPtr += len;
 }
+
+
+//刚开机时电压不太稳定（但是会快速稳定下来），所以计算机主控芯片组会向CPU发出并保持一个RESET重置信号，让CPU自动恢复到初始状态，
+//当主控芯片组检测到稳定供电后，便撤去RESET信号，此时程序计数器初始化置为FFFF：0H，
+//CPU开始从FFFF：0H执行指令，这个地址只有一条指令jmp START
+
+//调用显卡BIOS的代码（C000:0H处），初始化显卡，如果显卡不正常则黑屏（不正常不能显示，所以黑屏），
+//正常则屏幕显示显卡信息，并返回系统BIOS接着进行检测其它设备是否正常。
+
+
+char* getMainboardDate() {
+	return (char*)((0xffff << 4) + 5);
+}
+
+char* getComports() {
+	return (char*)((0x400 << 4) + 0);
+}
+
+char* getKeyboardBuf() {
+	return (char*)((0x400 << 4) + 0x1e);
+}
+
+char* getVGAInfo() {
+	return (char*)((0xc000 << 4) + 6);
+}
+
+

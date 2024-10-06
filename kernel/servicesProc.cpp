@@ -344,12 +344,18 @@ unsigned int getcpuFreq() {
 
 
 //https://www.felixcloutier.com/x86/cpuid
-unsigned __int64 __cpuFreq() {
+// eax: Processor Base Frequency (in MHz)
+// ebx: Maximum Frequency (in MHz)
+// ecx: Bus (Reference) Frequency (in MHz)
+unsigned __int64 __cpuFreq(DWORD* cpu,DWORD* max,DWORD* bus) {
 	__asm {
 
 		mov eax, 0x16
 		mov ecx, 0
 		cpuid
+		mov [cpu],eax
+		mov [max],ebx
+		mov [bus],ecx
 		//why use ret will make error?
 		//ret 
 	}
@@ -389,7 +395,7 @@ unsigned __int64 getCpuFreq() {
 		mov dword ptr [maxfreq+4],edx
 	}
 	if (aperf_var_hi != aperf_var_lo && mperf_var_hi != mperf_var_lo) {
-		return ((maxfreq << 32) + maxfreq) * (aperf_var_hi - aperf_var_lo) / (mperf_var_hi - mperf_var_lo);
+		return ( maxfreq) * (aperf_var_hi - aperf_var_lo) / (mperf_var_hi - mperf_var_lo);
 	}
 	return 0;
 }

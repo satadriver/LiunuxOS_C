@@ -41,7 +41,7 @@ DWORD __timestamp(unsigned long* params);
 extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no,DWORD * params);
 
 //https://www.felixcloutier.com/x86/cpuid
-unsigned __int64 __cpuFreq();
+unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);
 
 unsigned int getcpuFreq();
 

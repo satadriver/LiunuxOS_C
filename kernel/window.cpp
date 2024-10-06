@@ -80,7 +80,7 @@ LPWINDOWSINFO getFreeWindow() {
 
 
 LPWINDOWCLASS getWindow(int wid) {
-	LPWINDOWSINFO window = wid + gWindowsList;
+	LPWINDOWSINFO window = gWindowsList + wid ;
 	return window->window;
 }
 

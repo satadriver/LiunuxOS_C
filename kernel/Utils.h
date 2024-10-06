@@ -18,7 +18,13 @@ typedef struct
 #pragma pack()
 
 
+char* getMainboardDate();
 
+char* getComports();
+
+char* getKeyboardBuf();
+
+char* getVGAInfo();
 
 void logInMem(char* data, int len);
 
