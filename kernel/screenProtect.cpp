@@ -29,7 +29,7 @@ int gScreenProtectWindowID = 0;
 int gTimerID = 0;
 
 
-#define OUTPUT_INFO_COLOR	0XFF0000
+#define OUTPUT_INFO_COLOR	0Xffff00
 
 
 int initScreenProtect() {
@@ -252,7 +252,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 
-	gBaseColor = (gBaseColor + 1) % 0x10000;
+	gBaseColor = (gBaseColor - 1) ;
 	return;
 }
 
@@ -554,7 +554,7 @@ double resist_air(double v, double radius) {
 }
 
 double resist_bounce(double v, double radius) {
-	return -v / 3;
+	return -v / 2;
 }
 
 
@@ -691,7 +691,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 
-	__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)                ", g_centerX, g_centerY, g_x_s, g_y_s);
+	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)                ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) ;
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 
@@ -741,7 +741,7 @@ void initTrajectory() {
 
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 
-	__sprintf(szout, "(X:%f,Y:%f) (X speed:%f,Y speed:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
+	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) ;
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 }

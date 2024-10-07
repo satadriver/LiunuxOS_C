@@ -69,7 +69,7 @@ typedef struct
 
 
 
-int listpci(DWORD* dst);
+extern "C" __declspec(dllexport) int listpci(DWORD * dst);
 
 DWORD makePciAddr(int bus, int dev, int func, int reg);
 

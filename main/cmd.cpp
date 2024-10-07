@@ -301,21 +301,22 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		__sprintf(szout, "rdtsc:%I64x\n", __krdtsc());
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "rdpmc") == 0)
+	else if (__strcmp(params[0], "rdpmc") == 0 && paramcnt>=2)
 	{
-		DWORD l = 0;
-		DWORD h = 0;
+		DWORD num = __strh2i((unsigned char*)params[1]);
+
+		unsigned __int64 res = 0;
 		__asm {
-			mov eax, 0
-			mov ecx,0
+			mov eax, num
+			mov ecx,num
 			rdpmc
-			mov l, eax
-			mov h, edx
+			mov dword ptr [res], eax
+			mov dword ptr [res+4], edx
 		}
-		__sprintf(szout, "rdpmc:%x%x\n", h, l);
+		__sprintf(szout, "rdpmc:%i64x\n", res);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "temprature") == 0)
+	else if (__strcmp(params[0], "temperature") == 0)
 	{
 		DWORD tj = 0;
 		DWORD temp = __readTemperature(&tj);
@@ -339,45 +340,58 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	}
 	else if (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outpport") == 0)
 	{
-		DWORD n = __strh2i((unsigned char*)params[1]);
-		DWORD port = __strh2i((unsigned char*)params[2]);
+		DWORD port = __strh2i((unsigned char*)params[1]);
+			
 		if (__strcmp(params[0], "inport") == 0)
 		{
 			__asm {
 				mov edx, port
-				mov eax, n
-				out dx, eax
+				in eax, dx
 			}
 		}
 		else if (__strcmp(params[0], "outport") == 0)
 		{
+			DWORD num = __strh2i((unsigned char*)params[2]);
 			__asm {
 				mov edx, port
-				mov eax, n
+				mov eax, num
 				out dx, eax
 			}
 		}
 	}
-	else if (__strcmp(params[0], "cpuinfo") == 0)
+	else if (__strcmp(params[0], "cpu") == 0)
 	{
 		char cpuinfo[256];
 		char cputype[256];
 		getCpuInfo(cpuinfo);
 		getCpuType(cputype);
 
-		__sprintf(szout, "cpuinfo:%s,cpu type:%s\n", cpuinfo, cputype);
+		__sprintf(szout, "cpu brand:%s,type:%s\n", cpuinfo, cputype);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "pcidev") == 0)
 	{
-		showAllPciDevs();
+		unsigned long devbuf[1024];
+		int cnt = listpci(devbuf);
+		if (cnt > 0)
+		{
+			for (int i = 0; i < cnt; )
+			{
+				char szout[1024];
+				__sprintf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
+
+				i += 2;
+
+				ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+			}
+		}
 	}
 	else if (__strcmp(params[0], "hdseq") == 0) {
 		char seq[1024];
 		getIdeSeq(seq);
 		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "hdfirmver") == 0) {
+	else if (__strcmp(params[0], "hdversion") == 0) {
 		char seq[1024];
 		getIdeFirmVersion(seq);
 		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
@@ -391,6 +405,17 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		char seq[1024];
 		getIdeMediumSeq(seq);
 		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "vga") == 0) {
+		ret = __drawWindowChars((char*)getVGAInfo(), CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "vesaMode") == 0) {
+		char mode[1024];
+		__sprintf(mode,"%d\r\n", gVideoMode);
+		ret = __drawWindowChars((char*)mode, CONSOLE_FONT_COLOR, window);
+	}
+	else {
+		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);
 	}
 	return 0;
 }
