@@ -93,6 +93,9 @@
     <ClCompile Include="cmd.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="clock.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gdi\jpeg.h">
@@ -141,6 +144,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cmd.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="clock.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

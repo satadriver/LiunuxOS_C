@@ -49,12 +49,15 @@ DWORD gV86IntProc = 0;
 DWORD gKernel16 = 0;
 DWORD gKernel32 = 0;
 DWORD gKernelData = 0;
+DWORD gVideoMode = 0;
 
 
 int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, int v86ProcessLen,
 	DWORD v86IntBase, DWORD kerneldata, DWORD kernel16, DWORD kernel32) {
 
 	int ret = 0;
+
+	gVideoMode = *(WORD*)((char*)vesa - 2);
 
 	gV86VMIEntry = v86ProcessBase;
 

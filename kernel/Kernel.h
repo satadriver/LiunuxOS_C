@@ -6,7 +6,7 @@
 
 
 
-
+extern "C" __declspec(dllexport)  DWORD gVideoMode;
 
 #ifdef DLL_EXPORT
 
@@ -16,6 +16,7 @@ extern "C" __declspec(dllexport)  DWORD gV86IntProc;
 extern "C" __declspec(dllexport)  DWORD gKernel16;
 extern "C" __declspec(dllexport)  DWORD gKernel32;
 extern "C" __declspec(dllexport)  DWORD gKernelData;
+
 
 
 extern "C" __declspec(dllexport) void __kKernelMain(DWORD retaddr, int pid, char * pname,char * funcname,DWORD param);

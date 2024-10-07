@@ -143,10 +143,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 			continue;
 		}
-		/*
 		else if (asc == VK_F3)
 		{
-			if (__findProcessFileName("__kLogWatch") == FALSE)
+			if (__findProcessFileName("__kClock") == FALSE)
 			{
 				TASKCMDPARAMS cmd;
 				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
@@ -154,16 +153,14 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				cmd.addr = LOG_BUFFER_BASE;
 				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
 
-				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
 				if (thread) {
-					return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kLogWatch");
-					//__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kLogWatch", 3, 0);
+					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kClock", 3, 0);
 				}
 			}
 			continue;
 		}
-		*/
-
 
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));

@@ -363,10 +363,10 @@ void refreshScreenColor3() {
 	int cy = gVideoHeight / 2;
 
 	for (int x = 0; x < gVideoWidth; x++) {
-		DWORD y = (x - cx) * (x - cx);
-		if (cy - y >= 0 ) {
+		DWORD y = cy - (x - cx) * (x - cx);
+		if (y >= 0 ) {
 			DWORD c = 0xff0000;
-			unsigned char* ptr = (unsigned char*)__getpos(x, cy - y) + gGraphBase;
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
 			for (int k = 0; k < gBytesPerPixel; k++) {
 				*ptr = c & 0xff;
 				c = c >> 8;
