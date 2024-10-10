@@ -170,7 +170,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	else {
 		//copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
 	}
-	copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
+	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
 
 #ifndef DISABLE_PAGE_REDIRECTION
 	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);

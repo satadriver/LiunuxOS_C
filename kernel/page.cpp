@@ -229,6 +229,7 @@ void freeProcessPages(int pid) {
 //当处理器运行在超级用户特权级（级别0、1或2）时，则R/W位不起作用。页目录项中的R/W位对其所映射的所有页面起作用。
 //U/S--位2是用户/超级用户（User / Supervisor）标志。如果为1，那么运行在任何特权级上的程序都可以访问该页面。
 //如果为0，那么页面只能被运行在超级用户特权级（0、1或2）上的程序访问。页目录项中的U / S位对其所映射的所有页面起作用。
+#include "memory.h"
 
 void linearMapping() {
 
@@ -236,6 +237,18 @@ void linearMapping() {
 	DWORD* entry = (DWORD*)PDE_ENTRY_VALUE;
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
+
+#if 0
+	for (int i = 0; i < MEMMORY_ALLOC_BASE / (PAGE_SIZE*ITEM_IN_PAGE); i++) {
+		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+		idx += ITEM_IN_PAGE;
+	}
+
+	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE);
+	
+	return;
+#endif
+	
 	for (int i = 0; i < ITEM_IN_PAGE; i++) {
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 
@@ -245,6 +258,7 @@ void linearMapping() {
 		}
 		idx += ITEM_IN_PAGE;
 	}
+	
 }
 
 /*

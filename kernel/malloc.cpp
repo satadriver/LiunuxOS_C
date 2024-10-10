@@ -331,23 +331,38 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 	}
 
 	if (res ) {
+#if 0
+		if (vaddr == 0) {
+			vaddr = res;
+		}
+		else {
+			//res = vaddr;
+		}
+
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		if (process->pid == pid)
 		{
-			//process->vasize += size;
+			DWORD* cr3 = (DWORD*)process->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+			process->vasize += size;
 		}
 		else {
-			//process += pid;
-			//process->vasize += size;
+			process += pid;
+			
+			DWORD* cr3 = (DWORD*)process->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+			process->vasize += size;
 		}
 
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].pid == pid && tss[i].status == TASK_RUN)
 			{
-				//tss[i].vasize += size;
+				tss[i].vasize += size;
 			}
 		}
+		res = vaddr;
+#endif
 	}
 
 	__leaveSpinlock(&gAllocLock);

@@ -266,7 +266,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	}
 	else {
 		for (int i = 0; i < filetotal; i++) {
-			__printf(szout, "num:%d file:%s type:%i64x size:%i64d\r\n",i, files[i].pathname, files[i].attrib, files[i].filesize);
+			//__printf(szout, "num:%d file:%s type:%i64x size:%i64d\r\n",i, files[i].pathname, files[i].attrib, files[i].filesize);
 		}
 	}
 

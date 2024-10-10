@@ -370,7 +370,7 @@ int displayCCPoem() {
 	if (result)
 	{
 		__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
-		g_cc_timer = __kAddExactTimer((DWORD)drawCCFontChar, 100, (DWORD)&g_cc_poem, (DWORD)&g_cc_color, (DWORD)&g_cc_idx, (DWORD)&g_cc_timer);
+		g_cc_timer = __kAddExactTimer((DWORD)drawCCFontChar, 60, (DWORD)&g_cc_poem, (DWORD)&g_cc_color, (DWORD)&g_cc_idx, (DWORD)&g_cc_timer);
 	}
 
 	return g_cc_timer;

@@ -29,7 +29,7 @@ int gScreenProtectWindowID = 0;
 int gTimerID = 0;
 
 
-#define OUTPUT_INFO_COLOR	0Xffff00
+#define OUTPUT_INFO_COLOR	0Xff0000
 
 
 int initScreenProtect() {
@@ -252,7 +252,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 
-	gBaseColor = (gBaseColor - 1) ;
+	gBaseColor = (gBaseColor + 1)%0x100000;
 	return;
 }
 

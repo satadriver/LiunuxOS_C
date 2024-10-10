@@ -28,7 +28,7 @@
 
 
 
-int clearCr3(DWORD *cr3) {
+int clearCR3(DWORD *cr3) {
 	int cnt = 0;
 
 	if (cr3)
@@ -60,7 +60,7 @@ int clearCr3(DWORD *cr3) {
 
 
 
-DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
+DWORD copyKernelCR3(DWORD addr, DWORD size, DWORD *cr3) {
 
 	if (size % PAGE_SIZE)
 	{
@@ -76,9 +76,8 @@ DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
 	}
 
 	DWORD tboffset = addr / tablesize;
-	//DWORD pgoffset = (phyaddr / PAGE_SIZE) % ITEM_IN_PAGE;
 
-	DWORD* backcr3 = (DWORD*)PDE_ENTRY_VALUE;
+	DWORD* kcr3 = (DWORD*)PDE_ENTRY_VALUE;
 
 	if (size == 0 && addr == 0) {
 		tablecnt = ITEM_IN_PAGE;
@@ -87,36 +86,38 @@ DWORD copyPdeTables(DWORD addr, DWORD size, DWORD *tables) {
 
 	for (DWORD i = tboffset; i <tboffset + tablecnt; i++)
 	{
-		tables[i] = backcr3[i];
+		cr3[i] = kcr3[i];
 	}
 
 	return tablecnt;
 }
 
-DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD * cr3) {
+DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3) {
 
 	char szout[1024];
 
-	if (physize % PAGE_SIZE)
+	if (size % PAGE_SIZE)
 	{
 		return FALSE;
 	}
 
 	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
-	int tablecnt = physize / tablesize;
-	if (physize % tablesize)
+
+	int tablecnt = size / tablesize;
+	if (size % tablesize)
 	{
 		tablecnt++;
 	}
 
 	DWORD tboffset = linearaddr / tablesize;
+
 	DWORD pgoffset = (linearaddr / PAGE_SIZE) % ITEM_IN_PAGE;
 
-	DWORD remapTotal = physize / PAGE_SIZE;
+	DWORD remapTotal = size / PAGE_SIZE;
 
 	DWORD remapcnt = 0;
 
-	DWORD phyaddr = physicaladdr;
+	DWORD phyaddr = physaddr;
 
 	for (DWORD i = tboffset; i < tboffset + tablecnt; i++)
 	{
@@ -148,6 +149,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physicaladdr, DWORD physize, DWORD 
 			remapcnt++;
 			if (remapcnt >= remapTotal)
 			{
+				return remapcnt;
 				break;
 			}
 
