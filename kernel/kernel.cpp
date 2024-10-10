@@ -33,7 +33,7 @@
 #include "cmosPeriodTimer.h"
 #include "apic.h"
 #include "acpi.h"
-
+#include "window.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -102,6 +102,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enableTSD();
 
 	initDebugger();
+
+	initWindowList();
 
 	__asm {
 		in al, 0x60
@@ -195,22 +197,10 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 #include "math.h"
 
 void mytest(LIGHT_ENVIRONMENT  * stack) {
-
-	char szout[1024];
-	__sprintf(szout, "(X:%lf,Y:%lf) (X speed:%lf,Y speed:%lf)", -13.567, -459.098, -123.5, -478.123456);
-	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) + gGraphBase;
-	//__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, 0);
-
-	float t = __sqrt(3);
-	float t1 = sqrt(2);
-
-	float f = 910.2345678;
-	char buf[1024];
-	__printf(buf, "%f\r\n", f);
-	__int64 il = 1234567890123;
-	__printf(buf, "%i64d\r\n", il);
-
-	
+	__asm {
+	__mytest:
+		jmp __mytest
+	}
 
 	return;
 }

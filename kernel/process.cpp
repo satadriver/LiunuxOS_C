@@ -120,7 +120,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
 		return FALSE;
 	}
-	tss->vasize += alignsize;
+	//tss->vasize += alignsize;
 
 	tss->moduleaddr = pemap;
 	tss->moduleLinearAddr = USER_SPACE_START;
@@ -149,7 +149,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		entry = getEntry((char*)pemap) + USER_SPACE_START;
 	}
 
-#ifdef DISABLE_PAGE_REDIRECTION
+#ifdef DISABLE_PAGE_MAPPING
 	tss->tss.eip = entry - USER_SPACE_START + pemap;
 	relocTableV((char*)pemap, pemap);
 	importTable((DWORD)pemap);
@@ -172,7 +172,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	}
 	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
 
-#ifndef DISABLE_PAGE_REDIRECTION
+#ifndef DISABLE_PAGE_MAPPING
 	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
 #endif
 
@@ -198,7 +198,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	DWORD espsize = 0;
-	vaddr = tss->vaddr + tss->vasize;
+	//vaddr = tss->vaddr + tss->vasize;
 	LPTASKPARAMS params = 0;
 	DWORD heapsize = 0;
 	if (syslevel == 0)
@@ -217,7 +217,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
+#ifndef DISABLE_PAGE_MAPPING
 		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (result == FALSE)
 		{
@@ -240,8 +240,6 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		ret0->eflags = tss->tss.eflags;
 		tss->tss.esp = (DWORD)ret0;
 		tss->tss.ebp = (DWORD)ret0;
-		//tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
-		//tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS) - sizeof(RETUTN_ADDRESS_0);
 #else
 		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
@@ -263,7 +261,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
+#ifndef DISABLE_PAGE_MAPPING
 		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (result == FALSE)
 		{
@@ -301,18 +299,18 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		heapsize = UTASK_STACK_SIZE;
 	}
 	
-	tss->vasize += espsize;
+	//tss->vasize += espsize;
 	vaddr = tss->vaddr + tss->vasize;
 
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid, vaddr);
-#ifndef DISABLE_PAGE_REDIRECTION
+#ifndef DISABLE_PAGE_MAPPING
 	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
 	tss->heapbase = vaddr;
 #else
 	tss->heapbase = heapbase;
 #endif
 	tss->heapsize = heapsize;
-	tss->vasize += heapsize;
+	//tss->vasize += heapsize;
 	
 	params->terminate = (DWORD)__terminateProcess;
 	params->terminate2 = (DWORD)__terminateProcess;

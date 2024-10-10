@@ -48,7 +48,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	char szout[1024];
 
-	initWindowList();
+	//initWindowList();
 
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
 

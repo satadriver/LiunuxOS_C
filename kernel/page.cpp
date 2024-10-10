@@ -239,7 +239,9 @@ void linearMapping() {
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 
 #if 0
-	for (int i = 0; i < MEMMORY_ALLOC_BASE / (PAGE_SIZE*ITEM_IN_PAGE); i++) {
+	for (int i = 0; i < ITEM_IN_PAGE; i++)
+	//for (int i = 0; i < MEMMORY_ALLOC_BASE / (PAGE_SIZE*ITEM_IN_PAGE); i++) 
+	{
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 		idx += ITEM_IN_PAGE;
 	}
@@ -274,17 +276,6 @@ void linearMapping() {
 
 void initPaging() {
 
-	linearMapping();
-
-	__asm {
-		mov eax, PDE_ENTRY_VALUE
-		mov cr3,eax
-
-		mov eax,cr0
-		or eax,0x80000000
-		mov cr0,eax
-	}
-
 	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	initListEntry(&pageList->list);
@@ -292,4 +283,15 @@ void initPaging() {
 	pageList->size = 0;
 	pageList->vaddr = 0;
 	pageList->pid = 0;
+
+	linearMapping();
+
+	__asm {
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+	}
 }

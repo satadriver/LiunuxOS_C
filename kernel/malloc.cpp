@@ -263,6 +263,26 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	*retsize = size;
 
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+
+	LPPROCESS_INFO tss = 0;
+
+	if (process->pid == pid)
+	{
+		tss = (LPPROCESS_INFO)process;
+	}
+	else {
+		tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
+	}
+
+	if (vaddr == 0) {
+		vaddr = res;
+	}
+	else {
+		vaddr = tss->vaddr + tss->vasize;
+		tss->vasize += size;
+	}
+
 	__enterSpinlock(&gAllocLock);
 
 	int factor = 1;
@@ -332,36 +352,10 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	if (res ) {
 #if 0
-		if (vaddr == 0) {
-			vaddr = res;
-		}
-		else {
-			//res = vaddr;
-		}
-
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-		if (process->pid == pid)
-		{
-			DWORD* cr3 = (DWORD*)process->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
-			process->vasize += size;
-		}
-		else {
-			process += pid;
-			
-			DWORD* cr3 = (DWORD*)process->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
-			process->vasize += size;
-		}
-
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-			if (tss[i].pid == pid && tss[i].status == TASK_RUN)
-			{
-				tss[i].vasize += size;
-			}
-		}
-		res = vaddr;
+		DWORD* cr3 = (DWORD*)tss->tss.cr3;
+		DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+		
+		//res = vaddr;
 #endif
 	}
 
@@ -378,7 +372,8 @@ DWORD __kMalloc(DWORD s) {
 	DWORD size = 0;
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
+	//DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
+	DWORD ret = __kProcessMalloc(s, &size, 0, 0);
 	if (ret == 0) {
 		
 		int len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);

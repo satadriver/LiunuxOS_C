@@ -312,6 +312,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		return 0;
 	}
 
+	//v86ProcessCheck(env, prev, process);
+
 	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
 		process->status = TASK_OVER;
@@ -461,6 +463,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
 		return 0;
 	}
+
+	//v86ProcessCheck(env, prev, process);
 
 	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
@@ -747,3 +751,10 @@ int __initTask() {
 
 	return 0;
 }
+
+
+//在V86模式下，CPL=3，执行特权指令时，或者要引起出错码为0的通用保护故障，或者要引起 非法操作码故障。
+//由于CPL = 3， 所以如果IOPL < 3，那么执行CLI或STI指令将引起通用保护故障。
+//输入 / 输出指令IN、INS、OUT或OUTS的 敏感条件仅仅是当前V86任务TSS内的I / O许可位图，而忽略EFLAGS中的IOPL。
+//在V86模式下， 当IOPL < 3时，执行指令PUSHF、POPF、INT n及IRET会引起出错码为0的通用保护故障。
+//采取上述措施的目的是使操作系统软件可以支持一个“虚拟EFLAGS”寄存器。

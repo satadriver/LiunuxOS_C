@@ -2,7 +2,7 @@
 
 #include "def.h"
 #include "process.h"
-
+#include "task.h"
 
 #pragma pack(1)
 
@@ -23,6 +23,7 @@ extern "C"  __declspec(dllexport) int __createDosCodeProc(DWORD addr, int size, 
 extern "C"  __declspec(dllimport) int __createDosCodeProc(DWORD addr, int size, char* filename);
 #endif
 
+void v86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc);
 
 int __initDosTss(LPPROCESS_INFO tss, int num, DWORD addr, char * filename, char * funcname, DWORD syslevel, DWORD runparam);
 

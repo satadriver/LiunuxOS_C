@@ -139,7 +139,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
+#ifndef DISABLE_PAGE_MAPPING
 		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (ret == FALSE)
 		{
@@ -163,8 +163,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.esp = (DWORD)ret0;
 		tss->tss.ebp = (DWORD)ret0;
 #else
-		//tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		//tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
@@ -183,7 +181,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
-#ifndef DISABLE_PAGE_REDIRECTION
+#ifndef DISABLE_PAGE_MAPPING
 		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
 		if (ret == FALSE)
 		{
@@ -216,7 +214,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #endif
 	}
 
-	tss->vasize += espsize;
+	//tss->vasize += espsize;
 
 	params->terminate = (DWORD)__kTerminateThread;
 	params->terminate2 = (DWORD)__kTerminateThread;

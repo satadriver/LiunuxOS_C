@@ -22,6 +22,31 @@
 DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 
+void v86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc) {
+	if ((env->eflags & 0x20000) && prev->level == 3 && proc->level == 3) {
+		DWORD reip = (WORD)env->eip;
+		DWORD rcs = (WORD)env->cs;
+		WORD code = *(WORD*)((rcs << 4) + reip - 2);
+		WORD code2 = *(WORD*)((rcs << 4) + reip );
+		if (code == 0xfeeb || code2 == 0xfeeb) {
+
+			LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
+			for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
+			{
+				if (info[i].pid == prev->pid)
+				{
+					info[i].status = TASK_OVER;
+					break;
+				}
+			}
+
+			proc->status = TASK_OVER;
+			prev->status = TASK_OVER;
+		}
+	}
+}
+
+
 int getVm86ProcAddr(int type, DWORD filedata, int size, int pid) {
 
 	LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
@@ -171,6 +196,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		tss->tss.fs = seg;
 		tss->tss.gs = seg;
 
+		/*
 		tss->tss.esp = tss->tss.esp - sizeof(TASKDOSPARAMS);
 		LPTASKDOSPARAMS params = (LPTASKDOSPARAMS)(tss->tss.esp + (tss->tss.ss << 4));
 		params->terminate = (DWORD)0;
@@ -179,8 +205,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		params->filename = params->szFileName;		//param2:filename
 		__strcpy(params->szFuncName, funcname);
 		params->funcname = params->szFuncName;		//param2:filename
-		//params->addr = ((seg - DOS_LOAD_FIRST_SEG) / 0x1000) * sizeof(DOS_PE_CONTROL) + V86_TASKCONTROL_ADDRESS;
-		//params->param = runparam;
+		*/
 
 		//__printf(szout, "__kCreateTask in file dos file:%s\r\n", filename);
 		//__drawGraphChars((unsigned char*)szout, 0);
