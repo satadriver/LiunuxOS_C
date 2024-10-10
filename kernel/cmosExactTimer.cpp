@@ -22,16 +22,11 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 		return -1;
 	}
 
-	//char szout[1024];
-	//__printf(szout, "__kAddCmosTimer addr:%x,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
-	// addr,delay,param1,param2,param3,param4);
-
 	DWORD* lptickcnt = (DWORD*)CMOS_EXACT_TICK_COUNT;
 
 	DWORD ticks = delay / CMOS_EXACT_INTERVAL;		
 
-	int i = 0;
-	for (i = 0; i < REALTIMER_CALLBACK_MAX; i++)
+	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (gExactTimer[i].func == 0 && gExactTimer[i].tickcnt == 0)
 		{
@@ -42,20 +37,24 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 			gExactTimer[i].param2 = param2;
 			gExactTimer[i].param3 = param3;
 			gExactTimer[i].param4 = param4;
-			break;
+
+			char szout[1024];
+			__printf(szout, "__kAddCmosTimer addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n",
+				addr,i, delay, param1, param2, param3, param4);
+			return i;
 		}
 	}
 
-	return i;
+	return -1;
 }
 
 
 
-void __kRemoveExactTimer(int no) {
-	if (no >= 0 && no < REALTIMER_CALLBACK_MAX)
+void __kRemoveExactTimer(int n) {
+	if (n >= 0 && n < REALTIMER_CALLBACK_MAX)
 	{
-		gExactTimer[no].func = 0;
-		gExactTimer[no].tickcnt = 0;
+		gExactTimer[n].func = 0;
+		gExactTimer[n].tickcnt = 0;
 	}
 }
 

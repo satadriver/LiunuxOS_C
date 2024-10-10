@@ -172,7 +172,7 @@ int getldt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		len = __sprintf(szout + outlen, "ldt %d:%I64u\n", i, pldts[i]);
+		len = __sprintf(szout + outlen, "ldt %d:%I64x\n", i, pldts[i]);
 		outlen += len;
 	}
 
@@ -199,7 +199,7 @@ int getgdt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		l = __sprintf(szout + outlen, "gdt %d:%I64u\n", i, pgdts[i]);
+		l = __sprintf(szout + outlen, "gdt %d:%I64x\n", i, pgdts[i]);
 		outlen += l;
 	}
 
@@ -228,7 +228,7 @@ int getidt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		l =  __sprintf(szout + outlen, "idt %d:%I64u\n", i, pidts[i]);
+		l =  __sprintf(szout + outlen, "idt %d:%I64x\n", i, pidts[i]);
 		outlen += l;
 
 	}

@@ -70,13 +70,19 @@ void __kRemove8254Timer(int no) {
 void __k8254TimerProc() {
 
 	int result = 0;
-	DWORD* lptickcnt = (DWORD*)TIMER0_TICK_COUNT;
+	DWORD tickcnt = *(DWORD*)TIMER0_TICK_COUNT;
 
 	//in both c and c++ language,the * priority is lower than ++
-	(*lptickcnt)++;
+	tickcnt++;
+
+	//*(DWORD*)TIMER0_TICK_COUNT = tickcnt;
+
+	DWORD* lptickcnt = (DWORD*)TIMER0_TICK_COUNT;
+
+	*lptickcnt = tickcnt;
 
 	DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
-	*pdoscounter = *lptickcnt;
+	*pdoscounter = tickcnt;
 
 	//heptEOI();
 

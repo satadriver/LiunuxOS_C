@@ -4,7 +4,7 @@
 #include "Utils.h"
 #include "def.h"
 
-#define COMMAND_LINE_STRING_LIMIT	64
+#define COMMAND_LINE_STRING_LIMIT	32
 
 int parseCmdParams(char* cmd, char params[COMMAND_LINE_STRING_LIMIT][COMMAND_LINE_STRING_LIMIT]);
 

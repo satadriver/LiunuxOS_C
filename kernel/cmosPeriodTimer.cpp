@@ -147,16 +147,11 @@ int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD
 		return -1;
 	}
 
-	//char szout[1024];
-	//__printf(szout, "__kAddCmosTimer addr:%x,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
-	// addr,delay,param1,param2,param3,param4);
-
 	DWORD* lptickcnt = (DWORD*)CMOS_PERIOD_TICK_COUNT;
 
 	DWORD ticks = delay;		
 
-	int i = 0;
-	for (i = 0; i < REALTIMER_CALLBACK_MAX; i++)
+	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (gPeriodTimer[i].func == 0 && gPeriodTimer[i].tickcnt == 0)
 		{
@@ -167,11 +162,15 @@ int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD
 			gPeriodTimer[i].param2 = param2;
 			gPeriodTimer[i].param3 = param3;
 			gPeriodTimer[i].param4 = param4;
+
+			char szout[1024];
+			__printf(szout, "__kAddCmosTimer addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
+			 addr,i,delay,param1,param2,param3,param4);
 			break;
 		}
 	}
 
-	return i;
+	return -1;
 }
 
 

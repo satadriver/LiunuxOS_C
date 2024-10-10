@@ -40,7 +40,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
 	int cmdlen = __strlen(cmd);
-	upper2lower(cmd, cmdlen);
+	//upper2lower(cmd, cmdlen);
 
 	char params[COMMAND_LINE_STRING_LIMIT][COMMAND_LINE_STRING_LIMIT];
 	__memset((char*)params, 0, COMMAND_LINE_STRING_LIMIT * COMMAND_LINE_STRING_LIMIT);
@@ -285,11 +285,24 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 	}
-	else if (__strcmp(params[0], "tickcnt") == 0)
+	else if (__strcmp(params[0], "timer0Tick") == 0)
 	{
 		DWORD cnt = *(DWORD*)TIMER0_TICK_COUNT;
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "cmosPeriod") == 0)
+	{
+		DWORD cnt = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sprintf(szout, "%x\r\n", cnt);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
+	
+	else if (__strcmp(params[0], "cmosExact") == 0)
+	{
+		DWORD cnt = *(DWORD*)CMOS_EXACT_TICK_COUNT;
+		__sprintf(szout, "%x\r\n", cnt);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "time") == 0)
 	{
@@ -320,7 +333,7 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	{
 		DWORD tj = 0;
 		DWORD temp = __readTemperature(&tj);
-		__sprintf(szout, "tj:%x,temprature:%d\n", temp);
+		__sprintf(szout, "tj:%x,temperature:%d\n", temp);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "exit") == 0)

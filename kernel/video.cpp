@@ -394,7 +394,8 @@ int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char* backup)
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (back && *ptr != *backup) {
+				if (back && *ptr != *backup) 
+				{
 					*ptr = *backup;
 				}
 				ptr++;
