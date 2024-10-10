@@ -22,7 +22,7 @@
 DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 
-void v86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc) {
+void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc) {
 	if ((env->eflags & 0x20000) && prev->level == 3 && proc->level == 3) {
 		DWORD reip = (WORD)env->eip;
 		DWORD rcs = (WORD)env->cs;
@@ -35,13 +35,12 @@ void v86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 			{
 				if (info[i].pid == prev->pid)
 				{
+					proc->status = TASK_OVER;
+					prev->status = TASK_OVER;
 					info[i].status = TASK_OVER;
 					break;
 				}
 			}
-
-			proc->status = TASK_OVER;
-			prev->status = TASK_OVER;
 		}
 	}
 }

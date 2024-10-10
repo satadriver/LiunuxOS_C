@@ -312,7 +312,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		return 0;
 	}
 
-	//v86ProcessCheck(env, prev, process);
+	V86ProcessCheck(env, prev, process);
 
 	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
@@ -464,7 +464,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		return 0;
 	}
 
-	//v86ProcessCheck(env, prev, process);
+	V86ProcessCheck(env, prev, process);
 
 	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
