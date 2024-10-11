@@ -211,6 +211,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ChinesePoem.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="cmd.cpp" />
     <ClCompile Include="console.cpp" />
@@ -230,6 +231,7 @@
     <ClCompile Include="guiHelper.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ChinesePoem.h" />
     <ClInclude Include="clock.h" />
     <ClInclude Include="cmd.h" />
     <ClInclude Include="console.h" />

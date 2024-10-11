@@ -11,6 +11,8 @@
 #include "process.h"
 #include "atapi.h"
 #include "v86.h"
+#include "ChinesePoem.h"
+
 
 int gMenuID = 0;
 
@@ -196,7 +198,8 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	__strcpy(menu->menuname[7], "Vector Graph");
 	__strcpy(menu->menuname[8], "Trajectory Ball");
 	__strcpy(menu->menuname[9], "Graph test");
-	menu->menuname[10][0] = 0;
+	__strcpy(menu->menuname[10], "Chinese Poem");
+	menu->menuname[11][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
@@ -208,7 +211,9 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcaddr[7] = (DWORD)initVectorGraph;
 	menu->funcaddr[8] = (DWORD)initTrajectory;
 	menu->funcaddr[9] = (DWORD)refreshScreenColor3;
-	menu->validItem = 10;
+	menu->funcaddr[10] = (DWORD)__kChinesePoem;
+	
+	menu->validItem = 11;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
@@ -220,6 +225,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->paramcnt[7] = 0;
 	menu->paramcnt[8] = 0;
 	menu->paramcnt[9] = 0;
+	menu->paramcnt[10] = 5;
 
 	menu->funcparams[3][4] = 0;
 	menu->funcparams[3][3] = (DWORD)"__kConsole";
@@ -240,6 +246,12 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcparams[7][0] = 0;
 	menu->funcparams[8][0] = 0;
 	menu->funcparams[9][0] = 0;
+
+	menu->funcparams[10][4] = 0;
+	menu->funcparams[10][3] = (DWORD)"__kChinesePoem";
+	menu->funcparams[10][2] = (DWORD)"main.dll";
+	menu->funcparams[10][1] = tid;
+	menu->funcparams[10][0] = (DWORD)__terminateProcess;
 
 	menu->id = 0;
 
