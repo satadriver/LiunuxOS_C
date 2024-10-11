@@ -1167,6 +1167,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		mov ss, ax
 
 		//clts
+		cli
 	}
 
 	{
@@ -1202,7 +1203,8 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		nop
 #endif	
 		//clts
-		
+		sti
+
 		iretd
 
 		jmp TimerInterrupt

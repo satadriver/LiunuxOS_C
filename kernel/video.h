@@ -328,9 +328,9 @@ unsigned short* getGBKCCIdx(unsigned short gbk);
 
 
 #ifdef DLL_EXPORT
+extern "C"  __declspec(dllexport) int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor);
 
-
-extern "C"   int __initVideo(LPVESAINFORMATION vesa,DWORD fontbase);
+extern "C"  __declspec(dllexport) int __initVideo(LPVESAINFORMATION vesa,DWORD fontbase);
 
 extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window);
 
@@ -391,8 +391,8 @@ extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS* window);
 
 extern "C"  __declspec(dllexport) int __drawWindowChars( char* font, int color, WINDOWCLASS* window);
 #else
-
-extern "C" int __initVideo(LPVESAINFORMATION vesa, DWORD fontbase);
+extern "C"  __declspec(dllexport)int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor);
+extern "C" __declspec(dllimport)  int __initVideo(LPVESAINFORMATION vesa, DWORD fontbase);
 
 extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window);
 
@@ -429,13 +429,13 @@ extern "C"  __declspec(dllimport) int __drawCCS(unsigned char * font, int color)
 
 extern "C"  __declspec(dllimport) int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char * backup);
 
-extern "C"  __declspec(dllimport) int __drawRectFrameWindow(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
+extern "C"  __declspec(dllimport) int __drawRectFrame(LPPOINT p, int width, int height, int color, int framesize, int framecolor, char * back);
 
 extern "C"  __declspec(dllimport) int removeFileManager(LPFMWINDOW w);
 
 extern "C"  __declspec(dllimport) int drawFileManager(LPFMWINDOW w);
 
-extern "C"  __declspec(dllimport) int __restoreRectFrameWindow(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
+extern "C"  __declspec(dllimport) int __restoreRectFrame(LPPOINT p, int width, int height, int framesize, unsigned char* backup);
 
 extern "C"  __declspec(dllimport) int __drawFileIcon(FILEICON*);
 
@@ -449,9 +449,9 @@ extern "C"  __declspec(dllimport) int __diamond2(int startx, int starty, int rad
 
 extern "C"  __declspec(dllimport) int __diamond(int startx, int starty, int raduis, int cnt, DWORD color);
 
-extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS * window);
+extern "C"  __declspec(dllimport) int __clearWindowChar(WINDOWCLASS * window);
 
-extern "C"  __declspec(dllexport) int __drawWindowChars( char* font, int color, WINDOWCLASS * window);
+extern "C"  __declspec(dllimport) int __drawWindowChars( char* font, int color, WINDOWCLASS * window);
 #endif
 
 #endif

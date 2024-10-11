@@ -287,20 +287,19 @@ int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 	}
 	else if (__strcmp(params[0], "timer0Tick") == 0)
 	{
-		DWORD cnt = *(DWORD*)TIMER0_TICK_COUNT;
+		DWORD cnt = *((DWORD*)TIMER0_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "cmosPeriod") == 0)
 	{
-		DWORD cnt = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		DWORD cnt = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	
 	else if (__strcmp(params[0], "cmosExact") == 0)
 	{
-		DWORD cnt = *(DWORD*)CMOS_EXACT_TICK_COUNT;
+		DWORD cnt = *((DWORD*)CMOS_EXACT_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}

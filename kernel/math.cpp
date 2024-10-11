@@ -75,7 +75,7 @@ double sqrt(double x)
 	double x0, x1;
 	x0 = x;
 	x1 = x / 2.0;
-	while (abs(x0 - x1) > 0.0000000000000001)
+	while (abs(x0 - x1) > 0.00001)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;

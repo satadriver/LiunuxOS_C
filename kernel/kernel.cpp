@@ -111,7 +111,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	}
 
 #ifdef SINGLE_TASK_TSS
-	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #endif
@@ -202,6 +202,8 @@ void mytest(LIGHT_ENVIRONMENT  * stack) {
 		jmp __mytest
 	}
 
+	DWORD v = TIMER0_TICK_COUNT;
+
 	return;
 }
 
@@ -214,9 +216,10 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	LIGHT_ENVIRONMENT stack = { 0 };
+	unsigned char* data = (unsigned char*)"aaaaaaa";
+	DWORD v = TIMER0_TICK_COUNT;
 #ifdef _DEBUG
-	mytest(&stack);
+	mytest(0);
 #endif
 	return TRUE;
 }

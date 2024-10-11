@@ -6,13 +6,13 @@ void pauseBreak();
 
 extern int gScreenProtectWindowID ;
 
-extern "C" __declspec(dllexport) void refreshScreenColor();
 
-extern "C" __declspec(dllexport) void refreshScreenColor2();
+
+extern "C" __declspec(dllexport) void SnowScreenShow();
 
 extern "C" __declspec(dllexport) void refreshScreenColor3();
 #ifdef DLL_EXPORT
-
+extern "C" __declspec(dllexport) void refreshScreenColor();
 extern "C" __declspec(dllexport) int initScreenProtect();
 extern "C" __declspec(dllexport) int stopScreenProtect();
 

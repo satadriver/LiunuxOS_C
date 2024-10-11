@@ -13,6 +13,7 @@
 #include "Thread.h"
 #include "memory.h"
 #include "cmosPeriodTimer.h"
+#include "screenProtect.h"
 
 CMOSALARM_PROCESS_LIST gCmosAlarmProc;
 
@@ -83,9 +84,10 @@ void addAlarmTimer() {
 		cli
 	}
 
-	outportb(0x70, 0x0b);
+	int s = (inportb(0x70) & 0x7f) + 0x0b;
+	outportb(0x70, s);
 	int v = inportb(0x71)|0x80;
-	outportb(0x70, 0x0b);
+	//outportb(0x70, s);
 	outportb(0x71, v);
 	
 	unsigned char bcentury = readCmosPort(0x32);
@@ -236,7 +238,7 @@ void __doAlarmTask(DWORD  param) {
 	char szout[1024];
 	__printf(szout, "__doAlarmTask running\n");
 
-
+	SnowScreenShow();
 }
 
 

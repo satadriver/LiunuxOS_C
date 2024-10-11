@@ -16,6 +16,7 @@ int getTimer8254Delay(){
 
 
 void init8254Timer() {
+	*((int*)TIMER0_TICK_COUNT) = 0;
 	__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
 }
 
@@ -26,18 +27,13 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 		return -1;
 	}
 
-	//char szout[1024];
-	//__printf(szout, "__kAddCmosTimer addr:%x,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
-	// addr,delay,param1,param2,param3,param4);
-
 	DWORD* lptickcnt = (DWORD*)TIMER0_TICK_COUNT;
 
 	int dt = getTimer8254Delay();
 
 	DWORD ticks = delay / dt;
 
-	int i = 0;
-	for (i = 0; i < REALTIMER_CALLBACK_MAX; i++)
+	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (g8254Timer[i].func == 0 && g8254Timer[i].tickcnt == 0)
 		{
@@ -48,11 +44,15 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 			g8254Timer[i].param2 = param2;
 			g8254Timer[i].param3 = param3;
 			g8254Timer[i].param4 = param4;
-			break;
+			char szout[1024];
+			__printf(szout, "__kAddCmosTimer addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
+			 addr,i,delay,param1,param2,param3,param4);
+
+			return i;
 		}
 	}
 
-	return i;
+	return 0;
 }
 
 
@@ -70,21 +70,14 @@ void __kRemove8254Timer(int no) {
 void __k8254TimerProc() {
 
 	int result = 0;
-	DWORD tickcnt = *(DWORD*)TIMER0_TICK_COUNT;
-
 	//in both c and c++ language,the * priority is lower than ++
-	tickcnt++;
-
-	//*(DWORD*)TIMER0_TICK_COUNT = tickcnt;
 
 	DWORD* lptickcnt = (DWORD*)TIMER0_TICK_COUNT;
 
-	*lptickcnt = tickcnt;
+	(*lptickcnt)++;
 
 	DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
-	*pdoscounter = tickcnt;
-
-	//heptEOI();
+	*pdoscounter = *lptickcnt;
 
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{

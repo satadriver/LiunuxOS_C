@@ -13,6 +13,7 @@
 #include "hardware.h"
 #include "device.h"
 #include "math.h"
+#include "timer8254.h"
 
 #define SCREENPROTECT_BACKGROUND_COLOR 0		//0XBBFFFF		0X87CEEB
 
@@ -63,8 +64,6 @@ int initScreenProtect() {
 
 	unsigned char * src = (unsigned char*)gGraphBase;
 
-	//__memcpy((char*)dst, (char*)src, screensize);
-
 	POINT p;
 	p.x = 0;
 	p.y = 0;
@@ -99,7 +98,6 @@ int stopScreenProtect() {
 
 	unsigned char * dst = (unsigned char*)gGraphBase;
 
-	//__memcpy((char*)dst, (char*)src, screensize);
 	POINT p;
 	p.x = 0;
 	p.y = 0;
@@ -271,7 +269,7 @@ void initVectorGraph() {
 
 	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
 
-	gBaseColor = 0x1000;
+	gBaseColor = 0;
 }
 
 
@@ -287,7 +285,7 @@ void refreshScreenColor() {
 
 	int color = 0;
 
-	gBaseColor = 0;
+	int baseColor = 0;
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
@@ -321,7 +319,7 @@ void refreshScreenColor() {
 		int cy2 = gVideoHeight / 2 + 100;
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
-				DWORD c = (A*A*(x - cx) * (x - cx)) + (B*B*(y - cy) * (y - cy)) + gBaseColor* gBaseColor * A * A * B * B;
+				DWORD c = (A*A*(x - cx) * (x - cx)) + (B*B*(y - cy) * (y - cy)) + baseColor * baseColor * A * A * B * B;
 				if (c == A * A * B * B) {
 					
 				}
@@ -334,7 +332,7 @@ void refreshScreenColor() {
 			}
 		}
 
-		gBaseColor = (gBaseColor + 1) %0x1000;
+		baseColor = (baseColor + 1) %0x1000;
 
 		//int tmp = A;
 		//A = B;
@@ -377,18 +375,8 @@ void refreshScreenColor3() {
 
 	//__diamond(cx, cy, 64, 5, 0xffffffff);
 
-	/*
-	for (int y = 0; y < gVideoHeight; y++) {
-		for (int x = 0; x < gVideoWidth; x++) {
-			DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy));
-			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
-			for (int k = 0; k < gBytesPerPixel; k++) {
-				*ptr = c & 0xff;
-				c = c >> 8;
-				ptr++;
-			}
-		}
-	}*/
+	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
+	int ret = __drawCircle(cx, cy, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 
 	while (1)
 	{
@@ -408,12 +396,41 @@ void refreshScreenColor3() {
 
 		__sleep(0);
 
+		int A = 3;
+		int B = 7;
+		
+		double theta = 0;
+
+		for (int y = 0; y < gVideoHeight; y++) {
+			for (int x = 0; x < gVideoWidth; x++) {
+				int xn = (A + B * theta) * cos(theta);
+				int yn = (A + B * theta) * sin(theta);
+				unsigned char* p = (unsigned char*)__getpos(x, y) + gGraphBase;
+				if (xn >= 0 && xn < gVideoWidth && yn >= 0 && yn < gVideoHeight) {
+					unsigned char* pn = (unsigned char*)__getpos(xn, yn) + gGraphBase;
+
+					for (int k = 0; k < gBytesPerPixel; k++) {
+
+						unsigned char t = *p;
+						*p = *pn;
+						*pn = t;
+
+						p++;
+						pn++;
+					}
+				}
+				
+
+			}
+		}
+
+		theta += 0.1;
 	}
 }
 
 
 
-void refreshScreenColor2() {
+void SnowScreenShow() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -421,10 +438,6 @@ void refreshScreenColor2() {
 	POINT p;
 	p.x = 0;
 	p.y = 0;
-
-	int color = 0;
-
-	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
 	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen2");
 
@@ -446,8 +459,25 @@ void refreshScreenColor2() {
 
 		__sleep(0);
 
-		color += 0x00010f;
-		__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, 0);
+
+		for (int y = 0; y < gVideoHeight; y++) {
+			for (int x = 0; x < gVideoWidth; x++) {
+
+				int color = 0xffffff;
+				__int64 v = __krdtsc();
+				if (v & 1) {
+					color = 0;
+				}
+
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				for (int k = 0; k < gBytesPerPixel; k++) {
+					*ptr = color & 0xff;
+					color = color >> 8;
+					ptr++;
+				}
+			}
+		}
+
 	}
 }
 
@@ -554,13 +584,31 @@ double resist_air(double v, double radius) {
 }
 
 double resist_bounce(double v, double radius) {
-	return -v / 2;
+	double t = -v / 2;
+	if (t < -1) {
+		t = t + 1;
+	}
+	else if (t > 1) {
+		t = t - 1;
+	}
+	else {
+		t = t / 2;
+	}
+	return t;
 }
 
 
 double friction(double v, double radius) {
-	return abs(v / 8);
+	double r = abs(v / 8);
+	if (r > 1) {
+		r--;
+	}
+	else {
+		r = r/2;
+	}
+	return r;
 }
+
 void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
 
@@ -585,7 +633,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 
 	double dx = resist_air(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
-	if ( abs(g_centerY - ( gVideoHeight - g_radius)) < 1) {
+	if ( abs(g_centerY - ( (ULONGLONG)gVideoHeight - (ULONGLONG)g_radius)) < 1) {
 		dx += friction(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
 	}
 	

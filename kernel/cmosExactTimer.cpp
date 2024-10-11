@@ -12,6 +12,7 @@ TIMER_PROC_PARAM gExactTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
 
 void initExactTimer() {
+	*((DWORD*)CMOS_EXACT_TICK_COUNT) = 0;
 	__memset((char*)gExactTimer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
 }
 
@@ -64,7 +65,7 @@ void __kExactTimerProc() {
 
 	int result = 0;
 	DWORD* lptickcnt = (DWORD*)CMOS_EXACT_TICK_COUNT;
-	DWORD tickcnt = *lptickcnt;
+
 	//in both c and c++ language,the * priority is lower than ++
 	(*lptickcnt)++;
 

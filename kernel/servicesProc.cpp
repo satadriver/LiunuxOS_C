@@ -207,7 +207,7 @@ DWORD __random(DWORD r) {
 			g_random_seed = r;
 		}
 		else {
-			g_random_seed = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+			g_random_seed = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
 		}
 	}
 	g_random_seed = (w * g_random_seed + v)% u;
@@ -220,7 +220,7 @@ DWORD __random(DWORD r) {
 DWORD __random_old(DWORD init) {
 	unsigned __int64 t = init;
 	if (t == 0) {
-		DWORD dt = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		DWORD dt = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
 		t = dt;
 	}
 	t = (t *( 7 *7*7*7*7 )) % 0xffffffff;

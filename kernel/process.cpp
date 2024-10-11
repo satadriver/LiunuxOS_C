@@ -383,7 +383,7 @@ int __kCreateProcessFromAddrFunc(DWORD filedata, int filesize,char * funcname,in
  	char filename[1024];
 // 	__getDateTimeStr(filename);
 
-	__sprintf(filename, "process_%x", *(unsigned int*)TIMER0_TICK_COUNT);
+	__sprintf(filename, "process_%x", *((unsigned int*)TIMER0_TICK_COUNT));
 
 	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
 }

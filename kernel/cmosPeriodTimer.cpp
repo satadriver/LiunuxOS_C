@@ -95,10 +95,7 @@ void __kPeriodTimer() {
 	__sprintf(szout,fmt , &strc, &stry, &strm, &strd, strdw, &strhour, &strminute, &strsecond);
 	__strcpy((char*)CMOS_DATETIME_STRING, szout);
 
-	DWORD* lptickcnt = (DWORD*)CMOS_PERIOD_TICK_COUNT;
-	(*lptickcnt)++;
-
-	lptickcnt = (DWORD*)SLEEP_TIMER_RECORD;
+	DWORD* lptickcnt = (DWORD*)SLEEP_TIMER_RECORD;
 	(*lptickcnt)++;
 	if (*lptickcnt >= SHUTDOWN_SCREEN_SECONDS)
 	{
@@ -137,6 +134,9 @@ TIMER_PROC_PARAM gPeriodTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
 
 void initPeriodTimer() {
+	*((DWORD*)CMOS_PERIOD_TICK_COUNT) = 0;
+	
+	* ((DWORD*)SLEEP_TIMER_RECORD) = 0;
 	__memset((char*)gPeriodTimer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
 }
 
@@ -189,7 +189,7 @@ void __kPeriodTimerProc() {
 
 	int result = 0;
 	DWORD* lptickcnt = (DWORD*)CMOS_PERIOD_TICK_COUNT;
-	DWORD tickcnt = *lptickcnt;
+
 	//in both c and c++ language,the * priority is lower than ++
 	(*lptickcnt)++;
 
