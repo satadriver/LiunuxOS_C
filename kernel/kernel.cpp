@@ -217,6 +217,12 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
 	unsigned char* data = (unsigned char*)"aaaaaaa";
+	char* test = "ÄãºÃ";
+	char* test2 = "¹þ¹þ";
+	char* t[] = { test,test2 };
+	char* tt = t[0];
+	int i = sizeof(t);
+
 	DWORD v = TIMER0_TICK_COUNT;
 #ifdef _DEBUG
 	mytest(0);

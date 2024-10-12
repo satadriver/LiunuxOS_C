@@ -233,10 +233,10 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 #define VECTOR_GRAPH_VIDEO_2
 
 #ifdef VECTOR_GRAPH_VIDEO_3
-			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) + gBaseColor * gBaseColor * gBaseColor;
+			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) - gBaseColor * gBaseColor * gBaseColor;
 			
 #elif defined VECTOR_GRAPH_VIDEO_2
-			DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy)) +gBaseColor * gBaseColor;
+			DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy))  - gBaseColor * gBaseColor;
 			
 #else
 
@@ -291,7 +291,7 @@ void refreshScreenColor() {
 
 	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen");
 
-	int A = 11;
+	int A = 13;
 	int B = 7;
 
 	while (1)
@@ -319,7 +319,7 @@ void refreshScreenColor() {
 		int cy2 = gVideoHeight / 2 + 100;
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
-				DWORD c = (A*A*(x - cx) * (x - cx)) + (B*B*(y - cy) * (y - cy)) + baseColor * baseColor * A * A * B * B;
+				DWORD c = (A*A*(x - cx) * (x - cx)) + (B*B*(y - cy) * (y - cy)) - baseColor * baseColor * A * A * B * B;
 				if (c == A * A * B * B) {
 					
 				}
@@ -332,7 +332,7 @@ void refreshScreenColor() {
 			}
 		}
 
-		baseColor = (baseColor + 1) %0x1000;
+		baseColor = (baseColor + 1) %0x100000;
 
 		//int tmp = A;
 		//A = B;
@@ -342,7 +342,7 @@ void refreshScreenColor() {
 
 
 
-void refreshScreenColor3() {
+void vectorGraphTest() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -351,12 +351,13 @@ void refreshScreenColor3() {
 	p.x = 0;
 	p.y = 0;
 
-	int color = 0;
+	DWORD color = 0;
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen3");
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "vectorGraphTest");
 
+	/*
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
 
@@ -372,11 +373,12 @@ void refreshScreenColor3() {
 			}
 		}
 	}
+	*/
 
 	//__diamond(cx, cy, 64, 5, 0xffffffff);
 
-	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
-	int ret = __drawCircle(cx, cy, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	//int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
+	//int ret = __drawCircle(cx, cy, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 
 	while (1)
 	{
@@ -396,6 +398,7 @@ void refreshScreenColor3() {
 
 		__sleep(0);
 
+		/*
 		int A = 3;
 		int B = 7;
 		
@@ -419,12 +422,39 @@ void refreshScreenColor3() {
 						pn++;
 					}
 				}
-				
+			}
+		}
+		theta += 0.1;
+		*/
 
+		int cx = gVideoWidth / 2;
+		int cy = gVideoHeight / 2;
+
+		for (int y = 0; y < gVideoHeight; y++) {
+			for (int x = 0; x < gVideoWidth; x++) {
+
+#define VECTOR_GRAPH_VIDEO_3
+//#define VECTOR_GRAPH_VIDEO_2
+
+#ifdef VECTOR_GRAPH_VIDEO_3
+				DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) - color * color * color;
+
+#elif defined VECTOR_GRAPH_VIDEO_2
+				DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy)) - color * color;
+
+#else
+
+#endif
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				for (int k = 0; k < gBytesPerPixel; k++) {
+					*ptr = c & 0xff;
+					c = c >> 8;
+					ptr++;
+				}
 			}
 		}
 
-		theta += 0.1;
+		color = (color + 1)%0x100000;
 	}
 }
 
@@ -438,8 +468,10 @@ void SnowScreenShow() {
 	POINT p;
 	p.x = 0;
 	p.y = 0;
+	int color = 0;
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen2");
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "SnowScreenShow");
 
 	while (1)
 	{
@@ -739,7 +771,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 
-	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)                ", g_centerX, g_centerY, g_x_s, g_y_s);
+	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)            ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) ;
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 

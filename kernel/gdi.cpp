@@ -288,6 +288,7 @@ int showBmpBits(int x, int y, BITMAPINFOHEADER* info, unsigned char * data) {
 
 
 
+
 unsigned char* poem_jjj = (unsigned char*)
 "《将进酒》\r\n"
 "唐·李白\r\n"
@@ -394,7 +395,7 @@ unsigned char* poem_gch = (unsigned char*)
 "星汉灿烂，若出其里。\r\n"
 "幸甚至哉，歌以咏志。\r\n\0";
 
-unsigned char* poem_qyccs= (unsigned char*)
+unsigned char* poem_qyccs = (unsigned char*)
 "《沁园春·长沙》\r\n"
 "毛泽东\r\n"
 "独立寒秋，湘江北去，橘子洲头。\r\n"
@@ -413,7 +414,7 @@ unsigned char* poem_tjsqs = (unsigned char*)
 
 unsigned char* poem_ljx = (unsigned char*)
 "《临江仙》\r\n"
-"明 · 杨慎\r\n"
+"明·杨慎\r\n"
 "滚滚长江东逝水，浪花淘尽英雄。是非成败转头空。青山依旧在，几度夕阳红。\r\n"
 "白发渔樵江渚上，惯看秋月春风。一壶浊酒喜相逢。古今多少事，都付笑谈中。\r\n\0";
 
@@ -446,25 +447,25 @@ unsigned char* poem_cjhyy = (unsigned char*)
 "斜月沉沉藏海雾，碣石潇湘无限路。\r\n"
 "不知乘月几人归，落月摇情满江树。\0";
 
-unsigned char * poem_qycx = (unsigned char *)
-	"《沁园春·雪》\r\n"
-	"毛泽东· 近现代\r\n"
-	"北国风光，千里冰封，万里雪飘。\r\n"
-	"望长城内外，惟余莽莽；大河上下，顿失滔滔。\r\n"
-	"山舞银蛇，原驰蜡象，欲与天公试比高。\r\n"
-	"须晴日，看红装素裹，分外妖娆。\r\n"
-	"江山如此多娇，引无数英雄竞折腰。\r\n"
-	"惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。\r\n"
-	"一代天骄，成吉思汗，只识弯弓射大雕。\r\n"
-	"俱往矣，数风流人物，还看今朝。\r\n\0";
+unsigned char* poem_qycx = (unsigned char*)
+"《沁园春·雪》\r\n"
+"毛泽东· 近现代\r\n"
+"北国风光，千里冰封，万里雪飘。\r\n"
+"望长城内外，惟余莽莽；大河上下，顿失滔滔。\r\n"
+"山舞银蛇，原驰蜡象，欲与天公试比高。\r\n"
+"须晴日，看红装素裹，分外妖娆。\r\n"
+"江山如此多娇，引无数英雄竞折腰。\r\n"
+"惜秦皇汉武，略输文采；唐宗宋祖，稍逊风骚。\r\n"
+"一代天骄，成吉思汗，只识弯弓射大雕。\r\n"
+"俱往矣，数风流人物，还看今朝。\r\n\0";
 
 unsigned char* poem_cyj = (unsigned char*)
- "《插秧偈》\r\n"
- "布袋和尚·〔唐代〕\r\n"
- "手把青秧插满田，\r\n"
- "低头便见水中天。\r\n"
- "心地清净方为道，\r\n"
- "退步原来是向前。\r\n\0";
+"《插秧偈》\r\n"
+"布袋和尚·〔唐代〕\r\n"
+"手把青秧插满田，\r\n"
+"低头便见水中天。\r\n"
+"心地清净方为道，\r\n"
+"退步原来是向前。\r\n\0";
 
 unsigned char* poem_qthcx = (unsigned char*)
 "《钱塘湖春行》\r\n"
@@ -496,6 +497,8 @@ unsigned char* poem_ltsbdh = (unsigned char*)
 "一片汪洋都不见，知向谁边？\r\n"
 "往事越千年，魏武挥鞭，东临碣石有遗篇。\r\n"
 "萧瑟秋风今又是，换了人间。\r\n\0";
+
+
 
 
 #define CHINESE_POEM_DELAY 60
@@ -550,49 +553,7 @@ void drawCCFontChar(DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
 }
 
 
-//类似*lptest++;中，++的优先级高于*，导致错误发生
-void drawCCFontChar_new(DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
 
-	//DWORD * lpcolor = (DWORD*)param2;
-	//DWORD *idx = (DWORD*)param3;
-	//DWORD * timer = (DWORD*)param4;
-
-	int size = sizeof(g_cc_peoms) / sizeof(char*);
-
-	//for (int i = 0; i < size; i++) 
-	{
-		unsigned short* lpcc = (unsigned short*)g_cc_peoms[g_poem_num];
-
-		if (lpcc[g_cc_idx])
-		{
-			unsigned short unicode[2];
-			unicode[0] = lpcc[g_cc_idx];
-			unicode[1] = 0;
-			(g_cc_idx)++;
-			//__drawCCS((unsigned char*)unicode, g_cc_color);
-				
-			unsigned int pos = __getpos(g_poem_pos_x, g_poem_pos_y) ;
-			int resultpos = __drawCC((unsigned char*)unicode, g_cc_color, pos, TASKBARCOLOR);
-			g_poem_pos_y = resultpos / gBytesPerLine;
-			g_poem_pos_x = (resultpos % gBytesPerLine) / gBytesPerPixel;
-			
-			if (unicode[0] == 0 || unicode[0] == '\r' || unicode[0] == '\n') {
-				g_poem_pos_x = 0;
-				g_poem_pos_y = gWindowHeight - TASKBAR_HEIGHT;
-			}
-			
-		}
-		else {
-			g_cc_idx = 0;
-			g_poem_num++;
-			if (g_poem_num >= sizeof(g_cc_peoms) / sizeof(char*)) {
-				g_poem_num = 0;
-			}
-		}
-	}
-
-	//__kRemoveExactTimer(*timer);
-}
 
 
 int displayCCPoem() {
@@ -611,7 +572,7 @@ int displayCCPoem() {
 		__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
 
 		g_cc_timer = __kAddExactTimer((DWORD)drawCCFontChar, CHINESE_POEM_DELAY, 
-			(DWORD)&poem_cjhyy, (DWORD)&g_cc_color, (DWORD)&g_cc_idx, (DWORD)&g_cc_timer);
+			(DWORD)&poem_ljx, (DWORD)&g_cc_color, (DWORD)&g_cc_idx, (DWORD)&g_cc_timer);
 	}
 
 	return g_cc_timer;

@@ -127,6 +127,9 @@ void initTimer() {
 	initPeriodTimer();
 	initExactTimer();
 	init8254Timer();
+
+	outportb(0x70, 0x0c | 0x80);
+	inportb(0x71);
 }
 
 

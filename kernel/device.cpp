@@ -391,7 +391,10 @@ void getKeyboardID() {
 	//__printf(szout, "keyboardid:%x\r\n", gKeyboardID);
 }
 
-
+//编程RTC时，禁用NMI和其它中断是“极其必要的”。 这是因为如果发生中断，RTC可能会处于 “未定义” (不工作) 状态。
+//这通常不是什么大事，但是有两个问题： RTC从不由BIOS初始化，它由电池备份。 因此，即使是冷重启也可能不足以使RTC脱离未定义的状态!
+// 
+//frequency =  32768 >> (rate-1); 该设置必须是介于1到15之间的值
 /*
 0001 = 3.90625 ms
 0010 = 7.8125 ms
@@ -411,7 +414,7 @@ void getKeyboardID() {
 */
 void initCMOS() {
 
-	outportb(CMOS_NUM_PORT, 0X0A);
+	outportb(CMOS_NUM_PORT, 0X0A|0x80);
 	//delay();
 	//int v = inportb(CMOS_DATA_PORT);
 	//while ( (v & 0x80) == 0) 
@@ -419,11 +422,11 @@ void initCMOS() {
 	}
 	outportb(CMOS_DATA_PORT, 0X2A);
 
-	outportb(CMOS_NUM_PORT, 0X0B);
+	outportb(CMOS_NUM_PORT, 0X0B | 0x80);
 	//delay();
 	outportb(CMOS_DATA_PORT, 0X7A);
 
-	outportb(CMOS_NUM_PORT, 0X0D);
+	outportb(CMOS_NUM_PORT, 0X0D | 0x80);
 	outportb(CMOS_DATA_PORT, 0);
 }
 

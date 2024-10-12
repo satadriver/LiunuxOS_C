@@ -41,7 +41,7 @@
 
 #define EXPLORER_TASKNAME	"__kExplorer"
 
-
+#define ALARMER_SECOND_INTERVAL		60
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
@@ -91,7 +91,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	enableOverflow();
 
-	//__kAddAlarmTimer(60, (DWORD)__doAlarmTask, 0);
+	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
 
 	sysEntryProc();
 

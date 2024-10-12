@@ -310,10 +310,9 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	while (TRUE)
 	{
-		__printf(szout, "before __drawRectWindow\r\n");
+		//__printf(szout, "before __drawRectWindow\r\n");
 		ret = __drawRectWindow(&window.window.pos, window.window.width, window.window.height, window.window.color, 0);
-
-		__printf(szout, "after __drawRectWindow\r\n");
+		//__printf(szout, "after __drawRectWindow\r\n");
 
 		for (number = 0; number < fpagecnt; number++)
 		{
@@ -362,7 +361,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			if (asc)
 			{
 				// 				__printf(szout, "__getchar:%s", &asc);
-				if (asc == VK_NEXT || asc == VK_DOWN || asc == VK_RIGHT || asc == VK_END || asc == 's' || asc == 'd')
+				if (asc == VK_NEXT || asc == VK_DOWN || asc == VK_RIGHT || asc == VK_END )
 				{
 					//check if is last page
 					if ((number / rowlimit) < pagecnt)
@@ -381,7 +380,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						break;
 					}
 				}
-				else if (asc == VK_UP || asc == VK_PRIOR || asc == VK_LEFT || asc == VK_HOME || asc == 'w' || asc == 'a')
+				else if (asc == VK_UP || asc == VK_PRIOR || asc == VK_LEFT || asc == VK_HOME )
 				{
 					//check if first page
 					if ((number / rowlimit) > 0)
@@ -448,7 +447,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						}
 						ntfsprevs[ntfsseq] = files[targetno].secno;
 					}
-
 
 					//sub root dir has directory ".." but without cluster number in ".."
 					if (partitionType == 1 && __memcmp(files[targetno].pathname, "..", 2) == 0 && files[targetno].secno < g_FirstClusterNO)
