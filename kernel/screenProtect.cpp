@@ -24,8 +24,8 @@ int gCircleColor = 0xffffff;
 int gCircleCenterX = 0;
 int gCircleCenterY = 0;
 int gRadius = 64;
-int gDeltaX = 1;
-int gDeltaY = 1;
+int gDeltaX = 3;
+int gDeltaY = 3;
 
 int gScreenProtectWindowID = 0;
 
@@ -618,12 +618,12 @@ void stopTrajectory() {
 
 //F = 1/2 * ro * v*v * s * 1300*c
 double resist_air(double v, double radius) {
-	return abs(( v*v*0.47* __sqrt(radius) / 1300/2));
+	return abs(( v*v*0.67* __sqrt(radius) / 1226/2));
 }
 
 double resist_bounce(double v, double radius) {
 	double r = -v / 2;
-	
+#if 0	
 	if (r < -1) {
 		r = r + 1;
 	}
@@ -631,7 +631,7 @@ double resist_bounce(double v, double radius) {
 		r = r - 1;
 	}
 	else {
-		if (r > 0 && r <= 1) {
+		if (r >= 0 && r <= 1) {
 			if (r >= 0.15) {
 				r -= 0.15;
 			}
@@ -651,14 +651,14 @@ double resist_bounce(double v, double radius) {
 			r = 0;
 		}
 	}
-	
+#endif
 	return r;
 }
 
 
 double friction(double v, double radius) {
-	double r = abs(v / 8);
-	
+	double r = abs(v / 4);
+#if 0
 	if (r > 1) {
 		r--;
 	}
@@ -671,7 +671,7 @@ double friction(double v, double radius) {
 			r = 0;
 		}
 	}
-	
+#endif
 	
 	return r;
 }
@@ -747,22 +747,22 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	if (x + g_radius > gVideoWidth) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
-		x = (double)gVideoWidth - g_radius;
+		x = (double)gVideoWidth - g_radius -1;
 	}
 	if (y + g_radius > gVideoHeight) {
 
 		g_y_s = resist_bounce(g_y_s, g_radius);
-		y = (double)gVideoHeight - g_radius;
+		y = (double)gVideoHeight - g_radius ;
 	}
 	if (x - g_radius < 0) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
-		x =  g_radius;
+		x =  g_radius + 1;
 	}
 	if (y - g_radius < 0) {
 
 		g_y_s = resist_bounce(g_y_s, g_radius);
-		y =  g_radius;
+		y =  g_radius + 1;
 	}
 
 	if (x == g_centerX && y == g_centerY) {
@@ -855,7 +855,7 @@ void initTrajectory() {
 
 	g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT*4);
 
-	g_centerX = (double)g_radius + (__int64)TASKBAR_HEIGHT*2;
+	g_centerX = (double)g_radius + (__int64)TASKBAR_HEIGHT*4;
 
 	g_counter = 0;
 

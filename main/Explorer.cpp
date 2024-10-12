@@ -91,7 +91,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	enableOverflow();
 
-	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
+	//__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
 
 	sysEntryProc();
 
