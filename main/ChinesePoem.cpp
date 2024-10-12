@@ -142,7 +142,8 @@ unsigned char* poem_qyccs = (unsigned char*)
 unsigned char* poem_tjsqs = (unsigned char*)
 "《天净沙·秋思》\r\n"
 "元·马致远\r\n"
-"枯藤老树昏鸦，小桥流水人家，古道西风瘦马。夕阳西下，断肠人在天涯。\r\n\0";
+"枯藤老树昏鸦，小桥流水人家，古道西风瘦马。\r\n"
+"夕阳西下，断肠人在天涯。\r\n\0";
 
 unsigned char* poem_ljx = (unsigned char*)
 "《临江仙》\r\n"
@@ -320,6 +321,7 @@ void drawCCFontChar_new(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD p
 		if (unicode[0] == 0x0a0d || unicode[0] == 0x0d0a) {
 			//g_poem_pos_x = window->showX;
 			//g_poem_pos_y = window->showY;
+			__sleep(100);
 		}
 	}
 	else {
@@ -332,7 +334,7 @@ void drawCCFontChar_new(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD p
 		g_poem_pos_x = window->showX;
 		g_poem_pos_y = window->showY+GRAPH_CHINESECHAR_HEIGHT*4;
 
-		__sleep(2000);
+		__sleep(1000);
 
 		clsClientRect(window);
 	}
@@ -388,12 +390,24 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 
 	while (1)
 	{
-		unsigned int ck = __kGetKbd(window.id);
-		unsigned int asc = ck & 0xff;
-		if (asc == 0x1b)
+		unsigned int ck = __kGetKbd(window.id)&0xff;
+		if (ck == 0x1b)
 		{
 			__DestroyWindow(&window);
 			return 0;
+		}
+		else {
+			if (ck) {
+				while (1) {
+					ck = __kGetKbd(window.id) & 0xff;
+					if (ck) {
+						break;
+					}
+					else {
+						__sleep(0);
+					}
+				}
+			}
 		}
 
 		MOUSEINFO mouseinfo;
