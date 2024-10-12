@@ -185,7 +185,6 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	window->pid = proc->pid;
 
-
 	window->left = window->frameSize >> 1;
 	window->top = (window->frameSize >> 1) + window->capHeight;
 	window->right = gVideoWidth - (window->frameSize >> 1) - 1;

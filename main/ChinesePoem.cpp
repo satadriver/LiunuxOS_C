@@ -48,7 +48,7 @@ unsigned char* poem_xln = (unsigned char*)
 
 
 unsigned char* poem_nnjcbhg = (unsigned char*)
-"《念奴娇·赤壁怀古》 \r\n"
+"《念奴娇·赤壁怀古》\r\n"
 "北宋·苏轼\r\n"
 "大江东去，浪淘尽，千古风流人物。\r\n"
 "故垒西边，人道是，三国周郎赤壁。\r\n"
@@ -87,10 +87,12 @@ unsigned char* poem_mjhxh = (unsigned char*)
 "《满江红·写怀》\r\n"
 "南宋·岳飞\r\n"
 "怒发冲冠，凭栏处、潇潇雨歇。\r\n"
-"抬望眼、仰天长啸，壮怀激烈。三十功名尘与土，八千里路云和月。\r\n"
+"抬望眼、仰天长啸，壮怀激烈。\r\n"
+"三十功名尘与土，八千里路云和月。\r\n"
 "莫等闲、白了少年头，空悲切。\r\n"
 "靖康耻，犹未雪。臣子恨，何时灭。\r\n"
-"驾长车，踏破贺兰山缺。壮志饥餐胡虏肉，笑谈渴饮匈奴血。\r\n"
+"驾长车，踏破贺兰山缺。\r\n"
+"壮志饥餐胡虏肉，笑谈渴饮匈奴血。\r\n"
 "待从头、收拾旧山河，朝天阙。\r\n\0";
 
 unsigned char* poem_dgx = (unsigned char*)
@@ -155,8 +157,11 @@ unsigned char* poem_ljx = (unsigned char*)
 unsigned char* poem_ltsl = (unsigned char*)
 "《浪淘沙令》\r\n"
 "五代·李煜\r\n"
-"帘外雨潺潺，春意阑珊。罗衾不耐五更寒。梦里不知身是客，一晌贪欢。\r\n"
-"独自莫凭栏，无限江山，别时容易见时难。流水落花春去也，天上人间。\0";
+"帘外雨潺潺，春意阑珊。\r\n"
+"罗衾不耐五更寒。\r\n"
+"梦里不知身是客，一晌贪欢。\r\n"
+"独自莫凭栏，无限江山，别时容易见时难。\r\n"
+"流水落花春去也，天上人间。\0";
 
 
 unsigned char* poem_cjhyy = (unsigned char*)
@@ -237,8 +242,7 @@ unsigned char* poem_ltsbdh = (unsigned char*)
 #define CHINESE_POEM_DELAY 30
 
 
-unsigned char* g_cc_peoms[] = 
-{ poem_jjj,poem_xln, poem_nnjcbhg ,poem_gjtyqy ,poem_gldy ,poem_mjhxh,poem_dgx ,poem_gch ,poem_qyccs,poem_tjsqs,poem_ljx ,poem_ltsl,poem_cjhyy,poem_qycx ,poem_cyj ,poem_dkh ,poem_qthcx ,poem_yqelsg ,poem_ltsbdh };
+
 
 DWORD g_cc_color = 0;
 DWORD g_cc_idx = 0;
@@ -289,12 +293,14 @@ void drawCCFontChar(DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
 
 
 //类似*lptest++;中，++的优先级高于*，导致错误发生
-void drawCCFontChar_old(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD param4) {
-
-	int size = sizeof(g_cc_peoms) / sizeof(char*);
+void drawCCFontChar_new(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD param4) {
 
 	char szout[1024];
 	//__printf(szout,"g_poem_num:%d\r\n", g_poem_num);
+
+	unsigned char* g_cc_peoms[] =
+	{ poem_jjj,poem_xln, poem_nnjcbhg ,poem_gjtyqy ,poem_gldy ,poem_mjhxh,poem_dgx ,poem_gch ,poem_qyccs,
+	poem_tjsqs,poem_ljx ,poem_ltsl,poem_cjhyy,poem_qycx ,poem_cyj ,poem_dkh ,poem_qthcx ,poem_yqelsg ,poem_ltsbdh  };
 
 	unsigned short* lpcc = (unsigned short* )(g_cc_peoms[g_poem_num]);
 
@@ -307,7 +313,7 @@ void drawCCFontChar_old(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD p
 		//__drawCCS((unsigned char*)unicode, g_cc_color);
 
 		unsigned int pos = __getpos(g_poem_pos_x, g_poem_pos_y);
-		int resultpos = __drawCC((unsigned char*)unicode, g_cc_color, pos, TASKBARCOLOR);
+		int resultpos = __drawCC((unsigned char*)unicode, g_cc_color, pos, window->color,window);
 		g_poem_pos_y = resultpos / gBytesPerLine;
 		g_poem_pos_x = (resultpos % gBytesPerLine) / gBytesPerPixel;
 
@@ -323,30 +329,12 @@ void drawCCFontChar_old(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD p
 			g_poem_num = 0;
 		}
 
-		__sleep(3000);
-
 		g_poem_pos_x = window->showX;
-		g_poem_pos_y = window->showY;
+		g_poem_pos_y = window->showY+GRAPH_CHINESECHAR_HEIGHT*4;
 
-		int startpos = window->height * gBytesPerLine + window->width * gBytesPerPixel + gGraphBase;
-		unsigned char* ptr = (unsigned char*)startpos;
-		unsigned char* keep = ptr;
-		for (int i = 0; i < window->height; i++)
-		{
-			for (int j = 0; j < window->width; j++)
-			{
-				int c = window->color;
-				for (int k = 0; k < gBytesPerPixel; k++)
-				{
-					*ptr = c& 0xff;
-					ptr++;
-					c = c >> 8;
-				}
-			}
+		__sleep(2000);
 
-			keep += gBytesPerLine;
-			ptr = (unsigned char*)keep;
-		}
+		clsClientRect(window);
 	}
 }
 
@@ -390,13 +378,13 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 	int result = initCCFont();
 	if (result)
 	{
-		g_poem_num = 0;
-		g_cc_idx = 0;
-		g_poem_pos_x = window.showX;
-		g_poem_pos_y = window.showY;
-
-		__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
+		//__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
 	}
+
+	g_poem_num = 0;
+	g_cc_idx = 0;
+	g_poem_pos_x = window.showX;
+	g_poem_pos_y = window.showY+ GRAPH_CHINESECHAR_HEIGHT*4;
 
 	while (1)
 	{
@@ -425,7 +413,7 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 
 		__sleep(0);
 
-		drawCCFontChar_old(&window, 0, 0, 0);
+		drawCCFontChar_new(&window, 0, 0, 0);
 
 	}
 	return 0;

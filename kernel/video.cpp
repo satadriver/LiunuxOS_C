@@ -442,7 +442,27 @@ int __drawFileIconChars(FILEICON* filemap) {
 
 
 
+void clsClientRect(WINDOWCLASS * window) {
+	int startpos = window->showY * gBytesPerLine + window->showX * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+	for (int i = 0; i < window->height; i++)
+	{
+		for (int j = 0; j < window->width; j++)
+		{
+			int c = window->color;
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				*ptr = c & 0xff;
+				ptr++;
+				c = c >> 8;
+			}
+		}
 
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+}
 
 
 
@@ -609,7 +629,7 @@ unsigned short* getGBKCCIdx(unsigned short gbk) {
 }
 
 
-int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor) {
+int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor,WINDOWCLASS* w) {
 
 	int len = __strlen((char*)str);
 
@@ -624,7 +644,11 @@ int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor) {
 		if (chlow == '\n')
 		{
 			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
-			unsigned int nowpos = __getpos(0, posy + GRAPH_CHINESECHAR_HEIGHT);
+			int posx = (unsigned int)(( ((DWORD)showpos - gGraphBase) % gBytesPerLine)/gBytesPerPixel);
+			if (w) {
+				posx = w->showX;
+			}
+			unsigned int nowpos = __getpos(posx, posy + GRAPH_CHINESECHAR_HEIGHT);
 			if (nowpos >= gWindowSize)
 			{
 				nowpos = 0;
@@ -639,7 +663,11 @@ int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor) {
 		else if (chlow == '\r')
 		{
 			int posy = (unsigned int)(showpos - gGraphBase) / gBytesPerLine;
-			showpos = (unsigned char*)__getpos(0, posy) + gGraphBase;
+			int posx = 0;
+			if (w) {
+				posx = w->showX;
+			}
+			showpos = (unsigned char*)__getpos(posx, posy) + gGraphBase;
 			keepx = showpos;
 			keepy = showpos;
 			i++;
@@ -733,7 +761,7 @@ int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor) {
 
 int __drawCCS(unsigned char* font, int color) {
 	unsigned int pos = __getpos(gShowX, gShowY);
-	int resultpos = __drawCC(font, color, pos, BACKGROUND_COLOR);
+	int resultpos = __drawCC(font, color, pos, BACKGROUND_COLOR,0);
 
 	gShowY = resultpos / gBytesPerLine;
 

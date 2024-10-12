@@ -744,25 +744,37 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	double y = g_centerY - g_y_s;
 
-	if (x + g_radius > gVideoWidth) {
+	if (x + g_radius >= gVideoWidth) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
-		x = (double)gVideoWidth - g_radius -1;
+		x = (double)gVideoWidth - g_radius;
+		if (g_x_s > 0) {
+			g_x_s = -g_x_s;
+		}
 	}
-	if (y + g_radius > gVideoHeight) {
+	if (y + g_radius >= gVideoHeight) {
 
 		g_y_s = resist_bounce(g_y_s, g_radius);
 		y = (double)gVideoHeight - g_radius ;
+		if (g_y_s < 0) {
+			g_y_s = -g_y_s;
+		}
 	}
 	if (x - g_radius < 0) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
-		x =  g_radius + 1;
+		x =  g_radius ;
+		if (g_x_s < 0) {
+			g_x_s = -g_x_s;
+		}
 	}
 	if (y - g_radius < 0) {
 
 		g_y_s = resist_bounce(g_y_s, g_radius);
-		y =  g_radius + 1;
+		y =  g_radius ;
+		if (g_y_s > 0) {
+			g_y_s = -g_y_s;
+		}
 	}
 
 	if (x == g_centerX && y == g_centerY) {

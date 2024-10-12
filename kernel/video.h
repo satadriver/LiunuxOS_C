@@ -328,7 +328,7 @@ unsigned short* getGBKCCIdx(unsigned short gbk);
 
 
 #ifdef DLL_EXPORT
-extern "C"  __declspec(dllexport) int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor);
+extern "C"  __declspec(dllexport) int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor, WINDOWCLASS*);
 
 extern "C"  __declspec(dllexport) int __initVideo(LPVESAINFORMATION vesa,DWORD fontbase);
 
@@ -345,6 +345,8 @@ extern "C"  __declspec(dllexport) int __drawGraphChar( char * font, int color,un
 extern "C"  __declspec(dllexport) int __drawGraphChars( char * font, int color);
 
 extern "C"  __declspec(dllexport) int __backspaceChar();
+
+extern "C"  __declspec(dllexport) void clsClientRect(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllexport) int __getpos(int x, int y);
 
@@ -391,7 +393,7 @@ extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS* window);
 
 extern "C"  __declspec(dllexport) int __drawWindowChars( char* font, int color, WINDOWCLASS* window);
 #else
-extern "C"  __declspec(dllexport)int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor);
+extern "C"  __declspec(dllimport)int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor, WINDOWCLASS*);
 extern "C" __declspec(dllimport)  int __initVideo(LPVESAINFORMATION vesa, DWORD fontbase);
 
 extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window);
@@ -407,6 +409,8 @@ extern "C"  __declspec(dllimport) int __drawGraphChar( char * font, int color, u
 extern "C"  __declspec(dllimport) int __drawGraphChars( char * font, int color);
 
 extern "C"  __declspec(dllimport) int __backspaceChar();
+
+extern "C"  __declspec(dllimport) void clsClientRect(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllimport) int __getpos(int x, int y);
 
