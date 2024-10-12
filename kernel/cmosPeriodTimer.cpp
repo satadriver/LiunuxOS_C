@@ -12,7 +12,7 @@
 
 unsigned char readCmosPort(unsigned char port) {
 
-	outportb(0x70, port);
+	outportb(0x70, port|0x80);
 	return inportb(0x71);
 
 	__asm {
@@ -24,7 +24,7 @@ unsigned char readCmosPort(unsigned char port) {
 
 void writeCmosPort(unsigned char port, unsigned char value) {
 
-	outportb(0x70, port);
+	outportb(0x70, port|0x80);
 	outportb(0x71, value);
 	__asm {
 		//in al, 70h

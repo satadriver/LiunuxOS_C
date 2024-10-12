@@ -17,6 +17,8 @@
 
 #define SCREENPROTECT_BACKGROUND_COLOR 0		//0XBBFFFF		0X87CEEB
 
+//#define USE_CMOS_EXACT_TIMER
+
 
 int gCircleColor = 0xffffff;
 int gCircleCenterX = 0;
@@ -74,7 +76,7 @@ int initScreenProtect() {
 
 	gScreenProtectWindowID = addWindow(0, 0, 0, 0,"__screenProtect");
 
-	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL*2, 0, 0, 0, 0);
 	
 	return TRUE;
 }
@@ -259,15 +261,15 @@ void initVectorGraph() {
 
 	gVectorGraphBuf = (char*)__kMalloc(backsize);
 
-	gVectorGraphWid = addWindow(FALSE, 0, 0, 0, "VectorGraph");
-
 	POINT p;
 	p.x = 0;
 	p.y = 0;
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
 
-	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+	gVectorGraphWid = addWindow(FALSE, 0, 0, 0, "VectorGraph");
+
+	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL*2, 0, 0, 0, 0);
 
 	gBaseColor = 0;
 }
@@ -587,13 +589,17 @@ double g_centerY = 0;
 int g_circle_color = 0xffffff;
 int g_radius = 32;
 int g_counter = 0;
+int g_frame_delay = 0;
 
 
 
 void stopTrajectory() {
 	int ret = 0;
-
+#ifdef USE_CMOS_EXACT_TIMER
 	__kRemoveExactTimer(gTrajectTid);
+#else
+	__kRemove8254Timer(gTrajectTid);
+#endif
 
 	removeWindow(gTrajectWid);
 
@@ -616,28 +622,57 @@ double resist_air(double v, double radius) {
 }
 
 double resist_bounce(double v, double radius) {
-	double t = -v / 2;
-	if (t < -1) {
-		t = t + 1;
+	double r = -v / 2;
+	
+	if (r < -1) {
+		r = r + 1;
 	}
-	else if (t > 1) {
-		t = t - 1;
+	else if (r > 1) {
+		r = r - 1;
 	}
 	else {
-		t = t / 2;
+		if (r > 0 && r <= 1) {
+			if (r >= 0.15) {
+				r -= 0.15;
+			}
+			else {
+				r = 0;
+			}
+		}
+		else if (r < 0 && r >= -1) {
+			if (r <= -0.15) {
+				r += 0.15;
+			}
+			else {
+				r = 0;
+			}
+		}
+		else {
+			r = 0;
+		}
 	}
-	return t;
+	
+	return r;
 }
 
 
 double friction(double v, double radius) {
 	double r = abs(v / 8);
+	
 	if (r > 1) {
 		r--;
 	}
 	else {
 		r = r/2;
+		if (r > 0.15) {
+			r -= 0.15;
+		}
+		else {
+			r = 0;
+		}
 	}
+	
+	
 	return r;
 }
 
@@ -664,13 +699,13 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		return;
 	}
 
-	double dx = resist_air(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
+	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000;
 	if ( abs(g_centerY - ( (ULONGLONG)gVideoHeight - (ULONGLONG)g_radius)) < 1) {
-		dx += friction(g_x_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
+		dx += friction(g_x_s, g_radius) * g_frame_delay / 1000;
 	}
 	
-	double gy = GRAVITY_ACC * CMOS_EXACT_INTERVAL / 1000;
-	double ry = resist_air(g_y_s, g_radius) * CMOS_EXACT_INTERVAL / 1000;
+	double gy = GRAVITY_ACC * g_frame_delay / 1000;
+	double ry = resist_air(g_y_s, g_radius) * g_frame_delay / 1000;
 	if (g_y_s > 0) 
 	{
 		g_y_s = g_y_s - gy - ry;
@@ -746,13 +781,13 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	if ( abs(g_y_s) <= 0.5 && abs(g_x_s) <= 0.5 && ( abs(y - max_y) < 0.1 ||
 		abs(g_centerY - max_y) < 0.1) ) {
 		g_counter++;
-		if (g_counter >= 256) {
+		if (g_counter > 3000/ g_frame_delay) {
 			g_counter = 0;
 			ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
 
 			double velocity = (double)(__random(0) % 6000) + 200;
 
-			velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
+			velocity = velocity * g_frame_delay / 1000;
 
 			double angle = __random(0) % ANGLE_DIVISION;
 			angle = PI / (angle + 1);
@@ -771,7 +806,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 
-	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)            ", g_centerX, g_centerY, g_x_s, g_y_s);
+	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)        ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) ;
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 
@@ -797,12 +832,17 @@ void initTrajectory() {
 	p.y = 0;
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gTrajectBuf);
-
-	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, CMOS_EXACT_INTERVAL, 0, 0, 0, 0);
+#ifdef USE_CMOS_EXACT_TIMER
+	g_frame_delay = CMOS_EXACT_INTERVAL*2 ;
+	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
+#else
+	g_frame_delay = CMOS_EXACT_INTERVAL *2 ;
+	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
+#endif
 
 	double velocity = (double)(__random(0) % 6000 )+ 200;
 
-	velocity = velocity * CMOS_EXACT_INTERVAL / 1000;
+	velocity = velocity * g_frame_delay / 1000;
 
 	double angle = __random(0) % ANGLE_DIVISION;
 	angle = PI/2/(angle+1);
@@ -813,9 +853,9 @@ void initTrajectory() {
 	g_x_s = cos(angle) * velocity ;
 	g_y_s = sin(angle) * velocity ;
 
-	g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT*2);
+	g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT*4);
 
-	g_centerX = (double)g_radius + TASKBAR_HEIGHT;
+	g_centerX = (double)g_radius + (__int64)TASKBAR_HEIGHT*2;
 
 	g_counter = 0;
 
