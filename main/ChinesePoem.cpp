@@ -318,6 +318,8 @@ void drawCCFontChar_new(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD p
 		g_poem_pos_y = resultpos / gBytesPerLine;
 		g_poem_pos_x = (resultpos % gBytesPerLine) / gBytesPerPixel;
 
+		g_cc_color += 3;
+
 		if (unicode[0] == 0x0a0d || unicode[0] == 0x0d0a) {
 			//g_poem_pos_x = window->showX;
 			//g_poem_pos_y = window->showY;
@@ -383,6 +385,7 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 		//__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
 	}
 
+	g_cc_color = 0;
 	g_poem_num = 0;
 	g_cc_idx = 0;
 	g_poem_pos_x = window.showX;

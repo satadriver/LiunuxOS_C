@@ -114,8 +114,7 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 
 	unsigned int asc = __kGetKbd(gScreenProtectWindowID) & 0xff;
 	//unsigned int asc = __getchar(gScreenProtectWindowID);
-	if(asc)
-	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
+	if (asc == 0x1b )
 	{
 		stopScreenProtect();
 		return;
@@ -128,8 +127,8 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1,int p2,int p3,int 
 	__kGetMouse(&mouseinfo, gScreenProtectWindowID);
 	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)	
 	{
-		stopScreenProtect();
-		return;
+		//stopScreenProtect();
+		//return;
 	}
 	
 	int ret = 0;
@@ -208,7 +207,7 @@ void stopVectorGraph() {
 void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	unsigned int asc = __kGetKbd(gVectorGraphWid) & 0xff;
-	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
+	if (asc == 0x1b )
 	{
 		stopVectorGraph();
 		return;
@@ -221,8 +220,8 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	__kGetMouse(&mouseinfo, gVectorGraphWid);
 	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)
 	{
-		stopVectorGraph();
-		return;
+		//stopVectorGraph();
+		//return;
 	}
 
 	int cx = gVideoWidth / 2;
@@ -685,7 +684,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	char szout[1024];
 
 	unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
-	if (asc == 0x1b || asc == 0x0a || asc == 0x0d)
+	if (asc == 0x1b )
 	{
 		stopTrajectory();
 		return;
@@ -698,8 +697,8 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	__kGetMouse(&mouseinfo, gTrajectWid);
 	if (mouseinfo.status || mouseinfo.x || mouseinfo.y)
 	{
-		stopTrajectory();
-		return;
+		//stopTrajectory();
+		//return;
 	}
 
 	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000;
