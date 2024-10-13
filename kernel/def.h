@@ -43,7 +43,7 @@
 #define MAIN_DLL_MODULE_NAME	"main.dll"
 #define KERNEL_DLL_MODULE_NAME	"kernel.dll"
 
-//#define SINGLE_TASK_TSS
+#define SINGLE_TASK_TSS
 
 #define DISABLE_PAGE_MAPPING
 

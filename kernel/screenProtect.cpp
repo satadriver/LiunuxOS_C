@@ -499,6 +499,9 @@ void SnowScreenShow() {
 
 				int color = 0xffffff;
 				__int64 v = __krdtsc();
+				if (v == 0) {
+					v = __random(0);
+				}
 				if (v & 1) {
 					color = 0;
 				}

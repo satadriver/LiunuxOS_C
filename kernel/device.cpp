@@ -226,7 +226,7 @@ void enableSpeaker() {
 #define TIMER2_DIVIDE_FREQ  1193
 
 //d6 d7 select timer, 00 = 40h, 01 = 41h, 02 = 42h
-//d4 d5 mode :11 read read / write low byte first, than read / write high byte
+//d4 d5 mode :11 read read / write low byte first, than read / write high byte.00 lock value
 //d1 d2 d3 select work mode
 //d0 bcd or binary, 0 = binary, 1 = bcd
 void init8254() {
@@ -317,8 +317,12 @@ void waitInterval0(unsigned short cnt) {
 unsigned short getTimer0Counter() {
 
 	__asm {
+		mov al, 0x6
+		out 43h, al
+
 		mov al, 0x36
 		out 43h, al
+
 		in al, 40h
 		mov ah, al
 		in al, 40h
@@ -337,8 +341,10 @@ int delay() {
 }
 
 unsigned short getTimerCounter(int num) {
+	int cmd = (num << 6) + 0x6;
+	outportb(TIMER_COMMAND_REG, cmd);
 
-	int cmd = (num << 6) + 0x36;
+	cmd = (num << 6) + 0x36;
 	outportb(TIMER_COMMAND_REG, cmd);
 	unsigned short low = inportb(0x40 + num);
 	unsigned short high = inportb(0x40 + num);

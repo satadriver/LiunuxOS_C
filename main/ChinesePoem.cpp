@@ -423,6 +423,17 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 					return 0;
 				}
 			}
+
+			while (1) {
+				__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+				retvalue = __kGetMouse(&mouseinfo, window.id);
+				if (mouseinfo.status & 1){
+					break;
+				}
+				else {
+					__sleep(0);
+				}
+			}
 		}
 
 		__sleep(0);
