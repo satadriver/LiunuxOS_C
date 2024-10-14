@@ -398,7 +398,7 @@ void SpiralVectorGraph() {
 		int cx = gVideoWidth / 2;
 		int cy = gVideoHeight / 2;
 
-		theta += 0.1;
+		theta += 1;
 
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
@@ -636,14 +636,16 @@ int gTrajectTid = 0;
 
 double g_x_s = 0;
 double g_y_s = 0;
-double GRAVITY_ACC = 9.8;
+double GRAVITY_ACC = 9.80;
 double g_centerX = 0;
 double g_centerY = 0;
+double g_radius = 24.0;
 
-int g_circle_color = 0xffffff;
-int g_radius = 24;
+double g_frame_delay = 0;
+
 int g_counter = 0;
-int g_frame_delay = 0;
+int g_circle_color = 0xffffff;
+
 
 
 
@@ -672,11 +674,11 @@ void stopTrajectory() {
 
 //F = 1/2 * ro * v*v * s * 1300*c
 double resist_air(double v, double radius) {
-	return abs(( v*v*0.67* __sqrt(radius) / 1226/2));
+	return abs(( v*v*0.67* __sqrt(radius) / 1226.0/2.0));
 }
 
 double resist_bounce(double v, double radius) {
-	double r = -v / 2;
+	double r = -v / 2.0;
 #if 1
 	if (r < -1) {
 		r = r + 1;
@@ -711,7 +713,7 @@ double resist_bounce(double v, double radius) {
 
 
 double friction(double v, double radius) {
-	double r = abs(v / 4);
+	double r = abs(v / 4.0);
 #if 1
 	if (r > 1) {
 		r--;
@@ -753,13 +755,13 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		//return;
 	}
 
-	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000;
+	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000.0;
 	if ( abs(g_centerY - ( (ULONGLONG)gVideoHeight - (ULONGLONG)g_radius)) < 1) {
-		dx += friction(g_x_s, g_radius) * g_frame_delay / 1000;
+		dx += friction(g_x_s, g_radius) * g_frame_delay / 1000.0;
 	}
 	
-	double gy = GRAVITY_ACC * g_frame_delay / 1000;
-	double ry = resist_air(g_y_s, g_radius) * g_frame_delay / 1000;
+	double gy = GRAVITY_ACC * g_frame_delay / 1000.0;
+	double ry = resist_air(g_y_s, g_radius) * g_frame_delay / 1000.0;
 	if (g_y_s > 0) 
 	{
 		g_y_s = g_y_s - gy - ry;
@@ -776,7 +778,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 
-	int max_y = gVideoHeight - g_radius;
+	int max_y = (double)gVideoHeight - g_radius;
 	if (abs(g_y_s) < 0.1 ) {
 		//g_y_s = 0;
 	}
@@ -837,26 +839,32 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 	else {
-		ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
 
-		g_centerX = x;
-		g_centerY = y;
-
-		ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 	}
+
+	ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (unsigned char*)g_circle_buf);
+	g_centerX = x;
+	g_centerY = y;
+	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 
 	
 	if ( abs(g_y_s) <= 0.5 && abs(g_x_s) <= 0.5 && ( abs(y - max_y) < 0.1 || abs(g_centerY - max_y) < 0.1) ) {
 		g_counter++;
-		if (g_counter > 3000/ g_frame_delay) {
+		if (g_counter > 3000.0 / g_frame_delay) {
 			g_counter = 0;
-			ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
+			ret = __restoreCircle((int)g_centerX, (int)g_centerY,(int) g_radius, (unsigned char*)g_circle_buf);
 
-			double max_speed = (1000 / g_frame_delay) * GRAVITY_ACC * 10;
+			double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;
 
-			double velocity = (double)(__random(0) % (int)max_speed) + (1000 / (double)g_frame_delay)*10;
+			__int64 ims = (__int64)max_speed;
+			if (ims == 0) {
+				__printf(szout, "max speed:%x,%lf\r\n", ims, max_speed);
+				ims = 3000;
+			}
 
-			velocity = velocity * g_frame_delay / 1000;
+			double velocity = (double)(__random(0) % (int)ims) + (1000.0 / (double)g_frame_delay)*10.0;
+
+			velocity = velocity * g_frame_delay / 1000.0;
 
 			double angle = __random(0) % ANGLE_DIVISION;
 			angle = PI / (angle + 1);
@@ -868,7 +876,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 			//g_centerX = (double)g_radius + TASKBAR_HEIGHT;
 
-			ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+			ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 		}
 	}
 	else {
@@ -892,7 +900,7 @@ void initTrajectory() {
 
 	gTrajectBuf = (char*)__kMalloc(backsize);
 
-	g_circle_buf = (char*)__kMalloc( g_radius * 2 * 2 * g_radius * gBytesPerPixel);
+	g_circle_buf = (char*)__kMalloc((int)(g_radius+4) * 2 * 2 * (int)(g_radius+4) * gBytesPerPixel);
 
 	gTrajectWid = addWindow(FALSE, 0, 0, 0, "Trajectory");
 
@@ -905,15 +913,21 @@ void initTrajectory() {
 	g_frame_delay = CMOS_EXACT_INTERVAL*2 ;
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
 #else
-	g_frame_delay = CMOS_EXACT_INTERVAL *2 ;
+	g_frame_delay = (double)CMOS_EXACT_INTERVAL *2 ;
 	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
 #endif
 
-	double max_speed = (1000 / g_frame_delay) * GRAVITY_ACC * 10;
+	double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;
 
-	double velocity = (double)(__random(0) % (int)max_speed) + (double)(1000 / (double)g_frame_delay) * 10;
+	__int64 ims = (__int64)max_speed;
+	if (ims == 0) {
+		__printf(szout, "max speed:%x,%lf\r\n", ims,max_speed);
+		ims = 3000;
+	}
 
-	velocity = velocity * g_frame_delay / 1000;
+	double velocity = (double)(__random(0) % (int)ims) + ((double)1000.0 / (double)g_frame_delay) * 10.0;
+
+	velocity = velocity * g_frame_delay / 1000.0;
 
 	double angle = __random(0) % ANGLE_DIVISION;
 	angle = PI/(angle+1);
@@ -930,7 +944,7 @@ void initTrajectory() {
 
 	g_counter = 0;
 
-	ret = __drawCircle((int)g_centerX, (int)g_centerY, g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, g_circle_color, (unsigned char*)g_circle_buf);
 
 	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 + TASKBAR_HEIGHT, gVideoHeight - TASKBAR_HEIGHT) ;

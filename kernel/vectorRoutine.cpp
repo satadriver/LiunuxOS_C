@@ -57,6 +57,8 @@ __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
 		pop ds
 		popad
 
+//caution here!!!!!
+
 		iretd
 	}
 

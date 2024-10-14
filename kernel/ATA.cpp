@@ -302,6 +302,8 @@ int waitComplete(WORD port) {
 	//waitInterval(0);
 	//delay();
 
+	int errcnt = 0;
+
 	int r = 0;
 	//r = inportb(port - 6);
 	//if (r == 0) 
@@ -320,7 +322,9 @@ int waitComplete(WORD port) {
 			else {		
 				if ( (r & 0x80) == 0) 
 				{
-					__printf(szout, "waitComplete:%x,port:%x\r\n",r,port);
+					if ((errcnt++) < 3) {
+						__printf(szout, "waitComplete:%x,port:%x\r\n", r, port);
+					}
 				}
 				//delay();
 				__sleep(0);
