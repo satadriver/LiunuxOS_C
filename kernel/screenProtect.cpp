@@ -275,7 +275,7 @@ void initVectorGraph() {
 
 
 
-void refreshScreenColor() {
+void EllipseScreenColor() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -290,7 +290,7 @@ void refreshScreenColor() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "refreshScreen");
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "EllipseScreenColor");
 
 	int A = 13;
 	int B = 7;
@@ -343,7 +343,90 @@ void refreshScreenColor() {
 
 
 
-void vectorGraphTest() {
+void SpiralVectorGraph() {
+	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
+
+	DWORD backGround = __kMalloc(backsize);
+
+	POINT p;
+	p.x = 0;
+	p.y = 0;
+
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0, (unsigned char*)backGround);
+
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "SpiralVectorGraph");
+
+	//__diamond(cx, cy, 64, 5, 0xffffffff);
+
+	int color = 0xff0000;
+	for (int y = 0; y < gVideoHeight; y++) {
+		for (int x = 0; x < gVideoWidth; x++) {
+				
+			int c = color --;
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+			for (int k = 0; k < gBytesPerPixel; k++) {
+				*ptr = c & 0xff;
+				c = c >> 8;
+				ptr++;
+			}
+		}
+	}
+	
+	double A = 5.0;
+	double B = 11.0;
+
+	double theta = 0;
+
+	while (1)
+	{
+		unsigned int ck = __kGetKbd(windowid);
+		//unsigned int ck = __getchar(windowid);
+		unsigned int asc = ck & 0xff;
+		if (asc == 0x1b)
+		{
+			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
+			removeWindow(windowid);
+
+			__kFree(backGround);
+
+			//__terminatePid(pid);
+			return;
+		}
+
+		__sleep(0);
+
+		int cx = gVideoWidth / 2;
+		int cy = gVideoHeight / 2;
+
+		theta += 0.1;
+
+		for (int y = 0; y < gVideoHeight; y++) {
+			for (int x = 0; x < gVideoWidth; x++) {
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				int px = (int)((A + B * theta) * cos(theta));
+				int py = (int)((A + B * theta) * sin(theta));
+				unsigned char* p = (unsigned char*)__getpos(px, py) + gGraphBase;
+
+				if (px >= 0 && px < gVideoWidth && py >= 0 && py < gVideoHeight) {
+					
+					for (int k = 0; k < gBytesPerPixel; k++) {
+						p[k] = ptr[k];
+						//ptr[k] = 0;
+					}
+				}
+				else {
+
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
+void CubeVectorGraph() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -356,7 +439,7 @@ void vectorGraphTest() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "vectorGraphTest");
+	DWORD windowid = addWindow(FALSE, 0, 0, 0, "CubeVectorGraph");
 
 	/*
 	int cx = gVideoWidth / 2;
@@ -378,9 +461,6 @@ void vectorGraphTest() {
 
 	//__diamond(cx, cy, 64, 5, 0xffffffff);
 
-	//int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
-	//int ret = __drawCircle(cx, cy, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
-
 	while (1)
 	{
 		unsigned int ck = __kGetKbd(windowid);
@@ -399,35 +479,6 @@ void vectorGraphTest() {
 
 		__sleep(0);
 
-		/*
-		int A = 3;
-		int B = 7;
-		
-		double theta = 0;
-
-		for (int y = 0; y < gVideoHeight; y++) {
-			for (int x = 0; x < gVideoWidth; x++) {
-				int xn = (A + B * theta) * cos(theta);
-				int yn = (A + B * theta) * sin(theta);
-				unsigned char* p = (unsigned char*)__getpos(x, y) + gGraphBase;
-				if (xn >= 0 && xn < gVideoWidth && yn >= 0 && yn < gVideoHeight) {
-					unsigned char* pn = (unsigned char*)__getpos(xn, yn) + gGraphBase;
-
-					for (int k = 0; k < gBytesPerPixel; k++) {
-
-						unsigned char t = *p;
-						*p = *pn;
-						*pn = t;
-
-						p++;
-						pn++;
-					}
-				}
-			}
-		}
-		theta += 0.1;
-		*/
-
 		int cx = gVideoWidth / 2;
 		int cy = gVideoHeight / 2;
 
@@ -442,7 +493,6 @@ void vectorGraphTest() {
 
 #elif defined VECTOR_GRAPH_VIDEO_2
 				DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy)) - color * color;
-
 #else
 
 #endif
@@ -455,9 +505,11 @@ void vectorGraphTest() {
 			}
 		}
 
-		color = (color + 1)%0x100000;
+		color = (color + 1) % 0x100000;
 	}
 }
+
+
 
 
 
@@ -589,7 +641,7 @@ double g_centerX = 0;
 double g_centerY = 0;
 
 int g_circle_color = 0xffffff;
-int g_radius = 32;
+int g_radius = 24;
 int g_counter = 0;
 int g_frame_delay = 0;
 
@@ -625,7 +677,7 @@ double resist_air(double v, double radius) {
 
 double resist_bounce(double v, double radius) {
 	double r = -v / 2;
-#if 0	
+#if 1
 	if (r < -1) {
 		r = r + 1;
 	}
@@ -660,7 +712,7 @@ double resist_bounce(double v, double radius) {
 
 double friction(double v, double radius) {
 	double r = abs(v / 4);
-#if 0
+#if 1
 	if (r > 1) {
 		r--;
 	}
@@ -749,7 +801,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	if (x + g_radius >= gVideoWidth) {
 
 		g_x_s = resist_bounce(g_x_s, g_radius);
-		x = (double)gVideoWidth - g_radius;
+		x = (double)gVideoWidth - g_radius ;
 		if (g_x_s > 0) {
 			g_x_s = -g_x_s;
 		}
@@ -780,7 +832,8 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 
-	if (x == g_centerX && y == g_centerY) {
+	if (x == g_centerX && y == g_centerY) 
+	{
 
 	}
 	else {
@@ -793,14 +846,15 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 
 	
-	if ( abs(g_y_s) <= 0.5 && abs(g_x_s) <= 0.5 && ( abs(y - max_y) < 0.1 ||
-		abs(g_centerY - max_y) < 0.1) ) {
+	if ( abs(g_y_s) <= 0.5 && abs(g_x_s) <= 0.5 && ( abs(y - max_y) < 0.1 || abs(g_centerY - max_y) < 0.1) ) {
 		g_counter++;
 		if (g_counter > 3000/ g_frame_delay) {
 			g_counter = 0;
 			ret = __restoreCircle((int)g_centerX, (int)g_centerY, g_radius, (unsigned char*)g_circle_buf);
 
-			double velocity = (double)(__random(0) % 6000) + 200;
+			double max_speed = (1000 / g_frame_delay) * GRAVITY_ACC * 10;
+
+			double velocity = (double)(__random(0) % (int)max_speed) + (1000 / (double)g_frame_delay)*10;
 
 			velocity = velocity * g_frame_delay / 1000;
 
@@ -855,12 +909,14 @@ void initTrajectory() {
 	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
 #endif
 
-	double velocity = (double)(__random(0) % 6000 )+ 200;
+	double max_speed = (1000 / g_frame_delay) * GRAVITY_ACC * 10;
+
+	double velocity = (double)(__random(0) % (int)max_speed) + (double)(1000 / (double)g_frame_delay) * 10;
 
 	velocity = velocity * g_frame_delay / 1000;
 
 	double angle = __random(0) % ANGLE_DIVISION;
-	angle = PI/2/(angle+1);
+	angle = PI/(angle+1);
 
 	//g_x_s = GetCos(angle) * velocity / 256;
 	//g_y_s = GetSin(angle) * velocity/256;
@@ -870,7 +926,7 @@ void initTrajectory() {
 
 	g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT*4);
 
-	g_centerX = (double)g_radius + (__int64)TASKBAR_HEIGHT*4;
+	g_centerX = (double)g_radius + (__int64)gVideoWidth/4;
 
 	g_counter = 0;
 

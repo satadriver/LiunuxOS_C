@@ -227,11 +227,11 @@ void enableSpeaker() {
 
 //d6 d7 select timer, 00 = 40h, 01 = 41h, 02 = 42h
 //d4 d5 mode :11 read read / write low byte first, than read / write high byte.00 lock value
-//d1 d2 d3 select work mode
+//d1 d2 d3 select work mode,mode 2 or mode 3 is repeat periodic circle timer,others is not periodic circle
 //d0 bcd or binary, 0 = binary, 1 = bcd
 void init8254() {
 
-	outportb(TIMER_COMMAND_REG, 0X36);
+	outportb(TIMER_COMMAND_REG, 0X36);	//36 or 34 is periodic
 	outportb(0x40, SYSTEM_TIMER0_FACTOR & 0xff);
 	outportb(0x40, (SYSTEM_TIMER0_FACTOR >> 8)&0xff);
 

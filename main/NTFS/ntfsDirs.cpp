@@ -24,7 +24,7 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 	if (__memcmp(buf, "INDX", 4))
 	{
 		__printf(szout,( char*)"getIdxNextDir format error\n");
-		return cnt;
+		//return cnt;
 	}
 
 	LPSTD_INDEX_HEADER hdr = (LPSTD_INDEX_HEADER)buf;

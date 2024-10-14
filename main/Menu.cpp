@@ -193,29 +193,31 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	__strcpy(menu->menuname[2], "Screen Protect");
 	__strcpy(menu->menuname[3], "cmd");
 	__strcpy(menu->menuname[4], "Paint");
-	__strcpy(menu->menuname[5], "Screen Color");
+	__strcpy(menu->menuname[5], "Ellipse Color");
 	__strcpy(menu->menuname[6], "Reject CDROM");
 	__strcpy(menu->menuname[7], "Vector Graph");
 	__strcpy(menu->menuname[8], "Trajectory Ball");
-	__strcpy(menu->menuname[9], "VectorGraphTest");
+	__strcpy(menu->menuname[9], "Cube Graph");
 	__strcpy(menu->menuname[10], "Chinese Poem");
-	__strcpy(menu->menuname[11], "SnowScreenShow");
-	menu->menuname[12][0] = 0;
+	__strcpy(menu->menuname[11], "SnowScreen");
+	__strcpy(menu->menuname[12], "SpiralVectorGraph");
+	menu->menuname[13][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
 	menu->funcaddr[2] = (DWORD)initScreenProtect;
 	menu->funcaddr[3] = (DWORD)__kConsole;
 	menu->funcaddr[4] = (DWORD)__kPaint;
-	menu->funcaddr[5] = (DWORD)refreshScreenColor;
+	menu->funcaddr[5] = (DWORD)EllipseScreenColor;
 	menu->funcaddr[6] = (DWORD)rejectCDROM;
 	menu->funcaddr[7] = (DWORD)initVectorGraph;
 	menu->funcaddr[8] = (DWORD)initTrajectory;
-	menu->funcaddr[9] = (DWORD)vectorGraphTest;
+	menu->funcaddr[9] = (DWORD)CubeVectorGraph;
 	menu->funcaddr[10] = (DWORD)__kChinesePoem;
 	menu->funcaddr[11] = (DWORD)SnowScreenShow;
+	menu->funcaddr[12] = (DWORD)SpiralVectorGraph;
 	
-	menu->validItem = 12;
+	menu->validItem = 13;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
@@ -229,6 +231,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->paramcnt[9] = 0;
 	menu->paramcnt[10] = 5;
 	menu->paramcnt[11] = 0;
+	menu->paramcnt[12] = 0;
 
 	menu->funcparams[3][4] = 0;
 	menu->funcparams[3][3] = (DWORD)"__kConsole";
