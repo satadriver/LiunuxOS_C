@@ -679,25 +679,25 @@ double resist_air(double v, double radius) {
 
 double resist_bounce(double v, double radius) {
 	double r = -v / 2.0;
-#if 1
+#if 0
 	if (r < -1) {
-		r = r + 1;
+		r = r - 1;
 	}
 	else if (r > 1) {
-		r = r - 1;
+		r = r + 1;
 	}
 	else {
 		if (r >= 0 && r <= 1) {
-			if (r >= 0.15) {
-				r -= 0.15;
+			if (r >= 0.5) {
+				r += 0.5;
 			}
 			else {
 				r = 0;
 			}
 		}
 		else if (r < 0 && r >= -1) {
-			if (r <= -0.15) {
-				r += 0.15;
+			if (r <= -0.5) {
+				r -= 0.5;
 			}
 			else {
 				r = 0;
@@ -714,14 +714,14 @@ double resist_bounce(double v, double radius) {
 
 double friction(double v, double radius) {
 	double r = abs(v / 4.0);
-#if 1
+#if 0
 	if (r > 1) {
-		r--;
+		r++;
 	}
 	else {
-		r = r/2;
-		if (r > 0.15) {
-			r -= 0.15;
+		r = r*2;
+		if (r > 0.5) {
+			r += 0.5;
 		}
 		else {
 			r = 0;
@@ -910,11 +910,11 @@ void initTrajectory() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gTrajectBuf);
 #ifdef USE_CMOS_EXACT_TIMER
-	g_frame_delay = CMOS_EXACT_INTERVAL*2 ;
-	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
+	g_frame_delay = (double)CMOS_EXACT_INTERVAL*2.0 ;
+	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
-	g_frame_delay = (double)CMOS_EXACT_INTERVAL *2 ;
-	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryProc, g_frame_delay, 0, 0, 0, 0);
+	g_frame_delay = (double)CMOS_EXACT_INTERVAL *2.0 ;
+	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 
 	double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;

@@ -112,7 +112,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
 	//readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 4);
-	__dump((char*)FLOPPY_DMA_BUFFER, 16, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
 	__drawGraphChars(( char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
