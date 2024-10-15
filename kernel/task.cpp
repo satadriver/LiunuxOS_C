@@ -722,8 +722,8 @@ int __initTask() {
 	process0->espbase = KERNEL_TASK_STACK_TOP;
 	process0->level = 0;
 	process0->counter = 0;
-	process0->vaddr = KERNEL_DLL_BASE;
-	process0->vasize = 0;
+	process0->vaddr = 0;
+	process0->vasize = MEMMORY_ALLOC_BASE;
 	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
 	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
 
