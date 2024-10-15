@@ -343,7 +343,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 	}
 
 	if (res ) {
-#if 1
+#if 0
 		if (vaddr == 0) {
 			vaddr = res;
 		}
