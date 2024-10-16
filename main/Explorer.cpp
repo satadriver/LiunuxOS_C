@@ -117,9 +117,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 
-	//__drawLine(100, 100, 200, 200, 0);
-
-	//__diamond(400, 400, 200, 7, 0);
+	__diamond(400, 400, 200, 7, 0);
 
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));

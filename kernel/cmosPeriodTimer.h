@@ -23,10 +23,11 @@ typedef struct
 
 #ifdef DLL_EXPORT
 
-
+extern "C"  __declspec(dllexport) char* dayOfWeek2str(int dw);
 extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime);
 extern "C"  __declspec(dllexport) int __getDateTimeStr(void* str);
 #else
+extern "C"  __declspec(dllimport) char* dayOfWeek2str(int dw);
 extern "C"  __declspec(dllimport) int __getDateTime(LPDATETIME datetime);
 extern "C"  __declspec(dllimport) int __getDateTimeStr(void* str);
 #endif
@@ -38,7 +39,7 @@ unsigned char readCmosPort(unsigned char port);
 
 void writeCmosPort(unsigned char port, unsigned char value);
 
-char * dayOfWeek2str(int dw);
+
 
 unsigned short bcd2asc(char bcd);
 

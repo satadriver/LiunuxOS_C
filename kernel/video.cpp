@@ -793,11 +793,12 @@ int __drawGraphCharInt(char* font, int color, int pos, int bgcolor) {
 
 
 
-int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
+int __restoreCircle(int x, int y, int radius,int radius2, unsigned char* backup) {
 
 	//__kRestoreMouse();
 
 	int squreRadius = radius * radius;
+	int squreRadius2 = radius2 * radius2;
 
 	int pixelcnt = 0;
 
@@ -828,7 +829,7 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 		{
 			int deltaX2 = (j - x) * (j - x);
 			int deltaY2 = (i - y) * (i - y);
-			if (deltaY2 + deltaX2 <= squreRadius)
+			if((deltaY2 + deltaX2 <= squreRadius) && (deltaX2 + deltaY2 >= squreRadius2))
 			{
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
@@ -854,11 +855,13 @@ int __restoreCircle(int x, int y, int radius, unsigned char* backup) {
 	return (unsigned int)showpos - gGraphBase;
 }
 
-extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int color, unsigned char* back) {
+extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius,int radius2, int color, unsigned char* back) {
 
 	//__kRestoreMouse();
 
 	int squreRadius = radius * radius;
+
+	int squreRadius2 = radius2 * radius2;
 
 	int pixelcnt = 0;
 
@@ -891,10 +894,9 @@ extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int
 		{
 			int deltaX2 = (j - x) * (j - x);
 			int deltaY2 = (i - y) * (i - y);
-			if (deltaY2 + deltaX2 <= squreRadius)
+			if ( (deltaY2 + deltaX2 <= squreRadius) && (deltaX2 + deltaY2 >= squreRadius2 ) )
 			{
 				unsigned int c = color;
-				//(color)++;
 
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
@@ -1157,30 +1159,54 @@ int __drawWindowChars( char* str, int color, WINDOWCLASS* window) {
 
 
 
-int __drawHorizon(int x, int y, int len, int color) {
-	unsigned char* pos = (unsigned char*)__getpos(x, y);
+int __drawHorizon(int x, int y, int len, int colorBuf, int color, char* bak) {
+	unsigned char* pos = (unsigned char*)__getpos(x, y) + gGraphBase;
+	unsigned char* back = (unsigned char*)bak;
+	DWORD* lpc = (DWORD*)color;
 	for (int i = 0; i < len; i++)
 	{
 		int c = color;
+		if (colorBuf) {
+			
+			c = *lpc;
+			lpc++;
+		}
 		for (int j = 0; j < gBytesPerPixel; j++)
 		{
+			if (bak) {
+				*back = *pos;
+				back++;
+			}
+
 			*pos = (c & 0xff);
 			c = c >> 8;
 			pos++;
+			
 		}
 	}
 	return len;
 }
 
 
-int __drawVertical(int x, int y, int len, int color) {
-	unsigned char* pos = (unsigned char*)__getpos(x, y);
+int __drawVertical(int x, int y, int len, int colorBuf, int color, char* bak) {
+	unsigned char* pos = (unsigned char*)__getpos(x, y)+gGraphBase;
 	unsigned char* keep = pos;
+	unsigned char* back =(unsigned char*) bak;
+	DWORD* lpc = (DWORD*)color;
 	for (int i = 0; i < len; i++)
 	{
 		int c = color;
+		if (colorBuf) {
+			
+			c = *lpc;
+			lpc++;
+		}
 		for (int j = 0; j < gBytesPerPixel; j++)
 		{
+			if (bak) {
+				*back = *pos;
+				back++;
+			}
 			*pos = (c & 0xff);
 			c = c >> 8;
 			pos++;
@@ -1191,11 +1217,22 @@ int __drawVertical(int x, int y, int len, int color) {
 	return len;
 }
 
-int __drawDot(int x, int y, DWORD color) {
+int __drawDot(int x, int y, int colorBuf, DWORD color,char * bak) {
 	char* ptr = (char*)__getpos(x, y) + gGraphBase;
 	char* c = (char*)&color;
+	char* lpc = (char*)color;
+	if (colorBuf) {
+
+		c = lpc;
+		lpc++;
+	}
+	unsigned char* back = (unsigned char*)bak;
 	for (int k = 0; k < gBytesPerPixel; k++)
 	{
+		if (bak) {
+			*back = *ptr;
+			back++;
+		}
 		*ptr = *c;
 		ptr++;
 		c++;
@@ -1204,45 +1241,95 @@ int __drawDot(int x, int y, DWORD color) {
 	return 1;
 }
 
-int __drawLine(int x1, int y1, int x2, int y2, DWORD color) {
+int __drawLine(int x1, int y1, int x2, int y2,int colorBuf, DWORD color, char* bak) {
 
 	int ret = 0;
 	if (x1 == x2) {
 		if (y1 == y2) {
-			return __drawDot(x1, y1, color);
+			
+			return __drawDot(x1, y1, colorBuf, color,bak);
 		}
 		else {
 			if (y1 >= y2) {
-				return __drawVertical(x2, y2, y1-y2, color);
+				return __drawVertical(x2, y2, y1-y2, colorBuf, color,bak);
 			}
 			else {
-				return __drawVertical(x1, y1, y2-y1, color);
+				return __drawVertical(x1, y1, y2-y1, colorBuf, color,bak);
 			}	
 		}
 	}
 
-	double k = (y2 - y1) / (x2 - x1);
-	if (k == 0) {
-		return 0;
+	if (y1 == y2) {
+		if (x1 == x2) {
+			return __drawDot(x1, y1, colorBuf, color,bak);
+		}
+		else {
+			if (x1 >= x2) {
+				return __drawHorizon(x2, y2, x1 - x2, colorBuf, color,bak);
+			}
+			else {
+				return __drawHorizon(x1, y1, x2 - x1, colorBuf, color,bak);
+			}
+		}
 	}
 
-	int lx = x1;
-	int sx = x2;
-	int ly = y1;
-	int sy = y2;
-	if (lx < x2) {
-		lx = x2;
-		sx = x1;
+	double k = 0.1;
 
-		ly = y2;
-		sy = y1;
+	int reverse = 0;
+
+	int lx = 0;
+	int sx = 0;
+	int ly = 0;
+	int sy = 0;
+	if ( __abs((double)x2 - (double)x1) >= __abs((double)y2 - (double)y1) ) {
+		k = ( 1.0* ( (double)y2 - (double)y1) )/ ( 1.0*( (double)x2 - (double)x1) );
+		if (x2 >= x1) {	
+			sx = x1;
+			lx = x2;
+			sy = y1;
+			ly = y2;			
+		}
+		else {
+			sx = x2;
+			lx = x1;
+			sy = y2;
+			ly = y1;
+		}
 	}
-	 
+	else {
+		k = ( 1.0* ((double)x2 - (double)x1) ) /( 1.0*( (double)y2 - (double)y1 ) );
+		if (y2 >= y1) {
+			sx = y1;
+			lx = y2;
+			sy = x1;
+			ly = x2;		
+		}
+		else {
+			sx = y2;
+			lx = y1;
+			sy = x2;
+			ly = x1;	
+		}
+
+		reverse = 1;
+	}
+	
 	int dx = lx - sx;
 	for (int i = 0; i < dx; i++) {
 		int px = sx + i;
-		int py = k*i + sy;
-		ret = __drawDot(px, py,color);
+		int py = sy + k*(1.0*(double)i) ;
+		if (reverse) {
+			ret = __drawDot(py, px, colorBuf, color,bak);
+		}
+		else {
+			ret = __drawDot(px, py, colorBuf, color,bak);
+		}	
+		if (bak) {
+			bak += gBytesPerPixel;
+		}
+		if (colorBuf) {
+			color += gBytesPerPixel;
+		}
 	}
 	return ret;
 }
@@ -1255,13 +1342,13 @@ int __diamond(int startx, int starty, int raduis, int cnt, DWORD color) {
 	double x0 = startx, y0 = starty, x[64], y[64];
 	for (i = 0; i < n; i++)
 	{
-		x[i] = r * cos(i * t) + x0;
-		y[i] = r * sin(i * t) + y0;
+		x[i] = r * __cos(i * t) + x0;
+		y[i] = r * __sin(i * t) + y0;
 	}
 
 	for (i = 0; i <= n - 2; i++) {
 		for (j = i + 1; j <= n - 1; j++) {
-			__drawLine(x[i], y[i], x[j], y[j], color);
+			__drawLine(x[i], y[i], x[j], y[j],0, color,0);
 		}
 	}
 
@@ -1277,8 +1364,8 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 	double x0 = startx, y0 = starty, x[64], y[64];
 	for (i = 0; i < n; i++)
 	{
-		x[i] = r * cos(i * t) + x0;
-		y[i] = r * sin(i * t) + y0;
+		x[i] = r * __cos(i * t) + x0;
+		y[i] = r * __sin(i * t) + y0;
 	}
 
 	for (i = 1; i <= n / 2; i++) {
@@ -1288,10 +1375,10 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 			if ((j + i) >= n)
 			{
 				int r = (j + i) % n;
-				__drawLine(x[j], y[j], x[r], y[r], color);
+				__drawLine(x[j], y[j], x[r], y[r], 0,color,0);
 			}
 			else {
-				__drawLine(x[j], y[j], x[j + i], y[j + i], color);
+				__drawLine(x[j], y[j], x[j + i], y[j + i],0, color,0);
 			}
 		}
 	}

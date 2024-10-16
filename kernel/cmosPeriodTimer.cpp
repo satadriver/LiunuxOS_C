@@ -12,9 +12,11 @@
 
 unsigned char readCmosPort(unsigned char port) {
 
+	__asm{cli}
 	outportb(0x70, port|0x80);
-	return inportb(0x71);
-
+	unsigned char c= inportb(0x71);
+	__asm{sti}
+	return c;
 	__asm {
 		//in al,70h
 		//and al,80h
@@ -23,9 +25,10 @@ unsigned char readCmosPort(unsigned char port) {
 }
 
 void writeCmosPort(unsigned char port, unsigned char value) {
-
+	__asm {cli}
 	outportb(0x70, port|0x80);
 	outportb(0x71, value);
+	__asm {sti}
 	__asm {
 		//in al, 70h
 		//and al, 80h
@@ -220,6 +223,8 @@ extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime)
 	char y = readCmosPort(9);
 	char m = readCmosPort(8);
 	char d = readCmosPort(7);
+	char dw = readCmosPort(6);
+	//char* strdw = dayOfWeek2str(dw);
 	char hour = readCmosPort(4);
 	char minute = readCmosPort(2);
 	char second = readCmosPort(0);
@@ -227,6 +232,7 @@ extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime)
 	datetime->year = (bcd2b(c) * 100) + bcd2b(y);
 	datetime->month = bcd2b(m);
 	datetime->dayInMonth = bcd2b(d);
+	datetime->dayInWeek= bcd2b(dw);
 	datetime->hour = bcd2b(hour);
 	datetime->minute = bcd2b(minute);
 	datetime->second = bcd2b(second);

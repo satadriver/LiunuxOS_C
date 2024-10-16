@@ -12,7 +12,7 @@
 #include "atapi.h"
 #include "v86.h"
 #include "ChinesePoem.h"
-
+#include"clock.h"
 
 int gMenuID = 0;
 
@@ -201,7 +201,8 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	__strcpy(menu->menuname[10], "Chinese Poem");
 	__strcpy(menu->menuname[11], "SnowScreen");
 	__strcpy(menu->menuname[12], "SpiralVectorGraph");
-	menu->menuname[13][0] = 0;
+	__strcpy(menu->menuname[13], "__kClock");
+	//menu->menuname[14][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
@@ -216,8 +217,9 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcaddr[10] = (DWORD)__kChinesePoem;
 	menu->funcaddr[11] = (DWORD)SnowScreenShow;
 	menu->funcaddr[12] = (DWORD)SpiralVectorGraph;
+	menu->funcaddr[13] = (DWORD)__kClock;
 	
-	menu->validItem = 13;
+	menu->validItem = 14;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
@@ -232,6 +234,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->paramcnt[10] = 5;
 	menu->paramcnt[11] = 0;
 	menu->paramcnt[12] = 0;
+	menu->paramcnt[13] = 5;
 
 	menu->funcparams[3][4] = 0;
 	menu->funcparams[3][3] = (DWORD)"__kConsole";
@@ -258,6 +261,12 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcparams[10][2] = (DWORD)"main.dll";
 	menu->funcparams[10][1] = tid;
 	menu->funcparams[10][0] = (DWORD)__terminateProcess;
+
+	menu->funcparams[13][4] = 0;
+	menu->funcparams[13][3] = (DWORD)"__kClock";
+	menu->funcparams[13][2] = (DWORD)"main.dll";
+	menu->funcparams[13][1] = tid;
+	menu->funcparams[13][0] = (DWORD)__terminateProcess;
 
 	menu->id = 0;
 

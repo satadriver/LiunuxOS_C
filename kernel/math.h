@@ -8,15 +8,27 @@
 #define E 		(2.7182818284590452353602874)
 #define SQRT2 	(1.414213562373095145474621858739)
 
-extern "C" __declspec(dllexport) DWORD __sqrtInteger(DWORD i);
 
-double abs(double x);
-double pown(double x, int n);
-double cos(double x);
-double sin(double x);
-double pow(double a, int b);
-double sqrt(double x);
-double __sqrt(double a);
+#ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) DWORD __sqrtInteger(DWORD i);
+extern "C"  __declspec(dllexport) double __abs(double x);
+extern "C"  __declspec(dllexport) double __pown(double x, int n);
+extern "C"  __declspec(dllexport) double __cos(double x);
+extern "C"  __declspec(dllexport) double __sin(double x);
+extern "C"  __declspec(dllexport) double __pow(double a, int b);
+extern "C"  __declspec(dllexport) double __sqrt(double x);
+
+#else
+extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
+extern "C"  __declspec(dllimport) double __abs(double x);
+extern "C"  __declspec(dllimport) double __pown(double x, int n);
+extern "C"  __declspec(dllimport) double __cos(double x);
+extern "C"  __declspec(dllimport) double __sin(double x);
+extern "C"  __declspec(dllimport) double __pow(double a, int b);
+extern "C"  __declspec(dllimport) double __sqrt(double a);
+#endif
+
+
 
 #endif
 
@@ -25,3 +37,5 @@ int GetCos(int angle);
 int GetSin(int angle);
 
 extern "C" int g_sincos[256];
+
+

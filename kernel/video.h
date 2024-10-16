@@ -350,15 +350,15 @@ extern "C"  __declspec(dllexport) void clsClientRect(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllexport) int __getpos(int x, int y);
 
-extern "C"  __declspec(dllexport) int __drawVertical(int x, int y, int len, int color);
+extern "C"  __declspec(dllexport) int __drawVertical(int x, int y, int len, int colorBuf, int color, char* bak);
 
-extern "C"  __declspec(dllexport) int __drawHorizon(int x, int y, int len, int color);
+extern "C"  __declspec(dllexport) int __drawHorizon(int x, int y, int len, int colorBuf, int color, char* bak);
 
 extern "C"  __declspec(dllexport) int __drawRectWindow(LPPOINT p, int width, int height, int color,unsigned char * backup);
 
-extern "C"  __declspec(dllexport) int __restoreCircle(int x, int y, int radius, unsigned char * backup);
+extern "C"  __declspec(dllexport) int __restoreCircle(int x, int y, int radius,int radius2, unsigned char * backup);
 
-extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int color, unsigned char * backup);
+extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius, int radius2,int color, unsigned char * backup);
 
 extern "C"  __declspec(dllexport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname,char * backdata);
@@ -381,9 +381,9 @@ extern "C"  __declspec(dllexport) int __drawFileIcon(FILEICON*);
 
 extern "C"  __declspec(dllexport) int __drawShutdown(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllexport) int __drawLine(int x1, int y1, int x2, int y2, DWORD color);
+extern "C"  __declspec(dllexport) int __drawLine(int x1, int y1, int x2, int y2, int colorBuf, DWORD color, char* bak);
 
-extern "C"  __declspec(dllexport) int __drawDot(int x, int y, DWORD color);
+extern "C"  __declspec(dllexport) int __drawDot(int x, int y, int colorBuf, DWORD color, char* bak);
 
 extern "C"  __declspec(dllexport) int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color);
 
@@ -414,15 +414,15 @@ extern "C"  __declspec(dllimport) void clsClientRect(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllimport) int __getpos(int x, int y);
 
-extern "C"  __declspec(dllimport) int __drawVertical(int x, int y, int len, int color);
+extern "C"  __declspec(dllimport) int __drawVertical(int x, int y, int len, int colorBuf, int color, char* bak);
 
-extern "C"  __declspec(dllimport) int __drawHorizon(int x, int y, int len, int color);
+extern "C"  __declspec(dllimport) int __drawHorizon(int x, int y, int len, int colorBuf, int color, char* bak);
 
 extern "C"  __declspec(dllimport) int __drawRectWindow(LPPOINT p, int width, int height, int color, unsigned char * backup);
 
-extern "C"  __declspec(dllimport) int __restoreCircle(int x, int y, int radius, unsigned char * backup);
+extern "C"  __declspec(dllimport) int __restoreCircle(int x, int y, int radius, int radius2, unsigned char * backup);
 
-extern "C"  __declspec(dllimport) int __drawCircle(int x, int y, int radius, int color, unsigned char * backup);
+extern "C"  __declspec(dllimport) int __drawCircle(int x, int y, int radius, int radius2, int color, unsigned char * backup);
 
 extern "C"  __declspec(dllimport) int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int framesize,
 	int framecolor, int capsize, int capcolor, char * capname, char * backdata);
@@ -445,9 +445,9 @@ extern "C"  __declspec(dllimport) int __drawFileIcon(FILEICON*);
 
 extern "C"  __declspec(dllimport) int __drawShutdown(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllimport) int __drawDot(int x, int y, DWORD color);
+extern "C"  __declspec(dllimport) int __drawDot(int x, int y, int colorBuf, DWORD color, char* bak);
 
-extern "C"  __declspec(dllimport) int __drawLine(int x1, int y1, int x2, int y2, DWORD color);
+extern "C"  __declspec(dllimport) int __drawLine(int x1, int y1, int x2, int y2, int colorBuf, DWORD color, char* bak);
 
 extern "C"  __declspec(dllimport) int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color);
 

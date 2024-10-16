@@ -72,7 +72,7 @@ int initScreenProtect() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR, dst);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius/2, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 
 	gScreenProtectWindowID = addWindow(0, 0, 0, 0, "__screenProtect");
 
@@ -94,7 +94,7 @@ int stopScreenProtect() {
 
 	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
-	ret = __restoreCircle(gCircleCenterX, gCircleCenterY, gRadius, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __restoreCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius / 2, (unsigned char*)gGraphBase + screensize * 2);
 
 	unsigned char* src = (unsigned char*)gGraphBase + screensize;
 
@@ -162,10 +162,10 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1, int p2, int p3, i
 		gDeltaY = -gDeltaY;
 	}
 
-	ret = __restoreCircle(oldx, oldy, gRadius, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __restoreCircle(oldx, oldy, gRadius, gRadius / 2, (unsigned char*)gGraphBase + screensize * 2);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius / 2, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 	return;
 }
 
@@ -403,8 +403,8 @@ void SpiralVectorGraph() {
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
 				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
-				int px = (int)((A + B * theta) * cos(theta));
-				int py = (int)((A + B * theta) * sin(theta));
+				int px = (int)((A + B * theta) * __cos(theta));
+				int py = (int)((A + B * theta) * __sin(theta));
 				unsigned char* p = (unsigned char*)__getpos(px, py) + gGraphBase;
 
 				if (px >= 0 && px < gVideoWidth && py >= 0 && py < gVideoHeight) {
@@ -674,7 +674,7 @@ void stopTrajectory() {
 
 //F = 1/2 * ro * v*v * s * 1300*c
 double resist_air(double v, double radius) {
-	double t = abs((v * v * 0.67 * __sqrt(radius) / 1226.0 / 2.0));
+	double t = __abs((v * v * 0.67 * __sqrt(radius) / 1226.0 / 2.0));
 #if 0
 	double min = 0.5 * 1000.0 / g_frame_delay;
 	if (t < min) {
@@ -721,7 +721,7 @@ double resist_bounce(double v, double radius) {
 
 
 double friction(double v, double radius) {
-	double r = abs(v / 4.0);
+	double r = __abs(v / 4.0);
 #if 0
 	double min = 0.1 * 1000.0 / g_frame_delay;
 	if (r > min) {
@@ -766,7 +766,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 
 	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000.0;
-	if (abs(g_centerY - ((double)gVideoHeight - (double)g_radius)) <= 1.0) {
+	if (__abs(g_centerY - ((double)gVideoHeight - (double)g_radius)) <= 1.0) {
 		dx += friction(g_x_s, g_radius) * g_frame_delay / 1000.0;
 	}
 
@@ -789,7 +789,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 
 	__int64 max_y = (double)gVideoHeight - g_radius;
-	if (abs(g_y_s) < 0.1) {
+	if (__abs(g_y_s) < 0.1) {
 		//g_y_s = 0;
 	}
 
@@ -852,17 +852,17 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 
-	ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (unsigned char*)g_circle_buf);
+	ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius/2, (unsigned char*)g_circle_buf);
 	g_centerX = x;
 	g_centerY = y;
-	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
 
-	if (abs(g_y_s) <= 0.5 && abs(g_x_s) <= 0.5 && (abs(y - max_y) < 0.1 || abs(g_centerY - max_y) < 0.1)) {
+	if (__abs(g_y_s) <= 0.5 && __abs(g_x_s) <= 0.5 && (__abs(y - max_y) < 0.1 || __abs(g_centerY - max_y) < 0.1)) {
 		g_counter++;
 		if (g_counter > 3000.0 / g_frame_delay) {
 			g_counter = 0;
-			ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (unsigned char*)g_circle_buf);
+			ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, (unsigned char*)g_circle_buf);
 
 			double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;
 
@@ -879,14 +879,14 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			double angle = __random(0) % ANGLE_DIVISION;
 			angle = PI / (angle + 1);
 
-			g_x_s = cos(angle) * velocity;
-			g_y_s = sin(angle) * velocity;
+			g_x_s = __cos(angle) * velocity;
+			g_y_s = __sin(angle) * velocity;
 
 			//g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT * 2);
 
 			//g_centerX = (double)g_radius + TASKBAR_HEIGHT;
 
-			ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+			ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 		}
 	}
 	else {
@@ -945,8 +945,8 @@ void initTrajectory() {
 	//g_x_s = GetCos(angle) * velocity / 256;
 	//g_y_s = GetSin(angle) * velocity/256;
 
-	g_x_s = cos(angle) * velocity;
-	g_y_s = sin(angle) * velocity;
+	g_x_s = __cos(angle) * velocity;
+	g_y_s = __sin(angle) * velocity;
 
 	g_centerY = (double)((__int64)gVideoHeight - (__int64)g_radius - (__int64)TASKBAR_HEIGHT * 4);
 
@@ -954,7 +954,7 @@ void initTrajectory() {
 
 	g_counter = 0;
 
-	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, g_circle_color, (unsigned char*)g_circle_buf);
+	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
 	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)        ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0 , gVideoHeight - TASKBAR_HEIGHT*2);

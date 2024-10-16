@@ -308,7 +308,7 @@ int waitComplete(WORD port) {
 	//r = inportb(port - 6);
 	//if (r == 0) 
 	{
-		int cnt = 64;
+		int cnt = 16;
 		while (cnt--) {
 		//while (1) {
 			r = inportb(port);

@@ -191,18 +191,13 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 #include "servicesProc.h"
+
 #ifdef _DEBUG
 
 
 #include "math.h"
 
 void mytest(LIGHT_ENVIRONMENT  * stack) {
-	__asm {
-	__mytest:
-		jmp __mytest
-	}
-
-	DWORD v = TIMER0_TICK_COUNT;
 
 	return;
 }
@@ -216,14 +211,10 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	unsigned char* data = (unsigned char*)"aaaaaaa";
-	char* test = "ÄãºÃ";
-	char* test2 = "¹þ¹þ";
-	char* t[] = { test,test2 };
-	char* tt = t[0];
-	int i = sizeof(t);
+	double angle = 13 ;
+	double dc = __cos(angle );
+	double ds = __sin(angle);
 
-	DWORD v = TIMER0_TICK_COUNT;
 #ifdef _DEBUG
 	mytest(0);
 #endif

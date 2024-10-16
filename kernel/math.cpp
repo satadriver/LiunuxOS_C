@@ -4,7 +4,7 @@
 #include "math.h"
 #include "def.h"
 
-double abs(double x)
+extern "C"  __declspec(dllexport) double __abs(double x)
 {
 	if (x < 0)
 	{
@@ -16,7 +16,7 @@ double abs(double x)
 
 
 //only when n > 0
-double pown(double x, int n)
+extern "C"  __declspec(dllexport) double __pown(double x, int n)
 {
 	if (n <= 0) {
 		return 0;
@@ -30,7 +30,7 @@ double pown(double x, int n)
 }
 
 
-double pow(double a, int b)
+extern "C"  __declspec(dllexport) double __pow(double a, int b)
 {
 	float r = a;
 	if (b > 0)
@@ -49,20 +49,9 @@ double pow(double a, int b)
 	return r;
 }
 
-double __sqrt(double a)
-{
-	double x, y;
-	x = 0.0;
-	y = a / 2;
-	while (x != y)
-	{
-		x = y;
-		y = (x + a / x) / 2;
-	}
-	return x;
-}
 
-double sqrt(double x)
+
+extern "C"  __declspec(dllexport) double __sqrt(double x)
 {
 	if (x < 0)
 	{
@@ -75,7 +64,7 @@ double sqrt(double x)
 	double x0, x1;
 	x0 = x;
 	x1 = x / 2.0;
-	while (abs(x0 - x1) > 0.00001)
+	while (__abs(x0 - x1) > 0.00001)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;
@@ -83,21 +72,41 @@ double sqrt(double x)
 	return x1;
 }
 
-
-
-
-double sin(double x)
+float Sqrt(float x)
 {
+	float xhalf = 0.5f * x;
+	int i = *(int*)&x;
+	i = 0x5f375a86 - (i >> 1);
+	x = *(float*)&i;
+	x = x * (1.5f - xhalf * x * x);
+	x = x * (1.5f - xhalf * x * x);
+	x = x * (1.5f - xhalf * x * x);
+	return 1 / x;
+}
+
+
+extern "C"  __declspec(dllexport) double __sin(double x)
+{
+	while (x > PI ) 
+	{
+		x -= PI * 2;
+	}
+
+	while (x < - PI )
+	{
+		x += PI * 2;
+	}
+
 	const double B = 1.2732395447;
 	const double C = -0.4052847346;
 	const double P = 0.2310792853;		//0.225; 
-	double y = B * x + C * x * abs(x);
-	y = P * (y * abs(y) - y) + y;
+	double y = B * x + C * x * __abs(x);
+	y = P * (y * __abs(y) - y) + y;
 	return y;
 }
 
 
-double cos(double x)
+extern "C"  __declspec(dllexport) double __cos(double x)
 {
 	double Q = 1.5707963268;
 
@@ -105,16 +114,55 @@ double cos(double x)
 	if (x > PI)
 		x -= 2 * PI;
 
-	return(sin(x));
+	return(__sin(x));
 }
 
 
 
 
+float Atan2(float y, float x, int infNum)
+{
+	int i;
+	float z = y / x, sum = 0.0f, temp;
+	float del = z / infNum;
+
+	for (i = 0; i < infNum; i++)
+	{
+		z = i * del;
+		temp = 1 / (z * z + 1) * del;
+		sum += temp;
+	}
+
+	if (x > 0)
+	{
+		return sum;
+	}
+	else if (y >= 0 && x < 0)
+	{
+		return sum + PI;
+	}
+	else if (y < 0 && x < 0)
+	{
+		return sum - PI;
+	}
+	else if (y > 0 && x == 0)
+	{
+		return PI / 2;
+	}
+	else if (y < 0 && x == 0)
+	{
+		return -1 * PI / 2;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 
 
 //1 + 3 + 5 + ... + (2n - 1) = (1 + (2n - 1))*(n / 2) = n ^ 2
-DWORD __sqrtInteger(DWORD i) {
+extern "C"  __declspec(dllexport) DWORD __sqrtInteger(DWORD i) {
 	DWORD root = 0;
 	__asm {
 		MOV eax, i

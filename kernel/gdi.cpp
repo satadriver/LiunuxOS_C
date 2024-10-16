@@ -47,7 +47,7 @@ void sphere(int x,int y,int raduis,DWORD color,unsigned char * backup) {
 			if (f(x, 0.0f, z) <= 0.0f) {//属于球体
 										//球面法向量公式d=[x,y,z]
 				float y = h(x, z);
-				float cosA = (-x + y + z) / sqrt(x*x + y*y + z*z) / sqrt(3);//(光线向量：[1,-1,-1])
+				float cosA = (-x + y + z) / __sqrt(x*x + y*y + z*z) / __sqrt(3);//(光线向量：[1,-1,-1])
 				float d = cosA*0.5f + 0.5f;//wrapped diffuse处理
 											//float d = cosA+0.2f>1.0f?1.0f:cosA+0.2f;//加入全局光处理
 
@@ -95,14 +95,14 @@ void sphere7(int x, int y, int raduis,DWORD color,unsigned char *backup) {
 			if (f(x, 0.0f, z) <= 0.0f) {//属于球体
 										//球面法向量公式d=[x,y,z]
 				float y = h(x, z);
-				float cosA = (-x + y + z) / sqrt(x*x + y*y + z*z) / sqrt(3);//(光线向量：[-1,1,1])
+				float cosA = (-x + y + z) / __sqrt(x*x + y*y + z*z) / __sqrt(3);//(光线向量：[-1,1,1])
 
 																			  //漫反射，wrapped diffuse处理
 				float diffuse = cosA*0.5f + 0.5f;
 				//float d = cosA+0.2f>1.0f?1.0f:cosA+0.2f;//加入全局光处理
 
 				//高光分
-				float specular = pow(cosA, 64.0);
+				float specular = __pow(cosA, 64.0);
 
 				int r = (int)(diffuse * 255.0f + specular * 200.0f);
 				int g = (int)(diffuse * 255.0f + specular * 200.0f);
