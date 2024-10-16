@@ -26,6 +26,9 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 	DWORD* lptickcnt = (DWORD*)CMOS_EXACT_TICK_COUNT;
 
 	DWORD ticks = delay / CMOS_EXACT_INTERVAL;		
+	if (delay % CMOS_EXACT_INTERVAL) {
+		ticks++;
+	}
 
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{

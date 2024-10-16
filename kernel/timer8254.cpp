@@ -32,6 +32,9 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 	int dt = getTimer8254Delay();
 
 	DWORD ticks = delay / dt;
+	if (delay % dt) {
+		ticks++;
+	}
 
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{

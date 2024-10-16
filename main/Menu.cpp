@@ -190,51 +190,68 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->width = RIGHTCLICK_MENU_WIDTH;
 	__strcpy(menu->menuname[0], "Shutdown System");
 	__strcpy(menu->menuname[1], "Reset System");
-	__strcpy(menu->menuname[2], "Screen Protect");
+	__strcpy(menu->menuname[2], "Reject CDROM");
+
 	__strcpy(menu->menuname[3], "cmd");
 	__strcpy(menu->menuname[4], "Paint");
-	__strcpy(menu->menuname[5], "Ellipse Color");
-	__strcpy(menu->menuname[6], "Reject CDROM");
-	__strcpy(menu->menuname[7], "Vector Graph");
+	__strcpy(menu->menuname[5], "Clock");
+	__strcpy(menu->menuname[6], "Chinese Poem");
+
+	__strcpy(menu->menuname[7], "Screen Protect");
 	__strcpy(menu->menuname[8], "Trajectory Ball");
-	__strcpy(menu->menuname[9], "Cube Graph");
-	__strcpy(menu->menuname[10], "Chinese Poem");
-	__strcpy(menu->menuname[11], "SnowScreen");
-	__strcpy(menu->menuname[12], "SpiralVectorGraph");
-	__strcpy(menu->menuname[13], "__kClock");
+
+	__strcpy(menu->menuname[9], "Ellipse Color");
+	
+	__strcpy(menu->menuname[10], "Vector Graph");
+	
+	__strcpy(menu->menuname[11], "Cube Graph");
+	
+	__strcpy(menu->menuname[12], "SnowScreen");
+
+	__strcpy(menu->menuname[13], "SpiralVectorGraph");
+	
 	//menu->menuname[14][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
-	menu->funcaddr[2] = (DWORD)initScreenProtect;
+	menu->funcaddr[2] = (DWORD)rejectCDROM;
+
 	menu->funcaddr[3] = (DWORD)__kConsole;
 	menu->funcaddr[4] = (DWORD)__kPaint;
-	menu->funcaddr[5] = (DWORD)EllipseScreenColor;
-	menu->funcaddr[6] = (DWORD)rejectCDROM;
-	menu->funcaddr[7] = (DWORD)initVectorGraph;
+	menu->funcaddr[5] = (DWORD)__kClock;
+	menu->funcaddr[6] = (DWORD)__kChinesePoem;
+
+	menu->funcaddr[7] = (DWORD)initScreenProtect;
 	menu->funcaddr[8] = (DWORD)initTrajectory;
-	menu->funcaddr[9] = (DWORD)CubeVectorGraph;
-	menu->funcaddr[10] = (DWORD)__kChinesePoem;
-	menu->funcaddr[11] = (DWORD)SnowScreenShow;
-	menu->funcaddr[12] = (DWORD)SpiralVectorGraph;
-	menu->funcaddr[13] = (DWORD)__kClock;
+	menu->funcaddr[9] = (DWORD)EllipseScreenColor;
+	
+	menu->funcaddr[10] = (DWORD)initVectorGraph;
+	
+	menu->funcaddr[11] = (DWORD)CubeVectorGraph;
+	
+	menu->funcaddr[12] = (DWORD)SnowScreenShow;
+	menu->funcaddr[13] = (DWORD)SpiralVectorGraph;
 	
 	menu->validItem = 14;
 
 	menu->paramcnt[0] = 0;
 	menu->paramcnt[1] = 0;
-	menu->paramcnt[2] = 0;
+
+	menu->paramcnt[2] = 1;
 	menu->paramcnt[3] = 5;
 	menu->paramcnt[4] = 5;
-	menu->paramcnt[5] = 0;
-	menu->paramcnt[6] = 1;
+	menu->paramcnt[5] = 5;
+	menu->paramcnt[6] = 5;
+
 	menu->paramcnt[7] = 0;
 	menu->paramcnt[8] = 0;
 	menu->paramcnt[9] = 0;
-	menu->paramcnt[10] = 5;
+	menu->paramcnt[10] = 0;
 	menu->paramcnt[11] = 0;
 	menu->paramcnt[12] = 0;
-	menu->paramcnt[13] = 5;
+	menu->paramcnt[13] = 0;
+
+	menu->funcparams[2][0] = 0x81;
 
 	menu->funcparams[3][4] = 0;
 	menu->funcparams[3][3] = (DWORD)"__kConsole";
@@ -248,25 +265,17 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcparams[4][1] = tid;
 	menu->funcparams[4][0] = (DWORD)__terminateProcess;
 
-	menu->funcparams[5][0] = 0;
+	menu->funcparams[6][4] = 0;
+	menu->funcparams[6][3] = (DWORD)"__kChinesePoem";
+	menu->funcparams[6][2] = (DWORD)"main.dll";
+	menu->funcparams[6][1] = tid;
+	menu->funcparams[6][0] = (DWORD)__terminateProcess;
 
-	menu->funcparams[6][0] = 0x81;
-
-	menu->funcparams[7][0] = 0;
-	menu->funcparams[8][0] = 0;
-	menu->funcparams[9][0] = 0;
-
-	menu->funcparams[10][4] = 0;
-	menu->funcparams[10][3] = (DWORD)"__kChinesePoem";
-	menu->funcparams[10][2] = (DWORD)"main.dll";
-	menu->funcparams[10][1] = tid;
-	menu->funcparams[10][0] = (DWORD)__terminateProcess;
-
-	menu->funcparams[13][4] = 0;
-	menu->funcparams[13][3] = (DWORD)"__kClock";
-	menu->funcparams[13][2] = (DWORD)"main.dll";
-	menu->funcparams[13][1] = tid;
-	menu->funcparams[13][0] = (DWORD)__terminateProcess;
+	menu->funcparams[5][4] = 0;
+	menu->funcparams[5][3] = (DWORD)"__kClock";
+	menu->funcparams[5][2] = (DWORD)"main.dll";
+	menu->funcparams[5][1] = tid;
+	menu->funcparams[5][0] = (DWORD)__terminateProcess;
 
 	menu->id = 0;
 

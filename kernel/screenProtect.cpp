@@ -73,7 +73,7 @@ int initScreenProtect() {
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
-		gRadius|0x0000000, (0*gRadius/2)|0x0000000, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 
 	gScreenProtectWindowID = addWindow(0, 0, 0, 0, "__screenProtect");
 

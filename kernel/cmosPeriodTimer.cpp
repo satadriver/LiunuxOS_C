@@ -148,7 +148,7 @@ void initPeriodTimer() {
 
 
 int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
-	if (addr == 0 || delay == 0)
+	if (addr == 0 || (int)delay <= 0 || delay >= 0x10000)
 	{
 		return -1;
 	}
