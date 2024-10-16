@@ -858,6 +858,12 @@ int __restoreCircle(int x, int y, int radius,int radius2, unsigned char* backup)
 extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius,int radius2, int color, unsigned char* back) {
 
 	//__kRestoreMouse();
+	int tag = 0;
+	if ((radius & 0x80000000) && (radius2 & 0x80000000)) {
+		tag = 1;
+		radius -= 0x80000000;
+		radius2 -= 0x80000000;
+	}
 
 	int squreRadius = radius * radius;
 
@@ -897,6 +903,10 @@ extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius,int 
 			if ( (deltaY2 + deltaX2 <= squreRadius) && (deltaX2 + deltaY2 >= squreRadius2 ) )
 			{
 				unsigned int c = color;
+				if (tag) {
+					int cc = ((int)__sqrt(1.0*deltaX2 + 1.0*deltaY2)) & 0xff;
+					c = cc | (cc << 8) | (cc << 16);
+				}
 
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
@@ -1339,7 +1349,7 @@ int __diamond(int startx, int starty, int raduis, int cnt, DWORD color) {
 
 	int n = cnt, i, j;
 	double t = 3.14159 * 2 / n, r = raduis;
-	double x0 = startx, y0 = starty, x[64], y[64];
+	double x0 = startx, y0 = starty, x[1024], y[1024];
 	for (i = 0; i < n; i++)
 	{
 		x[i] = r * __cos(i * t) + x0;
@@ -1349,6 +1359,7 @@ int __diamond(int startx, int starty, int raduis, int cnt, DWORD color) {
 	for (i = 0; i <= n - 2; i++) {
 		for (j = i + 1; j <= n - 1; j++) {
 			__drawLine(x[i], y[i], x[j], y[j],0, color,0);
+			color += 1;
 		}
 	}
 
@@ -1361,7 +1372,7 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 
 	int n = cnt, i, j;
 	double t = 3.14159 * 2 / n, r = raduis;
-	double x0 = startx, y0 = starty, x[64], y[64];
+	double x0 = startx, y0 = starty, x[1024], y[1024];
 	for (i = 0; i < n; i++)
 	{
 		x[i] = r * __cos(i * t) + x0;

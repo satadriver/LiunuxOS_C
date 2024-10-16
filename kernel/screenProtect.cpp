@@ -72,7 +72,8 @@ int initScreenProtect() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR, dst);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius/2, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
+		gRadius|0x0000000, (0*gRadius/2)|0x0000000, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 
 	gScreenProtectWindowID = addWindow(0, 0, 0, 0, "__screenProtect");
 
@@ -165,7 +166,8 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1, int p2, int p3, i
 	ret = __restoreCircle(oldx, oldy, gRadius, gRadius / 2, (unsigned char*)gGraphBase + screensize * 2);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius / 2, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
+		gRadius|0x0000000, (gRadius / 2)| 0x0000000, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
 	return;
 }
 
@@ -566,6 +568,7 @@ void SnowScreenShow() {
 			}
 		}
 
+		__diamond(gVideoWidth/2, gVideoHeight/2, 0x100, 0x100, 0);
 	}
 }
 
@@ -639,7 +642,7 @@ double g_y_s = 0;
 double GRAVITY_ACC = 9.80 * 4;
 double g_centerX = 0;
 double g_centerY = 0;
-double g_radius = 24.0;
+double g_radius = 32.0;
 
 double g_frame_delay = 0;
 
@@ -788,7 +791,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 
-	__int64 max_y = (double)gVideoHeight - g_radius;
+	__int64 max_y = (__int64)((double)gVideoHeight - g_radius);
 	if (__abs(g_y_s) < 0.1) {
 		//g_y_s = 0;
 	}
@@ -857,7 +860,6 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	g_centerY = y;
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
-
 	if (__abs(g_y_s) <= 0.5 && __abs(g_x_s) <= 0.5 && (__abs(y - max_y) < 0.1 || __abs(g_centerY - max_y) < 0.1)) {
 		g_counter++;
 		if (g_counter > 3000.0 / g_frame_delay) {
@@ -878,6 +880,12 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 			double angle = __random(0) % ANGLE_DIVISION;
 			angle = PI / (angle + 1);
+			if (angle <= PI / 12) {
+				angle += PI / 12;
+			}
+			else if (angle >= PI * 11 / 12) {
+				angle -= PI / 12;
+			}
 
 			g_x_s = __cos(angle) * velocity;
 			g_y_s = __sin(angle) * velocity;
@@ -941,6 +949,12 @@ void initTrajectory() {
 
 	double angle = __random(0) % ANGLE_DIVISION;
 	angle = PI / (angle + 1);
+	if (angle <= PI / 12) {
+		angle += PI / 12;
+	}
+	else if (angle >= PI * 11 / 12) {
+		angle -= PI / 12;
+	}
 
 	//g_x_s = GetCos(angle) * velocity / 256;
 	//g_y_s = GetSin(angle) * velocity/256;
