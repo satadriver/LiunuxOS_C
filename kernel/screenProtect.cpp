@@ -419,8 +419,12 @@ void SpiralVectorGraph() {
 		}
 
 		__sleep(0);
-
-		theta += 0.02;
+		if (theta > 64) {
+			theta += 0.01;
+		}
+		else {
+			theta += 0.1;
+		}
 		color+= 1;
 
 		int px = cx + (int)((A + B * theta) * __cos(theta));
