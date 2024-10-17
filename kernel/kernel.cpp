@@ -211,9 +211,27 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	double angle = 13 ;
-	double dc = __cos(angle );
-	double ds = __sin(angle);
+	double angle = 0.1 ;
+	for (int i = 0; i < 100; i++) {
+		double dc = __cos(angle);
+		double ds = __sin(angle);
+
+		double v = dc * dc + ds * ds;
+		angle += 0.1;
+		if (i >= 0x100) {
+			break;
+		}
+	}
+
+
+	double das = __asin(__sin(PI*2/3));
+	double dac = __acos(__cos(PI*3/4));
+
+	double adac = PI * 3 / 4;
+
+	double adas = __sin(PI * 2 / 3);
+
+	double res = __sqrt(0.0001);
 
 #ifdef _DEBUG
 	mytest(0);

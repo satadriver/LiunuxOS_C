@@ -39,9 +39,11 @@
 #include "v86.h"
 #include "guihelper.h"
 
-#define EXPLORER_TASKNAME	"__kExplorer"
+#define EXPLORER_TASKNAME			"__kExplorer"
 
 #define ALARMER_SECOND_INTERVAL		60
+
+
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
@@ -99,21 +101,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	displayCCPoem();
 
-	int imagesize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	DWORD address = getAddrFromName(MAIN_DLL_BASE, "__taskTest1");
-	//__kCreateThread((DWORD)address, MAIN_DLL_BASE, (DWORD)0, "__taskTest1");
-	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest1", 3, 0);
-	DWORD address2 = getAddrFromName(MAIN_DLL_BASE, "__taskTest2");
-	//__kCreateThread((DWORD)address2, MAIN_DLL_BASE, (DWORD)0, "__taskTest2");
-	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest2", 3, 0);
-	DWORD address3 = getAddrFromName(MAIN_DLL_BASE, "__taskTest3");
-	//__kCreateThread((DWORD)address3, MAIN_DLL_BASE, (DWORD)0, "__taskTest3");
-	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest3", 3, 0);
-
-	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
-	//readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 4);
-	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-	__drawGraphChars(( char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+	int imageSize = 0;
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 
@@ -122,24 +110,22 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	while (1)
 	{
-		unsigned int ck = __kGetKbd(window.id);
-		//unsigned int ck = __getchar(window.id);
-		unsigned int asc = ck & 0xff;
-		if (asc == VK_F1)
+		unsigned int ck = __kGetKbd(window.id) & 0xff;
+		if (ck == VK_F1)
 		{
 			if (__findProcessFileName("__kConsole") == FALSE)
 			{
-				int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kConsole", 3, 0);
+				imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
 			}
 			continue;
 		}
-		else if (asc == VK_F2)
+		else if (ck == VK_F2)
 		{
 			__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 			continue;
 		}
-		else if (asc == VK_F3)
+		else if (ck == VK_F3)
 		{
 			if (__findProcessFileName("__kClock") == FALSE)
 			{
@@ -151,8 +137,27 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
 				if (thread) {
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
-					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kClock", 3, 0);
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
+			}
+			continue;
+		}
+		else if (ck == VK_F4) {
+			if (__findProcessFileName("__kTestWindow") == FALSE)
+			{
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kTestWindow");
+				if (thread) {
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kTestWindow", 3, 0);
 				}
 			}
 			continue;
@@ -165,6 +170,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (menu.action)
 			{
+				menu.action = 0;
+
 				__restoreRightMenu(&menu);
 
 				if ((mouseinfo.x > menu.pos.x) && (mouseinfo.x < menu.pos.x + menu.width))
@@ -202,7 +209,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					}
 				}
 
-				menu.action = 0;
+				
 			}
 
 			if (mouseinfo.x >= computer.pos.x && mouseinfo.x < computer.pos.x + computer.frameSize + computer.width)
@@ -261,7 +268,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				}
 			}
 		}
-
 		else if (mouseinfo.status & 4)	//middle click
 		{
 // 			menu.pos.x = mouseinfo.x;
@@ -293,33 +299,3 @@ DWORD isDesktop(WINDOWCLASS * window) {
 	return FALSE;
 }
 
-
-int g_test1Cnt = 0;
-
-int g_test2Cnt = 0;
-
-int g_test3Cnt = 0;
-
-extern "C" __declspec(dllexport) void __taskTest1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test1Cnt++ < 10) {
-		__printf(szout, "__taskTest1 tid:%d running %d!\r\n", tid, g_test1Cnt);
-		__sleep(100);
-	}
-}
-
-extern "C" __declspec(dllexport) void __taskTest2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test2Cnt++ < 10) {
-		__printf(szout, "__taskTest2 tid:%d running %d!\r\n", tid, g_test2Cnt);
-		__sleep(100);
-	}
-}
-
-extern "C" __declspec(dllexport) void __taskTest3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test3Cnt++ < 10) {
-		__printf(szout, "__taskTest3 tid:%d running %d!\r\n", tid, g_test3Cnt);
-		__sleep(100);
-	}
-}

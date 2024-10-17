@@ -343,46 +343,68 @@ void EllipseScreenColor() {
 	}
 }
 
-
+#define SPIRAL_SMALL_CIRCLE_SIZE	16
+#define SPIRAL_CIRCLE_SIZE			16
 
 void SpiralVectorGraph() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
 
+	DWORD bufsize = gBytesPerPixel * (SPIRAL_CIRCLE_SIZE) * (SPIRAL_CIRCLE_SIZE);
+
+	DWORD buf = __kMalloc(bufsize);
+
 	POINT p;
 	p.x = 0;
 	p.y = 0;
 
-	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0, (unsigned char*)backGround);
+	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0xffffff, (unsigned char*)backGround);
 
 	DWORD windowid = addWindow(FALSE, 0, 0, 0, "SpiralVectorGraph");
+	
+	int cx = gVideoWidth / 2;
+	int cy = gVideoHeight / 2;
 
-	//__diamond(cx, cy, 64, 5, 0xffffffff);
-
-	int color = 0xff0000;
-	for (int y = 0; y < gVideoHeight; y++) {
-		for (int x = 0; x < gVideoWidth; x++) {
-
-			int c = color--;
-			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
-			for (int k = 0; k < gBytesPerPixel; k++) {
-				*ptr = c & 0xff;
-				c = c >> 8;
-				ptr++;
-			}
+	int color_cos = 0xff00;
+	for (int x = 0; x < gVideoWidth; x++)
+	{
+		int y = cy - (int)( __cos(1.0*((int)x - (int)cx)/100.0) * 100.0);
+		int c = color_cos;
+		unsigned char* p = (unsigned char*)__getpos((int)x, y) + gGraphBase;
+		for (int k = 0; k < gBytesPerPixel; k++) {
+				
+			p[k] = c &0xff;
+			c = c >> 8;
 		}
 	}
 
-	double A = 5.0;
-	double B = 11.0;
+	int color_sin = 0xff0000;
+	for (int x = 0; x < gVideoWidth; x++)
+	{
+		int c = color_sin;
+		int y = cy -  (int)(__sin(1.0 * ((int)x - (int)cx)/100.0)  * 100.0);
 
-	double theta = 0;
+		unsigned char* p = (unsigned char*)__getpos((int)x, y) + gGraphBase;
+		for (int k = 0; k < gBytesPerPixel; k++) {
 
+			p[k] = c & 0xff;
+			c = c >> 8;
+		}
+	}
+	
+	double A = 0.0;
+	double B = 1.0;
+	double theta = 0.0;
+	int color = 0;
+
+	int oldx = cx;
+	int oldy = cy;
+	__drawCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, color, (unsigned char*)buf);
+	
 	while (1)
 	{
 		unsigned int ck = __kGetKbd(windowid);
-		//unsigned int ck = __getchar(windowid);
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
 		{
@@ -391,36 +413,34 @@ void SpiralVectorGraph() {
 
 			__kFree(backGround);
 
-			//__terminatePid(pid);
+			__kFree(buf);
+
 			return;
 		}
 
 		__sleep(0);
 
-		int cx = gVideoWidth / 2;
-		int cy = gVideoHeight / 2;
+		theta += 0.02;
+		color+= 1;
 
-		theta += 1;
+		int px = cx + (int)((A + B * theta) * __cos(theta));
+		int py = cy - (int)( (A + B * theta) * __sin(theta));
+		
+		__restoreCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, (unsigned char*)buf);
 
-		for (int y = 0; y < gVideoHeight; y++) {
-			for (int x = 0; x < gVideoWidth; x++) {
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
-				int px = (int)((A + B * theta) * __cos(theta));
-				int py = (int)((A + B * theta) * __sin(theta));
-				unsigned char* p = (unsigned char*)__getpos(px, py) + gGraphBase;
+		if ((px >= SPIRAL_SMALL_CIRCLE_SIZE && px <= gVideoWidth- SPIRAL_SMALL_CIRCLE_SIZE) &&
+			(py >= SPIRAL_SMALL_CIRCLE_SIZE && py <= gVideoHeight- SPIRAL_SMALL_CIRCLE_SIZE) ) {
 
-				if (px >= 0 && px < gVideoWidth && py >= 0 && py < gVideoHeight) {
-
-					for (int k = 0; k < gBytesPerPixel; k++) {
-						p[k] = ptr[k];
-						//ptr[k] = 0;
-					}
-				}
-				else {
-
-				}
-			}
 		}
+		else {
+			px = cx;
+			py = cy;
+
+			theta = 0;
+		}
+		__drawCircle(px, py, SPIRAL_SMALL_CIRCLE_SIZE, 0, color, (unsigned char*)buf);
+		oldx = px;
+		oldy = py;	
 	}
 }
 

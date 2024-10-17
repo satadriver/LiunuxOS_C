@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33829.357
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.34601.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "main", "main\main.vcxproj", "{E49EDBED-49A9-4C0E-B435-26759D691389}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "kernel", "kernel\kernel.vcxproj", "{22AB469F-C5DA-4C43-AA87-401816E082D7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LiunuxSetup", "LiunuxSetup\LiunuxSetup.vcxproj", "{E0DDE108-F465-442D-A8CE-F02E6B0D2242}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,14 +41,6 @@ Global
 		{E0DDE108-F465-442D-A8CE-F02E6B0D2242}.Release|x64.Build.0 = Release|x64
 		{E0DDE108-F465-442D-A8CE-F02E6B0D2242}.Release|x86.ActiveCfg = Release|Win32
 		{E0DDE108-F465-442D-A8CE-F02E6B0D2242}.Release|x86.Build.0 = Release|Win32
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Debug|x64.ActiveCfg = Debug|x64
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Debug|x64.Build.0 = Debug|x64
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Debug|x86.ActiveCfg = Debug|Win32
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Debug|x86.Build.0 = Debug|Win32
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Release|x64.ActiveCfg = Release|x64
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Release|x64.Build.0 = Release|x64
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Release|x86.ActiveCfg = Release|Win32
-		{F3AC5A37-EEAA-4857-B8D4-94B2049315EC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -99,6 +99,9 @@
     <ClCompile Include="ChinesePoem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="TestWindow.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gdi\jpeg.h">
@@ -153,6 +156,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ChinesePoem.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestWindow.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

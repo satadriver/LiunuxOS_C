@@ -229,6 +229,7 @@
     <ClCompile Include="fileWindow.cpp" />
     <ClCompile Include="mainUtils.cpp" />
     <ClCompile Include="guiHelper.cpp" />
+    <ClCompile Include="TestWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChinesePoem.h" />
@@ -249,6 +250,7 @@
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="mainUtils.h" />
     <ClInclude Include="guiHelper.h" />
+    <ClInclude Include="TestWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="main.rc" />
