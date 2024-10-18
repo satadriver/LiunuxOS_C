@@ -122,7 +122,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		}
 		else if (ck == VK_F2)
 		{
-			__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+			//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 			continue;
 		}
 		else if (ck == VK_F3)

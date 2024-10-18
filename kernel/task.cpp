@@ -410,9 +410,9 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
 	__asm {	
-		//FNCLEX
+		FNCLEX
 		//fwait
-		//fninit
+		fninit
 		mov eax, fenvprev
 		FxSAVE[eax]
 		//fsave [fenv]
@@ -602,8 +602,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
 	__asm {
-		//FNCLEX
-		//fninit
+		FNCLEX
+		fninit
 		//fwait
 		mov eax, fenvprev
 		FxSAVE[eax]

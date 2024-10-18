@@ -140,10 +140,14 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 		//__kCreateThread((DWORD)address3, MAIN_DLL_BASE, (DWORD)0, "__taskTest3");
 		//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest3", 3, 0);
 
-		//readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
-		//readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 4);
-		//__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-		//__drawGraphChars(( char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+		readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
+		__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+		__drawGraphChars(( char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+
+
+		readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 2);
+		__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+		__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
 	}
 
 	return 0;

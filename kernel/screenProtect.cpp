@@ -343,17 +343,25 @@ void EllipseScreenColor() {
 	}
 }
 
-#define SPIRAL_SMALL_CIRCLE_SIZE	16
-#define SPIRAL_CIRCLE_SIZE			16
+
+#define SPIRAL_SMALL_CIRCLE_SIZE2	24
+#define SPIRAL_SMALL_CIRCLE_SIZE3	16
+#define SPIRAL_SMALL_CIRCLE_SIZE	32
+
+#define AXIS_COLOR					0
 
 void SpiralVectorGraph() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
 
-	DWORD bufsize = gBytesPerPixel * (SPIRAL_CIRCLE_SIZE) * (SPIRAL_CIRCLE_SIZE);
+	DWORD bufsize = gBytesPerPixel * (SPIRAL_SMALL_CIRCLE_SIZE) * (SPIRAL_SMALL_CIRCLE_SIZE);
 
 	DWORD buf = __kMalloc(bufsize);
+
+	DWORD buf2 = __kMalloc(bufsize);
+
+	DWORD buf3 = __kMalloc(bufsize);
 
 	POINT p;
 	p.x = 0;
@@ -366,6 +374,10 @@ void SpiralVectorGraph() {
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
 
+	__drawLine(0, cy, gVideoWidth - 1, cy,0, AXIS_COLOR,0);
+
+	__drawLine(cx, 0, cx, gVideoHeight -1, 0, AXIS_COLOR, 0);
+
 	int color_cos = 0xff00;
 	for (int x = 0; x < gVideoWidth; x++)
 	{
@@ -377,6 +389,11 @@ void SpiralVectorGraph() {
 			p[k] = c &0xff;
 			c = c >> 8;
 		}
+
+		if (x - cx == 0) {
+			int pos = __getpos((int)x, y);
+			__drawGraphChar("y=cos(x)", AXIS_COLOR, pos, 0);
+		}	
 	}
 
 	int color_sin = 0xff0000;
@@ -391,16 +408,39 @@ void SpiralVectorGraph() {
 			p[k] = c & 0xff;
 			c = c >> 8;
 		}
+
+		if (x - cx == 0) {
+			int pos = __getpos((int)x, y);
+			__drawGraphChar("y=sin(x)", AXIS_COLOR, pos, 0);
+		}
 	}
 	
-	double A = 0.0;
+	double A = 1.0;
 	double B = 1.0;
-	double theta = 0.0;
-	int color = 0;
+	double A2 = 2.0;
+	double B2 = 2.0;
+	double A3 = 3.0;
+	double B3 = 3.0;
 
-	int oldx = cx;
-	int oldy = cy;
+	double theta = 0.0;
+	double theta2 = 0.0;
+	double theta3 = 0.0;
+
+	int color = 0xff;
+	int color2 = 0xff0000;
+	int color3 = 0xff00;
+
+	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE*2;
+	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE*2;
+	int oldx2 = cx - SPIRAL_SMALL_CIRCLE_SIZE2*2;
+	int oldy2 = cy - SPIRAL_SMALL_CIRCLE_SIZE2*2;
+	int oldx3 = cx;
+	int oldy3 = cy;
 	__drawCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, color, (unsigned char*)buf);
+
+	__drawCircle(oldx2, oldy2, SPIRAL_SMALL_CIRCLE_SIZE2, 0, color2, (unsigned char*)buf2);
+
+	__drawCircle(oldx3, oldy3, SPIRAL_SMALL_CIRCLE_SIZE3, 0, color3, (unsigned char*)buf3);
 	
 	while (1)
 	{
@@ -414,22 +454,57 @@ void SpiralVectorGraph() {
 			__kFree(backGround);
 
 			__kFree(buf);
+			__kFree(buf2);
+			__kFree(buf3);
 
 			return;
 		}
 
 		__sleep(0);
-		if (theta > 64) {
-			theta += 0.01;
+		if (theta >= 64) {
+			theta += 0.02;
 		}
-		else {
+		else if (theta >= 32) {
 			theta += 0.1;
 		}
-		color+= 1;
+		else {
+			theta += 0.3;
+		}
+
+		if (theta2 >= 64) {
+			theta2 += 0.03;
+		}
+		else if (theta2 >= 32) {
+			theta2 += 0.15;
+		}
+		else {
+			theta2 += 0.4;
+		}
+
+		if (theta3 >= 64) {
+			theta3 += 0.04;
+		}
+		else if (theta3 >= 32) {
+			theta3 += 0.2;
+		}
+		else {
+			theta3 += 0.5;
+		}
+		color+= 3;
+		color2 += 3;
+		color3 += 3;
 
 		int px = cx + (int)((A + B * theta) * __cos(theta));
 		int py = cy - (int)( (A + B * theta) * __sin(theta));
+
+		int px2 = cx + (int)((A2 + B2 * theta2) * __cos(theta2));
+		int py2 = cy - (int)((A2 + B2 * theta2) * __sin(theta2));
+
+		int px3 = cx + (int)((A3 + B3 * theta3) * __cos(theta3));
+		int py3 = cy - (int)((A3 + B3 * theta3) * __sin(theta3));
 		
+		__restoreCircle(oldx3, oldy3, SPIRAL_SMALL_CIRCLE_SIZE3, 0, (unsigned char*)buf3);
+		__restoreCircle(oldx2, oldy2, SPIRAL_SMALL_CIRCLE_SIZE2, 0, (unsigned char*)buf2);
 		__restoreCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, (unsigned char*)buf);
 
 		if ((px >= SPIRAL_SMALL_CIRCLE_SIZE && px <= gVideoWidth- SPIRAL_SMALL_CIRCLE_SIZE) &&
@@ -442,9 +517,42 @@ void SpiralVectorGraph() {
 
 			theta = 0;
 		}
+
+		if ((px2 >= SPIRAL_SMALL_CIRCLE_SIZE2 && px2 <= gVideoWidth - SPIRAL_SMALL_CIRCLE_SIZE2) &&
+			(py2 >= SPIRAL_SMALL_CIRCLE_SIZE2 && py2 <= gVideoHeight - SPIRAL_SMALL_CIRCLE_SIZE2)) {
+
+		}
+		else {
+			px2 = cx;
+			py2 = cy;
+
+			theta2 = 0;
+		}
+
+
+		if ((px3 >= SPIRAL_SMALL_CIRCLE_SIZE3 && px3 <= gVideoWidth - SPIRAL_SMALL_CIRCLE_SIZE3) &&
+			(py3 >= SPIRAL_SMALL_CIRCLE_SIZE3 && py3 <= gVideoHeight - SPIRAL_SMALL_CIRCLE_SIZE3)) {
+
+		}
+		else {
+			px3 = cx;
+			py3 = cy;
+
+			theta3 = 0;
+		}
+
 		__drawCircle(px, py, SPIRAL_SMALL_CIRCLE_SIZE, 0, color, (unsigned char*)buf);
+
+		__drawCircle(px2, py2, SPIRAL_SMALL_CIRCLE_SIZE2, 0, color2, (unsigned char*)buf2);
+
+		__drawCircle(px3, py3, SPIRAL_SMALL_CIRCLE_SIZE3, 0, color3, (unsigned char*)buf3);
+
 		oldx = px;
 		oldy = py;	
+		oldx2 = px2;
+		oldy2 = py2;
+		oldx3 = px3;
+		oldy3 = py3;
 	}
 }
 

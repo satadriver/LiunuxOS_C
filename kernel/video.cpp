@@ -833,7 +833,8 @@ int __restoreCircle(int x, int y, int radius,int radius2, unsigned char* backup)
 			{
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
-					if (*showpos != *backup) {
+					//if (*showpos != *backup) 
+					{
 						*showpos = *backup;
 					}
 					showpos++;
@@ -911,12 +912,14 @@ extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius,int 
 				for (int i = 0; i < gBytesPerPixel; i++)
 				{
 
-					if (back && (*backup != *showpos)) {
+					//if (back && (*backup != *showpos)) 
+					{
 						*backup = *showpos;
 					}
 					backup++;
 
-					if (*showpos != (c&0xff)) {
+					//if (*showpos != (c&0xff)) 
+					{
 						*showpos = c;
 					}
 					showpos++;
@@ -1348,8 +1351,10 @@ int __drawLine(int x1, int y1, int x2, int y2,int colorBuf, DWORD color, char* b
 int __diamond(int startx, int starty, int raduis, int cnt, DWORD color) {
 
 	int n = cnt, i, j;
-	double t = 3.14159 * 2 / n, r = raduis;
-	double x0 = startx, y0 = starty, x[1024], y[1024];
+	double t = PI * 2 / n, r = raduis;
+	float x0 = startx, y0 = starty;
+	double* x = (double*)__kMalloc(sizeof(double) * (cnt + 16));
+	double* y = (double*)__kMalloc(sizeof(double) * (cnt + 16));
 	for (i = 0; i < n; i++)
 	{
 		x[i] = r * __cos(i * t) + x0;
@@ -1363,6 +1368,8 @@ int __diamond(int startx, int starty, int raduis, int cnt, DWORD color) {
 		}
 	}
 
+	__kFree((unsigned long)x);
+	__kFree((unsigned long)y);
 	return 0;
 }
 
@@ -1371,8 +1378,10 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 	//功能：一笔绘制金刚石图案（n>=5,n是奇数）
 
 	int n = cnt, i, j;
-	double t = 3.14159 * 2 / n, r = raduis;
-	double x0 = startx, y0 = starty, x[1024], y[1024];
+	double t = PI * 2 / n, r = raduis;
+	float x0 = startx, y0 = starty;
+	double* x = (double*)__kMalloc(sizeof(double) * (cnt + 16));
+	double* y = (double*)__kMalloc(sizeof(double) * (cnt + 16));
 	for (i = 0; i < n; i++)
 	{
 		x[i] = r * __cos(i * t) + x0;
@@ -1393,6 +1402,7 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 			}
 		}
 	}
-
+	__kFree((unsigned long)x);
+	__kFree((unsigned long)y);
 	return 0;
 }

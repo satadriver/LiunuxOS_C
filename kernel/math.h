@@ -9,6 +9,10 @@
 #define SQRT2 					(1.414213562373095145474621858739)
 #define DOUBLE_PRECISION_MIN	0.0000001
 
+#define SL_2PI			PI*2
+#define SL_PI			PI
+#define SL_PI_DIV_2		PI/2
+
 
 
 #ifdef DLL_EXPORT
@@ -24,7 +28,8 @@ extern "C"  __declspec(dllexport) double _sqrt(double x);
 
 extern "C"  __declspec(dllexport) double __acos(double x);
 extern "C"  __declspec(dllexport) double __asin(double x);
-
+extern "C"  __declspec(dllexport) double __atan(double y, double x, int infNum);
+extern "C"  __declspec(dllexport) double _sin(double x);
 #else
 extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
 extern "C"  __declspec(dllimport) double __abs(double x);
@@ -38,6 +43,8 @@ extern "C"  __declspec(dllimport) double _sqrt(double x);
 
 extern "C"  __declspec(dllimport) double __acos(double x);
 extern "C"  __declspec(dllimport) double __asin(double x);
+extern "C"  __declspec(dllimport) double __atan(double y, double x, int infNum);
+extern "C"  __declspec(dllimport) double _sin(double x);
 #endif
 
 

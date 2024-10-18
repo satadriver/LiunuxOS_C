@@ -74,7 +74,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	return x1;
 }
 
-double _sqrt(double x)
+extern "C"  __declspec(dllexport)double _sqrt(double x)
 {
 	double xhalf = 0.5f * x;
 	int i = *(int*)&x;
@@ -92,12 +92,12 @@ extern "C"  __declspec(dllexport) double __sin(double x)
 {
 	while (x > PI)
 	{
-		x -= PI * 2;
+		x -= PI * 2.0;
 	}
 
 	while (x < -PI)
 	{
-		x += PI * 2;
+		x += PI * 2.0;
 	}
 
 	const double B = 1.2732395447;
@@ -115,21 +115,14 @@ extern "C"  __declspec(dllexport) double __sin(double x)
 
 extern "C"  __declspec(dllexport) double __cos(double x)
 {
-	double Q = 1.5707963268;
+	double Q = PI/2.0;
 
 	x += Q;
 	if (x > PI)
-		x -= 2 * PI;
+		x -= 2.0 * PI;
 
 	return(__sin(x));
 }
-
-
-
-
-
-
-
 
 
 
@@ -155,9 +148,7 @@ extern "C"  __declspec(dllexport) DWORD __sqrtInteger(DWORD i) {
 
 
 
-
-
-double __acos(double x)
+extern "C"  __declspec(dllexport) double __acos(double x)
 {
 	if (x > 1 || x < -1) {
 		return 0.0;
@@ -169,7 +160,7 @@ double __acos(double x)
 	
 	R = PI;
 
-	Mid = (L + R) / 2;
+	Mid = (L + R) / 2.0;
 
 	while (1)
 	{
@@ -186,7 +177,7 @@ double __acos(double x)
 
 			R = Mid;
 		}
-		Mid = (L + R) / 2;
+		Mid = (L + R) / 2.0;
 
 	}
 
@@ -195,7 +186,7 @@ double __acos(double x)
 }
 
 
-double __asin(double x)
+extern "C"  __declspec(dllexport) double __asin(double x)
 {
 	if (x > 1 || x < -1) {
 		return 0.0;
@@ -207,7 +198,7 @@ double __asin(double x)
 
 	R = PI;
 
-	Mid = (L + R) / 2;
+	Mid = (L + R) / 2.0;
 
 	while (1)
 	{
@@ -224,7 +215,7 @@ double __asin(double x)
 
 			R = Mid;
 		}
-		Mid = (L + R) / 2;
+		Mid = (L + R) / 2.0;
 
 	}
 
@@ -233,7 +224,7 @@ double __asin(double x)
 }
 
 
-double __asin_old(double x)		//taylor expandation error
+extern "C"  __declspec(dllexport) double __asin_old(double x)		//taylor expandation error
 {
 	if (x > 1 || x < -1) {
 		return 0.0;
@@ -256,11 +247,9 @@ double __asin_old(double x)		//taylor expandation error
 
 //https://blog.csdn.net/simitwsnyx/article/details/45890281
 
-#define SL_2PI			PI*2
-#define SL_PI			PI
-#define SL_PI_DIV_2		SQRT2
 
-double _sin(double x)
+
+extern "C"  __declspec(dllexport) double _sin(double x)
 {
 	int sign = 1;
 	int itemCnt = 4;
@@ -307,7 +296,7 @@ double _sin(double x)
 		return -result;
 }
 
-double __atan(double y, double x, int infNum)
+extern "C"  __declspec(dllexport) double __atan(double y, double x, int infNum)
 {
 	int i;
 	double z = y / x, sum = 0.0f, temp;
