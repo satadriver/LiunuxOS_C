@@ -19,7 +19,7 @@
 
 #include "Kernel.h"
 #include "mainUtils.h"
-
+#include "coprocessor.h"
 #include "Utils.h"
 #include "paint.h"
 #include "malloc.h"
@@ -81,7 +81,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	getCpuType(cputype);
 	char cpuinfo[1024];
 	getCpuInfo(cpuinfo);
-	__printf(szout, "CPU MODEL:%s,details:%s,video height:%d,width:%d,pixel:%d\n", cputype, cpuinfo, gVideoHeight, gVideoWidth, gBytesPerPixel);
+	__printf(szout, "CPU MODEL:%s,details:%s,SSE:%d,video height:%d,width:%d,pixel:%d\n", 
+		cputype, cpuinfo,isSSE(), gVideoHeight, gVideoWidth, gBytesPerPixel);
 
 	showPciDevs();
 

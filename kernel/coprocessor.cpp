@@ -98,6 +98,19 @@ void enableSSE() {
 }
 
 
+extern "C" __declspec(dllexport)int isSSE() {
+	int sse = 0;
+	__asm {
+		mov eax, 0x1
+		cpuid
+		test edx, 1 << 25
+		jz __noSSE
+		mov [sse],1
+		__noSSE:
+	}
+	return sse;
+}
+
 void initCoprocessor() {
 
 	__asm {

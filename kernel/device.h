@@ -35,7 +35,6 @@ void __wait8042Full();
 
 void setMouseRate(int rate);
 
-
 void disableMouse();
 
 int delay();
