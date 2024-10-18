@@ -56,27 +56,43 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 	int ds = size / 2;
 
 	int delta = CLOCK_RADIUS_SIZE * gBytesPerPixel;
-	int rs = size;
-	if (size % 2 == 0) {
-		rs++;
-	}
+
 	if (colorbuf) {
-		delta = -delta;
+		
+		int rs = size;
+		if (size % 2 == 0) {
+			rs++;
+		}
 		color = color + (rs - 1) * delta;
-	}
 
-	for (int x = x1 - ds; x <= x1 + ds; x++) {
+		for (int x = x1 + ds; x >= x1 - ds; x-- ) {
 
-		for (int y = y1 - ds; y <= y1 + ds; y++) {
-			ret = __drawLine(x, y, x2, y2, colorbuf, color, bak);
-			if (bak) {
-				bak += CLOCK_RADIUS_SIZE * gBytesPerPixel;
-			}
-			if (colorbuf) {
-				color += delta;
+			for (int y = y1 + ds; y >= y1 - ds; y-- ) {
+				ret = __drawLine(x, y, x2, y2, colorbuf, color, bak);
+				if (bak) {
+					bak += CLOCK_RADIUS_SIZE * gBytesPerPixel;
+				}
+				if (colorbuf) {
+					color -= delta;
+				}
 			}
 		}
 	}
+	else {
+		for (int x = x1 - ds; x <= x1 + ds; x++) {
+
+			for (int y = y1 - ds; y <= y1 + ds; y++) {
+				ret = __drawLine(x, y, x2, y2, colorbuf, color, bak);
+				if (bak) {
+					bak += CLOCK_RADIUS_SIZE * gBytesPerPixel;
+				}
+				if (colorbuf) {
+					color += delta;
+				}
+			}
+		}
+	}
+
 	return size;
 }
 
@@ -100,18 +116,31 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 	int r2 = CLOCK_RADIUS_SIZE - 8;
 	__drawCircle(mx, my, r1, r2, CLOCK_CIRCLE_COLOR, 0);
 
+	for (int i = 0; i < 60; i++) {
+		double angle = getSecondAngle(i);
+		double px1 = 1.0 * mx + 1.0 * r1 * __cos(angle);
+		double py1 = 1.0 * my - 1.0 * r1 * __sin(angle);
+
+		double px2 = 1.0 * mx + 1.0 * (r2 - GRAPHCHAR_WIDTH * 2) * __cos(angle);
+		double py2 = 1.0 * my - 1.0 * (r2 - GRAPHCHAR_WIDTH * 2) * __sin(angle);
+		__drawLine(px1, py1, px2, py2, 0, CLOCK_CIRCLE_COLOR, 0);
+	}
+
 	for (int i = 1; i <= 12; i++) {
 
 		double angle = PI * (1.0 / 2.0 - (2.0 * i) / 12.0);
-		int dx = (int)(1.0 * r1 * __cos(angle));
-		int dy = -(int)(1.0 * r1 * __sin(angle));
+		int px = (int)(1.0 * (r2 - GRAPHCHAR_WIDTH * 4) * __cos(angle));
+		int py = -(int)(1.0 * (r2 - GRAPHCHAR_WIDTH * 4) * __sin(angle));
 
 		char strnum[16];
 		int len = __sprintf(strnum, "%d", i);
 		for (int j = 0; j < len; j++) {
 
-			int fx = mx + dx - (len - 1 - j) * GRAPHCHAR_WIDTH - GRAPHCHAR_WIDTH / 2;
-			int fy = my + dy - GRAPHCHAR_WIDTH / 2;
+			//int fx = mx + px - (len - 1 - j) * GRAPHCHAR_WIDTH - GRAPHCHAR_WIDTH / 2;
+			//int fy = my + py - GRAPHCHAR_WIDTH / 2;
+			int fx = mx + px - (len - 1 - j)* GRAPHCHAR_WIDTH;
+			int fy = my + py;
+
 			int pos = __getpos(fx, fy);
 			char sznum[2];
 			sznum[0] = strnum[j];
@@ -119,6 +148,8 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			__drawGraphChar(sznum, CLOCK_NUMBER_COLOR, pos, window.color);
 		}
 	}
+
+
 
 	char* limit = "Computer Science PhD. Cop Ltd.";
 	int datalen = __strlen(limit);

@@ -349,10 +349,9 @@ void EllipseScreenColor() {
 }
 
 
-#define SPIRAL_SMALL_CIRCLE_SIZE2	24
-#define SPIRAL_SMALL_CIRCLE_SIZE3	16
-#define SPIRAL_SMALL_CIRCLE_SIZE	32
-
+#define SPIRAL_SMALL_CIRCLE_SIZE	48
+#define SPIRAL_SMALL_CIRCLE_SIZE2	36
+#define SPIRAL_SMALL_CIRCLE_SIZE3	24
 #define AXIS_COLOR					0
 
 
@@ -442,10 +441,10 @@ void SpiralVectorGraph() {
 	
 	double A = 1.0;
 	double B = 1.0;
-	double A2 = 2.0;
-	double B2 = 2.0;
-	double A3 = 3.0;
-	double B3 = 3.0;
+	double A2 = 1.5;
+	double B2 = 1.5;
+	double A3 = 2.0;
+	double B3 = 2.0;
 
 	double theta = 0.0;
 	double theta2 = 0.0;
@@ -455,10 +454,10 @@ void SpiralVectorGraph() {
 	int color2 = 0x800000;
 	int color3 = 0x80;
 
-	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE*2;
-	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE*2;
-	int oldx2 = cx - SPIRAL_SMALL_CIRCLE_SIZE2*2;
-	int oldy2 = cy - SPIRAL_SMALL_CIRCLE_SIZE2*2;
+	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE*4;
+	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE*4;
+	int oldx2 = cx - SPIRAL_SMALL_CIRCLE_SIZE2*4;
+	int oldy2 = cy - SPIRAL_SMALL_CIRCLE_SIZE2*4;
 	int oldx3 = cx;
 	int oldy3 = cy;
 	__drawCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, color, (unsigned char*)buf);

@@ -531,6 +531,8 @@ int rejectAtapi(int dev) {
 //CF = 0£¬AH = 0 ³É¹¦
 //CF = 1£¬AH = ´íÎóÂë
 int rejectCDROM(int dev) {
+	return 0;
+
 	if (dev <= 0)
 	{
 		dev = getAtapiDev(0x81, 0xff);

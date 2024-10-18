@@ -11,8 +11,8 @@
 #pragma pack()
 
 #define FILE_DIR_FONT_COLOR			0X7F3F00
-#define FILE_FILE_FONT_COLOR		0X9F9F
-#define FILE_UNKNOWN_FONT_COLOR		0
+#define FILE_FILE_FONT_COLOR		0
+#define FILE_UNKNOWN_FONT_COLOR		0xff0000
 
 int doOpenFile(int partitionType,LPFILEBROWSER files);
 

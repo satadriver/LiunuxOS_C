@@ -208,7 +208,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	
 	__strcpy(menu->menuname[12], "SnowScreen");
 
-	__strcpy(menu->menuname[13], "SpiralVectorGraph");
+	__strcpy(menu->menuname[13], "Spiral Graph");
 	
 	//menu->menuname[14][0] = 0;
 
