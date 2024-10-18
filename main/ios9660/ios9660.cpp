@@ -10,9 +10,9 @@
 #include "v86.h"
 #include "atapi.h"
 
-
-
+#ifndef SINGLE_TASK_TSS
 #define APAPI_INT13_READWRITE
+#endif
 
 
 #ifdef APAPI_INT13_READWRITE
@@ -91,7 +91,7 @@ int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
 int browseISO9660File(LPFILEBROWSER files) {
 	int iret = 0;
 	char szout[1024];
-
+#ifdef APAPI_INT13_READWRITE
 	if (gAtapiDev == -1)
 	{
 		gAtapiDev = getAtapiDev(0x81,0xff);
@@ -104,7 +104,8 @@ int browseISO9660File(LPFILEBROWSER files) {
 			__printf(szout, "find atapi device:%x\n", gAtapiDev);
 		}
 	}
-	
+#endif
+
 	char buf[ATAPI_SECTOR_SIZE * 2];
 #ifndef APAPI_INT13_READWRITE
 	iret = readAtapiSector(buf, ISO9660FS_VOLUME_DESCRIPTOR_NO, 1);
@@ -113,7 +114,7 @@ int browseISO9660File(LPFILEBROWSER files) {
 #endif
 	if (iret <= 0)
 	{
-		__printf(szout,( char*)"browseISO9660File read cdrom sector 16 error\n");
+		__printf(szout,( char*)"browseISO9660File read cdrom ISO9660FS_VOLUME_DESCRIPTOR_NO error\n");
 		return FALSE;
 	}
 

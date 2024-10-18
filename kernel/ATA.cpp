@@ -294,6 +294,14 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 }
 
 
+void __delay() {
+	for (int i = 0; i < 0x10; i++) {
+		__asm {
+			nop
+		}
+	}
+}
+
 
 int waitComplete(WORD port) {
 
@@ -302,13 +310,15 @@ int waitComplete(WORD port) {
 	//waitInterval(0);
 	//delay();
 
+	__delay();
+
 	int errcnt = 0;
 
 	int r = 0;
 	//r = inportb(port - 6);
 	//if (r == 0) 
 	{
-		int cnt = 16;
+		int cnt = 4;
 		while (cnt--) {
 		//while (1) {
 			r = inportb(port);
@@ -316,7 +326,7 @@ int waitComplete(WORD port) {
 			//	return FALSE;
 			//}
 			//else 
-			if ((r & 0x58) == 0x58) {		//0xe9
+			if ((r & 0x8) == 0x8) {		//0xe9
 				return TRUE;
 			}
 			else {		

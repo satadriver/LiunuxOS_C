@@ -95,7 +95,7 @@ int browseFat12File(LPFILEBROWSER files) {
 	int iret = 0;
 	char szout[1024];
 
-	/*
+#ifdef FLOPPY_INT13_READWRITE
 	//扩展int13h无法读取软盘，为什么？
 	if (gFloppyDev == -1)
 	{
@@ -110,7 +110,7 @@ int browseFat12File(LPFILEBROWSER files) {
 			__printf(szout, "find floppy device:%x\n", gFloppyDev);
 		}
 	}
-	*/
+#endif
 	
 	gFloppyDev = 0;
 #ifndef FLOPPY_INT13_READWRITE

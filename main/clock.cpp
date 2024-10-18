@@ -33,9 +33,9 @@
 
 #define SECOND_HAND_WIDTH				1
 
-#define MINUTE_HAND_WIDTH				5
+#define MINUTE_HAND_WIDTH				1
 
-#define HOUR_HAND_WIDTH					9
+#define HOUR_HAND_WIDTH					1
 
 
 double getHourAngle(int h,int m) {
@@ -55,6 +55,16 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 	int ret = 0;
 	int ds = size / 2;
 
+	int delta = CLOCK_RADIUS_SIZE * gBytesPerPixel;
+	int rs = size;
+	if (size % 2 == 0) {
+		rs++;
+	}
+	if (colorbuf) {
+		delta = -delta;
+		color = color + (rs - 1) * delta;
+	}
+
 	for (int x = x1 - ds; x <= x1 + ds; x++) {
 
 		for (int y = y1 - ds; y <= y1 + ds; y++) {
@@ -63,7 +73,7 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 				bak += CLOCK_RADIUS_SIZE * gBytesPerPixel;
 			}
 			if (colorbuf) {
-				color += CLOCK_RADIUS_SIZE * gBytesPerPixel;
+				color += delta;
 			}
 		}
 	}
@@ -115,9 +125,9 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 	int pos = __getpos(mx - datalen * GRAPHCHAR_HEIGHT / 2, my + GRAPHCHAR_HEIGHT * 8);
 	__drawGraphChar(limit, CLOCK_TEXT_COLOR, pos, window.color);
 
-	char * hourBak = (char*)__kMalloc(HOUR_HAND_WIDTH * CLOCK_RADIUS_SIZE * gBytesPerPixel);
-	char *minuteBak = (char*)__kMalloc(MINUTE_HAND_WIDTH * CLOCK_RADIUS_SIZE * gBytesPerPixel);
-	char *secondBak = (char*)__kMalloc(SECOND_HAND_WIDTH * CLOCK_RADIUS_SIZE * gBytesPerPixel);
+	char * hourBak = (char*)__kMalloc((HOUR_HAND_WIDTH+1) * (1+HOUR_HAND_WIDTH)*CLOCK_RADIUS_SIZE * gBytesPerPixel);
+	char *minuteBak = (char*)__kMalloc((MINUTE_HAND_WIDTH+1)*(1+ MINUTE_HAND_WIDTH) * CLOCK_RADIUS_SIZE * gBytesPerPixel);
+	char *secondBak = (char*)__kMalloc((1+SECOND_HAND_WIDTH) * (1+SECOND_HAND_WIDTH) * CLOCK_RADIUS_SIZE * gBytesPerPixel);
 
 	DATETIME dt_old;
 	__getDateTime(&dt_old);

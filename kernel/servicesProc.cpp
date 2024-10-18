@@ -210,7 +210,7 @@ DWORD __random(DWORD r) {
 			g_random_seed = *((DWORD*)TIMER0_TICK_COUNT);
 		}
 	}
-	g_random_seed = (w * g_random_seed + v)% u;
+	g_random_seed = (w * g_random_seed*v + u)% 0xffffffff;
 	return g_random_seed;
 
 

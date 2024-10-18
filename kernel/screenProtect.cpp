@@ -241,8 +241,9 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) - gBaseColor * gBaseColor * gBaseColor;
 
 #elif defined VECTOR_GRAPH_VIDEO_2
-			DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy)) - gBaseColor * gBaseColor;
-
+			DWORD c = ((x - cx) * (x - cx)*0x1) + ((y - cy)* (y - cy)*0x1) + gBaseColor * gBaseColor;
+			DWORD high = (c >> 24);
+			c = c + high;
 #else
 
 #endif
@@ -255,7 +256,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 		}
 	}
 
-	gBaseColor = (gBaseColor + 1) % 0x100000;
+	gBaseColor = (gBaseColor + 1) % 0x1000000;
 	return;
 }
 
@@ -324,10 +325,12 @@ void EllipseScreenColor() {
 		int cy2 = gVideoHeight / 2 + 100;
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
-				DWORD c = (A * A * (x - cx) * (x - cx)) + (B * B * (y - cy) * (y - cy)) - baseColor * baseColor * A * A * B * B;
-				if (c == A * A * B * B) {
+				DWORD c = (A * A * (x - cx) * (x - cx)*0x1) + (B * B * (y - cy) * (y - cy) * 0x1) + baseColor * baseColor * A * A * B * B ;
+				if (c == A * A * B * B*0x1000) {
 
 				}
+				DWORD high = c >> 24;
+				c = c + high;
 				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = c & 0xff;
@@ -337,7 +340,7 @@ void EllipseScreenColor() {
 			}
 		}
 
-		baseColor = (baseColor + 1) % 0x100000;
+		baseColor = (baseColor + 1) % 0x1000000;
 
 		//int tmp = A;
 		//A = B;
@@ -448,9 +451,9 @@ void SpiralVectorGraph() {
 	double theta2 = 0.0;
 	double theta3 = 0.0;
 
-	int color = 0xff00;
-	int color2 = 0xff0000;
-	int color3 = 0xff;
+	int color = 0x8000;
+	int color2 = 0x800000;
+	int color3 = 0x80;
 
 	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE*2;
 	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE*2;
@@ -484,33 +487,33 @@ void SpiralVectorGraph() {
 
 		__sleep(0);
 		if (theta >= 64) {
-			theta += 0.02;
+			theta += 0.01;
 		}
 		else if (theta >= 32) {
-			theta += 0.1;
+			theta += 0.05;
 		}
 		else {
-			theta += 0.3;
+			theta += 0.1;
 		}
 
 		if (theta2 >= 64) {
-			theta2 += 0.03;
+			theta2 += 0.015;
 		}
 		else if (theta2 >= 32) {
-			theta2 += 0.15;
+			theta2 += 0.10;
 		}
 		else {
-			theta2 += 0.4;
+			theta2 += 0.15;
 		}
 
 		if (theta3 >= 64) {
-			theta3 += 0.04;
+			theta3 += 0.02;
 		}
 		else if (theta3 >= 32) {
-			theta3 += 0.2;
+			theta3 += 0.15;
 		}
 		else {
-			theta3 += 0.5;
+			theta3 += 0.2;
 		}
 		color += 1;
 		color2 += 1;
@@ -625,8 +628,9 @@ void CubeVectorGraph() {
 				//#define VECTOR_GRAPH_VIDEO_2
 
 #ifdef VECTOR_GRAPH_VIDEO_3
-				DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) - color * color * color;
-
+				DWORD c = ((x - cx) * (x - cx) * (x - cx)*0x1) + ((y - cy) * (y - cy) * (y - cy) * 0x1) + color * color * color;
+				DWORD high = c >> 24;
+				c = c + high;
 #elif defined VECTOR_GRAPH_VIDEO_2
 				DWORD c = ((x - cx) * (x - cx)) + ((y - cy) * (y - cy)) - color * color;
 #else
@@ -641,7 +645,7 @@ void CubeVectorGraph() {
 			}
 		}
 
-		color = (color + 1) % 0x100000;
+		color = (color + 1) % 0x1000000;
 	}
 }
 

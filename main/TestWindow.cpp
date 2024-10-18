@@ -101,6 +101,24 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 	int mx = window.width / 2;
 	int my = window.height / 2;
 
+	DWORD address = getAddrFromName(MAIN_DLL_BASE, "__taskTest1");
+	//__kCreateThread((DWORD)address, MAIN_DLL_BASE, (DWORD)0, "__taskTest1");
+	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest1", 3, 0);
+	DWORD address2 = getAddrFromName(MAIN_DLL_BASE, "__taskTest2");
+	//__kCreateThread((DWORD)address2, MAIN_DLL_BASE, (DWORD)0, "__taskTest2");
+	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest2", 3, 0);
+	DWORD address3 = getAddrFromName(MAIN_DLL_BASE, "__taskTest3");
+	//__kCreateThread((DWORD)address3, MAIN_DLL_BASE, (DWORD)0, "__taskTest3");
+	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest3", 3, 0);
+
+	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
+	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+	__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+
+	readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 2);
+	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+	__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+
 	while (1)
 	{
 		//unsigned int ck = __getchar(window.id);
@@ -129,24 +147,6 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 		}
 
 		__sleep(0);
-
-		DWORD address = getAddrFromName(MAIN_DLL_BASE, "__taskTest1");
-		//__kCreateThread((DWORD)address, MAIN_DLL_BASE, (DWORD)0, "__taskTest1");
-		//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest1", 3, 0);
-		DWORD address2 = getAddrFromName(MAIN_DLL_BASE, "__taskTest2");
-		//__kCreateThread((DWORD)address2, MAIN_DLL_BASE, (DWORD)0, "__taskTest2");
-		//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest2", 3, 0);
-		DWORD address3 = getAddrFromName(MAIN_DLL_BASE, "__taskTest3");
-		//__kCreateThread((DWORD)address3, MAIN_DLL_BASE, (DWORD)0, "__taskTest3");
-		//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest3", 3, 0);
-
-		readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
-		__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-		__drawGraphChars(( char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
-
-		readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 2);
-		__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-		__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
 	}
 
 	return 0;
