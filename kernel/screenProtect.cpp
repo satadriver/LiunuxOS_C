@@ -19,6 +19,11 @@
 
 //#define USE_CMOS_EXACT_TIMER
 
+#define OUTPUT_INFO_COLOR	0Xff0000
+
+
+
+
 
 int gCircleColor = 0xffffff;
 int gCircleCenterX = 0;
@@ -30,9 +35,6 @@ int gDeltaY = 3;
 int gScreenProtectWindowID = 0;
 
 int gTimerID = 0;
-
-
-#define OUTPUT_INFO_COLOR	0Xff0000
 
 
 int initScreenProtect() {
@@ -350,6 +352,8 @@ void EllipseScreenColor() {
 
 #define AXIS_COLOR					0
 
+
+
 void SpiralVectorGraph() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
@@ -390,7 +394,7 @@ void SpiralVectorGraph() {
 			c = c >> 8;
 		}
 
-		if (x - cx == 0) {
+		if (x - cx == 100) {
 			int pos = __getpos((int)x, y);
 			__drawGraphChar("y=cos(x)", AXIS_COLOR, pos, 0);
 		}	
@@ -409,9 +413,27 @@ void SpiralVectorGraph() {
 			c = c >> 8;
 		}
 
-		if (x - cx == 0) {
+		if (x - cx == 100) {
 			int pos = __getpos((int)x, y);
 			__drawGraphChar("y=sin(x)", AXIS_COLOR, pos, 0);
+		}
+	}
+
+	for (int x = 0; x < gVideoWidth; x++) {
+		DWORD y = cy - 100.0 * ((float)(x - cx)*1.0 / 100.0) * (((float)(x - cx)*1.0) / 100.0);
+		if (y >= 0) {
+			DWORD c = 0xff0000;
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+			for (int k = 0; k < gBytesPerPixel; k++) {
+				*ptr = c & 0xff;
+				c = c >> 8;
+				ptr++;
+			}
+		}
+
+		if (x  == 100) {
+			int pos = __getpos((int)x, y);
+			__drawGraphChar("y=x*x", AXIS_COLOR, pos, 0);
 		}
 	}
 	
@@ -426,9 +448,9 @@ void SpiralVectorGraph() {
 	double theta2 = 0.0;
 	double theta3 = 0.0;
 
-	int color = 0xff;
+	int color = 0xff00;
 	int color2 = 0xff0000;
-	int color3 = 0xff00;
+	int color3 = 0xff;
 
 	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE*2;
 	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE*2;
@@ -490,9 +512,9 @@ void SpiralVectorGraph() {
 		else {
 			theta3 += 0.5;
 		}
-		color+= 3;
-		color2 += 3;
-		color3 += 3;
+		color += 1;
+		color2 += 1;
+		color3 += 1;
 
 		int px = cx + (int)((A + B * theta) * __cos(theta));
 		int py = cy - (int)( (A + B * theta) * __sin(theta));
@@ -574,26 +596,6 @@ void CubeVectorGraph() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
 	DWORD windowid = addWindow(FALSE, 0, 0, 0, "CubeVectorGraph");
-
-	/*
-	int cx = gVideoWidth / 2;
-	int cy = gVideoHeight / 2;
-
-	for (int x = 0; x < gVideoWidth; x++) {
-		DWORD y = cy - (x - cx) * (x - cx);
-		if (y >= 0 ) {
-			DWORD c = 0xff0000;
-			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
-			for (int k = 0; k < gBytesPerPixel; k++) {
-				*ptr = c & 0xff;
-				c = c >> 8;
-				ptr++;
-			}
-		}
-	}
-	*/
-
-	//__diamond(cx, cy, 64, 5, 0xffffffff);
 
 	while (1)
 	{
@@ -813,7 +815,6 @@ double resist_air(double v, double radius) {
 #if 0
 	double min = 0.5 * 1000.0 / g_frame_delay;
 	if (t < min) {
-
 		t = min;
 	}
 #endif
@@ -994,7 +995,7 @@ void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	if (__abs(g_y_s) <= 0.5 && __abs(g_x_s) <= 0.5 && (__abs(y - max_y) < 0.1 || __abs(g_centerY - max_y) < 0.1)) {
 		g_counter++;
-		if (g_counter > 3000.0 / g_frame_delay) {
+		if (g_counter > 2000.0 / g_frame_delay) {
 			g_counter = 0;
 			ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, (unsigned char*)g_circle_buf);
 

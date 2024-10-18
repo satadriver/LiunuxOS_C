@@ -13,21 +13,29 @@
 
 #define CLOCK_RADIUS_SIZE				0x100
 
-#define CLOCK_CIRCLE_COLOR				0x00ffff
+#define CLOCK_CIRCLE_COLOR				0x0
 
-#define CLOCK_NUMBER_COLOR				0
+#define CLOCK_NUMBER_COLOR				0xff00
 
-#define CLOCK_HOUR_COLOR				0xff0000
+#define CLOCK_HOUR_COLOR				0
 
-#define CLOCK_MINUTE_COLOR				0xff00
+#define CLOCK_MINUTE_COLOR				0
 
-#define CLOCK_SECOND_COLOR				0x00FF
+#define CLOCK_SECOND_COLOR				0xff0000
 
-#define HOUR_HAND_SIZE				(CLOCK_RADIUS_SIZE*3/5)
+#define CLOCK_TEXT_COLOR				0xff0000
 
-#define MINUTE_HAND_SIZE			(CLOCK_RADIUS_SIZE*4/5)
+#define HOUR_HAND_SIZE					(CLOCK_RADIUS_SIZE*3/5)
 
-#define SECOND_HAND_SIZE			(CLOCK_RADIUS_SIZE*9/10)
+#define MINUTE_HAND_SIZE				(CLOCK_RADIUS_SIZE*4/5)
+
+#define SECOND_HAND_SIZE				(CLOCK_RADIUS_SIZE*9/10)
+
+#define SECOND_HAND_WIDTH				1
+
+#define MINUTE_HAND_WIDTH				5
+
+#define HOUR_HAND_WIDTH					9
 
 
 double getHourAngle(int h,int m) {
@@ -43,7 +51,24 @@ double getSecondAngle(int s) {
 }
 
 
+int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long color,char * bak) {
+	int ret = 0;
+	int ds = size / 2;
 
+	for (int x = x1 - ds; x <= x1 + ds; x++) {
+
+		for (int y = y1 - ds; y <= y1 + ds; y++) {
+			ret = __drawLine(x, y, x2, y2, colorbuf, color, bak);
+			if (bak) {
+				bak += CLOCK_RADIUS_SIZE * gBytesPerPixel;
+			}
+			if (colorbuf) {
+				color += CLOCK_RADIUS_SIZE * gBytesPerPixel;
+			}
+		}
+	}
+	return size;
+}
 
 extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 	char szout[1024];
@@ -57,7 +82,6 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
 	__strcpy(window.caption, filename);
 	initFullWindow(&window, funcname, tid);
-
 
 	int mx = window.width / 2;
 	int my = window.height / 2;
@@ -86,9 +110,14 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 		}
 	}
 
-	char hourBak[0x1000];
-	char minuteBak[0x1000];
-	char secondBak[0x1000];
+	char* limit = "Computer Science PhD. Cop Ltd.";
+	int datalen = __strlen(limit);
+	int pos = __getpos(mx - datalen * GRAPHCHAR_HEIGHT / 2, my + GRAPHCHAR_HEIGHT * 8);
+	__drawGraphChar(limit, CLOCK_TEXT_COLOR, pos, window.color);
+
+	char * hourBak = (char*)__kMalloc(HOUR_HAND_WIDTH * CLOCK_RADIUS_SIZE * gBytesPerPixel);
+	char *minuteBak = (char*)__kMalloc(MINUTE_HAND_WIDTH * CLOCK_RADIUS_SIZE * gBytesPerPixel);
+	char *secondBak = (char*)__kMalloc(SECOND_HAND_WIDTH * CLOCK_RADIUS_SIZE * gBytesPerPixel);
 
 	DATETIME dt_old;
 	__getDateTime(&dt_old);
@@ -107,9 +136,9 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 	int secondx_old = mx + (int)(1.0 * SECOND_HAND_SIZE * __cos(hs_old));
 	int secondy_old = my - (int)(1.0 * SECOND_HAND_SIZE * __sin(hs_old));
 
-	__drawLine(mx, my, hourx_old, houry_old, 0, CLOCK_HOUR_COLOR, hourBak);
-	__drawLine(mx, my, minutex_old, minutey_old, 0, CLOCK_MINUTE_COLOR, minuteBak);
-	__drawLine(mx, my, secondx_old, secondy_old, 0, CLOCK_SECOND_COLOR, secondBak);
+	drawLine(mx, my, hourx_old, houry_old, HOUR_HAND_WIDTH, 0, CLOCK_HOUR_COLOR, hourBak);
+	drawLine(mx, my, minutex_old, minutey_old, MINUTE_HAND_WIDTH, 0, CLOCK_MINUTE_COLOR, minuteBak);
+	drawLine(mx, my, secondx_old, secondy_old, SECOND_HAND_WIDTH,0, CLOCK_SECOND_COLOR, secondBak);
 
 	while (1)
 	{
@@ -119,6 +148,9 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 		if (asc == 0x1b)
 		{
 			__DestroyWindow(&window);
+			__kFree((unsigned long)hourBak);
+			__kFree((unsigned long)secondBak);
+			__kFree((unsigned long)minuteBak);
 			return 0;
 		}
 
@@ -133,12 +165,15 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
 					__DestroyWindow(&window);
+					__kFree((unsigned long)hourBak);
+					__kFree((unsigned long)secondBak);
+					__kFree((unsigned long)minuteBak);
 					return 0;
 				}
 			}
 		}
 
-		__sleep(500);
+		__sleep(100);
 
 		DATETIME dt;		
 		__getDateTime(&dt);
@@ -147,14 +182,13 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 		}
 
 		if (dt.hour != dt_old.hour || dt.minute != dt_old.minute || dt.second != dt_old.second) {
-
-			
+		
 			char szdateTime[256];
 			char* szdayInWeek = dayOfWeek2str(dt.dayInWeek);
 			int datalen = __sprintf(szdateTime, "%d/%d/%d %d:%d:%d %s. Having a good time!", 
 				dt.year, dt.month, dt.dayInMonth, dt.hour, dt.minute, dt.second, szdayInWeek);
 			int pos = __getpos(mx - datalen*GRAPHCHAR_HEIGHT/2, my - CLOCK_RADIUS_SIZE  - GRAPHCHAR_HEIGHT*8);
-			__drawGraphChar(szdateTime, CLOCK_NUMBER_COLOR, pos, window.color);
+			__drawGraphChar(szdateTime, CLOCK_TEXT_COLOR, pos, window.color);
 
 			double ha = getHourAngle(dt.hour, dt.minute);
 			double hm = getMinuteAngle(dt.minute);
@@ -167,13 +201,13 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			int secondx = mx + (int)(1.0 * SECOND_HAND_SIZE * __cos(hs));
 			int secondy = my - (int)(1.0 * SECOND_HAND_SIZE * __sin(hs));
 
-			__drawLine(mx, my, secondx_old, secondy_old, 1, (DWORD)secondBak, 0);
-			__drawLine(mx, my, minutex_old, minutey_old, 1, (DWORD)minuteBak, 0);
-			__drawLine(mx, my, hourx_old, houry_old, 1, (DWORD)hourBak, 0);
+			drawLine(mx, my, secondx_old, secondy_old, SECOND_HAND_WIDTH, 1, (DWORD)secondBak, 0);
+			drawLine(mx, my, minutex_old, minutey_old, MINUTE_HAND_WIDTH,1, (DWORD)minuteBak, 0);
+			drawLine(mx, my, hourx_old, houry_old, HOUR_HAND_WIDTH, 1, (DWORD)hourBak, 0);
 
-			__drawLine(mx, my, hourx, houry, 0, CLOCK_HOUR_COLOR, hourBak);
-			__drawLine(mx, my, minutex, minutey, 0, CLOCK_MINUTE_COLOR, minuteBak);
-			__drawLine(mx, my, secondx, secondy, 0, CLOCK_SECOND_COLOR, secondBak);
+			drawLine(mx, my, hourx, houry, HOUR_HAND_WIDTH, 0, CLOCK_HOUR_COLOR, hourBak);
+			drawLine(mx, my, minutex, minutey, MINUTE_HAND_WIDTH,0, CLOCK_MINUTE_COLOR, minuteBak);
+			drawLine(mx, my, secondx, secondy, SECOND_HAND_WIDTH, 0, CLOCK_SECOND_COLOR, secondBak);
 
 			secondx_old = secondx;
 			secondy_old = secondy;
