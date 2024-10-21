@@ -238,24 +238,23 @@ void linearMapping() {
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 
-#if 0
-//#ifndef DISABLE_PAGE_MAPPING
+
+#ifndef DISABLE_PAGE_MAPPING
 	int cnt = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
 	for (int i = 0; i < cnt; i++)
 	{
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 		idx += ITEM_IN_PAGE;
 	}
+	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE);
 
-	DWORD high = getBorderAddr();
+	DWORD high = getBorderAddr()&((PAGE_SIZE * ITEM_IN_PAGE) - 1);
 
 	DWORD size = 0 - high;
 
 	mapPhyToLinear(high, high, size, (DWORD*)PDE_ENTRY_VALUE);
 
 	mapPhyToLinear(0xc0000000, 0xc0000000, 0x40000000, (DWORD*)PDE_ENTRY_VALUE);
-
-	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE);
 
 	return;
 #endif
@@ -270,11 +269,11 @@ void linearMapping() {
 		idx += ITEM_IN_PAGE;
 	}
 
-#if 0
-	DWORD s = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
-	DWORD high = getBorderAddr();
-	int e = high / (PAGE_SIZE * ITEM_IN_PAGE);
-	for (int i = s; i < high; i++)
+#if 1
+	DWORD start = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
+	DWORD highaddr = (getBorderAddr() + (PAGE_SIZE * ITEM_IN_PAGE)) & ((PAGE_SIZE * ITEM_IN_PAGE) - 1);
+	int end = highaddr / (PAGE_SIZE * ITEM_IN_PAGE);
+	for (int i = start; i < end; i++)
 	{
 		entry[i] = 0;
 	}

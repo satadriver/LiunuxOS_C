@@ -14,7 +14,7 @@
 #include "ChinesePoem.h"
 #include"clock.h"
 
-int gMenuID = 0;
+
 
 int __restoreRightMenu(RIGHTMENU* menu) {
 
@@ -47,7 +47,7 @@ int __restoreRightMenu(RIGHTMENU* menu) {
 
 	__kDrawMouse();
 
-	__kFree(menu->backGround);
+	//__kFree(menu->backGround);
 
 	return (int)ptr - gGraphBase;
 }
@@ -67,11 +67,10 @@ int __drawRightMenu(RIGHTMENU *menu) {
 		menu->pos.y = gVideoHeight - menu->height - TASKBAR_HEIGHT;
 	}
 
-	menu->backsize = gBytesPerPixel*(menu->width + 1)*(menu->height + 1);
-	menu->backGround = __kMalloc(menu->backsize);
+	//menu->backsize = gBytesPerPixel*(menu->width + 1)*(menu->height + 1);
+	//menu->backGround = __kMalloc(menu->backsize);
 
-	menu->id = gMenuID;
-	gMenuID++;
+	menu->id = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
 
 	int startpos = __getpos(menu->pos.x, menu->pos.y) + gGraphBase;
 	unsigned char * ptr = (unsigned char*)startpos;
@@ -280,6 +279,9 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->id = 0;
 
 	menu->tid = tid;
+
+	menu->backsize = gBytesPerPixel * (menu->width + 1) * (menu->height + 1);
+	menu->backGround = __kMalloc(menu->backsize);
 
 	__kDrawWindowsMenu();
 }

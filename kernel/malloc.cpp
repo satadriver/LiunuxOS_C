@@ -334,33 +334,35 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 		res = 0;
 	}
 
-	if (res ) {
 #ifndef DISABLE_PAGE_MAPPING
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
+	if (res ) {		
+		int vmtag = TRUE;
 		if (vaddr == 0) {
 			vaddr = res;
+			vmtag = 0;
 		}
-		else {
-			vaddr = tss->vaddr + tss->vasize;
-			tss->vasize += size;
-		}
-	 
-		DWORD* cr3 = (DWORD*)tss->tss.cr3;
-		DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
 
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		if (process->pid == pid)
 		{
-			cr3 = (DWORD*)process->tss.cr3;
-			pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+			if (vmtag) {
+				vaddr = process->vaddr + process->vasize;
+			}
+			process->vasize += size;
+			DWORD* cr3 = (DWORD*)process->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
 		}
 		else {
-			vaddr = res;
-			cr3 = (DWORD*)process->tss.cr3;
-			pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+			if (vmtag) {
+				vaddr = tss->vaddr + tss->vasize;
+			}
+			tss->vasize += size;
+			DWORD* cr3 = (DWORD*)tss->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
 		}
-#endif
 	}
+#endif
 
 	__leaveSpinlock(&gAllocLock);
 
