@@ -3,7 +3,7 @@
 #include "video.h"
 #include "malloc.h"
 #include "process.h"
-
+#include "memory.h"
 
 
 
@@ -229,7 +229,7 @@ void freeProcessPages(int pid) {
 //当处理器运行在超级用户特权级（级别0、1或2）时，则R/W位不起作用。页目录项中的R/W位对其所映射的所有页面起作用。
 //U/S--位2是用户/超级用户（User / Supervisor）标志。如果为1，那么运行在任何特权级上的程序都可以访问该页面。
 //如果为0，那么页面只能被运行在超级用户特权级（0、1或2）上的程序访问。页目录项中的U / S位对其所映射的所有页面起作用。
-#include "memory.h"
+
 
 void linearMapping() {
 
@@ -238,8 +238,8 @@ void linearMapping() {
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 
-
-#ifndef DISABLE_PAGE_MAPPING
+#if 0
+//#ifndef DISABLE_PAGE_MAPPING
 	int cnt = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
 	for (int i = 0; i < cnt; i++)
 	{
@@ -248,11 +248,16 @@ void linearMapping() {
 	}
 	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE);
 
-	DWORD high = getBorderAddr()&((PAGE_SIZE * ITEM_IN_PAGE) - 1);
-
-	DWORD size = 0 - high;
-
-	mapPhyToLinear(high, high, size, (DWORD*)PDE_ENTRY_VALUE);
+	DWORD low = getBorderAddr()&(~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
+	DWORD size = 0 - low;
+	int begin = low / (PAGE_SIZE * ITEM_IN_PAGE);
+	idx = (DWORD*)(PTE_ENTRY_VALUE + sizeof(DWORD)*low / PAGE_SIZE);
+	for (int i = begin; i < 1024; i++)
+	{
+		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+		idx += ITEM_IN_PAGE;
+	}
+	mapPhyToLinear(low, low, size, (DWORD*)PDE_ENTRY_VALUE);
 
 	mapPhyToLinear(0xc0000000, 0xc0000000, 0x40000000, (DWORD*)PDE_ENTRY_VALUE);
 
@@ -271,11 +276,11 @@ void linearMapping() {
 
 #if 1
 	DWORD start = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
-	DWORD highaddr = (getBorderAddr() + (PAGE_SIZE * ITEM_IN_PAGE)) & ((PAGE_SIZE * ITEM_IN_PAGE) - 1);
+	DWORD highaddr = (getBorderAddr()  + (PAGE_SIZE * ITEM_IN_PAGE)  ) & (~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
 	int end = highaddr / (PAGE_SIZE * ITEM_IN_PAGE);
 	for (int i = start; i < end; i++)
 	{
-		entry[i] = 0;
+		//entry[i] = 0;
 	}
 #endif
 }

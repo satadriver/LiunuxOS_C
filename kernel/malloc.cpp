@@ -341,8 +341,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			vaddr = res;
 			vmtag = 0;
 		}
-
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
+		
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		if (process->pid == pid)
 		{
@@ -354,6 +353,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
 		}
 		else {
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
 			}
