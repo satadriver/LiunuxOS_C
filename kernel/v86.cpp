@@ -11,7 +11,7 @@
 
 
 //#define V86_INT13_MODE
-//#define V86_INT255_MODE
+#define V86_INT255_MODE
 
 
 int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize) {
@@ -236,6 +236,10 @@ int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt,
 	pat->segoff = (INT13_RM_FILEBUF_SEG << 16) + INT13_RM_FILEBUF_OFFSET;
 	pat->secnolow = secnum;
 	pat->secnohigh = secnumhigh;
+
+	__asm {
+		int 255
+	}
 
 	if (params->result)
 	{

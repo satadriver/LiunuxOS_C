@@ -485,3 +485,69 @@ int __readTemperature(DWORD* tjunction) {
 
 	return temp;
 }
+
+
+
+
+int __kVm86IntProc() {
+
+	__asm {
+		_emit 0xea
+
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+
+		_emit kTssTaskSelector
+		_emit 0
+	}
+	return 0;
+}
+
+DWORD __declspec(naked) vm86IntProc(LIGHT_ENVIRONMENT* stack) {
+
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+	}
+
+	__asm {
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+
+		call __kVm86IntProc
+
+		mov edx, stack
+		mov[edx + LIGHT_ENVIRONMENT.eax], eax		//may be error?  warning: "."应用于非 UDT 类型
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+	}
+}

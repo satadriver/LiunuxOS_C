@@ -263,18 +263,6 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 
 	*retsize = size;
 
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-
-	LPPROCESS_INFO tss = 0;
-
-	if (process->pid == pid)
-	{
-		tss = (LPPROCESS_INFO)process;
-	}
-	else {
-		tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
-	}
-
 	__enterSpinlock(&gAllocLock);
 
 	int factor = 1;
@@ -343,7 +331,8 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 	}
 
 	if (res ) {
-#if 0
+#ifndef DISABLE_PAGE_MAPPING
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
 		if (vaddr == 0) {
 			vaddr = res;
 		}
@@ -351,11 +340,21 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 			vaddr = tss->vaddr + tss->vasize;
 			tss->vasize += size;
 		}
-		 
+	 
 		DWORD* cr3 = (DWORD*)tss->tss.cr3;
 		DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
-		
-		//res = vaddr;
+
+		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		if (process->pid == pid)
+		{
+			cr3 = (DWORD*)process->tss.cr3;
+			pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+		}
+		else {
+			vaddr = res;
+			cr3 = (DWORD*)process->tss.cr3;
+			pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+		}
 #endif
 	}
 
@@ -370,16 +369,16 @@ DWORD __kMalloc(DWORD s) {
 
 	char szout[1024];
 	DWORD size = 0;
-
+	int len = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	//DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
 	DWORD ret = __kProcessMalloc(s, &size, 0, 0);
 	if (ret == 0) {
 		
-		int len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
+		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
 	}
 	else {
-		int len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
+		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
 	}
 	return ret;
 }

@@ -104,7 +104,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.iomapOffset = 136;
 	tss->tss.iomapEnd = 0xff;
 
-	tss->vasize += alignsize;
+	//tss->vasize += alignsize;
 	tss->sleep = 0;
 
 	tss->tss.eip = addr;
@@ -213,8 +213,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
 	}
-
-	//tss->vasize += espsize;
 
 	params->terminate = (DWORD)__kTerminateThread;
 	params->terminate2 = (DWORD)__kTerminateThread;

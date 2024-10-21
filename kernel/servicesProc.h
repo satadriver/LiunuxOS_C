@@ -18,7 +18,7 @@
 #define RESTORE_MOUSE		14
 #define SET_VIDEOMODE		15
 
-
+DWORD vm86IntProc(LIGHT_ENVIRONMENT* stack);
 
 DWORD servicesProc(LIGHT_ENVIRONMENT* stack);
 

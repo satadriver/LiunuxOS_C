@@ -120,9 +120,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
 		return FALSE;
 	}
-	//tss->vasize += alignsize;
 
-	tss->moduleaddr = pemap;
+	tss->moduleaddr = tss->vaddr + tss->vasize;
 	tss->moduleLinearAddr = USER_SPACE_START;
 
 	//__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->vaddr);
@@ -141,7 +140,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 			return FALSE;
 		}
 		else {
-			//getAddrFromName 已经加了一个pemap，所以必须减去它
+			//getAddrFromName 已经加上了pemap，所以必须减去它
 			entry = entry - pemap + USER_SPACE_START;
 		}
 	}
@@ -163,15 +162,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
 	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
-	if (level & 3)
-	{
-		//copyPdeTables(0, USER_SPACE_START, (DWORD*)tss->tss.cr3);
-	}
-	else {
-		//copyPdeTables(0, 0, (DWORD*)tss->tss.cr3);
-	}
 	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
-
 #ifndef DISABLE_PAGE_MAPPING
 	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
 #endif
@@ -197,8 +188,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.esp0 = TASKS_STACK0_BASE + (tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
+	vaddr = tss->vaddr + tss->vasize;
 	DWORD espsize = 0;
-	//vaddr = tss->vaddr + tss->vasize;
 	LPTASKPARAMS params = 0;
 	DWORD heapsize = 0;
 	if (syslevel == 0)
@@ -299,9 +290,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		heapsize = UTASK_STACK_SIZE;
 	}
 	
-	//tss->vasize += espsize;
 	vaddr = tss->vaddr + tss->vasize;
-
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid, vaddr);
 #ifndef DISABLE_PAGE_MAPPING
 	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
@@ -310,7 +299,6 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->heapbase = heapbase;
 #endif
 	tss->heapsize = heapsize;
-	//tss->vasize += heapsize;
 	
 	params->terminate = (DWORD)__terminateProcess;
 	params->terminate2 = (DWORD)__terminateProcess;

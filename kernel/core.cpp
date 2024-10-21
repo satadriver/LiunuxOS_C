@@ -226,6 +226,8 @@ void initV86Tss(TSS* tss, DWORD esp0, DWORD ip,DWORD cs, DWORD cr3,DWORD ldt) {
 
 	tss->cr3 = cr3;
 	tss->ldt = ldt;
+
+	tss->intMap[31] = 0xff;
 }
 
 
@@ -392,6 +394,8 @@ void initIDT() {
 
 	makeTrapGateDescriptor((DWORD)servicesProc, KERNEL_MODE_CODE, 3, descriptor + 0x80);
 
+	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
+	
 	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
 
 	DescriptTableReg idtbase;

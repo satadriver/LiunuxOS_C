@@ -238,8 +238,8 @@ void linearMapping() {
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 
-#if 0
-	for (int i = 0; i < MEMMORY_ALLOC_BASE / (PAGE_SIZE*ITEM_IN_PAGE); i++) 
+#ifndef DISABLE_PAGE_MAPPING
+	for (int i = 0; i < MEMMORY_ALLOC_BASE / (PAGE_SIZE*ITEM_IN_PAGE); i++)
 	{
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 		idx += ITEM_IN_PAGE;
