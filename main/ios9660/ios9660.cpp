@@ -7,7 +7,7 @@
 #include "../guiHelper.h"
 #include "def.h"
 #include "malloc.h"
-#include "v86.h"
+#include "VM86.h"
 #include "atapi.h"
 
 #ifndef SINGLE_TASK_TSS

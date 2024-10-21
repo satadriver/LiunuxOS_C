@@ -10,7 +10,7 @@
 #include "cmosAlarm.h"
 #include "process.h"
 #include "atapi.h"
-#include "v86.h"
+#include "VM86.h"
 #include "ChinesePoem.h"
 #include"clock.h"
 

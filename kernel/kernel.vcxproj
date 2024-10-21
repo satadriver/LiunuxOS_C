@@ -258,9 +258,10 @@
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="process.cpp" />
     <ClCompile Include="utils.cpp" />
-    <ClCompile Include="v86.cpp" />
+    <ClCompile Include="VM86.cpp" />
     <ClCompile Include="vectorRoutine.cpp" />
     <ClCompile Include="video.cpp" />
+    <ClCompile Include="VMM.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -318,9 +319,10 @@
     <ClInclude Include="thread.h" />
     <ClInclude Include="process.h" />
     <ClInclude Include="utils.h" />
-    <ClInclude Include="v86.h" />
+    <ClInclude Include="VM86.h" />
     <ClInclude Include="vectorRoutine.h" />
     <ClInclude Include="video.h" />
+    <ClInclude Include="VMM.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

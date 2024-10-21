@@ -22,6 +22,10 @@ DWORD gAllocLock = FALSE;
 LPMEMALLOCINFO gMemAllocList = 0;
 
 
+DWORD getBorderAddr() {
+	return gAvailableBase + gAvailableSize;
+}
+
 int getAlignSize(int size, int allignsize) {
 	int allocsize = size;
 	int mod = size % allignsize;

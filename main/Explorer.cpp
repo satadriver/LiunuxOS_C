@@ -36,7 +36,6 @@
 #include "hept.h"
 #include "cmosAlarm.h"
 #include "elf.h"
-#include "v86.h"
 #include "guihelper.h"
 
 #define EXPLORER_TASKNAME			"__kExplorer"

@@ -12,7 +12,7 @@
 #include "debugger.h"
 #include "hardware.h"
 #include "Utils.h"
-#include "v86.h"
+#include "VM86.h"
 #include "textMode.h"
 #include "mouse.h"
 #include "keyboard.h"

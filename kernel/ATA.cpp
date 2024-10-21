@@ -7,7 +7,7 @@
 #include "video.h"
 #include "atapi.h"
 #include "Kernel.h"
-#include "v86.h"
+#include "VM86.h"
 #include "hardware.h"
 #include "device.h"
 

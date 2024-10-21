@@ -16,7 +16,7 @@ LPMEMALLOCINFO findPageIdx(DWORD addr) {
 
 	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(base->list.next);
-	LPMEMALLOCINFO tmp = info;
+	LPMEMALLOCINFO hdr = info;
 
 	do
 	{
@@ -31,7 +31,7 @@ LPMEMALLOCINFO findPageIdx(DWORD addr) {
 		else {
 			info = (LPMEMALLOCINFO)info->list.next;
 		}
-	} while (info && (info != tmp));
+	} while (info && (info != hdr));
 
 	return 0;
 }
@@ -40,7 +40,7 @@ LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 
 	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(base->list.next);
-	LPMEMALLOCINFO tmp = info;
+	LPMEMALLOCINFO hdr = info;
 
 	do
 	{
@@ -59,7 +59,7 @@ LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 		else {
 			info = (LPMEMALLOCINFO)info->list.next;
 		}
-	} while (info && (info != tmp));
+	} while (info && (info != hdr));
 
 	return 0;
 }
@@ -238,15 +238,25 @@ void linearMapping() {
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 
-#ifndef DISABLE_PAGE_MAPPING
-	for (int i = 0; i < MEMMORY_ALLOC_BASE / (PAGE_SIZE*ITEM_IN_PAGE); i++)
+#if 0
+//#ifndef DISABLE_PAGE_MAPPING
+	int cnt = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
+	for (int i = 0; i < cnt; i++)
 	{
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 		idx += ITEM_IN_PAGE;
 	}
 
+	DWORD high = getBorderAddr();
+
+	DWORD size = 0 - high;
+
+	mapPhyToLinear(high, high, size, (DWORD*)PDE_ENTRY_VALUE);
+
+	mapPhyToLinear(0xc0000000, 0xc0000000, 0x40000000, (DWORD*)PDE_ENTRY_VALUE);
+
 	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE);
-	
+
 	return;
 #endif
 	
@@ -259,7 +269,16 @@ void linearMapping() {
 		}
 		idx += ITEM_IN_PAGE;
 	}
-	
+
+#if 0
+	DWORD s = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
+	DWORD high = getBorderAddr();
+	int e = high / (PAGE_SIZE * ITEM_IN_PAGE);
+	for (int i = s; i < high; i++)
+	{
+		entry[i] = 0;
+	}
+#endif
 }
 
 /*

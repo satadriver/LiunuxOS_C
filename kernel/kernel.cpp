@@ -34,6 +34,7 @@
 #include "apic.h"
 #include "acpi.h"
 #include "window.h"
+#include "VMM.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -111,13 +112,18 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	}
 
 #ifdef SINGLE_TASK_TSS
-	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
-	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #endif
 
 	__printf(szout, "Hello world of Liunux!\r\n");
 
+	ret = StartVirtualTechnology();
+	if (ret) {
+		StopVirtualTechnology();
+	}
+	
 	initFileSystem();
 
 	int imagesize = getSizeOfImage((char*)KERNEL_DLL_SOURCE_BASE);

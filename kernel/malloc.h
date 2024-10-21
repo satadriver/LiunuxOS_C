@@ -35,6 +35,8 @@ typedef struct
 
 #pragma pack()
 
+DWORD getBorderAddr();
+
 int setMemAllocInfo(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid);
 
 void resetAllMemAllocInfo();
