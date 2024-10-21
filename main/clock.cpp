@@ -33,9 +33,9 @@
 
 #define SECOND_HAND_WIDTH				1
 
-#define MINUTE_HAND_WIDTH				1
+#define MINUTE_HAND_WIDTH				3
 
-#define HOUR_HAND_WIDTH					1
+#define HOUR_HAND_WIDTH					5
 
 
 double getHourAngle(int h,int m) {
@@ -63,7 +63,7 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 		if (size % 2 == 0) {
 			rs++;
 		}
-		color = color + (rs - 1) * delta;
+		color = color + (rs * rs - 1) * delta;
 
 		for (int x = x1 + ds; x >= x1 - ds; x-- ) {
 

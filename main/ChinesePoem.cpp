@@ -318,7 +318,7 @@ void drawCCFontChar_new(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD p
 		g_poem_pos_y = resultpos / gBytesPerLine;
 		g_poem_pos_x = (resultpos % gBytesPerLine) / gBytesPerPixel;
 
-		g_cc_color += 3;
+		g_cc_color += 0x0103;
 
 		if (unicode[0] == 0x0a0d || unicode[0] == 0x0d0a) {
 			//g_poem_pos_x = window->showX;
