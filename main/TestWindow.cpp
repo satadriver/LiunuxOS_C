@@ -85,10 +85,10 @@ extern "C" __declspec(dllexport) void __taskTest3(unsigned int retaddr, int tid,
 
 
 extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
-	char szout[1024];
-	__printf(szout, "%s task tid:%x,filename:%s,funcname:%s,param:%x\n", __FUNCTION__, tid, filename, funcname, runparam);
 
-	int retvalue = 0;
+	char szout[1024];
+	int ret = 0;
+	__printf(szout, "%s task tid:%x,filename:%s,funcname:%s,param:%x\n", __FUNCTION__, tid, filename, funcname, runparam);
 
 	LPTASKCMDPARAMS taskcmd = (LPTASKCMDPARAMS)runparam;
 
@@ -96,9 +96,6 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
 	__strcpy(window.caption, filename);
 	initFullWindow(&window, funcname, tid);
-
-	int mx = window.width / 2;
-	int my = window.height / 2;
 
 	DWORD address = getAddrFromName(MAIN_DLL_BASE, "__taskTest1");
 	//__kCreateThread((DWORD)address, MAIN_DLL_BASE, (DWORD)0, "__taskTest1");
@@ -112,11 +109,23 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 
 	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
 	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-	__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+	//__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
 
 	readFloppySector(0, FLOPPY_DMA_BUFFER, 0, 2);
 	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-	__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+	//__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+
+	for (int i = 0; i < 0x20; i++) {
+		int size = 0x10 * i + 8;
+		char* buf =(char*) __malloc(size);
+		__printf(szout,"buf :%x,size:%x\r\n", buf, size);
+	}
+
+	for (int i = 0; i < 0x20; i++) {
+		int size = 0x10000 * i + 8;
+		char* buf = (char*)__malloc(size);
+		__printf(szout,"buf :%x,size:%x\r\n", buf, size);
+	}
 
 	while (1)
 	{
@@ -132,7 +141,7 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
 		//retvalue = getmouse(&mouseinfo,window.id);
-		retvalue = __kGetMouse(&mouseinfo, window.id);
+		ret = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
 			if (mouseinfo.x >= window.shutdownx && mouseinfo.x <= window.shutdownx + window.capHeight)

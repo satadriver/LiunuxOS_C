@@ -55,7 +55,7 @@ int initMemory();
 
 DWORD pageAlignSize(DWORD size,int max);
 
-DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr);
+DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr,int tag);
 
 void freeProcessMemory(int pid);
 

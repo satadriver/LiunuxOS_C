@@ -6,7 +6,8 @@
 #include "memory.h"
 
 
-
+//BIOS:
+//https://blog.csdn.net/x86ipc/article/details/5303760
 
 DWORD gPageAllocLock = FALSE;
 
@@ -225,10 +226,7 @@ void freeProcessPages(int pid) {
 }
 
 
-//R/W--位1是读/写（Read/Write）标志。如果等于1，表示页面可以被读、写或执行。如果为0，表示页面只读或可执行。
-//当处理器运行在超级用户特权级（级别0、1或2）时，则R/W位不起作用。页目录项中的R/W位对其所映射的所有页面起作用。
-//U/S--位2是用户/超级用户（User / Supervisor）标志。如果为1，那么运行在任何特权级上的程序都可以访问该页面。
-//如果为0，那么页面只能被运行在超级用户特权级（0、1或2）上的程序访问。页目录项中的U / S位对其所映射的所有页面起作用。
+
 
 
 void linearMapping() {
@@ -237,52 +235,65 @@ void linearMapping() {
 	DWORD* entry = (DWORD*)PDE_ENTRY_VALUE;
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
+	__memset((char*)PDE_ENTRY_VALUE, 0, PAGE_SIZE);
 
-#if 0
-//#ifndef DISABLE_PAGE_MAPPING
+	mapPhyToLinear(0, 0, 0x80000000, (DWORD*)PDE_ENTRY_VALUE, PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+	mapPhyToLinear(0x80000000, 0x80000000, 0x80000000, (DWORD*)PDE_ENTRY_VALUE, PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+	return;
+
+#if 1
 	int cnt = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
 	for (int i = 0; i < cnt; i++)
 	{
-		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
+		//entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 		idx += ITEM_IN_PAGE;
 	}
-	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE);
+	mapPhyToLinear(0, 0, MEMMORY_ALLOC_BASE, (DWORD*)PDE_ENTRY_VALUE, PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 
-	DWORD low = getBorderAddr()&(~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
-	DWORD size = 0 - low;
-	int begin = low / (PAGE_SIZE * ITEM_IN_PAGE);
-	idx = (DWORD*)(PTE_ENTRY_VALUE + sizeof(DWORD)*low / PAGE_SIZE);
-	for (int i = begin; i < 1024; i++)
+	int begin = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
+	int end = (getBorderAddr() & (~(PAGE_SIZE * ITEM_IN_PAGE - 1))) / (PAGE_SIZE * ITEM_IN_PAGE);
+	for (int i = begin; i < end; i++)
 	{
-		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
-		idx += ITEM_IN_PAGE;
-	}
-	mapPhyToLinear(low, low, size, (DWORD*)PDE_ENTRY_VALUE);
+		for (int k = 0; i < ITEM_IN_PAGE; k++) {
 
-	mapPhyToLinear(0xc0000000, 0xc0000000, 0x40000000, (DWORD*)PDE_ENTRY_VALUE);
+		}
+		char * pageidx =(char*) (entry[i]&0xfffff000);
+		__memset(pageidx, 0, PAGE_SIZE);
+	}
+
+	mapPhyToLinear(0xc0000000, 0xc0000000, 0x40000000, (DWORD*)PDE_ENTRY_VALUE, PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 
 	return;
 #endif
-	
+
+	int start = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
+	int highaddr = (getBorderAddr() ) & (~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
+	int stop = highaddr / (PAGE_SIZE * ITEM_IN_PAGE);
+
 	for (int i = 0; i < ITEM_IN_PAGE; i++) {
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
-
 		for (int j = 0; j < ITEM_IN_PAGE; j++) {
-			idx[j] = buf;
+			if (i >= start && i < stop) {
+				idx[j] = 0;
+				idx[j] = buf;
+			}
+			else {
+				idx[j] = buf;
+			}
+			
 			buf += PAGE_SIZE;
 		}
+
 		idx += ITEM_IN_PAGE;
 	}
 
-#if 1
-	DWORD start = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
-	DWORD highaddr = (getBorderAddr()  + (PAGE_SIZE * ITEM_IN_PAGE)  ) & (~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
-	int end = highaddr / (PAGE_SIZE * ITEM_IN_PAGE);
-	for (int i = start; i < end; i++)
+
+	for (int i = start; i < stop; i++)
 	{
-		//entry[i] = 0;
+		char* pageidx = (char*)(entry[i] & 0xfffff000);
+		__memset(pageidx, 0, PAGE_SIZE);
 	}
-#endif
+
 }
 
 /*

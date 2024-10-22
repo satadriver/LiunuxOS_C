@@ -133,7 +133,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		TASKCMDPARAMS cmd;
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 	}
 
@@ -170,6 +170,8 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 	__printf(szout, "__kKernelMain task pid:%x,filename:%s,function name:%s\n", pid, filename,funcname);
 
 	char* str = "Hi,how are you?Fine,thank you, and you ? I'm fine too!";
+
+	return;
 
  	ret = sendUARTData((unsigned char*)str, __strlen(str),COM1PORT);
  

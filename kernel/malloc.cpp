@@ -248,7 +248,7 @@ int setMemAllocInfo(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid)
 }
 
 
-DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
+DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 
 	DWORD res = 0;
 
@@ -347,19 +347,30 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 		{
 			if (vmtag) {
 				vaddr = process->vaddr + process->vasize;
+				process->vasize += size;
 			}
-			process->vasize += size;
+			else {
+				//process->vasize = vaddr + size;
+			}
+			
 			DWORD* cr3 = (DWORD*)process->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
 		}
 		else {
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
+				tss->vasize += size;
 			}
-			tss->vasize += size;
+			else {
+				//tss->vasize = vaddr + size;
+			}
+			
 			DWORD* cr3 = (DWORD*)tss->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+
+			cr3 = (DWORD*)process->tss.cr3;
+			pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
 		}
 	}
 #endif
@@ -369,6 +380,10 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr) {
 	return res;
 }
 
+//R/W--位1是读/写（Read/Write）标志。如果等于1，表示页面可以被读、写或执行。如果为0，表示页面只读或可执行。
+//当处理器运行在超级用户特权级（级别0、1或2）时，则R/W位不起作用。页目录项中的R/W位对其所映射的所有页面起作用。
+//U/S--位2是用户/超级用户（User / Supervisor）标志。如果为1，那么运行在任何特权级上的程序都可以访问该页面。
+//如果为0，那么页面只能被运行在超级用户特权级（0、1或2）上的程序访问。页目录项中的U / S位对其所映射的所有页面起作用。
 
 //return phisical address
 DWORD __kMalloc(DWORD s) {
@@ -378,7 +393,7 @@ DWORD __kMalloc(DWORD s) {
 	int len = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	//DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
-	DWORD ret = __kProcessMalloc(s, &size, 0, 0);
+	DWORD ret = __kProcessMalloc(s, &size, 0, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (ret == 0) {
 		
 		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
@@ -416,11 +431,14 @@ int __kFree(DWORD physicalAddr) {
 //return virtual address
 DWORD __malloc(DWORD s) {
 	DWORD res = 0;
-	if (s <= HEAP_SIZE/4)
+	if (s <= HEAP_SIZE/2)
 	{
 		res = __heapAlloc(s);
 		if (res) {
 			return res;
+		}
+		else {
+
 		}
 	}
 
@@ -429,7 +447,7 @@ DWORD __malloc(DWORD s) {
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	DWORD vaddr = process->vaddr + process->vasize;
-	res = __kProcessMalloc(s,&size, process->pid,vaddr);
+	res = __kProcessMalloc(s,&size, process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
 	{
 		if (vaddr >= USER_SPACE_END)
@@ -439,7 +457,7 @@ DWORD __malloc(DWORD s) {
 		}
 
 		DWORD * cr3 = (DWORD *)process->tss.cr3;
-		DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3);
+		DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (pagecnt)
 		{
 			return vaddr;

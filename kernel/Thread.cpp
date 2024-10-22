@@ -104,7 +104,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.iomapOffset = 136;
 	tss->tss.iomapEnd = 0xff;
 
-	//tss->vasize += alignsize;
+
 	tss->sleep = 0;
 
 	tss->tss.eip = addr;
@@ -133,14 +133,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,vaddr);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
 #ifndef DISABLE_PAGE_MAPPING
-		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		ret = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (ret == FALSE)
 		{
 			__kFree(tss->espbase);
@@ -175,14 +175,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = USER_MODE_CODE | tss->level;
 		tss->tss.ss = USER_MODE_STACK | tss->level;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,vaddr);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
 #ifndef DISABLE_PAGE_MAPPING
-		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		ret = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (ret == FALSE)
 		{
 			__kFree(tss->espbase);

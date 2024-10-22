@@ -12,7 +12,7 @@ int clearCR3(DWORD *cr3);
 
 DWORD copyKernelCR3(DWORD phyaddr, DWORD size, DWORD *cr3);
 
-DWORD mapPhyToLinear(DWORD linearaddr, DWORD phyaddr, DWORD size, DWORD * cr3);
+DWORD mapPhyToLinear(DWORD linearaddr, DWORD phyaddr, DWORD size, DWORD * cr3,int tag);
 
 DWORD linear2phy(DWORD linear);
 

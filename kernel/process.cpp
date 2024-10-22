@@ -104,6 +104,17 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.ldt = 0;
 	tss->fpu = TRUE;
 
+	DWORD syslevel = level & 3;
+	tss->level = syslevel;
+
+	DWORD eflags = 0x200202;	//if = 1,et = 1
+	if (syslevel)
+	{
+		eflags |= (syslevel << 12);	//iopl = 3
+	}
+	//eflags |= 0x4000;		//nt == 1
+	tss->tss.eflags = eflags;
+
 	tss->tss.iomapOffset = 136;
 	tss->tss.iomapEnd = 0xff;
 	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
@@ -114,7 +125,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	DWORD vaddr = tss->vaddr + tss->vasize;
 	DWORD imagesize = getSizeOfImage((char*)filedata);
 	DWORD alignsize = 0;
-	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid, vaddr);
+	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
@@ -163,20 +174,13 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
 	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
 	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
+	//tss->tss.cr3 = PDE_ENTRY_VALUE;
+
 #ifndef DISABLE_PAGE_MAPPING
-	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3);
+	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #endif
 
-	DWORD syslevel = level & 3;
-	tss->level = syslevel;
 
-	DWORD eflags = 0x200202;	//if = 1,et = 1
-	if (syslevel)
-	{
-		eflags |= (syslevel<<12);	//iopl = 3
-	}
-	//eflags |= 0x4000;		//nt == 1
-	tss->tss.eflags = eflags;
 
 	tss->tss.eax = 0;
 	tss->tss.ecx = 0;
@@ -201,7 +205,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid, vaddr);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -209,7 +213,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 			return FALSE;
 		}
 #ifndef DISABLE_PAGE_MAPPING
-		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -245,7 +249,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->tss.cs = USER_MODE_CODE | syslevel ;
 		tss->tss.ss = USER_MODE_STACK | syslevel ;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid, vaddr);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -253,7 +257,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 			return FALSE;
 		}
 #ifndef DISABLE_PAGE_MAPPING
-		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3);
+		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -291,9 +295,9 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	}
 	
 	vaddr = tss->vaddr + tss->vasize;
-	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid, vaddr);
+	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #ifndef DISABLE_PAGE_MAPPING
-	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3);
+	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	tss->heapbase = vaddr;
 #else
 	tss->heapbase = heapbase;
