@@ -84,7 +84,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 		{
 			removeCursor();
 			__DestroyWindow(&window);
-			__terminateTid(tid);
+			//__terminateTid(tid);
 			return 0;
 		}
 		else if (asc)
@@ -113,7 +113,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 					removeCursor();
 					__DestroyWindow(&window);
 					
-					__terminateTid(tid);
+					//__terminateTid(tid);
 					return 0;
 				}
 			}
