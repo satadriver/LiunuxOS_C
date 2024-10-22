@@ -237,11 +237,11 @@ void linearMapping() {
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;
 	__memset((char*)PDE_ENTRY_VALUE, 0, PAGE_SIZE);
 
+#ifndef DISABLE_PAGE_MAPPING
 	mapPhyToLinear(0, 0, 0x80000000, (DWORD*)PDE_ENTRY_VALUE, PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 	mapPhyToLinear(0x80000000, 0x80000000, 0x80000000, (DWORD*)PDE_ENTRY_VALUE, PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
 	return;
 
-#if 1
 	int cnt = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
 	for (int i = 0; i < cnt; i++)
 	{
@@ -291,7 +291,7 @@ void linearMapping() {
 	for (int i = start; i < stop; i++)
 	{
 		char* pageidx = (char*)(entry[i] & 0xfffff000);
-		__memset(pageidx, 0, PAGE_SIZE);
+		//__memset(pageidx, 0, PAGE_SIZE);
 	}
 
 }

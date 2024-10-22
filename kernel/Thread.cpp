@@ -10,20 +10,22 @@
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
 //above so,the most import element is dwtid
-DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 
 	int tid = dwtid & 0x7fffffff;
+
+	char szout[1024];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
+	int pid = tss[tid].pid;
+
 	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss->tid != tid) {
+		__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
+			tid, pid, current->pid, current->tid, filename, funcname);
 		return 0;
 	}
-
-	char szout[1024];
-
-	int pid = tss[tid].pid;
 
 	__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
 		tid, pid, current->pid, current->tid, filename, funcname);
@@ -103,7 +105,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.link = 0;	
 	tss->tss.iomapOffset = 136;
 	tss->tss.iomapEnd = 0xff;
-
 
 	tss->sleep = 0;
 

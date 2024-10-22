@@ -32,7 +32,7 @@ void __kFreeProcess(int pid) {
 //3 any thread of process can call this to terminate process resident in
 // any process can call this to terminate self to other process with dwtid
 //above so,the most import element is dwtid
-void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 
 	int tid = dwtid & 0x7fffffff;
 
@@ -42,12 +42,15 @@ void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparam
 
 	int pid = tss[tid].pid;
 
+	char szout[1024];
+
 	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss->tid != tid) {
+		__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
+			tid, pid, current->pid, current->tid, filename, funcname);
 		return;
 	}
 
-	char szout[1024];
-
+	
 	__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
 		tid, pid, current->pid, current->tid, filename, funcname);
 
@@ -304,8 +307,9 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 #endif
 	tss->heapsize = heapsize;
 	
-	params->terminate = (DWORD)__terminateProcess;
-	params->terminate2 = (DWORD)__terminateProcess;
+	DWORD funTerminate = (DWORD)getAddrFromName(KERNEL_DLL_BASE, "__terminateProcess");
+	params->terminate = (DWORD)funTerminate;
+	params->terminate2 = (DWORD)funTerminate;
 	params->tid = tid;
 	__strcpy(params->szFileName, filename);
 	params->filename = params->szFileName;

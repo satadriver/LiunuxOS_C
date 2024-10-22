@@ -30,8 +30,8 @@
 int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
 
-	//	char szout[1024];
-	// 	__printf(szout, "__kConsole task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, pid, filename,funcname,param);
+	char szout[1024];
+	__printf(szout, "__kConsole task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, tid, filename,funcname,param);
 
 	unsigned char szcmd[MAX_PATH_SIZE];
 	__memset((char*)szcmd, 0, MAX_PATH_SIZE);
@@ -84,6 +84,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 		{
 			removeCursor();
 			__DestroyWindow(&window);
+			__terminateTid(tid);
 			return 0;
 		}
 		else if (asc)
@@ -111,10 +112,9 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 				{
 					removeCursor();
 					__DestroyWindow(&window);
+					
+					__terminateTid(tid);
 					return 0;
-
-					//__terminatePid(pid);
-					//__sleep(-1);
 				}
 			}
 		}

@@ -11,7 +11,7 @@
 
 
 //#define V86_INT13_MODE
-//#define V86_INT255_MODE
+#define V86_INT255_MODE
 
 
 int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize) {

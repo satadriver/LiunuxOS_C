@@ -58,11 +58,12 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 	int delta = CLOCK_RADIUS_SIZE * gBytesPerPixel;
 
 	if (colorbuf) {
-		
+#if 1		
 		int rs = size;
 		if (size % 2 == 0) {
 			rs++;
 		}
+
 		color = color + (rs * rs - 1) * delta;
 
 		for (int x = x1 + ds; x >= x1 - ds; x-- ) {
@@ -77,6 +78,24 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 				}
 			}
 		}
+#endif
+
+#if 0
+		color = color ;
+
+		for (int x = x1 - ds; x <= x1 + ds; x++) {
+
+			for (int y = y1 - ds; y <= y1 + ds; y++) {
+				ret = __drawLine(x, y, x2, y2, colorbuf, color, bak);
+				if (bak) {
+					bak += CLOCK_RADIUS_SIZE * gBytesPerPixel;
+				}
+				if (colorbuf) {
+					color += delta;
+				}
+			}
+		}
+#endif
 	}
 	else {
 		for (int x = x1 - ds; x <= x1 + ds; x++) {

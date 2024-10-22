@@ -101,7 +101,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	displayCCPoem();
 
-	int imageSize = 0;
+	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 
@@ -114,8 +114,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		if (ck == VK_F1)
 		{
 			if (__findProcessFileName("__kConsole") == FALSE)
-			{
-				imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+			{			
 				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
 			}
 			continue;
@@ -137,7 +136,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
 				if (thread) {
-					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
 				}
@@ -155,7 +153,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kTestWindow");
 				if (thread) {
-					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kTestWindow", 3, 0);
 				}
