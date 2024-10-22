@@ -51,8 +51,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	}
 
 	
-	__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
-		tid, pid, current->pid, current->tid, filename, funcname);
+	//__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
 
 	LPPROCESS_INFO process = 0;
 

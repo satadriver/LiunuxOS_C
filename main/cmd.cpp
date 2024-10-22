@@ -438,13 +438,13 @@ int parseCmdParams(char* cmd, char params[COMMAND_LINE_STRING_LIMIT][COMMAND_LIN
 	char* str = cmd;
 	int counter = 0;
 
-	int flag = FALSE;
+	int tag = FALSE;
 
 	for (int i = 0; i <= __strlen(cmd); i++)
 	{
-		if (cmd[i] == '\t' || cmd[i] == ' ' || cmd[i] == 0)
+		if (cmd[i] == ' ' || cmd[i] == 0)
 		{
-			if (flag)
+			if (tag)
 			{
 				int len = &cmd[i] - str;
 				if (len > 0 && len < COMMAND_LINE_STRING_LIMIT)
@@ -459,13 +459,13 @@ int parseCmdParams(char* cmd, char params[COMMAND_LINE_STRING_LIMIT][COMMAND_LIN
 
 				//str = cmd + i + 1;
 
-				flag = FALSE;
+				tag = FALSE;
 			}
 		}
 		else {
-			if (flag == FALSE)
+			if (tag == FALSE)
 			{
-				flag = TRUE;
+				tag = TRUE;
 				str = &cmd[i];
 			}
 		}

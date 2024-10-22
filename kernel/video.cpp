@@ -364,7 +364,7 @@ int __restoreWindow(LPWINDOWCLASS window) {
 		{
 			for (int k = 0; k < gBytesPerPixel; k++)
 			{
-				if (window->backBuf  && *ptr != *srcdata)
+				//if (window->backBuf  && *ptr != *srcdata)
 				{
 					*ptr = *srcdata;
 				}

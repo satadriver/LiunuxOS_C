@@ -27,8 +27,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		return 0;
 	}
 
-	__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
-		tid, pid, current->pid, current->tid, filename, funcname);
+	//__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
 
 	__asm {
 		//cli
