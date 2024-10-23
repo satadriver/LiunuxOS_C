@@ -171,14 +171,14 @@ typedef struct
 	unsigned char attr;			//0=read andr write,1=readonly,2=hidden,4=system,8=volume,16=dir,32=archive,15=long file name
 	unsigned char lowercase;
 	unsigned char mseconds;
-	unsigned short creationTime;
-	unsigned short creationDate;
-	unsigned short accessDate;
-	unsigned short clusterHigh;
-	unsigned short modifyTime;
-	unsigned short modifyDate;
-	unsigned short clusterLow;
-	unsigned int size;
+	unsigned short creationTime;//14
+	unsigned short creationDate;	//16
+	unsigned short accessDate;	//18
+	unsigned short clusterHigh;	//20
+	unsigned short modifyTime;	//22
+	unsigned short modifyDate;	//24
+	unsigned short clusterLow;		//26
+	unsigned int size;			//28
 }FAT32DIRECTORY,*LPFAT32DIRECTORY;
 
 

@@ -16,9 +16,7 @@
 //#define FLOPPY_INT13_READWRITE
 
 
-FAT12DBR gFat12Dbr;
-
-FAT12DBR gFat12Dbr2;
+FAT12DBR * gFat12Dbr;
 
 DWORD gFat12FatSecOff;
 
@@ -38,14 +36,14 @@ int gFloppyDev = -1;
 
 
 
-int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
+int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files) {
 	int cnt = 0;
 	int iret = 0;
 
-	char fattmpbuf[2048];
+	char * fattmpbuf = (char*)FLOPPY_DMA_BUFFER;
 	char szout[1024];
 #ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)fattmpbuf, secno,1);
+	iret = readFloppySector(gFloppyDev, (unsigned long)fattmpbuf, clsnum,2);
 #else
 	iret = vm86ReadFloppy(getCylinder(secno),getHeader(secno),getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
 #endif
@@ -56,7 +54,7 @@ int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
 	}
 
 	LPFAT32DIRECTORY dir = (LPFAT32DIRECTORY)fattmpbuf;
-	int dircnt = gFat12Dbr.BPB_BytesPerSec/sizeof(FAT32DIRECTORY);
+	int dircnt = gFat12Dbr->BPB_BytesPerSec/sizeof(FAT32DIRECTORY);
 	for (int i = 0; i < dircnt; i++)
 	{
 		if (dir->attr != 0x0f && *dir->mainName)
@@ -92,6 +90,7 @@ int readFat12Dirs(DWORD secno, LPFILEBROWSER files) {
 
 
 int browseFat12File(LPFILEBROWSER files) {
+	gFat12Dbr = (FAT12DBR*)FLOPPY_DBR_BUFFER;
 	int iret = 0;
 	char szout[1024];
 
@@ -114,7 +113,7 @@ int browseFat12File(LPFILEBROWSER files) {
 	
 	gFloppyDev = 0;
 #ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)&gFat12Dbr, 0, 1);
+	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
 #else
 	iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
 #endif
@@ -123,7 +122,7 @@ int browseFat12File(LPFILEBROWSER files) {
 		gFloppyDev = 1;
 
 #ifndef FLOPPY_INT13_READWRITE
-		iret = readFloppySector(gFloppyDev, (unsigned long)&gFat12Dbr, 0, 1);
+		iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
 #else
 		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
 #endif
@@ -134,47 +133,55 @@ int browseFat12File(LPFILEBROWSER files) {
 		}
 	}
 
-	if (__memcmp((CHAR*)&gFat12Dbr.BS_FileSysType,"FAT12",5))
+	__dump((char*)gFat12Dbr, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
+	//__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+
+	if (__memcmp((CHAR*)gFat12Dbr->BS_FileSysType,"FAT12",5))
 	{
 		gFloppyDev = gFloppyDev ^ 1;
 
 #ifndef FLOPPY_INT13_READWRITE
-		iret = readFloppySector(gFloppyDev, (unsigned long)&gFat12Dbr, 0, 1);
+		iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
 #else
 		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
 #endif
-		if (iret <= 0 || __memcmp((CHAR*)&gFat12Dbr.BS_FileSysType, "FAT12", 5))
+		if (iret <= 0 || __memcmp((CHAR*)gFat12Dbr->BS_FileSysType, "FAT12", 5))
 		{
 			__printf(szout, (char*)"read floppy dbr sector error\n");
 			return FALSE;
 		}
 	}
 
-	gFat12ClusterSize = gFat12Dbr.BPB_SecPerClus*gFat12Dbr.BPB_BytesPerSec;	//512
+	gFat12ClusterSize = gFat12Dbr->BPB_SecPerClus*gFat12Dbr->BPB_BytesPerSec;	//512
 
-	int rootdirsize = gFat12Dbr.BPB_RootEntCnt * sizeof(FAT32DIRECTORY);		//1c00
-	int rootdirseccnt = rootdirsize / gFat12Dbr.BPB_BytesPerSec;				//14
-	int mod = rootdirsize % gFat12Dbr.BPB_BytesPerSec;
+	int rootdirsize = gFat12Dbr->BPB_RootEntCnt * sizeof(FAT32DIRECTORY);		//1c00
+	int rootdirseccnt = rootdirsize / gFat12Dbr->BPB_BytesPerSec;				//14
+	int mod = rootdirsize % gFat12Dbr->BPB_BytesPerSec;
 	if (mod)
 	{
 		rootdirseccnt++;
 	}
 	gFat12RootSecCnt = rootdirseccnt;	//14
 
-	gFat12FatSecOff = gFat12Dbr.BPB_HiddSec + gFat12Dbr.BPB_RsvdSecCnt;	//1
+	gFat12FatSecOff = gFat12Dbr->BPB_HiddSec + gFat12Dbr->BPB_RsvdSecCnt;	//1 0x200
 
-	gFat12RootDirSecOff = gFat12FatSecOff + gFat12Dbr.BPB_FATSz16*gFat12Dbr.BPB_NumFATs;		//19
-	gFat12DataSecOff = gFat12RootDirSecOff + rootdirseccnt;						//33
+	gFat12RootDirSecOff = gFat12FatSecOff + gFat12Dbr->BPB_FATSz16*gFat12Dbr->BPB_NumFATs;		//19		0x2600
+	gFat12DataSecOff = gFat12RootDirSecOff + rootdirseccnt;						//33 0x4200
 
 	if (gFat12FatBase == 0)
 	{
-		gFat12FatBase = __kMalloc(0x10000);
+		gFat12FatBase = (DWORD)FLOPPY_FAT_BUFFER;
+	}
+
+	if (gFat12RootDirBase == 0)
+	{
+		gFat12RootDirBase = (DWORD)FLOPPY_ROOT_BUFFER;
 	}
 #ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12FatBase, gFat12FatSecOff, gFat12Dbr.BPB_FATSz16);
+	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12FatBase, gFat12FatSecOff, gFat12Dbr->BPB_FATSz16);
 #else
 	iret = vm86ReadFloppy(getCylinder(gFat12FatSecOff), getHeader(gFat12FatSecOff), 
-		getSector(gFat12FatSecOff),gFat12Dbr.BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
+		getSector(gFat12FatSecOff),gFat12Dbr->BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
 #endif
 	if (iret <= 0)
 	{
@@ -182,10 +189,6 @@ int browseFat12File(LPFILEBROWSER files) {
 		return FALSE;
 	}
 
-	if (gFat12RootDirBase == 0)
-	{
-		gFat12RootDirBase = (DWORD)__kMalloc(0x10000);
-	}
 #ifndef FLOPPY_INT13_READWRITE
 	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12RootDirBase, gFat12RootDirSecOff, gFat12RootSecCnt);
 #else
@@ -202,9 +205,9 @@ int browseFat12File(LPFILEBROWSER files) {
 
 	LPFAT32DIRECTORY dir = (LPFAT32DIRECTORY)gFat12RootDirBase;
 
-	for (int i = 0; i < gFat12Dbr.BPB_RootEntCnt; i ++)
+	for (int i = 0; i < gFat12Dbr->BPB_RootEntCnt; i ++)
 	{
-		if (dir->attr != 0x0f && (dir->attr == FILE_ATTRIBUTE_ARCHIVE || dir->attr == FILE_ATTRIBUTE_DIRECTORY) && *dir->mainName)
+		if (dir->attr != 0x0f /*&& ( (dir->attr & FILE_ATTRIBUTE_ARCHIVE) || (dir->attr & FILE_ATTRIBUTE_DIRECTORY) )*/ && *dir->mainName)
 		{
 			if (*dir->suffixName != 0x20)
 			{
@@ -221,7 +224,9 @@ int browseFat12File(LPFILEBROWSER files) {
 				*(files->pathname + 12) = 0;
 			}
 
-			files->secno = (dir->clusterLow + ((DWORD)dir->clusterHigh << 16)) /*FAT12_FIRST_CLUSTER_NO*/;
+			DWORD clsnum = dir->clusterHigh;
+			clsnum = (clsnum << 16) + dir->clusterLow;
+			files->secno = clsnum;							/*FAT12_FIRST_CLUSTER_NO*/
 			files->attrib = dir->attr;
 			files->filesize = dir->size;
 
@@ -251,8 +256,8 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 		return FALSE;
 	}
 
-	int readtimes = readsize / gFat12Dbr.BPB_SecPerClus;
-	int readmod = readsize % gFat12Dbr.BPB_SecPerClus;
+	int readtimes = readsize / gFat12Dbr->BPB_SecPerClus;
+	int readmod = readsize % gFat12Dbr->BPB_SecPerClus;
 	if (readmod)
 	{
 		readtimes++;
@@ -260,14 +265,15 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 
 	for (int i = 0; i < readtimes; i++)
 	{
-		DWORD sectorno = gFat12DataSecOff + (clusterno - FAT12_FIRST_CLUSTER_NO) * gFat12Dbr.BPB_SecPerClus;
+		DWORD sectorno = gFat12DataSecOff + (clusterno - FAT12_FIRST_CLUSTER_NO) * gFat12Dbr->BPB_SecPerClus;
 #ifndef FLOPPY_INT13_READWRITE
-		ret = readFloppySector(gFloppyDev, (unsigned long)lpdata, sectorno, gFat12Dbr.BPB_SecPerClus);
+		ret = readFloppySector(gFloppyDev, (unsigned long)FLOPPY_DMA_BUFFER, sectorno, gFat12Dbr->BPB_SecPerClus);	
 #else
-		ret = vm86ReadFloppy(getCylinder(sectorno), getHeader(sectorno), getSector(sectorno),gFat12Dbr.BPB_SecPerClus, lpdata, gFloppyDev);
+		ret = vm86ReadFloppy(getCylinder(sectorno), getHeader(sectorno), getSector(sectorno),gFat12Dbr->BPB_SecPerClus, lpdata, gFloppyDev);
 #endif
 		if (ret )
 		{
+			__memcpy(lpdata,(char*) FLOPPY_DMA_BUFFER, gFat12Dbr->BPB_SecPerClus * gFat12Dbr->BPB_BytesPerSec);
 			lpdata += gFat12ClusterSize;
 
 			readoksize += gFat12ClusterSize;
@@ -290,13 +296,13 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 
 int getNextFAT12Cluster(int clusterno) {
 
-	char * next = (clusterno * 3) / 2 + (char*)gFat12FatBase;
+	char * next = (clusterno * 12) / 8 + (char*)gFat12FatBase;
 
-	int mod = clusterno * 3 % 2;
+	int mod = clusterno * 12 % 8;
 	if (mod)
 	{
-		unsigned int low = *next >> 4;
-		unsigned int high = *(next + 1) << 4;
+		unsigned int low = (*next) >> 4;
+		unsigned int high = (*(next + 1)) << 4;
 		unsigned int nextclusterno = high + low;
 		if (nextclusterno >= 0xff8)
 		{

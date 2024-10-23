@@ -399,7 +399,7 @@ DWORD __kMalloc(DWORD s) {
 		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
 	}
 	else {
-		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
+		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
 	}
 	return ret;
 }
@@ -414,7 +414,7 @@ int __kFree(DWORD physicalAddr) {
 	LPMEMALLOCINFO info = findAddr(physicalAddr);
 	if (info)
 	{
-		int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr, info->size, info->pid, info->vaddr);
+		//int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr, info->size, info->pid, info->vaddr);
 		DWORD size = resetMemAllocInfo(info);
 		
 	}

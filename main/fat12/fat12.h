@@ -43,7 +43,7 @@ int getSector(int lba);
 
 int vm86ReadFloppy(int c, int h, int s, short seccnt, char * buf, int disk);
 
-int readFat12Dirs(DWORD secno, LPFILEBROWSER files);
+int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files);
 
 int browseFat12File( LPFILEBROWSER files);
 
