@@ -117,7 +117,7 @@ int drawLine(int x1, int y1, int x2, int y2,int size, int colorbuf,unsigned long
 
 extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 	char szout[1024];
-	__printf(szout, "%s task tid:%x,filename:%s,funcname:%s,param:%x\n",__FUNCTION__, tid, filename,funcname,runparam);
+	//__printf(szout, "%s task tid:%x,filename:%s,funcname:%s,param:%x\n",__FUNCTION__, tid, filename,funcname,runparam);
 
 	int retvalue = 0;
 

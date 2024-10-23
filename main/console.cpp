@@ -31,7 +31,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 	int ret = 0;
 
 	char szout[1024];
-	__printf(szout, "__kConsole task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, tid, filename,funcname,param);
+	//__printf(szout, "__kConsole task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n",retaddr, tid, filename,funcname,param);
 
 	unsigned char szcmd[MAX_PATH_SIZE];
 	__memset((char*)szcmd, 0, MAX_PATH_SIZE);

@@ -225,7 +225,7 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout,"int3(0xcc) is exception\r\n");
 	}
 	else {
-		__printf(szout, "int3(0xcc) is trap\r\n");
+		//__printf(szout, "int3(0xcc) is trap\r\n");
 	}
 
 	DWORD eflags = 0;

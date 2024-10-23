@@ -213,7 +213,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	int partitionType = 0;
 
 	LPTASKCMDPARAMS cmd = (LPTASKCMDPARAMS)param;
-	__printf(szout, "__kFileManager task tid:%x,name:%s,cmd:%d\n", tid, filename, cmd->cmd);
+	//__printf(szout, "__kFileManager task tid:%x,name:%s,cmd:%d\n", tid, filename, cmd->cmd);
 
 	if (cmd->cmd == UNKNOWN_FILE_SYSTEM)
 	{
@@ -420,7 +420,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 				int targetno = (number / rowlimit) * rowlimit + y;
 				//ntfs dir is 0x10000000
 
-				__printf(szout, "__kFileManager filename:%s\n", files[targetno].pathname);
+				//__printf(szout, "__kFileManager filename:%s\n", files[targetno].pathname);
 
 				if (targetno < filetotal /*&& files[targetno].filesize == 0*/ && files[targetno].attrib & FILE_ATTRIBUTE_DIRECTORY)
 				{

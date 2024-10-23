@@ -44,7 +44,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	char szout[1024];
 
-	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss->tid != tid) {
+	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid) {
 		__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
 			tid, pid, current->pid, current->tid, filename, funcname);
 		return;
@@ -337,7 +337,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 
-	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
+	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
 
 	//addTaskList(tss->tid);
 	tss->status = TASK_RUN;

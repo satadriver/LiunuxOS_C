@@ -21,7 +21,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	int pid = tss[tid].pid;
 
-	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss->tid != tid) {
+	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid) {
 		__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
 			tid, pid, current->pid, current->tid, filename, funcname);
 		return 0;

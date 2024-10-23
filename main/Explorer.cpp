@@ -85,15 +85,15 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	showPciDevs();
 
-	//__enableBreakPoint();
+	__enableBreakPoint();
 
-	//enableSingleStep();
+	enableSingleStep();
 
-	//disableSingleStep();
+	disableSingleStep();
 
 	enableOverflow();
 
-	//__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
+	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
 
 	sysEntryProc();
 
