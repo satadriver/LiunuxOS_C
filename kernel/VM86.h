@@ -49,6 +49,7 @@ typedef struct {
 	DWORD res;
 	DWORD intnum;
 	DWORD result;
+	DWORD tr;
 }V86_INT_PARAMETER;
 
 typedef struct {

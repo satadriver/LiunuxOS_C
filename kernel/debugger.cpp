@@ -3,6 +3,9 @@
 #include "video.h"
 #include "task.h"
 #include "device.h"
+#include "core.h"
+#include "VM86.h"
+#include "servicesProc.h"
 
 //VME bit0
 //虚拟8086模式扩展（中的位0）置1时则在虚拟8086模式下，启用中断和异常处理扩展。置0时禁用扩展功能。
@@ -197,9 +200,23 @@ void __declspec(naked) DebugTrap(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
+//Software-generated exceptions are not influenced by the IR bit map. INT1,[1] INT3, INTO, 
+//and BOUND[2] are not subject to the IR bit map. Instead, these opcodes will always invoke the protected mode exception handler.[3]
+
 void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 
 	char szout[1024];
+
+#ifdef VM86_PROCESS_TASK
+
+#else
+	if (stack->eflags & 0x20000)
+	{
+		__kVm86IntProc();
+		return;
+	}
+#endif
+
 	int len = 0;
 
 	unsigned char code = *(unsigned char*)stack->eip;

@@ -85,11 +85,11 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	showPciDevs();
 
-	__enableBreakPoint();
+	//__enableBreakPoint();
 
-	enableSingleStep();
+	//enableSingleStep();
 
-	disableSingleStep();
+	//disableSingleStep();
 
 	enableOverflow();
 

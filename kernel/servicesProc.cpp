@@ -5,7 +5,8 @@
 #include "mouse.h"
 #include "keyboard.h"
 #include "Utils.h"
-
+#include "core.h"
+#include "VM86.h"
 
 DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 
@@ -491,16 +492,33 @@ int __readTemperature(DWORD* tjunction) {
 
 int __kVm86IntProc() {
 
+	V86_INT_PARAMETER* params = (V86_INT_PARAMETER*)V86_INT_ADDRESS;
+
+	TssDescriptor* lptssd = (TssDescriptor*)(GDT_BASE + params->tr);
+	if ((lptssd->type & 2)) {
+		lptssd->type = lptssd->type & 0x0d;
+	}
+
+	unsigned char code[16];
+	code[0] = 0xea;
+	code[1] = 0;
+	code[2] = 0;
+	code[3] = 0;
+	code[4] = 0;
+	*(WORD*)(code+5) = (WORD)(params->tr);
+	
 	__asm {
-		_emit 0xea
+		LEA EAX,[code]
+		JMP EAX
 
-		_emit 0
-		_emit 0
-		_emit 0
-		_emit 0
+		//_emit 0xea
+		//_emit 0
+		//_emit 0
+		//_emit 0
+		//_emit 0
 
-		_emit kTssTaskSelector
-		_emit 0
+		//_emit kTssTaskSelector
+		//_emit 0
 	}
 	return 0;
 }

@@ -8,10 +8,11 @@
 #include "atapi.h"
 #include "core.h"
 #include "textMode.h"
+#include "Kernel.h"
 
 
-//#define V86_INT13_MODE
-//#define V86_INT255_MODE
+
+
 
 
 int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize) {
@@ -127,10 +128,11 @@ int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, cha
 	CHAR* offset = buf;
 	for (int i = 0; i < readcnt; i++)
 	{
-#ifdef V86_INT255_MODE
-		ret = v86Int255Read(secno, secnohigh, ONCE_READ_LIMIT, offset, 0x80, BYTES_PER_SECTOR);
-#else
+#ifdef VM86_PROCESS_TASK
 		ret = v86Int13Read(secno, secnohigh, ONCE_READ_LIMIT, offset, 0x80, BYTES_PER_SECTOR);
+#else
+		ret = v86Int255Read(secno, secnohigh, ONCE_READ_LIMIT, offset, 0x80, BYTES_PER_SECTOR);
+		
 #endif
 		
 		offset += (BYTES_PER_SECTOR * ONCE_READ_LIMIT);
@@ -139,10 +141,11 @@ int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, cha
 
 	if (readmod)
 	{
-#ifdef V86_INT255_MODE
-		ret = v86Int255Read(secno, secnohigh, readmod, offset, 0x80, BYTES_PER_SECTOR);
-#else
+#ifdef VM86_PROCESS_TASK
 		ret = v86Int13Read(secno, secnohigh, readmod, offset, 0x80, BYTES_PER_SECTOR);
+		
+#else
+		ret = v86Int255Read(secno, secnohigh, readmod, offset, 0x80, BYTES_PER_SECTOR);
 #endif
 	}
 	return ret;
@@ -157,10 +160,11 @@ int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 	CHAR* offset = buf;
 	for (int i = 0; i < readcnt; i++)
 	{
-#ifdef V86_INT255_MODE
-		ret = v86Int255Write(secno, secnohigh, ONCE_READ_LIMIT, offset, 0x80, BYTES_PER_SECTOR);
-#else
+#ifdef VM86_PROCESS_TASK
 		ret = v86Int13Write(secno, secnohigh, ONCE_READ_LIMIT, offset, 0x80, BYTES_PER_SECTOR);
+		
+#else
+		ret = v86Int255Write(secno, secnohigh, ONCE_READ_LIMIT, offset, 0x80, BYTES_PER_SECTOR);
 #endif
 
 		offset += BYTES_PER_SECTOR * ONCE_READ_LIMIT;
@@ -169,10 +173,11 @@ int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 
 	if (readmod)
 	{
-#ifdef V86_INT255_MODE
-		ret = v86Int255Write(secno, secnohigh, readmod, offset, 0x80, BYTES_PER_SECTOR);
-#else
+#ifdef VM86_PROCESS_TASK 
 		ret = v86Int13Write(secno, secnohigh, readmod, offset, 0x80, BYTES_PER_SECTOR);
+		
+#else
+		ret = v86Int255Write(secno, secnohigh, readmod, offset, 0x80, BYTES_PER_SECTOR);
 #endif
 	}
 	return ret;
@@ -204,9 +209,23 @@ int v86Int255Read(unsigned int secnum, DWORD secnumHigh,unsigned int seccnt,char
 	pat->secnolow = secnum;
 	pat->secnohigh = secnumHigh;
 
+	WORD rtr = 0;
+	__asm {
+		str ax
+		mov[rtr], ax
+	}
+	params->tr = rtr;
+
 	__asm {
 		int 255
 	}
+
+	TssDescriptor* lptssd = (TssDescriptor*)(GDT_BASE + kTssV86Selector);
+	if ((lptssd->type & 2)) {
+		lptssd->type = lptssd->type & 0x0d;
+	}
+
+	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
 
 	char szout[1024];
 	if (params->result)
@@ -237,6 +256,13 @@ int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt,
 	params->res = 0;
 	params->rds = V86VMIDATA_SEG;
 	params->result = 0;
+
+	WORD rtr = 0;
+	__asm {
+		str ax
+		mov [rtr],ax
+	}
+	params->tr = rtr;
 
 	__memcpy((char*)INT13_RM_FILEBUF_ADDR, buf, seccnt * sectorsize);
 
