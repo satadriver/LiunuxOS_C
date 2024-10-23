@@ -11,7 +11,7 @@
 
 
 //#define V86_INT13_MODE
-#define V86_INT255_MODE
+//#define V86_INT255_MODE
 
 
 int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize) {
@@ -57,13 +57,13 @@ int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, cha
 		counter++;
 		if (counter && (counter % VM_OUTPUT_BUSY_CONSTANT == 0))
 		{
-			//__drawGraphChars((unsigned char*)"wait v86 code to clear bwork\n", 0);
+			//__printf(szout,( char*)"wait v86 code to clear bwork\n", 0);
 		}
 	}
 
 	if (params->result > 0)
 	{
-		//__drawGraphChars((unsigned char*)"vm read sector ok\n", 0);
+		//__printf(szout,( char*)"vm read sector ok\n", 0);
 
 		__memcpy(buf, (char*)INT13_RM_FILEBUF_ADDR, seccnt * sectorsize);
 		return seccnt * sectorsize;
@@ -208,6 +208,17 @@ int v86Int255Read(unsigned int secnum, DWORD secnumHigh,unsigned int seccnt,char
 		int 255
 	}
 
+	char szout[1024];
+	if (params->result)
+	{
+		__printf(szout, (char*)"vm read sector ok\n");
+		__memcpy(buf, (char*)INT13_RM_FILEBUF_ADDR, seccnt * secsize);
+		return seccnt * secsize;
+	}
+	else {
+		__printf(szout, (char*)"vm read sector error\n");
+	}
+
 	return params->result;
 }
 
@@ -241,11 +252,8 @@ int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt,
 		int 255
 	}
 
-	if (params->result)
-	{
-		return seccnt * sectorsize;
-	}
-	return 0;
+
+	return params->result;
 }
 
 
