@@ -136,7 +136,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
 				if (thread) {
-					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
 				}
 			}
@@ -153,7 +152,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kTestWindow");
 				if (thread) {
-					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kTestWindow", 3, 0);
 				}
 			}
@@ -216,9 +214,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = UNKNOWN_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrHD");
 
-					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
 
@@ -228,8 +226,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					taskcmd.cmd = CDROM_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrISO");
-					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 				}
 			}
 
@@ -239,8 +238,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					taskcmd.cmd = FLOPPY_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrFllopy");
-					int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
 			}
 

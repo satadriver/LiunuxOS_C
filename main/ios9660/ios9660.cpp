@@ -10,7 +10,10 @@
 #include "VM86.h"
 #include "atapi.h"
 
-#ifndef SINGLE_TASK_TSS
+
+
+
+#ifdef VM86_PROCESS_TASK
 #define APAPI_INT13_READWRITE
 #endif
 
@@ -101,7 +104,7 @@ int browseISO9660File(LPFILEBROWSER files) {
 			return FALSE;
 		}
 		else {
-			__printf(szout, "find atapi device:%x\n", gAtapiDev);
+			__printf(szout, "Find atapi device:%x\n", gAtapiDev);
 		}
 	}
 #endif
@@ -200,7 +203,7 @@ int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
 
 	if (*buf == 0)
 	{
-		*buf = (char*)__kMalloc(0x4000);
+		*buf = (char*)__kMalloc(0x10000);
 	}
 	int times = seccnt / 32;
 	int mod = seccnt % 32;

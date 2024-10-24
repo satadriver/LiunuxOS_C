@@ -213,7 +213,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
 	menu->funcaddr[1] = (DWORD)__reset;
-	menu->funcaddr[2] = (DWORD)rejectCDROM;
+	menu->funcaddr[2] = (DWORD)rejectAtapi;
 
 	menu->funcaddr[3] = (DWORD)__kConsole;
 	menu->funcaddr[4] = (DWORD)__kPaint;

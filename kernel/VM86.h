@@ -77,9 +77,7 @@ int getVideoMode(VesaSimpleInfo vsi[64]);
 
 int setVideoMode(int mode);
 
-int rejectAtapi(int dev);
-
-extern "C" __declspec(dllexport) int rejectCDROM(int dev);
+extern "C" __declspec(dllexport) int rejectAtapi(int dev);
 
 int v86Int255Read(unsigned int secnum, DWORD secnumHigh, unsigned int seccnt, char* buf, int disk, int secsize);
 int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt, char* buf, int disk, int sectorsize);

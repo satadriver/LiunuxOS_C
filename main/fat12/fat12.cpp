@@ -76,6 +76,9 @@ int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files) {
 
 			files->secno = dir->clusterLow + ((DWORD)dir->clusterHigh << 16);
 			files->attrib = dir->attr;
+			if (dir->attr == 0) {
+				files->attrib = FILE_ATTRIBUTE_ARCHIVE;
+			}
 			files->filesize = dir->size;
 
 			files++;
@@ -228,6 +231,9 @@ int browseFat12File(LPFILEBROWSER files) {
 			clsnum = (clsnum << 16) + dir->clusterLow;
 			files->secno = clsnum;							/*FAT12_FIRST_CLUSTER_NO*/
 			files->attrib = dir->attr;
+			if (dir->attr == 0) {
+				files->attrib = FILE_ATTRIBUTE_ARCHIVE;
+			}
 			files->filesize = dir->size;
 
 			files++;

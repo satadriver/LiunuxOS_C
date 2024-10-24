@@ -510,6 +510,10 @@ int setVideoMode(int mode) {
 
 
 
+//41H 检验扩展功能是否存在
+//入口：AH = 41h ；BX = 55AAh ；DL = 驱动器号
+//支持返回：CF = 0； BX = AA55h AH = 扩展功能的主版本号；AL = 内部使用 / 副版本号 CX = API 子集支持位图
+//不支持返回：CF = 1；AH = 错误码 01h, 无效命令
 
 int getAtapiDev(int disk, int maxno) {
 
@@ -553,11 +557,6 @@ int getAtapiDev(int disk, int maxno) {
 
 
 
-int rejectAtapi(int dev) {
-	int res = v86Process(0x4600, 0, dev, 0, 0, 0, 0, 0, 0x13); //jc error
-	return res;
-}
-
 
 //弹出可移动驱动器中的介质
 //入口 :
@@ -568,8 +567,7 @@ int rejectAtapi(int dev) {
 //返回 :
 //CF = 0，AH = 0 成功
 //CF = 1，AH = 错误码
-int rejectCDROM(int dev) {
-	return 0;
+int rejectAtapi(int dev) {
 
 	if (dev <= 0)
 	{
@@ -578,7 +576,8 @@ int rejectCDROM(int dev) {
 		{
 			return FALSE;
 		}
-		rejectAtapi(dev);
+		int res = v86Process(0x4600, 0, dev, 0, 0, 0, 0, 0, 0x13); //jc error
+		return res;
 	}
 
 	LPV86VMIPARAMS params = (LPV86VMIPARAMS)V86VMIPARAMS_ADDRESS;
