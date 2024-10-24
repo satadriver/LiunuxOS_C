@@ -65,6 +65,8 @@ void waitReady(WORD port);
 
 int waitComplete(WORD port);
 
+
+
 int checkIDEPort(unsigned short port);
 
 int checkIDEMimo(unsigned int addr);

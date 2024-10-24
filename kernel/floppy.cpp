@@ -3,7 +3,7 @@
 #include "video.h"
 #include "Utils.h"
 #include "task.h"
-
+#include "device.h"
 
 floppy_struct floppy_type ={ 2880,18,2,80,0,0x1B,0x00,0xCF }; /* 1.44MB diskette */
 
@@ -25,6 +25,8 @@ int getSector(int lba) {
 void wait_status() {
 	int cnt = 0;
 	do {
+		__delay();
+
 		int v = inportb(0x3f4);
 		if (v & 80) {
 			break;

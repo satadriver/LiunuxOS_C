@@ -79,22 +79,24 @@ int setVideoMode(int mode);
 
 extern "C" __declspec(dllexport) int rejectAtapi(int dev);
 
-int v86Int255Read(unsigned int secnum, DWORD secnumHigh, unsigned int seccnt, char* buf, int disk, int secsize);
-int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
 
-
-int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
-int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) int getAtapiDev(int disk, int maxno);
-
 extern "C" __declspec(dllexport) int v86Process(int reax, int recx, int redx, int rebx, int resi, int redi, int rds, int cmd, int res);
 extern "C"  __declspec(dllexport)  int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
 extern "C"  __declspec(dllexport)  int v86Int13Write(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C" __declspec(dllexport) int v86Int255Read(unsigned int secnum, DWORD secnumHigh, unsigned int seccnt, char* buf, int disk, int secsize);
+extern "C" __declspec(dllexport) int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C" __declspec(dllexport) int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
+extern "C" __declspec(dllexport) int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 #else
 extern "C" __declspec(dllimport) int getAtapiDev(int disk, int maxno);
 extern "C" __declspec(dllimport) int v86Process(int reax, int recx, int redx, int rebx, int resi, int redi,int rds, int cmd, int res);
 extern "C"  __declspec(dllimport)  int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
 extern "C"  __declspec(dllimport)  int v86Int13Write(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C" __declspec(dllimport) int v86Int255Read(unsigned int secnum, DWORD secnumHigh, unsigned int seccnt, char* buf, int disk, int secsize);
+extern "C" __declspec(dllimport) int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt, char* buf, int disk, int sectorsize);
+extern "C" __declspec(dllimport) int vm86ReadSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
+extern "C" __declspec(dllimport) int vm86WriteSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, char* buf);
 #endif

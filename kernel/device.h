@@ -39,6 +39,8 @@ void disableMouse();
 
 int delay();
 
+void __delay();
+
 unsigned short getTimer0Counter();
 
 unsigned short getTimerCounter(int num);

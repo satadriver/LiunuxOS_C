@@ -294,13 +294,6 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 }
 
 
-void __delay() {
-	for (int i = 0; i < 0x10; i++) {
-		__asm {
-			nop
-		}
-	}
-}
 
 
 int waitComplete(WORD port) {

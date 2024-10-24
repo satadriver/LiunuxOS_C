@@ -334,11 +334,21 @@ unsigned short getTimer0Counter() {
 int delay() {
 	int v = 1;
 	int s = 1;
-	for (int i = 0; i < 0x1000; i++) {
+	for (int i = 0; i < 0x100; i++) {
 		v = v * (s++);
 	}
 	return v;
 }
+
+void __delay() {
+	for (int i = 0; i < 0x10; i++) {
+		__asm {
+			nop
+		}
+	}
+}
+
+
 
 unsigned short getTimerCounter(int num) {
 	int cmd = (num << 6) + 0x6;

@@ -15,10 +15,14 @@
 
 #ifdef VM86_PROCESS_TASK
 #define APAPI_INT13_READWRITE
+#else
+#define APAPI_INT255_READWRITE
 #endif
 
 
 #ifdef APAPI_INT13_READWRITE
+int gAtapiDev = -1;
+#elif defined APAPI_INT255_READWRITE
 int gAtapiDev = -1;
 #endif
 
@@ -29,10 +33,12 @@ int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
 	char buf[ATAPI_SECTOR_SIZE * 2];
 	char szout[1024];
 
-#ifndef APAPI_INT13_READWRITE
-	iret = readAtapiSector(buf, secno, 1);
+#ifdef APAPI_INT13_READWRITE
+	iret = v86Int13Read(secno, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);	
+#elif defined APAPI_INT255_READWRITE
+	iret = v86Int255Read(secno, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 #else
-	iret = v86Int13Read(secno, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+	iret = readAtapiSector(buf, secno, 1);
 #endif
 	if (iret <= 0)
 	{
@@ -97,6 +103,19 @@ int browseISO9660File(LPFILEBROWSER files) {
 #ifdef APAPI_INT13_READWRITE
 	if (gAtapiDev == -1)
 	{
+		gAtapiDev = getAtapiDev(0x81, 0xff);
+		if (gAtapiDev == -1)
+		{
+			__printf(szout, (char*)"not found atapi device\n");
+			return FALSE;
+		}
+		else {
+			__printf(szout, "Find atapi device:%x\n", gAtapiDev);
+		}
+	}
+#elif defined APAPI_INT255_READWRITE
+	if (gAtapiDev == -1)
+	{
 		gAtapiDev = getAtapiDev(0x81,0xff);
 		if (gAtapiDev == -1)
 		{
@@ -110,10 +129,12 @@ int browseISO9660File(LPFILEBROWSER files) {
 #endif
 
 	char buf[ATAPI_SECTOR_SIZE * 2];
-#ifndef APAPI_INT13_READWRITE
-	iret = readAtapiSector(buf, ISO9660FS_VOLUME_DESCRIPTOR_NO, 1);
-#else
+#ifdef APAPI_INT13_READWRITE
 	iret = v86Int13Read(ISO9660FS_VOLUME_DESCRIPTOR_NO, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#elif defined APAPI_INT255_READWRITE
+	iret = v86Int255Read(ISO9660FS_VOLUME_DESCRIPTOR_NO, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#else
+	iret = readAtapiSector(buf, ISO9660FS_VOLUME_DESCRIPTOR_NO, 1);
 #endif
 	if (iret <= 0)
 	{
@@ -129,10 +150,12 @@ int browseISO9660File(LPFILEBROWSER files) {
 
 	ISO9660FSDIR vterminate;
 	__memcpy((char*)&vterminate, buf + 0x9c, *(buf + 0x9c));
-#ifndef APAPI_INT13_READWRITE
-	iret = readAtapiSector(buf, vterminate.lba, 1);
-#else
+#ifdef APAPI_INT13_READWRITE
 	iret = v86Int13Read(vterminate.lba, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#elif defined APAPI_INT255_READWRITE
+	iret = v86Int255Read(vterminate.lba, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#else
+	iret = readAtapiSector(buf, vterminate.lba, 1);
 #endif
 	if (iret <= 0)
 	{
@@ -209,10 +232,12 @@ int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
 	int mod = seccnt % 32;
 	for (int i = 0; i < times; i ++)
 	{
-#ifndef APAPI_INT13_READWRITE
-		iret = readAtapiSector(*buf, secno, 32);
+#ifdef APAPI_INT13_READWRITE
+		iret = v86Int13Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);	
+#elif defined APAPI_INT255_READWRITE
+		iret = v86Int255Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 #else
-		iret = v86Int13Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+		iret = readAtapiSector(*buf, secno, 32);
 #endif
 		if (iret <= 0)
 		{
@@ -225,10 +250,12 @@ int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
 
 	if (mod)
 	{
-#ifndef APAPI_INT13_READWRITE
-		iret = readAtapiSector(*buf, secno, mod);
-#else
+#ifdef APAPI_INT13_READWRITE
 		iret = v86Int13Read(secno, 0, mod, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#elif defined APAPI_INT255_READWRITE
+		iret = v86Int255Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+#else
+		iret = readAtapiSector(*buf, secno, mod);	
 #endif
 		if (iret <= 0)
 		{

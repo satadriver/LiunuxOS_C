@@ -11,9 +11,12 @@
 #include "floppy.h"
 
 
-#define FAT12_FIRST_CLUSTER_NO 2
+#define FAT12_FIRST_CLUSTER_NO		2
 
+#ifdef VM86_PROCESS_TASK
 //#define FLOPPY_INT13_READWRITE
+//#define FLOPPY_INT255_READWRITE
+#endif
 
 
 FAT12DBR * gFat12Dbr;
@@ -42,10 +45,10 @@ int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files) {
 
 	char * fattmpbuf = (char*)FLOPPY_DMA_BUFFER;
 	char szout[1024];
-#ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)fattmpbuf, clsnum,2);
+#ifdef FLOPPY_INT13_READWRITE
+	iret = vm86ReadFloppy(getCylinder(secno), getHeader(secno), getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
 #else
-	iret = vm86ReadFloppy(getCylinder(secno),getHeader(secno),getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
+	iret = readFloppySector(gFloppyDev, (unsigned long)fattmpbuf, clsnum, 2);
 #endif
 	if (iret <= 0)
 	{
@@ -115,19 +118,19 @@ int browseFat12File(LPFILEBROWSER files) {
 #endif
 	
 	gFloppyDev = 0;
-#ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
+#ifdef FLOPPY_INT13_READWRITE
+	iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);	
 #else
-	iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
 #endif
 	if (iret <= 0)
 	{
 		gFloppyDev = 1;
 
-#ifndef FLOPPY_INT13_READWRITE
-		iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
+#ifdef FLOPPY_INT13_READWRITE
+		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);	
 #else
-		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+		iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
 #endif
 		if (iret <= 0)
 		{
@@ -143,10 +146,10 @@ int browseFat12File(LPFILEBROWSER files) {
 	{
 		gFloppyDev = gFloppyDev ^ 1;
 
-#ifndef FLOPPY_INT13_READWRITE
-		iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
+#ifdef FLOPPY_INT13_READWRITE
+		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);	
 #else
-		iret = vm86ReadFloppy(getCylinder(0), getHeader(0), getSector(0), 2, (char*)&gFat12Dbr, gFloppyDev);
+		iret = readFloppySector(gFloppyDev, (unsigned long)gFat12Dbr, 0, 2);
 #endif
 		if (iret <= 0 || __memcmp((CHAR*)gFat12Dbr->BS_FileSysType, "FAT12", 5))
 		{
@@ -180,11 +183,11 @@ int browseFat12File(LPFILEBROWSER files) {
 	{
 		gFat12RootDirBase = (DWORD)FLOPPY_ROOT_BUFFER;
 	}
-#ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12FatBase, gFat12FatSecOff, gFat12Dbr->BPB_FATSz16);
+#ifdef FLOPPY_INT13_READWRITE
+	iret = vm86ReadFloppy(getCylinder(gFat12FatSecOff), getHeader(gFat12FatSecOff),
+		getSector(gFat12FatSecOff), gFat12Dbr->BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
 #else
-	iret = vm86ReadFloppy(getCylinder(gFat12FatSecOff), getHeader(gFat12FatSecOff), 
-		getSector(gFat12FatSecOff),gFat12Dbr->BPB_FATSz16, (char*)gFat12FatBase, gFloppyDev);
+	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12FatBase, gFat12FatSecOff, gFat12Dbr->BPB_FATSz16);
 #endif
 	if (iret <= 0)
 	{
@@ -192,11 +195,11 @@ int browseFat12File(LPFILEBROWSER files) {
 		return FALSE;
 	}
 
-#ifndef FLOPPY_INT13_READWRITE
-	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12RootDirBase, gFat12RootDirSecOff, gFat12RootSecCnt);
+#ifdef FLOPPY_INT13_READWRITE
+	iret = vm86ReadFloppy(getCylinder(gFat12RootDirSecOff), getHeader(gFat12RootDirSecOff),
+		getSector(gFat12RootDirSecOff), gFat12RootSecCnt, (char*)gFat12RootDirBase, gFloppyDev);
 #else
-	iret = vm86ReadFloppy(getCylinder(gFat12RootDirSecOff),getHeader(gFat12RootDirSecOff),
-		getSector(gFat12RootDirSecOff),gFat12RootSecCnt, (char*)gFat12RootDirBase, gFloppyDev);
+	iret = readFloppySector(gFloppyDev, (unsigned long)gFat12RootDirBase, gFat12RootDirSecOff, gFat12RootSecCnt);
 #endif
 	if (iret <= 0)
 	{
@@ -272,10 +275,10 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 	for (int i = 0; i < readtimes; i++)
 	{
 		DWORD sectorno = gFat12DataSecOff + (clusterno - FAT12_FIRST_CLUSTER_NO) * gFat12Dbr->BPB_SecPerClus;
-#ifndef FLOPPY_INT13_READWRITE
-		ret = readFloppySector(gFloppyDev, (unsigned long)FLOPPY_DMA_BUFFER, sectorno, gFat12Dbr->BPB_SecPerClus);	
+#ifdef FLOPPY_INT13_READWRITE
+		ret = vm86ReadFloppy(getCylinder(sectorno), getHeader(sectorno), getSector(sectorno), gFat12Dbr->BPB_SecPerClus, lpdata, gFloppyDev);
 #else
-		ret = vm86ReadFloppy(getCylinder(sectorno), getHeader(sectorno), getSector(sectorno),gFat12Dbr->BPB_SecPerClus, lpdata, gFloppyDev);
+		ret = readFloppySector(gFloppyDev, (unsigned long)FLOPPY_DMA_BUFFER, sectorno, gFat12Dbr->BPB_SecPerClus);
 #endif
 		if (ret )
 		{
