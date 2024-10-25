@@ -67,6 +67,15 @@ typedef struct
 
 	int window;
 
+	char* videobuf;
+
+	DWORD dr0;
+	DWORD dr1;
+	DWORD dr2;
+	DWORD dr3;
+	DWORD dr6;
+	DWORD dr7;
+
 	char fpu;
 
 	char filename[256];

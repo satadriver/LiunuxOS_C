@@ -44,7 +44,7 @@ int getUsb(DWORD* regs, DWORD* dev, DWORD* irq) {
 }
 
 
-int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin) {
+int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd) {
 	__asm{cli}
 	int cnt = 0;
 
@@ -61,6 +61,10 @@ int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irq
 			{
 				*dev = bdf;
 
+				outportd(0xcf8, bdf&0xffffff00);
+				*vd = v;
+
+				DWORD v = inportd(0xcfc);
 				int baseregidx = (bdf & 0xffffff00) + 0x10;
 
 				for (int i = 0; i < 4; i++)
@@ -83,7 +87,7 @@ int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irq
 				outportd(0xcf8, baseregidx);
 				v = inportd(0xcfc);
 				if (v && v != 0xffffffff) {
-					*irqpin = v;
+					//*irqpin = v;
 				}
 			}
 		}

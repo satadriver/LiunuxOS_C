@@ -27,6 +27,7 @@ unsigned char gAtapiCmdWrite[16] = {0xAA, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0,0,0,
 
 
 int writeAtapiCMD(unsigned short* cmd) {
+	//gAtapiPackSize = 12;
 	__asm {
 		mov dx, gAtapiBasePort
 		mov ecx, gAtapiPackSize

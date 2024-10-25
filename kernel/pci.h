@@ -73,7 +73,7 @@ extern "C" __declspec(dllexport) int listpci(DWORD * dst);
 
 DWORD makePciAddr(int bus, int dev, int func, int reg);
 
-int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* irqpin);
+int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd);
 
 int getNetcard(DWORD* regs, DWORD* dev, DWORD* irq);
 

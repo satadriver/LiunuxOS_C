@@ -222,6 +222,9 @@
     <ClCompile Include="VMM.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="rtl8139.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h">
@@ -399,6 +402,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="VMM.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rtl8139.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

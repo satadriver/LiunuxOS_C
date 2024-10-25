@@ -240,6 +240,7 @@
     <ClCompile Include="peVirtual.cpp" />
     <ClCompile Include="peResource.cpp" />
     <ClCompile Include="queue.cpp" />
+    <ClCompile Include="rtl8139.cpp" />
     <ClCompile Include="serialUART.cpp" />
     <ClCompile Include="screenProtect.cpp" />
     <ClCompile Include="ATA.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="peVirtual.h" />
     <ClInclude Include="peResource.h" />
     <ClInclude Include="queue.h" />
+    <ClInclude Include="rtl8139.h" />
     <ClInclude Include="serialUART.h" />
     <ClInclude Include="screenProtect.h" />
     <ClInclude Include="ATA.h" />
