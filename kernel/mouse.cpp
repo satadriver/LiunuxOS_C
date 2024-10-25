@@ -246,11 +246,22 @@ void __kDrawMouse() {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
 
+	int h = data->mouseHeight;
+
+	int w = data-> mouseWidth;
+	if (data->mouseX + data->mouseWidth >= gVideoWidth) {
+		w = data->mouseX + data->mouseWidth - gVideoWidth;
+	}
+
+	if (data->mouseY + data->mouseHeight >= gVideoHeight) {
+		h = data->mouseY + data->mouseHeight - gVideoHeight;
+	}
+
 	unsigned char * storeptr = (unsigned char*)data->mouseCoverData;
 
-	for ( int y = 0; y < data->mouseHeight; y++)
+	for ( int y = 0; y < h; y++)
 	{
-		for ( int x = 0; x < data->mouseWidth; x++)
+		for ( int x = 0; x < w; x++)
 		{
 			int color = 0;
 			if (isGeometryMouse(x,y) ) {
@@ -289,11 +300,22 @@ void __kRestoreMouse() {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
 
+	int h = data->mouseHeight;
+
+	int w = data->mouseWidth;
+	if (data->mouseX + data->mouseWidth >= gVideoWidth) {
+		w = data->mouseX + data->mouseWidth - gVideoWidth;
+	}
+
+	if (data->mouseY + data->mouseHeight >= gVideoHeight) {
+		h = data->mouseY + data->mouseHeight - gVideoHeight;
+	}
+
 	unsigned char * storeptr = (unsigned char*)data->mouseCoverData;
 
-	for ( int y = 0; y < data->mouseHeight; y++)
+	for ( int y = 0; y < h; y++)
 	{
-		for ( int x = 0; x < data->mouseWidth; x++)
+		for ( int x = 0; x < w; x++)
 		{
 			if (isGeometryMouse(x, y))
 			{
