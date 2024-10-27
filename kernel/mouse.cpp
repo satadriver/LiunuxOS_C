@@ -146,9 +146,9 @@ void __kMouseProc() {
 		}
 
 		data->mouseX += data->mintrData.x;
-		if (data->mouseX > gVideoWidth)
+		if (data->mouseX >= gVideoWidth)
 		{
-			data->mouseX = gVideoWidth;
+			data->mouseX = gVideoWidth-1;
 		}
 		else if (data->mouseX < 0)
 		{
@@ -156,9 +156,9 @@ void __kMouseProc() {
 		}
 
 		data->mouseY += data->mintrData.y;
-		if (data->mouseY > gVideoHeight)
+		if (data->mouseY >= gVideoHeight)
 		{
-			data->mouseY = gVideoHeight;
+			data->mouseY = gVideoHeight-1;
 		}
 		else if (data->mouseY < 0)
 		{
@@ -250,11 +250,11 @@ void __kDrawMouse() {
 
 	int w = data-> mouseWidth;
 	if (data->mouseX + data->mouseWidth >= gVideoWidth) {
-		w = data->mouseX + data->mouseWidth - gVideoWidth;
+		w = ( data->mouseX + data->mouseWidth - gVideoWidth);
 	}
 
 	if (data->mouseY + data->mouseHeight >= gVideoHeight) {
-		h = data->mouseY + data->mouseHeight - gVideoHeight;
+		h = (data->mouseY + data->mouseHeight - gVideoHeight);
 	}
 
 	unsigned char * storeptr = (unsigned char*)data->mouseCoverData;

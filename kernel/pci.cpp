@@ -43,6 +43,15 @@ int getUsb(DWORD* regs, DWORD* dev, DWORD* irq) {
 	return getPciDevBasePort(regs, 0x0c03, dev, irq);
 }
 
+int getLPC(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getPciDevBasePort(regs, 0x0601, dev, irq);
+}
+
+
+int getNorthBridge(DWORD* regs, DWORD* dev, DWORD* irq) {
+	return getPciDevBasePort(regs, 0x0600, dev, irq);
+}
+
 
 int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd) {
 	__asm{cli}

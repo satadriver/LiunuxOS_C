@@ -85,6 +85,10 @@ int getSmbus(DWORD* regs, DWORD* dev, DWORD* irq);
 
 int getUsb(DWORD* regs, DWORD* dev, DWORD* irq);
 
+int getLPC(DWORD* regs, DWORD* dev, DWORD* irq);
+
+int getNorthBridge(DWORD* regs, DWORD* dev, DWORD* irq);
+
 #ifdef DLL_EXPORT
 
 extern "C"  __declspec(dllexport) int showPciDevs();
