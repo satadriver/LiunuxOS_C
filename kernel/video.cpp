@@ -950,11 +950,12 @@ extern "C"  __declspec(dllexport) int __drawCircle(int x, int y, int radius,int 
 
 
 int removeFileManager(LPFMWINDOW w) {
-	__DestroyRectWindow(&w->window.pos, w->window.width, w->window.height, (unsigned char*)w->window.backBuf);
+	//__DestroyRectWindow(&w->window.pos, w->window.width, w->window.height, (unsigned char*)w->window.backBuf);
+	__DestroyWindow(&w->window);
 
-	removeWindow(w->window.id);
+	//removeWindow(w->window.id);
 
-	__kFree(w->window.backBuf);
+	//__kFree(w->window.backBuf);
 
 	//__terminatePid(w->pid);
 	return 0;
@@ -962,23 +963,31 @@ int removeFileManager(LPFMWINDOW w) {
 
 
 int drawFileManager(LPFMWINDOW w) {
-	w->window.capHeight = 0;
-	w->window.frameSize = 0;
+	w->window.capHeight = GRAPHCHAR_HEIGHT*2;
+	w->window.frameSize = GRAPHCHAR_WIDTH;
+	w->window.frameColor = FOLDERFONTBGCOLOR;
+	w->window.capColor = 0x00ffff;
 
 	w->window.next = 0;
 	w->window.prev = 0;
 
 	w->cpl = 3;
 	w->window.color = 0xffffff;
-	w->window.capColor = 0;
+	
 	w->window.fontcolor = 0;
-	w->window.height = gVideoHeight;
-	w->window.width = gVideoWidth;
+	w->window.height = gWindowHeight - w->window.capHeight - w->window.frameSize;
+	w->window.width = gVideoWidth - w->window.frameSize;
 	w->window.pos.x = 0;
 	w->window.pos.y = 0;
-	w->window.showX = w->window.pos.x;
-	w->window.showY = w->window.pos.y;
+	w->window.showX = w->window.pos.x + w->window.frameSize/2;
+	w->window.showY = w->window.pos.y + w->window.frameSize/2 + w->window.capHeight;
 	w->fsheight = GRAPHCHAR_HEIGHT * w->cpl;
+
+	w->window.left = w->window.pos.x + w->window.frameSize/2;
+	w->window.top = w->window.pos.y + (w->window.frameSize >> 1) + w->window.capHeight;
+
+	w->window.right = w->window.pos.x + w->window.frameSize + w->window.width - 1;
+	w->window.bottom = w->window.pos.y + (w->window.frameSize >> 1) + +w->window.capHeight + w->window.height - 1;
 
 	w->window.zoomin = 1;
 
@@ -986,12 +995,15 @@ int drawFileManager(LPFMWINDOW w) {
 
 	__strcpy(w->window.winname, "FileManagerWindow");
 
-	w->window.backBuf = (DWORD)__kMalloc(w->window.backsize);
-	if (w->window.backBuf) {
-		__drawRectWindow(&w->window.pos, w->window.width, w->window.height, w->window.color, (unsigned char*)w->window.backBuf);
+	//w->window.backBuf = (DWORD)__kMalloc(w->window.backsize);
+	//if (w->window.backBuf) 
+	{
+		//__drawRectWindow(&w->window.pos, w->window.width, w->window.height, w->window.color, (unsigned char*)w->window.backBuf);
 	}
 
-	w->window.id = addWindow((DWORD)&(w->window), (DWORD*)&w->window.pos.x, (DWORD*)&w->window.pos.y, 0, w->window.winname);
+	__drawWindow(&w->window);
+
+	//w->window.id = addWindow((DWORD)&(w->window), (DWORD*)&w->window.pos.x, (DWORD*)&w->window.pos.y, 0, w->window.winname);
 
 	return 0;
 }

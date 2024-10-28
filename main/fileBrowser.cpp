@@ -283,7 +283,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	//	filetotal, files[0].pathname, files[0].secno, files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize,
 	//	files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
 
-	int rowlimit = gVideoHeight / window.fsheight;
+	int rowlimit = (gWindowHeight -window.window.capHeight - window.window.frameSize) / window.fsheight;
 
 	int fpagecnt = 0;
 	if (filetotal <= rowlimit)
@@ -311,14 +311,17 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	while (TRUE)
 	{
 		//__printf(szout, "before __drawRectWindow\r\n");
-		ret = __drawRectWindow(&window.window.pos, window.window.width, window.window.height, window.window.color, 0);
+		POINT p;
+		p.x = window.window.showX;
+		p.y = window.window.showY;
+		ret = __drawRectWindow(&p, window.window.width, window.window.height, window.window.color, 0);
 		//__printf(szout, "after __drawRectWindow\r\n");
 
 		for (number = 0; number < fpagecnt; number++)
 		{
 			//calc positon of char
-			int y = (((number + 1) % rowlimit) * window.cpl - 1 - (window.cpl / 2)) * GRAPHCHAR_HEIGHT;
-			DWORD pos = __getpos(0, y);
+			int y = (((number + 1) % rowlimit) * window.cpl - (window.cpl / 2)) * GRAPHCHAR_HEIGHT + window.window.showY;
+			DWORD pos = __getpos(window.window.showX, y);
 
 			char szinfo[4096];
 			if (files[number].attrib & FILE_ATTRIBUTE_DIRECTORY)
