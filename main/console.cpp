@@ -43,7 +43,12 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
-	setCursor( &window.showX, &window.showY, ~window.color);
+	//setCursor( &window.showX, &window.showY, ~window.color);
+	window.cursorColor = ~window.color;
+	//window.showBakX = window.showX;
+	//window.showBakY = window.showY;
+	window.tag = 0;
+	window.cursorID = __kAddExactTimer((DWORD)windowCursor, CURSOR_REFRESH_MILLISECONDS,(unsigned long) &window, 0, 0, 0);
 
 	while (1)
 	{
@@ -82,7 +87,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 		}
 		else if (asc == 0x1b)
 		{
-			removeCursor();
+			RemoveCursor(&window);
 			__DestroyWindow(&window);
 			//__terminateTid(tid);
 			return 0;
@@ -110,7 +115,8 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 			{
 				if (mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight)
 				{
-					removeCursor();
+					RemoveCursor(&window);
+					//removeCursor();
 					__DestroyWindow(&window);
 					
 					//__terminateTid(tid);
@@ -145,7 +151,6 @@ int gPrevX = 0;
 int gPrevY = 0;
 
 int * gCursorX = 0;
-
 int * gCursorY = 0;
 
 int gCursorColor = 0;
@@ -164,20 +169,19 @@ void setCursor( int* x, int* y, unsigned int color) {
 	gCursorColor = color;
 	gCursorBackup = (unsigned char*)CURSOR_GRAPH_BASE;
 
-	//int ch = GRAPHCHAR_HEIGHT / 2;
-	//int cw = GRAPHCHAR_WIDTH;
-	//POINT p;
-	//p.x = *gCursorX ;
-	//p.y = *gCursorY + GRAPHCHAR_HEIGHT ;
-	//int ret = __drawRectangle(&p, cw, ch, gCursorColor, (unsigned char*)gCursorBackup);
-	//gTag = TRUE;
-
 	gPrevX = *gCursorX;
 	gPrevY = *gCursorY;
 
 	g_cursorID = __kAddExactTimer((DWORD)drawCursor, CURSOR_REFRESH_MILLISECONDS, 0, 0, 0, 0);
 }
 
+
+int RemoveCursor(WINDOWCLASS *w) {
+
+	__kRemoveExactTimer(w->cursorID);
+
+	return 0;
+}
 
 int removeCursor() {
 
@@ -218,6 +222,46 @@ int drawCursor(int p1, int p2, int p3, int p4) {
 
 	gPrevX = *gCursorX;
 	gPrevY = *gCursorY;
+
+	return 0;
+}
+
+
+
+int windowCursor(WINDOWCLASS * w, int p2, int p3, int p4) {
+
+	int ret = 0;
+
+	//WINDOWSINFO* wif = isWindowExist(w->id);
+
+	int ch = GRAPHCHAR_HEIGHT / 2;
+	int cw = GRAPHCHAR_WIDTH;
+
+	POINT p;
+
+	if (w->tag) {
+		if (w->showBakX != w->showX || w->showBakY != w->showY) {
+			p.x = w->showBakX;
+			p.y = w->showBakY + GRAPHCHAR_HEIGHT;
+		}
+		else {
+			p.x = w->showX;
+			p.y = w->showY + GRAPHCHAR_HEIGHT;
+		}
+
+		ret = __DestroyRectWindow(&p, cw, ch, (unsigned char*)w->cursorBuf);
+
+		w->tag = FALSE;
+	}
+	else {
+		p.x = w->showX;
+		p.y = w->showY + GRAPHCHAR_HEIGHT;
+		ret = __drawRectWindow(&p, cw, ch, w->cursorColor, (unsigned char*)w->cursorBuf);
+		w->tag = TRUE;
+	}
+
+	w->showBakX = w->showX;
+	w->showBakY = w->showY;
 
 	return 0;
 }

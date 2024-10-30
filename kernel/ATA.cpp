@@ -19,7 +19,7 @@ WORD gAtaBasePort = 0;
 
 DWORD gATADev = 0;
 
-DWORD gAtapiPackSize = 0;
+DWORD gAtapiPackSize = 16;
 
 WORD gAtapiBasePort = 0;
 

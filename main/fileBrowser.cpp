@@ -204,8 +204,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 
 
 
-//文件大小，属性必须统一
-//文件夹大小统一为0，文件夹属性都是0x10,文件属性都是0x20
+//文件大小，属性必须统一 。文件夹大小统一为0，文件夹属性都是0x10,文件属性都是0x20
 int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
 	char szout[1024];
@@ -236,13 +235,11 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	int filetotal = 0;
 	LPFILEBROWSER files = (LPFILEBROWSER)__kMalloc(sizeof(FILEBROWSER)* MAX_PATH_SIZE);
-	//FILEBROWSER filelist[256];
-	//LPFILEBROWSER files = (LPFILEBROWSER)filelist;
 	if (partitionType == NTFS_FILE_SYSTEM)
 	{
 		unsigned __int64 ntfssecno = gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
 		ntfsprevs[ntfsseq] = MSF_ROOTDIR_OFFSET / 2;
-		__printf(szout, "ntfs root dir sector:%i64x\r\n", ntfssecno + MSF_ROOTDIR_OFFSET);
+		//__printf(szout, "ntfs root dir sector:%i64x\r\n", ntfssecno + MSF_ROOTDIR_OFFSET);
 		filetotal = getNtfsDirs(ntfssecno + MSF_ROOTDIR_OFFSET, files, 0);
 	}
 	else if (partitionType == FAT32_FILE_SYSTEM) {
@@ -275,7 +272,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	window.window.pid = p->pid;
 	__strcpy(window.window.caption, cmd->filename);
-
 	drawFileManager(&window);
 
 	//__printf(szout, "filetotal:%x,first:%s sector:%I64x size:%I64x,"
@@ -283,8 +279,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	//	filetotal, files[0].pathname, files[0].secno, files[0].filesize, files[1].pathname, files[1].secno, files[1].filesize,
 	//	files[2].pathname, files[2].secno, files[2].filesize, files[3].pathname, files[3].secno, files[3].filesize);
 
-	int rowlimit = (gWindowHeight -window.window.capHeight - window.window.frameSize) / window.fsheight;
-
+	int rowlimit = (gWindowHeight - window.window.capHeight - window.window.frameSize) / window.fsheight;
 	int fpagecnt = 0;
 	if (filetotal <= rowlimit)
 	{
@@ -310,17 +305,15 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	while (TRUE)
 	{
-		//__printf(szout, "before __drawRectWindow\r\n");
 		POINT p;
 		p.x = window.window.showX;
 		p.y = window.window.showY;
 		ret = __drawRectWindow(&p, window.window.width, window.window.height, window.window.color, 0);
-		//__printf(szout, "after __drawRectWindow\r\n");
-
 		for (number = 0; number < fpagecnt; number++)
 		{
 			//calc positon of char
-			int y = (((number + 1) % rowlimit) * window.cpl - (window.cpl / 2)) * GRAPHCHAR_HEIGHT + window.window.showY;
+			int y = (((number + 1) % rowlimit) * window.cpl* GRAPHCHAR_HEIGHT - GRAPHCHAR_HEIGHT - (window.cpl* GRAPHCHAR_HEIGHT / 2)) 
+				+ window.window.showY;
 			DWORD pos = __getpos(window.window.showX, y);
 
 			char szinfo[4096];
@@ -363,7 +356,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			unsigned int asc = __kGetKbd(window.window.id) & 0xff;
 			if (asc)
 			{
-				// 				__printf(szout, "__getchar:%s", &asc);
 				if (asc == VK_NEXT || asc == VK_DOWN || asc == VK_RIGHT || asc == VK_END )
 				{
 					//check if is last page
@@ -371,7 +363,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					{
 						//to be first of next page
 						number = ((number + rowlimit) / rowlimit) * rowlimit;
-
 						if (filetotal - number >= rowlimit)
 						{
 							fpagecnt = rowlimit;
@@ -379,7 +370,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						else {
 							fpagecnt = filetotal - number;
 						}
-
 						break;
 					}
 				}
@@ -390,7 +380,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					{
 						//to first of previous page
 						number = ((number - rowlimit) / rowlimit) * rowlimit;
-
 						if (filetotal - number >= rowlimit)
 						{
 							fpagecnt = rowlimit;
@@ -398,7 +387,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						else {
 							fpagecnt = filetotal - number;
 						}
-
 						break;
 					}
 				}
@@ -417,14 +405,11 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			if (mouseinfo.status & 1)
 			{
 				//y positon is page
-				int y = mouseinfo.y / window.fsheight;
+				int y = (mouseinfo.y - window.window.capHeight - window.window.frameSize) / window.fsheight;
 
 				//number positon in page
 				int targetno = (number / rowlimit) * rowlimit + y;
-				//ntfs dir is 0x10000000
-
 				//__printf(szout, "__kFileManager filename:%s\n", files[targetno].pathname);
-
 				if (targetno < filetotal /*&& files[targetno].filesize == 0*/ && files[targetno].attrib & FILE_ATTRIBUTE_DIRECTORY)
 				{
 					if (__strcmp(files[targetno].pathname, ".") == 0)
@@ -435,7 +420,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					{
 						int len = getPrevPath(fullpath);
 						ntfsseq--;
-						if (ntfsseq <= 1)
+						if (ntfsseq <= 1 || ntfsseq >= MAX_PATH_SIZE)
 						{
 							ntfsseq = 1;
 						}
@@ -444,7 +429,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						__strcat(fullpath, files[targetno].pathname);
 						__strcat(fullpath, "/");
 						ntfsseq++;
-						if (ntfsseq >= MAX_PATH_SIZE )
+						if (ntfsseq >= MAX_PATH_SIZE || ntfsseq<= 0)
 						{
 							ntfsseq = 1;
 						}
@@ -461,7 +446,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 					if (filetotal > 0)
 					{
 						number = 0;
-
 						pagecnt = filetotal / rowlimit;
 						if (filetotal % rowlimit)
 						{
@@ -480,7 +464,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						else {
 							fpagecnt = rowlimit;
 						}
-
 						break;
 					}
 				}

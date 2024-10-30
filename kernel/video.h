@@ -279,6 +279,13 @@ typedef struct __WINDOWCLASS {
 	int tid;
 	int pid;
 
+	char cursorBuf[GRAPHCHAR_HEIGHT * GRAPHCHAR_HEIGHT * 4];
+	int cursorID;
+	int cursorColor;
+	int tag;
+	int showBakX;
+	int showBakY;	
+
 	char caption[WINDOW_NAME_LIMIT];
 
 	char winname[WINDOW_NAME_LIMIT];
