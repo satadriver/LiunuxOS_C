@@ -320,8 +320,8 @@ unsigned short getTimer0Counter() {
 		mov al, 0x6
 		out 43h, al
 
-		mov al, 0x36
-		out 43h, al
+		//mov al, 0x36
+		//out 43h, al
 
 		in al, 40h
 		mov ah, al
@@ -354,8 +354,8 @@ unsigned short getTimerCounter(int num) {
 	int cmd = (num << 6) + 0x6;
 	outportb(TIMER_COMMAND_REG, cmd);
 
-	cmd = (num << 6) + 0x36;
-	outportb(TIMER_COMMAND_REG, cmd);
+	//cmd = (num << 6) + 0x36;
+	//outportb(TIMER_COMMAND_REG, cmd);
 	unsigned short low = inportb(0x40 + num);
 	unsigned short high = inportb(0x40 + num);
 	return low + (high << 8);
