@@ -346,7 +346,7 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 
 
-extern "C" void __declspec(dllexport) __kApInitProc() {
+extern "C" void __declspec(dllexport) __kApInitProc_old() {
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
@@ -454,4 +454,73 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		clts
 		iretd
 	}
+}
+
+
+char* g_APStackTop = (char*) AP_KSTACK_BASE;
+
+
+void __kApInitProc() {
+	__asm {
+		cli
+	}
+	DescriptTableReg gdtbase;
+	__asm {
+		sgdt gdtbase
+	}
+	gdtbase.addr = GDT_BASE;
+	gdtbase.size = 0x7f;
+	__asm {
+		//do not use lgdt lpgdt,why?
+		lgdt gdtbase
+		mov ax, KERNEL_MODE_DATA
+		mov ds,ax
+		mov es,ax
+		mov fs,ax
+		mov gs,ax
+		mov ss,ax
+		mov eax, g_APStackTop
+		add eax, KTASK_STACK_SIZE
+		sub eax, STACK_TOP_DUMMY
+		mov esp, eax
+	}
+
+	g_APStackTop += KTASK_STACK_SIZE;
+
+	__asm {
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+
+		sti
+		hlt
+	}
+}
+
+
+
+
+
+void BPCodeStart() {
+
+	DWORD v = *(DWORD*)0xFEE000F0;
+	v = v | 0x100;
+	*(DWORD*)0xFEE000F0 = v;
+
+	*(DWORD*)0xFEE00300 = 0xc4500;
+
+	for (int i = 0; i < 0x10000; i++) {
+		;
+	}
+
+	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
+
+	for (int i = 0; i < 0x10000; i++) {
+		;
+	}
+
+	return;
 }

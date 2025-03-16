@@ -57,3 +57,5 @@ void setIoRedirect(int id, int idx, int vector, int mode);
 void setIoApicID(int id);
 
 extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT * stack);
+
+void BPCodeStart();
