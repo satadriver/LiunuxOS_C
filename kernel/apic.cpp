@@ -457,44 +457,40 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 }
 
 
-char* g_APStackTop = (char*) AP_KSTACK_BASE;
-
 
 void __kApInitProc() {
-	__asm {
-		cli
-	}
+	char szout[1024];
+	__printf(szout, "__kApInitProc start\r\n");
+
 	DescriptTableReg gdtbase;
 	__asm {
+		cli
+
 		sgdt gdtbase
 	}
+
 	gdtbase.addr = GDT_BASE;
-	gdtbase.size = 0x7f;
+	//gdtbase.size = 0x7f;
+
 	__asm {
 		//do not use lgdt lpgdt,why?
 		lgdt gdtbase
-		mov ax, KERNEL_MODE_DATA
-		mov ds,ax
-		mov es,ax
-		mov fs,ax
-		mov gs,ax
-		mov ss,ax
-		mov eax, g_APStackTop
-		add eax, KTASK_STACK_SIZE
-		sub eax, STACK_TOP_DUMMY
-		mov esp, eax
-	}
 
-	g_APStackTop += KTASK_STACK_SIZE;
-
-	__asm {
 		mov eax, PDE_ENTRY_VALUE
 		mov cr3, eax
 
 		mov eax, cr0
 		or eax, 0x80000000
 		mov cr0, eax
+	}
 
+	int seq = *(DWORD*) 0xFEE00020;
+	seq = seq >> 24;
+
+	
+	__printf(szout,"AP:%d ready\r\n",seq);
+
+	__asm {
 		sti
 		hlt
 	}
@@ -510,16 +506,22 @@ void BPCodeStart() {
 	v = v | 0x100;
 	*(DWORD*)0xFEE000F0 = v;
 
-	*(DWORD*)0xFEE00300 = 0xc4500;
+	v = 0xc4500;
+	*(DWORD*)0xFEE00300 = v;
 
 	for (int i = 0; i < 0x10000; i++) {
 		;
 	}
 
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
+	*(DWORD*)0xFEE00300 = v;
 
 	for (int i = 0; i < 0x10000; i++) {
 		;
+	}
+
+	while (1) {
+		break;
 	}
 
 	return;
