@@ -460,6 +460,11 @@ int g_ap_count = 0;
 
 int g_ap_ids[256] = { 0 };
 
+//https://blog.csdn.net/weixin_46645613/article/details/120406002
+//https://zhuanlan.zhihu.com/p/406213995
+//https://zhuanlan.zhihu.com/p/678582090
+//https://www.zhihu.com/question/594531181/answer/2982337869
+
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	char szout[1024];
 	//__printf(szout, "__kApInitProc start\r\n");
