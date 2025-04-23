@@ -106,12 +106,12 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initWindowList();
 
+	BPCodeStart();
+
 	__asm {
 		in al, 0x60
 		sti
 	}
-
-	//BPCodeStart();
 
 #ifdef VM86_PROCESS_TASK
 	__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");

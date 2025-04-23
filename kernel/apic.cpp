@@ -456,11 +456,13 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
+int g_ap_count = 0;
 
+int g_ap_ids[256] = { 0 };
 
-void __kApInitProc() {
+extern "C" void __declspec(dllexport) __kApInitProc() {
 	char szout[1024];
-	__printf(szout, "__kApInitProc start\r\n");
+	//__printf(szout, "__kApInitProc start\r\n");
 
 	DescriptTableReg gdtbase;
 	__asm {
@@ -484,11 +486,13 @@ void __kApInitProc() {
 		mov cr0, eax
 	}
 
-	int seq = *(DWORD*) 0xFEE00020;
-	seq = seq >> 24;
+	int id = *(DWORD*) 0xFEE00020;
+	id = id >> 24;
 
-	
-	__printf(szout,"AP:%d ready\r\n",seq);
+	g_ap_ids[g_ap_count] = id;
+	g_ap_count++;
+
+	__printf(szout, "AP id:%d ready\r\n", id);
 
 	__asm {
 		sti
@@ -509,14 +513,14 @@ void BPCodeStart() {
 	v = 0xc4500;
 	*(DWORD*)0xFEE00300 = v;
 
-	for (int i = 0; i < 0x10000; i++) {
+	for (int i = 0; i < 0x100000; i++) {
 		;
 	}
 
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)0xFEE00300 = v;
 
-	for (int i = 0; i < 0x10000; i++) {
+	for (int i = 0; i < 0x100000; i++) {
 		;
 	}
 
