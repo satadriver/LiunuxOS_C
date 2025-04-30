@@ -42,6 +42,10 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 			gExactTimer[i].param3 = param3;
 			gExactTimer[i].param4 = param4;
 
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			gExactTimer[i].pid = proc->pid;
+			gExactTimer[i].tid = proc->tid;
+
 			char szout[1024];
 			__printf(szout, "__kAddCmosTimer addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n",
 				addr,i, delay, param1, param2, param3, param4);
@@ -78,12 +82,15 @@ void __kExactTimerProc() {
 		{
 			if (gExactTimer[i].tickcnt <= *lptickcnt)
 			{
+				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+				if (gExactTimer[i].pid == proc->pid) {
 
-				gExactTimer[i].tickcnt = *lptickcnt + gExactTimer[i].ticks;
+					gExactTimer[i].tickcnt = *lptickcnt + gExactTimer[i].ticks;
 
-				typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
-				ptrfunction lpfunction = (ptrfunction)gExactTimer[i].func;
-				result = lpfunction(gExactTimer[i].param1, gExactTimer[i].param2, gExactTimer[i].param3, gExactTimer[i].param4);
+					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
+					ptrfunction lpfunction = (ptrfunction)gExactTimer[i].func;
+					result = lpfunction(gExactTimer[i].param1, gExactTimer[i].param2, gExactTimer[i].param3, gExactTimer[i].param4);
+				}
 			}
 		}
 	}

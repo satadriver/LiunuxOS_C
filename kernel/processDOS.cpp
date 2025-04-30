@@ -281,7 +281,10 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->level = level & 3;
 
+	tss->showX = 0;
+	tss->showY = 0;
 	tss->window = 0;
+	tss->videoBase = (char*)gGraphBase;
 
 	tss->counter = 0;
 	

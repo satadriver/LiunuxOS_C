@@ -1,6 +1,6 @@
 
 #include "ListEntry.h"
-
+#include "utils.h"
 
 void initListEntry(LIST_ENTRY * list) {
 	list->next = 0;
@@ -38,6 +38,9 @@ void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 		}
 		else {
 			//error
+			char szout[1024];
+			__printf(szout,"addlistTail prev none error!\r\n");
+			return;
 		}
 		list->next = next;
 		list->prev = prev;
@@ -45,6 +48,12 @@ void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 		head->prev = list;
 	}
 	else {
+		if (prev) {
+			//error
+			char szout[1024];
+			__printf(szout, "addlistTail prev error!\r\n");
+			return;
+		}
 		head->next = list;
 		head->prev = list;
 
@@ -71,6 +80,9 @@ void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 		}
 		else {
 			//error
+			char szout[1024];
+			__printf(szout, "addlistHead prev none error!\r\n");
+			return;
 		}
 		list->next = next;
 		list->prev = prev;
@@ -78,6 +90,12 @@ void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 		head->next = list;
 	}
 	else {
+		if (prev) {
+			//error
+			char szout[1024];
+			__printf(szout, "addlistHead prev error!\r\n");
+			return;
+		}
 		head->next = list;
 		head->prev = list;
 
@@ -107,7 +125,7 @@ LIST_ENTRY * searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
 
 		n = n->next;
 		
-	} while (n != base);
+	} while (n && n != base);
 
 	return FALSE;
 }

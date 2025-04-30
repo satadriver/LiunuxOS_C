@@ -3,7 +3,7 @@
 #include "mouse.h"
 #include "video.h"
 #include "Utils.h"
-#include "screenProtect.h"
+//#include "screenProtect.h"
 #include "console.h"
 #include "paint.h"
 #include "malloc.h"
@@ -12,8 +12,15 @@
 #include "atapi.h"
 #include "VM86.h"
 #include "ChinesePoem.h"
-#include"clock.h"
-
+#include	"clock.h"
+#include "ScreenVideo.h"
+#include "DiamondVector.h"
+#include "EllipseVector.h"
+#include "SpiralBall.h"
+#include "CubeVector.h"
+#include "SquareVector.h"
+#include "TrajectoryBall.h"
+#include "CubeVector.h"
 
 
 int __restoreRightMenu(RIGHTMENU* menu) {
@@ -197,17 +204,18 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	__strcpy(menu->menuname[6], "Chinese Poem");
 
 	__strcpy(menu->menuname[7], "Screen Protect");
+
 	__strcpy(menu->menuname[8], "Trajectory Ball");
 
-	__strcpy(menu->menuname[9], "Ellipse Color");
+	__strcpy(menu->menuname[9], "Ellipse Vector");
 	
-	__strcpy(menu->menuname[10], "Vector Graph");
+	__strcpy(menu->menuname[10], "Square Vector");
 	
-	__strcpy(menu->menuname[11], "Cube Graph");
+	__strcpy(menu->menuname[11], "Cube Vector");
 	
-	__strcpy(menu->menuname[12], "SnowScreen");
+	__strcpy(menu->menuname[12], "Diamond Vector");
 
-	__strcpy(menu->menuname[13], "Spiral Graph");
+	__strcpy(menu->menuname[13], "Spiral Vector");
 	
 	//menu->menuname[14][0] = 0;
 
@@ -220,16 +228,16 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcaddr[5] = (DWORD)__kClock;
 	menu->funcaddr[6] = (DWORD)__kChinesePoem;
 
-	menu->funcaddr[7] = (DWORD)initScreenProtect;
-	menu->funcaddr[8] = (DWORD)initTrajectory;
-	menu->funcaddr[9] = (DWORD)EllipseScreenColor;
+	menu->funcaddr[7] = (DWORD)ScreenVideo;
+	menu->funcaddr[8] = (DWORD)TrajectoryBall;
+	menu->funcaddr[9] = (DWORD)EllipseVector;
 	
-	menu->funcaddr[10] = (DWORD)initVectorGraph;
+	menu->funcaddr[10] = (DWORD)SquareVector;
 	
-	menu->funcaddr[11] = (DWORD)CubeVectorGraph;
+	menu->funcaddr[11] = (DWORD)CubeVector;
 	
-	menu->funcaddr[12] = (DWORD)SnowScreenShow;
-	menu->funcaddr[13] = (DWORD)SpiralVectorGraph;
+	menu->funcaddr[12] = (DWORD)DiamondVector;
+	menu->funcaddr[13] = (DWORD)SpiralBall;
 	
 	menu->validItem = 14;
 

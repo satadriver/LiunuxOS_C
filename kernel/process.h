@@ -67,7 +67,9 @@ typedef struct
 
 	int window;
 
-	char* videobuf;
+	char* videoBase;
+	int showX;
+	int showY;
 
 	DWORD dr0;
 	DWORD dr1;

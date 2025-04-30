@@ -843,9 +843,9 @@ int __printf(char* buf, char* format, ...) {
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		if (proc->window) {
-			LPWINDOWCLASS window = getWindow(proc->window);
+			LPWINDOWSINFO window = __FindWindowID(proc->window);
 			if (window) {
-				__drawWindowChars(buf, 0, window);
+				__drawWindowChars(buf, 0, window->window);
 			}
 			else {
 				int endpos = __drawGraphChars((char*)buf, 0);

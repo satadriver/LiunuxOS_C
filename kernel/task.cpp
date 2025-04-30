@@ -703,7 +703,7 @@ void initTaskSwitchTss() {
 	}
 }
 
-int __initTask() {
+int __initTask0(char * videobase) {
 
 	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
@@ -725,6 +725,10 @@ int __initTask() {
 	process0->vaddr = 0;
 	process0->vasize = MEMMORY_ALLOC_BASE;
 	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
+	process0->videoBase = (char*)videobase;
+	process0->showX = 0;
+	process0->showY = 160;
+	process0->window = 0;
 	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
 
 	/*

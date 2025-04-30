@@ -18,43 +18,84 @@
 #define RESTORE_MOUSE		14
 #define SET_VIDEOMODE		15
 
-int __kVm86IntProc();
 
-DWORD vm86IntProc(LIGHT_ENVIRONMENT* stack);
-
-DWORD servicesProc(LIGHT_ENVIRONMENT* stack);
-
-void sleep(DWORD* params);
-
-DWORD __random(DWORD init);
-
-void __turnoffScreen();
-
-void __turnonScreen();
-
-void __switchScreen();
-
-DWORD __cputype(unsigned long* params);
-
-DWORD __cpuinfo(unsigned long* params);
-
-DWORD __timestamp(unsigned long* params);
-
-extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no,DWORD * params);
-
-//https://www.felixcloutier.com/x86/cpuid
-unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);
-
-unsigned int getcpuFreq();
-
-unsigned __int64 getCpuFreq();
-
-
-
-extern "C" __declspec(dllexport) int __readTemperature(DWORD * temp);
 
 #ifdef DLL_EXPORT
+
+#else
+
+#endif
+
+
+
+
+
+
+
+
+#ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) int __readTemperature(DWORD * temp);
+extern "C" __declspec(dllexport) int __kVm86IntProc();
 extern "C"  __declspec(dllexport) unsigned __int64 __krdtsc();
+extern "C" __declspec(dllexport) DWORD vm86IntProc(LIGHT_ENVIRONMENT* stack);
+
+extern "C" __declspec(dllexport) DWORD servicesProc(LIGHT_ENVIRONMENT* stack);
+
+extern "C" __declspec(dllexport) void sleep(DWORD* params);
+
+extern "C" __declspec(dllexport) DWORD __random(DWORD init);
+
+extern "C" __declspec(dllexport) void __turnoffScreen();
+
+extern "C" __declspec(dllexport) void __turnonScreen();
+
+extern "C" __declspec(dllexport) void __switchScreen();
+
+extern "C" __declspec(dllexport) DWORD __cputype(unsigned long* params);
+
+extern "C" __declspec(dllexport) DWORD __cpuinfo(unsigned long* params);
+
+extern "C" __declspec(dllexport) DWORD __timestamp(unsigned long* params);
+
+extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no, DWORD * params);
+
+//https://www.felixcloutier.com/x86/cpuid
+extern "C" __declspec(dllexport) unsigned __int64 __cpuFreq(DWORD* cpu, DWORD* max, DWORD* bus);
+
+extern "C" __declspec(dllexport) unsigned int getcpuFreq();
+
+extern "C" __declspec(dllexport) unsigned __int64 getCpuFreq();
 #else
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
+extern "C" __declspec(dllimport) int __readTemperature(DWORD * temp);
+extern "C" __declspec(dllimport) int __kVm86IntProc();
+extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
+extern "C" __declspec(dllimport) DWORD vm86IntProc(LIGHT_ENVIRONMENT * stack);
+
+extern "C" __declspec(dllimport) DWORD servicesProc(LIGHT_ENVIRONMENT * stack);
+
+extern "C" __declspec(dllimport) void sleep(DWORD * params);
+
+extern "C" __declspec(dllimport) DWORD __random(DWORD init);
+
+extern "C" __declspec(dllimport) void __turnoffScreen();
+
+extern "C" __declspec(dllimport) void __turnonScreen();
+
+extern "C" __declspec(dllimport) void __switchScreen();
+
+extern "C" __declspec(dllimport) DWORD __cputype(unsigned long* params);
+
+extern "C" __declspec(dllimport) DWORD __cpuinfo(unsigned long* params);
+
+extern "C" __declspec(dllimport) DWORD __timestamp(unsigned long* params);
+
+extern "C"  __declspec(dllimport) DWORD __kServicesProc(DWORD no, DWORD * params);
+
+//https://www.felixcloutier.com/x86/cpuid
+extern "C" __declspec(dllimport) unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);
+
+extern "C" __declspec(dllimport) unsigned int getcpuFreq();
+
+extern "C" __declspec(dllimport) unsigned __int64 getCpuFreq();
 #endif

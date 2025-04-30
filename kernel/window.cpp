@@ -23,7 +23,10 @@ void initWindowList() {
 	initListEntry((LPLIST_ENTRY)&gWindowsList->list);
 }
 
-LPWINDOWSINFO isWindowExist(char * wname) {
+LPWINDOWSINFO __FindWindow(char * wname) {
+	if (gWindowsList == 0) {
+		return 0;
+	}
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO tmp = info;
 	do
@@ -31,7 +34,7 @@ LPWINDOWSINFO isWindowExist(char * wname) {
 		if (info == 0) {
 			break;
 		}
-		if (info->valid && info->windowname[0] && __strcmp(info->windowname,wname)== 0 )
+		if (info->valid && info->window->winname[0] && __strcmp(info->window->winname,wname)== 0 )
 		{
 			return info;
 		}
@@ -43,7 +46,10 @@ LPWINDOWSINFO isWindowExist(char * wname) {
 	return 0;
 }
 
-LPWINDOWSINFO isWindowExist(DWORD wid) {
+LPWINDOWSINFO __FindWindowID(DWORD wid) {
+	if (gWindowsList == 0) {
+		return 0;
+	}
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO tmp = info;
 	do
@@ -67,7 +73,7 @@ LPWINDOWSINFO isWindowExist(DWORD wid) {
 LPWINDOWSINFO getFreeWindow() {
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList;
 
-	int cnt = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO);
+	int cnt = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO) - 1;
 	for (int i = 1; i < cnt; i++)
 	{
 		if (info[i].valid == 0)
@@ -78,11 +84,44 @@ LPWINDOWSINFO getFreeWindow() {
 	return 0;
 }
 
+LPWINDOWCLASS getProcessWindow(int pid) {
+	if (pid == -1) {
+		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		int wid = proc->window;
+		LPWINDOWSINFO window = gWindowsList + wid;
+		return window->window;
+	}
+	else {
+		LPPROCESS_INFO proc = (LPPROCESS_INFO)TASKS_TSS_BASE;
+		int wid = proc[pid].window;
+		LPWINDOWSINFO window = gWindowsList + wid;
+		return window->window;
+	}
 
-LPWINDOWCLASS getWindow(int wid) {
-	LPWINDOWSINFO window = gWindowsList + wid ;
-	return window->window;
 }
+
+char* GetVideoBase() {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	return proc->videoBase;
+	//return (char*)gGraphBase;
+}
+
+
+
+LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPWINDOWSINFO window = __FindWindowID(proc->window);
+	if (window) {
+		*x = (int*)&(window->window->showX);
+		*y = (int*)&(window->window->showY);
+	}
+	else {
+		*x = (int*)&proc->showX;
+		*y = (int*)&proc->showY;
+	}
+	return window;
+}
+
 
 DWORD isTopWindow(int wid) {
 	LPWINDOWSINFO window = wid + gWindowsList;
@@ -102,10 +141,10 @@ DWORD getTopWindow() {
 }
 
 
-int addWindow(DWORD wc, DWORD *x, DWORD *y, int color,char * wname) {
+int addWindow(DWORD lpwindow,  char * wname) {
 	char szout[1024];
 
-	LPWINDOWSINFO window = isWindowExist(wname);
+	LPWINDOWSINFO window = __FindWindow(wname);
 	if (window)
 	{
 		return FALSE;
@@ -118,19 +157,14 @@ int addWindow(DWORD wc, DWORD *x, DWORD *y, int color,char * wname) {
 		return -1;
 	}
 
-	window->window =(WINDOWCLASS*) wc;
+	window->window =(WINDOWCLASS*)lpwindow;
 
 	window->valid = TRUE;
 	int i = window - gWindowsList;
 
 	window->id = i;
 
-	window->cursorColor = color;
-
-	window->cursorX = x;
-	window->cursorY = y;
-
-	__strncpy(window->windowname, wname, WINDOW_NAME_LIMIT - 1);
+	__strncpy(window->window->winname, wname, WINDOW_NAME_LIMIT - 1);
 
 	addlistTail(&gWindowsList->list, &window->list);
 

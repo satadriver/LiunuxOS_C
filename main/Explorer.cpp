@@ -37,6 +37,15 @@
 #include "cmosAlarm.h"
 #include "elf.h"
 #include "guihelper.h"
+#include	"clock.h"
+#include "ScreenVideo.h"
+#include "DiamondVector.h"
+#include "EllipseVector.h"
+#include "SpiralBall.h"
+#include "CubeVector.h"
+#include "SquareVector.h"
+#include "TrajectoryBall.h"
+#include "CubeVector.h"
 
 #define EXPLORER_TASKNAME			"__kExplorer"
 
@@ -141,7 +150,145 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			}
 			continue;
 		}
-		else if (ck == VK_F4) {
+		else if (ck == VK_F4)
+		{
+
+			if (__findProcessFileName("TrajectoryBall") == FALSE)
+			{
+
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
+			}
+			continue;
+		}
+		else if (ck == VK_F5)
+		{
+			if (__findProcessFileName("__kClock") == FALSE)
+			{
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
+			}
+			continue;
+		}
+		else if (ck == VK_F6)
+		{
+			if (__findProcessFileName("__kClock") == FALSE)
+			{
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
+			}
+			continue;
+		}
+		else if (ck == VK_F7)
+		{
+			if (__findProcessFileName("__kClock") == FALSE)
+			{
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
+			}
+			continue;
+		}
+		else if (ck == VK_F8)
+		{
+			if (__findProcessFileName("__kClock") == FALSE)
+			{
+				TASKCMDPARAMS cmd;
+				__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+				cmd.cmd = SHOW_SYSTEM_LOG;
+				cmd.addr = LOG_BUFFER_BASE;
+				cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+				if (thread) {
+					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+				}
+			}
+			continue;
+		}
+		else if (ck == VK_F9)
+		{
+		if (__findProcessFileName("__kClock") == FALSE)
+		{
+			TASKCMDPARAMS cmd;
+			__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+			cmd.cmd = SHOW_SYSTEM_LOG;
+			cmd.addr = LOG_BUFFER_BASE;
+			cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+			DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+			if (thread) {
+				__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+			}
+		}
+		continue;
+		}
+		else if (ck == VK_F10)
+		{
+		if (__findProcessFileName("__kClock") == FALSE)
+		{
+			TASKCMDPARAMS cmd;
+			__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+			cmd.cmd = SHOW_SYSTEM_LOG;
+			cmd.addr = LOG_BUFFER_BASE;
+			cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+			DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+			if (thread) {
+				__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+			}
+		}
+		continue;
+		}
+		else if (ck == VK_F11)
+		{
+		if (__findProcessFileName("__kClock") == FALSE)
+		{
+			TASKCMDPARAMS cmd;
+			__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+			cmd.cmd = SHOW_SYSTEM_LOG;
+			cmd.addr = LOG_BUFFER_BASE;
+			cmd.filesize = (DWORD)gLogDataPtr - LOG_BUFFER_BASE;
+
+			DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
+			if (thread) {
+				__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+			}
+		}
+		continue;
+		}
+		else if (ck == VK_F12) {
 			if (__findProcessFileName("__kTestWindow") == FALSE)
 			{
 				TASKCMDPARAMS cmd;

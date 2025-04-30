@@ -69,7 +69,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gKernelData = kerneldata;
 	gKernel16 = kernel16;
 	gKernel32 = kernel32;
-
+	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
 
 	char szout[1024];
@@ -83,7 +83,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initPaging();
 
-	__initTask();
+	
 
 	initDll();
 

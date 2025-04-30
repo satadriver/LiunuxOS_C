@@ -8,6 +8,7 @@
 #include "video.h"
 #include "cmosExactTimer.h"
 #include "hardware.h"
+#include "window.h"
 
 float f(float x, float y, float z) {
 	return x*x + y*y + z*z - 1;
@@ -32,7 +33,8 @@ void sphere(int x,int y,int raduis,DWORD color,unsigned char * backup) {
 // 		fninit
 // 	}
 	unsigned int pos = __getpos(x - raduis, y - raduis);
-	unsigned char * showpos = pos + (unsigned char *)gGraphBase;
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
+	unsigned char * showpos = pos + (unsigned char *)videoBase;
 	unsigned char * keepy = showpos;
 
 
@@ -81,7 +83,8 @@ void sphere7(int x, int y, int raduis,DWORD color,unsigned char *backup) {
  		//fninit
  	}
 	unsigned int pos = __getpos(x-raduis, y-raduis);
-	unsigned char * showpos = pos + (unsigned char *)gGraphBase;
+	char* vb = GetVideoBase();
+	unsigned char * showpos = pos + (unsigned char *)vb;
 	unsigned char * keepy = showpos;
 	int width = raduis*2, height = raduis*2;
 
@@ -145,8 +148,8 @@ DWORD showIcon(int x,int y, LPBITMAPINFOHEADER lpbmpinfo) {
 	int bitspix = lpbmpinfo->biBitCount>>3;
 
 	unsigned char * data = (unsigned char*)lpbmpinfo + sizeof(BITMAPINFOHEADER);
-
-	unsigned char * ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+	char* vb = GetVideoBase();
+	unsigned char * ptr = (unsigned char*)__getpos(x, y) +(unsigned long) vb;
 
 	unsigned char * keep = ptr;
 
@@ -171,7 +174,7 @@ DWORD showIcon(int x,int y, LPBITMAPINFOHEADER lpbmpinfo) {
 		ptr = keep;
 	}
 
-	return (DWORD)ptr- gGraphBase;
+	return (DWORD)ptr- (DWORD)vb;
 }
 
 
@@ -213,7 +216,9 @@ int showBmpBits(int x, int y, BITMAPINFOHEADER* info, unsigned char * data) {
 	if (info->biBitCount == 8) {
 		data += sizeof(RGBQUAD) * 256;
 	}
-	unsigned char * screenpos = (unsigned char*)gGraphBase + __getpos(x, y);
+
+	char* vb = GetVideoBase();
+	unsigned char * screenpos = (unsigned char*)vb + __getpos(x, y);
 	unsigned char * keepy = screenpos;
 
 	for (int i = 0; i < height; i++)

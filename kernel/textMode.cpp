@@ -45,7 +45,7 @@ int runcmd(char * cmd) {
 		vesaInfo.BitsPerPixel = 24;
 		vesaInfo.YRes = 480;
 		vesaInfo.XRes = 640;
-		vesaInfo.PhyBasePtr = 0xe0000000;
+		vesaInfo.PhyBasePtr = (char*)0xe0000000;
 		vesaInfo.OffScreenMemOffset = 0;
 		vesaInfo.BytesPerScanLine = vesaInfo.XRes * (vesaInfo.BitsPerPixel>>3);
 
@@ -169,6 +169,8 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	int ret = 0;
 
+	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+
 	gV86VMIEntry = v86ProcessBase;
 
 	gV86VMISize = v86ProcessLen;
@@ -203,9 +205,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	initMemory();
 
-	initPaging();
-
-	__initTask();
+	initPaging();	
 
 	initDll();
 

@@ -215,6 +215,7 @@
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="cmd.cpp" />
     <ClCompile Include="console.cpp" />
+    <ClCompile Include="CubeVector.cpp" />
     <ClCompile Include="explorer.cpp" />
     <ClCompile Include="fat12\fat12.cpp" />
     <ClCompile Include="fat32\fat32dirs.cpp" />
@@ -229,13 +230,20 @@
     <ClCompile Include="fileWindow.cpp" />
     <ClCompile Include="mainUtils.cpp" />
     <ClCompile Include="guiHelper.cpp" />
+    <ClCompile Include="ScreenVideo.cpp" />
+    <ClCompile Include="SpiralBall.cpp" />
+    <ClCompile Include="SquareVector.cpp" />
     <ClCompile Include="TestWindow.cpp" />
+    <ClCompile Include="TrajectoryBall.cpp" />
+    <ClCompile Include="EllipseVector.cpp" />
+    <ClCompile Include="DiamondVector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ChinesePoem.h" />
     <ClInclude Include="clock.h" />
     <ClInclude Include="cmd.h" />
     <ClInclude Include="console.h" />
+    <ClInclude Include="CubeVector.h" />
     <ClInclude Include="explorer.h" />
     <ClInclude Include="menu.h" />
     <ClInclude Include="fat12\fat12.h" />
@@ -250,7 +258,13 @@
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="mainUtils.h" />
     <ClInclude Include="guiHelper.h" />
+    <ClInclude Include="ScreenVideo.h" />
+    <ClInclude Include="SpiralBall.h" />
+    <ClInclude Include="SquareVector.h" />
     <ClInclude Include="TestWindow.h" />
+    <ClInclude Include="TrajectoryBall.h" />
+    <ClInclude Include="EllipseVector.h" />
+    <ClInclude Include="DiamondVector.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="main.rc" />

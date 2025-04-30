@@ -102,6 +102,8 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
 
+	window->cursorColor = ~window->color;
+
 	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 
 	window->prev = 0;
@@ -146,8 +148,11 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 
 	window->showX = window->left;
 	window->showY = window->top;
+	window->cursorX = window->showX;
+	window->cursorY = window->showY;
+	window->cursorColor = ~window->color;
 
-	window->id = addWindow((DWORD)window, (DWORD*)&window->showX, (DWORD*)&window->showY, ~window->color, window->winname);
+	window->id = addWindow((DWORD)window, window->winname);
 
 	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 
@@ -193,6 +198,9 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
 
+	window->cursorColor = ~window->color;
+
+
 	window->prev = 0;
 	window->next = 0;
 
@@ -234,7 +242,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	window->pid = proc->pid;
 
-
+	window->cursorColor = ~window->color;
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
 

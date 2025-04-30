@@ -11,6 +11,7 @@
 #include "graph.h"
 #include "Pe.h"
 #include "gdi/jpeg.h"
+#include "window.h"
 
 #define PENCIL_WIDTH	5
 
@@ -37,6 +38,8 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 	initTableNew(&window, fx, fy, 1, 2);
 	fx += 256;
 	initTableNew(&window, fx, fy, 0, 1);
+
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
 	while (1)
 	{
@@ -70,7 +73,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 				if (mouseinfo.y >= tabley && mouseinfo.y <= window.bottom)
 				{
 					__kRestoreMouse();
-					unsigned int* pos = (unsigned int*)(__getpos(mouseinfo.x, mouseinfo.y) + gGraphBase);
+					unsigned int* pos = (unsigned int*)(__getpos(mouseinfo.x, mouseinfo.y) + videoBase);
 					pencilColor = *(unsigned int*)pos;
 
 // 					__printf(szout, "set color:%x\r\n", pencilColor);
@@ -120,7 +123,7 @@ int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DW
 
 					//__kRestoreMouse();
 
-					unsigned char * pos = (unsigned char *)__getpos(minx, miny) + gGraphBase;
+					unsigned char * pos = (unsigned char *)__getpos(minx, miny) + (DWORD)videoBase;
 
 					unsigned char * p = pos;
 
@@ -166,8 +169,8 @@ void initTableNew(WINDOWCLASS * window,int tablex,int tabley,int c1,int c2) {
 
 	char * color = (char*)&colortable;
 	
-
-	unsigned char * pos = (unsigned char*)__getpos(tablex, tabley) + gGraphBase;
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
+	unsigned char * pos = (unsigned char*)__getpos(tablex, tabley) + (DWORD)videoBase;
 
 	unsigned char * p = pos;
 
@@ -205,7 +208,8 @@ void initTable(WINDOWCLASS * window,int factor) {
 	int tabley = window->top + window->height - (window->height >> factor);
 	int tablex = window->left;
 
-	unsigned char * pos = (unsigned char*)__getpos(tablex, tabley) + gGraphBase;
+	char* vb = GetVideoBase();
+	unsigned char * pos = (unsigned char*)__getpos(tablex, tabley) + (unsigned long)vb;
 
 	unsigned char * p = pos;
 	

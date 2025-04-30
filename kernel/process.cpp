@@ -331,7 +331,10 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	__strcpy(tss->filename, filename);
 	__strcpy(tss->funcname, funcname);
 
+	tss->showX = 0;
+	tss->showY = 0;
 	tss->window = 0;
+	tss->videoBase = (char*)gGraphBase;
 
 	LPPROCESS_INFO thistss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	tss->ppid = thistss->pid;

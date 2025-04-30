@@ -238,19 +238,20 @@ BOOL LoadJpegFile(char * hJpegBuf, int JpegBufSize, char * bmpfiledata, int * bm
 /////////////////////////////////////////////////
 void showerror(int funcret)
 {
+	char szout[1024];
 	switch (funcret)
 	{
 	case FUNC_MEMORY_ERROR:
-		__drawGraphChars(( char*)"Error alloc memory\n!",0);
+		__printf(szout,( char*)"Error alloc memory\n!");
 		break;
 	case FUNC_FILE_ERROR:
-		__drawGraphChars(( char*)"File not found!\n",0);
+		__printf(szout, ( char*)"File not found!\n");
 		break;
 	case FUNC_FORMAT_ERROR:
-		__drawGraphChars(( char*)"File format error!\n",0);
+		__printf(szout, ( char*)"File format error!\n");
 		break;
 	default:
-		__drawGraphChars(( char*)"gpeg error\n", 0);
+		__printf(szout,( char*)"gpeg error\n");
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////

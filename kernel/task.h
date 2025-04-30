@@ -63,7 +63,7 @@ void tasktest();
 
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 
-int __initTask();
+int __initTask0(char * videobase);
 
 int __getFreeTask(LPTASKRESULT);
 

@@ -2,6 +2,7 @@
 
 #include "def.h"
 
+
 #ifndef _VIDEO_H_H_H
 #define _VIDEO_H_H_H
 
@@ -42,7 +43,7 @@ typedef struct {
 	char DirectColorModeInfo; //直接颜色模式属性
 // 40
 // 以下为VBE2.0版本以上定义
-	int PhyBasePtr; //可使用的大的帧缓存时为指向其首址的32位物理地址
+	char* PhyBasePtr; //可使用的大的帧缓存时为指向其首址的32位物理地址
 	int OffScreenMemOffset; //帧缓存首址的32位偏移量
 	short OffScreenMemSize; //不可用的显示缓冲区, 以KB为单位
 // 50
@@ -153,8 +154,8 @@ extern "C"  __declspec(dllexport) int gSmallFolderHeight;
 
 extern "C"  __declspec(dllexport) int gWindowHeight;
 extern "C"  __declspec(dllexport) unsigned int gWindowSize;
-extern "C"  __declspec(dllexport) int gShowX;
-extern "C"  __declspec(dllexport) int gShowY;
+//extern "C"  __declspec(dllexport) int gShowX;
+//extern "C"  __declspec(dllexport) int gShowY;
 
 extern "C"  __declspec(dllexport) unsigned int gConsoleWidth;
 
@@ -177,8 +178,8 @@ extern "C"  __declspec(dllimport) int gSmallFolderHeight;
 
 extern "C"  __declspec(dllimport) int gWindowHeight;
 extern "C"  __declspec(dllimport) unsigned int gWindowSize;
-extern "C"  __declspec(dllimport) int gShowX;
-extern "C"  __declspec(dllimport) int gShowY;
+//extern "C"  __declspec(dllimport) int gShowX;
+//extern "C"  __declspec(dllimport) int gShowY;
 
 extern "C"  __declspec(dllimport) unsigned int gConsoleWidth;
 
@@ -281,10 +282,13 @@ typedef struct __WINDOWCLASS {
 
 	char cursorBuf[GRAPHCHAR_HEIGHT * GRAPHCHAR_HEIGHT * 4];
 	int cursorID;
+	int cursorX;
+	int cursorY;
 	int cursorColor;
+
 	int tag;
 	int showBakX;
-	int showBakY;	
+	int showBakY;
 
 	char caption[WINDOW_NAME_LIMIT];
 
@@ -341,7 +345,7 @@ extern "C"  __declspec(dllexport) int __initVideo(LPVESAINFORMATION vesa,DWORD f
 
 extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllexport) int __restoreWindow(LPWINDOWCLASS window);
+extern "C"  __declspec(dllexport) int __restoreRect(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllexport) int __DestroyWindow(LPWINDOWCLASS window);
 
@@ -394,6 +398,8 @@ extern "C"  __declspec(dllexport) int __drawDot(int x, int y, int colorBuf, DWOR
 
 extern "C"  __declspec(dllexport) int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color);
 
+
+
 extern "C"  __declspec(dllexport) int __diamond(int startx, int starty, int raduis, int cnt, DWORD color);
 
 extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS* window);
@@ -405,7 +411,7 @@ extern "C" __declspec(dllimport)  int __initVideo(LPVESAINFORMATION vesa, DWORD 
 
 extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllimport) int __restoreWindow(LPWINDOWCLASS window);
+extern "C"  __declspec(dllimport) int __restoreRect(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __DestroyWindow(LPWINDOWCLASS window);
 
@@ -463,6 +469,8 @@ extern "C"  __declspec(dllimport) int __diamond(int startx, int starty, int radu
 extern "C"  __declspec(dllimport) int __clearWindowChar(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllimport) int __drawWindowChars( char* font, int color, WINDOWCLASS * window);
+
+
 #endif
 
 #endif

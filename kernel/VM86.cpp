@@ -349,7 +349,7 @@ int getVideoMode(VesaSimpleInfo vsi[64] ) {
 							vsi[idx].y = vi->YRes;
 							vsi[idx].bpp = vi->BitsPerPixel / 8;
 
-							vsi[idx].base = vi->PhyBasePtr;
+							vsi[idx].base = (DWORD)vi->PhyBasePtr;
 							vsi[idx].offset = vi->OffScreenMemOffset;
 							vsi[idx].size = vi->OffScreenMemSize;
 

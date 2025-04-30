@@ -16,6 +16,8 @@ typedef struct
 	DWORD param2;
 	DWORD param3;
 	DWORD param4;
+	int pid;
+	int tid;
 }TIMER_PROC_PARAM;
 
 #pragma pack()

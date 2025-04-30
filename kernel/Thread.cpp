@@ -234,7 +234,10 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	__strcpy(tss->filename, process->filename);
 	__strcpy(tss->funcname, funcname);
 
+	tss->showX = 0;
+	tss->showY = 0;
 	tss->window = 0;
+	tss->videoBase = (char*)gGraphBase;
 
 	//addTaskList(tss->tid);
 	tss->status = TASK_RUN;

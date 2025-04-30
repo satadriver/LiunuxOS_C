@@ -64,9 +64,11 @@ int initScreenProtect() {
 
 	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
-	unsigned char* dst = (unsigned char*)gGraphBase + screensize;
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
-	unsigned char* src = (unsigned char*)gGraphBase;
+	unsigned char* dst = (unsigned char*)videoBase + screensize;
+
+	unsigned char* src = (unsigned char*)videoBase;
 
 	POINT p;
 	p.x = 0;
@@ -75,9 +77,9 @@ int initScreenProtect() {
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
-		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 
-	gScreenProtectWindowID = addWindow(0, 0, 0, 0, "__screenProtect");
+	gScreenProtectWindowID = addWindow(0, "__screenProtect");
 
 	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -94,14 +96,15 @@ int stopScreenProtect() {
 	removeWindow(gScreenProtectWindowID);
 
 	gScreenProtectWindowID = 0;
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
 	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
-	ret = __restoreCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius / 2, (unsigned char*)gGraphBase + screensize * 2);
+	ret = __restoreCircle(gCircleCenterX, gCircleCenterY, gRadius, gRadius / 2, (unsigned char*)videoBase + screensize * 2);
 
-	unsigned char* src = (unsigned char*)gGraphBase + screensize;
+	unsigned char* src = (unsigned char*)videoBase + screensize;
 
-	unsigned char* dst = (unsigned char*)gGraphBase;
+	unsigned char* dst = (unsigned char*)videoBase;
 
 	POINT p;
 	p.x = 0;
@@ -165,11 +168,13 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1, int p2, int p3, i
 		gDeltaY = -gDeltaY;
 	}
 
-	ret = __restoreCircle(oldx, oldy, gRadius, gRadius / 2, (unsigned char*)gGraphBase + screensize * 2);
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
+
+	ret = __restoreCircle(oldx, oldy, gRadius, gRadius / 2, (unsigned char*)videoBase + screensize * 2);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
-		gRadius|0x0000000, (gRadius / 2)| 0x0000000, gCircleColor, (unsigned char*)gGraphBase + screensize * 2);
+		gRadius|0x0000000, (gRadius / 2)| 0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 	return;
 }
 
@@ -247,7 +252,8 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 #else
 
 #endif
-			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+			unsigned char* videoBase = (unsigned char*)GetVideoBase();
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
 			for (int k = 0; k < gBytesPerPixel; k++) {
 				*ptr = c & 0xff;
 				c = c >> 8;
@@ -271,7 +277,7 @@ void initVectorGraph() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
 
-	gVectorGraphWid = addWindow(FALSE, 0, 0, 0, "VectorGraph");
+	gVectorGraphWid = addWindow(FALSE, "VectorGraph");
 
 	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -295,7 +301,7 @@ void EllipseScreenColor() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "EllipseScreenColor");
+	DWORD windowid = addWindow(FALSE, "EllipseScreenColor");
 
 	int A = 13;
 	int B = 7;
@@ -321,6 +327,8 @@ void EllipseScreenColor() {
 		int cx = gVideoWidth / 2;
 		int cy = gVideoHeight / 2;
 
+		unsigned char* videoBase = (unsigned char*)GetVideoBase();
+
 		int cx2 = gVideoWidth / 2 + 100;
 		int cy2 = gVideoHeight / 2 + 100;
 		for (int y = 0; y < gVideoHeight; y++) {
@@ -331,7 +339,7 @@ void EllipseScreenColor() {
 				}
 				DWORD high = c >> 24;
 				c = c + high;
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD) videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = c & 0xff;
 					c = c >> 8;
@@ -375,7 +383,7 @@ void SpiralVectorGraph() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0xffffff, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "SpiralVectorGraph");
+	DWORD windowid = addWindow(FALSE, "SpiralVectorGraph");
 	
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
@@ -384,12 +392,14 @@ void SpiralVectorGraph() {
 
 	__drawLine(cx, 0, cx, gVideoHeight -1, 0, AXIS_COLOR, 0);
 
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
+
 	int color_cos = 0xff00;
 	for (int x = 0; x < gVideoWidth; x++)
 	{
 		int y = cy - (int)( __cos(1.0*((int)x - (int)cx)/100.0) * 100.0);
 		int c = color_cos;
-		unsigned char* p = (unsigned char*)__getpos((int)x, y) + gGraphBase;
+		unsigned char* p = (unsigned char*)__getpos((int)x, y) + (DWORD)videoBase;
 		for (int k = 0; k < gBytesPerPixel; k++) {
 				
 			p[k] = c &0xff;
@@ -402,13 +412,14 @@ void SpiralVectorGraph() {
 		}	
 	}
 
+
 	int color_sin = 0xff0000;
 	for (int x = 0; x < gVideoWidth; x++)
 	{
 		int c = color_sin;
 		int y = cy -  (int)(__sin(1.0 * ((int)x - (int)cx)/100.0)  * 100.0);
-
-		unsigned char* p = (unsigned char*)__getpos((int)x, y) + gGraphBase;
+		
+		unsigned char* p = (unsigned char*)__getpos((int)x, y) + (DWORD)videoBase;
 		for (int k = 0; k < gBytesPerPixel; k++) {
 
 			p[k] = c & 0xff;
@@ -425,7 +436,7 @@ void SpiralVectorGraph() {
 		DWORD y = cy - 100.0 * ((float)(x - cx)*1.0 / 100.0) * (((float)(x - cx)*1.0) / 100.0);
 		if (y >= 0) {
 			DWORD c = 0xff0000;
-			unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+			unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
 			for (int k = 0; k < gBytesPerPixel; k++) {
 				*ptr = c & 0xff;
 				c = c >> 8;
@@ -597,7 +608,7 @@ void CubeVectorGraph() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "CubeVectorGraph");
+	DWORD windowid = addWindow(FALSE,  "CubeVectorGraph");
 
 	while (1)
 	{
@@ -620,6 +631,8 @@ void CubeVectorGraph() {
 		int cx = gVideoWidth / 2;
 		int cy = gVideoHeight / 2;
 
+		unsigned char* videoBase = (unsigned char*)GetVideoBase();
+
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
 
@@ -635,7 +648,7 @@ void CubeVectorGraph() {
 #else
 
 #endif
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) +(DWORD) videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = c & 0xff;
 					c = c >> 8;
@@ -663,7 +676,9 @@ void SnowScreenShow() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, 0, 0, 0, "SnowScreenShow");
+	DWORD windowid = addWindow(FALSE, "SnowScreenShow");
+
+	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
 	while (1)
 	{
@@ -696,7 +711,7 @@ void SnowScreenShow() {
 					color = 0;
 				}
 
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) + gGraphBase;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) +(DWORD) videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = color & 0xff;
 					color = color >> 8;
@@ -1056,7 +1071,7 @@ void initTrajectory() {
 
 	g_circle_buf = (char*)__kMalloc((int)(g_radius + 4) * 2 * 2 * (int)(g_radius + 4) * gBytesPerPixel);
 
-	gTrajectWid = addWindow(FALSE, 0, 0, 0, "Trajectory");
+	gTrajectWid = addWindow(FALSE, "Trajectory");
 
 	POINT p;
 	p.x = 0;

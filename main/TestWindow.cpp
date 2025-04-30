@@ -109,7 +109,7 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 
 	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
 	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
-	__drawGraphChars((char*)FLOPPY_DMA_BUFFER + 0x1000, 0);
+	__printf(szout,(char*)FLOPPY_DMA_BUFFER + 0x1000);
 
 
 
