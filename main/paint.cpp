@@ -67,6 +67,13 @@ extern "C" __declspec(dllexport)int __kPaint(unsigned int retaddr, int tid, char
 				}
 			}
 
+			if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight)
+			{
+				if (mouseinfo.y >= window.miny && mouseinfo.y <= window.miny + window.capHeight)
+				{
+					MinimizeWindow(&window);
+				}
+			}
 
 			if (mouseinfo.x >= tablex && mouseinfo.x <= tablex + 256*3)
 			{

@@ -131,7 +131,8 @@ typedef struct  {
 #define RIGHTCLICK_MENU_HEIGHT		240
 
 
-
+#define LEFTCLICK_MENU_WIDTH		240
+#define LEFTCLICK_MENU_HEIGHT		256
 
 extern "C" int g_ScreenMode;
 
@@ -302,7 +303,7 @@ typedef struct __WINDOWCLASS {
 
 typedef struct {
 	POINT pos;
-	int action;
+	int status;
 
 	int width;
 	int height;
@@ -334,6 +335,9 @@ typedef struct
 	int fsheight;
 
 }FMWINDOW, * LPFMWINDOW;
+
+
+
 
 #pragma pack()
 

@@ -56,7 +56,7 @@ int __restoreRightMenu(RIGHTMENU* menu) {
 
 	//__kFree(menu->backGround);
 
-	return (int)ptr - gGraphBase;
+	return (int)ptr ;
 }
 
 
@@ -183,7 +183,7 @@ extern "C" __declspec(dllexport) int __kDrawWindowsMenu() {
 	__kRefreshMouseBackup();
 	__kDrawMouse();
 
-	return (int)ptr - gGraphBase;
+	return (int)ptr ;
 }
 
 
@@ -292,4 +292,119 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->backGround = __kMalloc(menu->backsize);
 
 	__kDrawWindowsMenu();
+}
+
+
+
+void initPopupMenu(POPUPMENU *menu) {
+	menu->color = FOLDERFONTBGCOLOR;
+	menu->height = LEFTCLICK_MENU_HEIGHT;
+	menu->width = LEFTCLICK_MENU_WIDTH;
+
+	menu->backsize = gBytesPerPixel * (menu->width + 1) * (menu->height + 1);
+
+	menu->backGround = __kMalloc(menu->backsize);
+
+	menu->status = 0;
+
+}
+
+
+
+int __restoreLeftMenu(POPUPMENU* menu) {
+
+	__kRestoreMouse();
+
+	int startpos = menu->pos.y * gBytesPerLine + menu->pos.x * gBytesPerPixel + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+	unsigned char* srcdata = (unsigned char*)menu->backGround;
+
+	for (int i = 0; i <= menu->height; i++)
+	{
+		for (int j = 0; j <= menu->width; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				*ptr = *srcdata;
+				ptr++;
+				srcdata++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	__kRefreshMouseBackup();
+
+	__kDrawMouse();
+
+	//__kFree(menu->backGround);
+
+	return (int)ptr;
+}
+
+
+
+int __drawLeftMenu(POPUPMENU* menu) {
+	__kRestoreMouse();
+
+	if (menu->pos.x + menu->width + TASKBAR_HEIGHT >= gVideoWidth)
+	{
+		menu->pos.x = gVideoWidth - menu->width - TASKBAR_HEIGHT;
+	}
+
+	if (menu->pos.y + menu->height + TASKBAR_HEIGHT >= gVideoHeight)
+	{
+		menu->pos.y = gVideoHeight - menu->height - TASKBAR_HEIGHT;
+	}
+
+	int startpos = __getpos(menu->pos.x, menu->pos.y) + gGraphBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+	unsigned char* save = (unsigned char*)menu->backGround;
+
+	for (int i = 0; i <= menu->height; i++)	//height
+	{
+		for (int j = 0; j <= menu->width; j++)		//width
+		{
+			unsigned int c = menu->color;
+
+			if (i % (GRAPHCHAR_WIDTH * 2) == 0 || j % menu->width == 0)
+			{
+				c = 0;
+			}
+			else {
+				c = menu->color;
+			}
+
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				*save = *ptr;
+				save++;
+
+				*ptr = (c & 0xff);
+				ptr++;
+				c = (c >> 8);
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
+
+	for (int i = 0; i < menu->height / GRAPHCHAR_WIDTH / 2; i++)
+	{
+		if (menu->item[i].winname[0] )
+		{
+			__drawGraphChar((char*)menu->item[i].winname[0], 0, startpos - gGraphBase, 0);
+			startpos += GRAPHCHAR_HEIGHT * gBytesPerLine * 2;
+		}
+	}
+
+	__kRefreshMouseBackup();
+	__kDrawMouse();
+
+	return 0;
 }

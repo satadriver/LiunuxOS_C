@@ -13,7 +13,7 @@
 LPWINDOWSINFO gWindowsList = 0;
 
 
-
+extern "C" __declspec(dllexport) POPUPMENU gPopupMenu = { 0 };
 
 
 void initWindowList() {
@@ -191,7 +191,11 @@ int removeWindow(int id) {
 
 
 
-int MaximizeWindow(WINDOWCLASS * cwin) {
+int MaximizeWindow(int wid) {
+
+	LPWINDOWSINFO winfo = __FindWindowID(wid);
+
+	WINDOWCLASS* cwin = winfo->window;
 
 	__asm{cli}
 
@@ -204,27 +208,27 @@ int MaximizeWindow(WINDOWCLASS * cwin) {
 		
 		proc = tss + cwin->tid;
 	}
-	LPWINDOWSINFO winfo = getTopWindow();
-	if (winfo == 0) {
+	LPWINDOWSINFO topwinfo = getTopWindow();
+	if (topwinfo == 0) {
 		//error
 	}
 
-	if (winfo->window->minBuf) {
-		LPPROCESS_INFO winproc = tss + winfo->window->tid;
-		winproc->videoBase = winfo->window->minBuf;
+	if (topwinfo->window->minBuf) {
+		LPPROCESS_INFO winproc = tss + topwinfo->window->tid;
+		winproc->videoBase = topwinfo->window->minBuf;
 	}	
 
 	char* minbuf = cwin->pos.y * gBytesPerLine + cwin->pos.x * gBytesPerPixel + (char*)cwin->minBuf;
 	char* videobuf = (char*)gGraphBase + cwin->pos.y * gBytesPerLine + cwin->pos.x * gBytesPerPixel;
 	
-	int wid = cwin->width + cwin->frameSize;
-	int hit = cwin->height + cwin->frameSize + cwin->capHeight;
-	int size = wid * hit * gBytesPerPixel;
+	int width = cwin->width + cwin->frameSize;
+	int height = cwin->height + cwin->frameSize + cwin->capHeight;
+	int size = width * height * gBytesPerPixel;
 
 	char* src = videobuf;
 	char* dst =(char*) winfo->window->backBuf;
-	for (int i = 0; i < hit; i++) {
-		for (int k = 0; k < wid; k++) {
+	for (int i = 0; i < height; i++) {
+		for (int k = 0; k < width; k++) {
 			for (int j = 0; k < gBytesPerPixel; j++) {
 				dst[k * gBytesPerPixel + j] = src[k * gBytesPerPixel + j];
 			}
@@ -235,8 +239,8 @@ int MaximizeWindow(WINDOWCLASS * cwin) {
 
 	src = minbuf;
 	dst = videobuf;
-	for (int i = 0; i < hit; i++) {
-		for (int k = 0; k < wid; k++) {
+	for (int i = 0; i < height; i++) {
+		for (int k = 0; k < width; k++) {
 			for (int j = 0; k < gBytesPerPixel; j++) {
 				dst[k * gBytesPerPixel + j] = src[k * gBytesPerPixel + j];
 			}
@@ -247,6 +251,8 @@ int MaximizeWindow(WINDOWCLASS * cwin) {
 
 	proc->videoBase = (char*)gGraphBase;
 
+	deletePopupItem(wid);
+
 	__asm{sti}
 
 	return 0;
@@ -256,13 +262,10 @@ int MaximizeWindow(WINDOWCLASS * cwin) {
 
 int MinimizeWindow(WINDOWCLASS* window) {
 
-
 	if (window->minBuf == 0) {
 		window->minBuf = (char*)__malloc(gVideoHeight * gVideoWidth * gBytesPerPixel);
 	}
 	
-	
-
 	__asm {
 		cli
 	}
@@ -277,15 +280,44 @@ int MinimizeWindow(WINDOWCLASS* window) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	proc->videoBase = window->minBuf;
 
-	//add menu
+	insertPopupItem(window->id, window->winname);
 
 	__asm {sti}
 	return 0;
 }
 
 
+int insertPopupItem(int wid,char * wname) {
+	int n = 0;
+	for (int i = 0; i < POPUPMENU_LIMIT; i++) {
+		if (gPopupMenu.item[i].valid == 0 && gPopupMenu.item[i].winname[0] == 0 && gPopupMenu.item[i].windowid == 0) {
+			gPopupMenu.item[i].valid = 1;
+			__strcpy(gPopupMenu.item[i].winname, wname);
+			gPopupMenu.item[i].windowid = wid;
+
+			n = i;
+			break;
+		}
+	}
+
+	return n;
+}
 
 
+int deletePopupItem(int wid) {
+	int n = 0;
+	for (int i = 0; i < POPUPMENU_LIMIT; i++) {
+		if (gPopupMenu.item[i].valid  && gPopupMenu.item[i].windowid == wid) {
+			gPopupMenu.item[i].valid = 0;
+			gPopupMenu.item[i].winname[0] = 0;
+			gPopupMenu.item[i].windowid = 0;
+
+			n = i;
+			break;
+		}
+	}
+	return n;
+}
 
 
 

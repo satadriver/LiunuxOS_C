@@ -83,6 +83,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	RIGHTMENU menu;
 	initRightMenu(&menu, tid);
 
+	//POPUPMENU popup;
+	initPopupMenu(&gPopupMenu);
+
 	__initMouse(gVideoWidth, gVideoHeight);
 
 	char cputype[1024];
@@ -224,9 +227,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		ret = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
-			if (menu.action)
+			if (menu.status)
 			{
-				menu.action = 0;
+				menu.status = 0;
 
 				__restoreRightMenu(&menu);
 
@@ -264,11 +267,43 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 						}
 					}
 				}
-
-				
+			}
+			else if (gPopupMenu.status) {
+				gPopupMenu.status = 0;
+				__restoreLeftMenu(&gPopupMenu);
+				if ((mouseinfo.x > gPopupMenu.pos.x) && (mouseinfo.x < gPopupMenu.pos.x + gPopupMenu.width))
+				{
+					if (mouseinfo.y > gPopupMenu.pos.y && mouseinfo.y < gPopupMenu.pos.y + gPopupMenu.height)
+					{
+						int funcno = (mouseinfo.y - gPopupMenu.pos.y) / GRAPHCHAR_HEIGHT / 2;
+						if (funcno > 0 && funcno < POPUPMENU_LIMIT)
+						{
+							int wid = gPopupMenu.item[funcno].windowid;
+							char *winname = gPopupMenu.item[funcno].winname;
+							MaximizeWindow(wid);
+						}
+					}
+				}
+			}
+			else if (mouseinfo.x > gVideoWidth - TASKBAR_HEIGHT && mouseinfo.x < gVideoWidth)
+			{
+				if ((mouseinfo.y > gVideoHeight - TASKBAR_HEIGHT) && mouseinfo.y < gVideoHeight)
+				{
+					gPopupMenu.pos.x = mouseinfo.x;
+					gPopupMenu.pos.y = mouseinfo.y;
+					gPopupMenu.status = mouseinfo.status;
+					__drawLeftMenu(&gPopupMenu);
+				}
 			}
 
-			if (mouseinfo.x >= computer.pos.x && mouseinfo.x < computer.pos.x + computer.frameSize + computer.width)
+			else if (mouseinfo.x >= 0 && mouseinfo.x < gVideoWidth - TASKBAR_HEIGHT)
+			{
+				if ((mouseinfo.y >= gWindowHeight) && mouseinfo.y < gVideoHeight)
+				{
+					ret = TaskbarOnClick(&window);
+				}
+			}
+			else if (mouseinfo.x >= computer.pos.x && mouseinfo.x < computer.pos.x + computer.frameSize + computer.width)
 			{
 				if (mouseinfo.y >= computer.pos.y && mouseinfo.y <= computer.pos.y + computer.height + computer.frameSize)
 				{
@@ -281,7 +316,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				}
 			}
 
-			if (mouseinfo.x >= atapi.pos.x && mouseinfo.x < (atapi.pos.x + atapi.frameSize + atapi.width))
+			else if (mouseinfo.x >= atapi.pos.x && mouseinfo.x < (atapi.pos.x + atapi.frameSize + atapi.width))
 			{
 				if (mouseinfo.y >= atapi.pos.y && mouseinfo.y <= (atapi.pos.y + atapi.height + atapi.frameSize))
 				{
@@ -293,7 +328,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				}
 			}
 
-			if (mouseinfo.x >= floppy.pos.x && mouseinfo.x < (floppy.pos.x + floppy.frameSize + floppy.width))
+			else if (mouseinfo.x >= floppy.pos.x && mouseinfo.x < (floppy.pos.x + floppy.frameSize + floppy.width))
 			{
 				if (mouseinfo.y >= floppy.pos.y && mouseinfo.y <= (floppy.pos.y + floppy.height + floppy.frameSize))
 				{
@@ -302,15 +337,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				}
-			}
-
-			if (mouseinfo.x >= 0  && mouseinfo.x < gVideoWidth - TASKBAR_HEIGHT)
-			{
-				if ((mouseinfo.y >= gWindowHeight) && mouseinfo.y < gVideoHeight)
-				{
-					ret = TaskbarOnClick(&window);
-				}
-			}		
+			}	
 		}
 		else if (mouseinfo.status & 2)	//right click
 		{
@@ -320,7 +347,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				{
 					menu.pos.x = mouseinfo.x;
 					menu.pos.y = mouseinfo.y;
-					menu.action = mouseinfo.status;
+					menu.status = mouseinfo.status;
 					__drawRightMenu(&menu);
 				}
 			}
