@@ -83,6 +83,59 @@ int __getpos(int x, int y) {
 	return y * gBytesPerLine + gBytesPerPixel * x;
 }
 
+int __drawMinimize(LPWINDOWCLASS window) {
+	if (window->capHeight == 0)
+	{
+		return TRUE;
+	}
+
+	int singlefs = window->frameSize >> 1;
+
+	int x = window->pos.x + singlefs + window->width - window->capHeight - window->capHeight;
+
+	int y = window->pos.y + singlefs;
+
+	window->minx = x;
+	window->miny = y;
+
+	char* videoBase = GetVideoBase();
+	unsigned char* pos = (unsigned char*)__getpos(x, y) + (unsigned long)videoBase;
+
+	unsigned char* keepy = pos;
+
+	for (int i = 0; i < window->capHeight; i++)
+	{
+		for (int j = 0; j < window->capHeight; j++)
+		{
+			if ( i == 0 || j == 0 || i== (window->capHeight-1)||y== (window->capHeight-1) )	//y坐标轴向下是正号，y=8 - x
+			{
+				int color = DEFAULT_FONT_COLOR;
+				for (int k = 0; k < gBytesPerPixel; k++)
+				{
+					*pos = color;
+					pos++;
+					color = color >> 8;
+				}
+			}
+			else if (i== window->capHeight/2 ) {
+				int color = DEFAULT_FONT_COLOR;
+				for (int k = 0; k < gBytesPerPixel; k++)
+				{
+					*pos = color;
+					pos++;
+					color = color >> 8;
+				}
+			}
+			else {
+				pos += gBytesPerPixel;
+			}
+		}
+		keepy = keepy + gBytesPerLine;
+		pos = keepy;
+	}
+	return (DWORD)pos - (DWORD)videoBase;
+}
+
 int __drawShutdown(LPWINDOWCLASS window) {
 	if (window->capHeight == 0)
 	{
@@ -264,27 +317,54 @@ int __drawRectangleFrameCaption(LPPOINT p, int width, int height, int color, int
 	return (DWORD)showend - (DWORD)videoBase;
 }
 
-
-
-int __DestroyWindow(LPWINDOWCLASS window) {
-
+int __restoreWindow(LPWINDOWCLASS window) {
 	__kRestoreMouse();
 
-	removeWindow(window->id);
+	char* videoBase = GetVideoBase();
+	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + (DWORD)videoBase;
+	unsigned char* ptr = (unsigned char*)startpos;
+	unsigned char* keep = ptr;
+	unsigned char* srcdata = (unsigned char*)window->backBuf;
 
-	int size = __restoreRect(window);
+	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
+	{
+		for (int j = 0; j < window->width + window->frameSize; j++)
+		{
+			for (int k = 0; k < gBytesPerPixel; k++)
+			{
+				//if (window->backBuf  && *ptr != *srcdata)
+				{
+					*ptr = *srcdata;
+				}
+				ptr++;
+				srcdata++;
+			}
+		}
+
+		keep += gBytesPerLine;
+		ptr = (unsigned char*)keep;
+	}
 
 	__kRefreshMouseBackup();
 
 	__kDrawMouse();
 
+	return (DWORD)ptr - (DWORD)videoBase;
+}
+
+int __DestroyWindow(LPWINDOWCLASS window) {
+
+	int size = __restoreWindow(window);
+
+	removeWindow(window->id);
+
 	if (window->backBuf)
 	{
 		__kFree(window->backBuf);
 	}
-
-	//__terminatePid(window->pid);
-
+	if (window->minBuf) {
+		__kFree((DWORD)window->minBuf);
+	}
 	return size;
 }
 
@@ -305,6 +385,7 @@ int __drawWindow(LPWINDOWCLASS window) {
 		window->capHeight, window->capColor, window->caption, (char*)window->backBuf);
 
 	ret = __drawShutdown(window);
+	__drawMinimize(window);
 
 	__kRefreshMouseBackup();
 
@@ -388,33 +469,7 @@ int __DestroyRectWindow(LPPOINT p, int width, int height, unsigned char* backup)
 
 
 
-int __restoreRect(LPWINDOWCLASS window) {
-	char* videoBase = GetVideoBase();
-	int startpos = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + (DWORD)videoBase;
-	unsigned char* ptr = (unsigned char*)startpos;
-	unsigned char* keep = ptr;
-	unsigned char* srcdata = (unsigned char*)window->backBuf;
 
-	for (int i = 0; i < window->height + window->frameSize + window->capHeight; i++)
-	{
-		for (int j = 0; j < window->width + window->frameSize; j++)
-		{
-			for (int k = 0; k < gBytesPerPixel; k++)
-			{
-				//if (window->backBuf  && *ptr != *srcdata)
-				{
-					*ptr = *srcdata;
-				}
-				ptr++;
-				srcdata++;
-			}
-		}
-
-		keep += gBytesPerLine;
-		ptr = (unsigned char*)keep;
-	}
-	return (DWORD)ptr - (DWORD)videoBase;
-}
 
 
 

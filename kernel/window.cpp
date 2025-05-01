@@ -6,7 +6,7 @@
 #include "malloc.h"
 #include "ListEntry.h"
 #include "memory.h"
-
+#include "mouse.h"
 
 
 
@@ -106,7 +106,11 @@ char* GetVideoBase() {
 	//return (char*)gGraphBase;
 }
 
-
+char* SetVideoBase(char * buf) {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	return proc->videoBase = buf;
+	//return (char*)gGraphBase;
+}
 
 LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -135,9 +139,9 @@ DWORD isTopWindow(int wid) {
 }
 
 
-DWORD getTopWindow() {
+LPWINDOWSINFO getTopWindow() {
 	LPWINDOWSINFO prev =(LPWINDOWSINFO)gWindowsList->list.prev;
-	return prev->id;
+	return prev;
 }
 
 
@@ -187,11 +191,97 @@ int removeWindow(int id) {
 
 
 
+int MaximizeWindow(WINDOWCLASS * cwin) {
+
+	__asm{cli}
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = 0; 
+
+	if (proc->tid == cwin->tid) {
+		proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	}else{
+		
+		proc = tss + cwin->tid;
+	}
+	LPWINDOWSINFO winfo = getTopWindow();
+	if (winfo == 0) {
+		//error
+	}
+
+	if (winfo->window->minBuf) {
+		LPPROCESS_INFO winproc = tss + winfo->window->tid;
+		winproc->videoBase = winfo->window->minBuf;
+	}	
+
+	char* minbuf = cwin->pos.y * gBytesPerLine + cwin->pos.x * gBytesPerPixel + (char*)cwin->minBuf;
+	char* videobuf = (char*)gGraphBase + cwin->pos.y * gBytesPerLine + cwin->pos.x * gBytesPerPixel;
+	
+	int wid = cwin->width + cwin->frameSize;
+	int hit = cwin->height + cwin->frameSize + cwin->capHeight;
+	int size = wid * hit * gBytesPerPixel;
+
+	char* src = videobuf;
+	char* dst =(char*) winfo->window->backBuf;
+	for (int i = 0; i < hit; i++) {
+		for (int k = 0; k < wid; k++) {
+			for (int j = 0; k < gBytesPerPixel; j++) {
+				dst[k * gBytesPerPixel + j] = src[k * gBytesPerPixel + j];
+			}
+		}
+		src += gBytesPerLine;
+		dst += gBytesPerLine;
+	}
+
+	src = minbuf;
+	dst = videobuf;
+	for (int i = 0; i < hit; i++) {
+		for (int k = 0; k < wid; k++) {
+			for (int j = 0; k < gBytesPerPixel; j++) {
+				dst[k * gBytesPerPixel + j] = src[k * gBytesPerPixel + j];
+			}
+		}
+		src += gBytesPerLine;
+		dst += gBytesPerLine;
+	}
+
+	proc->videoBase = (char*)gGraphBase;
+
+	__asm{sti}
+
+	return 0;
+}
 
 
 
+int MinimizeWindow(WINDOWCLASS* window) {
 
 
+	if (window->minBuf == 0) {
+		window->minBuf = (char*)__malloc(gVideoHeight * gVideoWidth * gBytesPerPixel);
+	}
+	
+	
+
+	__asm {
+		cli
+	}
+
+	char* videoBase = GetVideoBase();
+	char* lp = window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel + (char*)videoBase;
+	int size = (window->height + window->frameSize + window->capHeight) * (window->width + window->frameSize) * gBytesPerPixel;
+	__memcpy(window->minBuf, lp, size);
+
+	__restoreWindow(window);
+
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	proc->videoBase = window->minBuf;
+
+	//add menu
+
+	__asm {sti}
+	return 0;
+}
 
 
 

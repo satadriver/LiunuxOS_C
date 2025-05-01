@@ -123,6 +123,15 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 					return 0;
 				}
 			}
+
+			if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight)
+			{
+				if (mouseinfo.y >= window.miny && mouseinfo.y <= window.miny + window.capHeight)
+				{
+
+					
+				}
+			}
 		}
 		else if (mouseinfo.status & 4)	//middle click
 		{
@@ -146,7 +155,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 
 
 
-
+#if 0
 int gPrevX = 0;
 int gPrevY = 0;
 
@@ -176,12 +185,6 @@ void setCursor( int* x, int* y, unsigned int color) {
 }
 
 
-int RemoveCursor(WINDOWCLASS *w) {
-
-	__kRemoveExactTimer(w->cursorID);
-
-	return 0;
-}
 
 int removeCursor() {
 
@@ -226,6 +229,7 @@ int drawCursor(int p1, int p2, int p3, int p4) {
 	return 0;
 }
 
+#endif
 
 
 int windowCursor(WINDOWCLASS * w, int p2, int p3, int p4) {
@@ -262,6 +266,14 @@ int windowCursor(WINDOWCLASS * w, int p2, int p3, int p4) {
 
 	w->showBakX = w->showX;
 	w->showBakY = w->showY;
+
+	return 0;
+}
+
+
+int RemoveCursor(WINDOWCLASS* w) {
+
+	__kRemoveExactTimer(w->cursorID);
 
 	return 0;
 }

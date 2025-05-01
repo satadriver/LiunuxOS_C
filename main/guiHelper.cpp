@@ -152,6 +152,8 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 	window->cursorY = window->showY;
 	window->cursorColor = ~window->color;
 
+	window->minBuf = 0;
+
 	window->id = addWindow((DWORD)window, window->winname);
 
 	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
@@ -202,6 +204,7 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
+	window->minBuf = 0;
 
 	window->cursorColor = ~window->color;
 
@@ -249,6 +252,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->cursorColor = ~window->color;
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
+	window->minBuf = 0;
 
 	window->prev = 0;
 	window->next = 0;

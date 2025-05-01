@@ -38,7 +38,7 @@ extern "C" __declspec(dllexport) LPWINDOWSINFO __FindWindow(char* wname);
 extern "C" __declspec(dllexport) LPWINDOWSINFO __FindWindowID(DWORD wid);
 extern "C" __declspec(dllexport) LPWINDOWCLASS getProcessWindow(int pid);
 
-extern "C" __declspec(dllexport) DWORD getTopWindow();
+extern "C" __declspec(dllexport) LPWINDOWSINFO getTopWindow();
 extern "C" __declspec(dllexport) void initWindowList();
 extern "C" __declspec(dllexport) DWORD isTopWindow(int wid);
 
@@ -60,7 +60,7 @@ extern "C"  __declspec(dllimport) LPWINDOWSINFO GetProcessTextPos(int** x, int**
 extern "C" __declspec(dllimport) LPWINDOWCLASS getProcessWindow(int pid);
 extern "C" __declspec(dllimport) LPWINDOWSINFO __FindWindow(char* wname);
 extern "C" __declspec(dllimport) LPWINDOWSINFO __FindWindowID(DWORD wid);
-extern "C" __declspec(dllimport) DWORD getTopWindow();
+extern "C" __declspec(dllimport) LPWINDOWSINFO getTopWindow();
 extern "C" __declspec(dllimport) void initWindowList();
 extern "C" __declspec(dllimport) DWORD isTopWindow(int wid);
 

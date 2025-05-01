@@ -265,11 +265,14 @@ typedef struct __WINDOWCLASS {
 
 	int fontcolor;
 
+	int minx;		//shutdown position x
+	int miny;
+
 	int shutdownx;		//shutdown position x
 	int shutdowny;
 
 	int zoomin;
-
+	char* minBuf;
 	unsigned int backBuf;
 
 	unsigned int backsize;
@@ -345,7 +348,7 @@ extern "C"  __declspec(dllexport) int __initVideo(LPVESAINFORMATION vesa,DWORD f
 
 extern "C"  __declspec(dllexport) int __drawWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllexport) int __restoreRect(LPWINDOWCLASS window);
+extern "C"  __declspec(dllexport) int __restoreWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllexport) int __DestroyWindow(LPWINDOWCLASS window);
 
@@ -360,6 +363,8 @@ extern "C"  __declspec(dllexport) int __backspaceChar();
 extern "C"  __declspec(dllexport) void clsClientRect(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllexport) int __getpos(int x, int y);
+
+extern "C"  __declspec(dllexport) int __drawMinimize(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllexport) int __drawVertical(int x, int y, int len, int colorBuf, int color, char* bak);
 
@@ -411,7 +416,7 @@ extern "C" __declspec(dllimport)  int __initVideo(LPVESAINFORMATION vesa, DWORD 
 
 extern "C"  __declspec(dllimport) int __drawWindow(LPWINDOWCLASS window);
 
-extern "C"  __declspec(dllimport) int __restoreRect(LPWINDOWCLASS window);
+extern "C"  __declspec(dllimport) int  __restoreWindow(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __DestroyWindow(LPWINDOWCLASS window);
 
@@ -426,6 +431,7 @@ extern "C"  __declspec(dllimport) int __backspaceChar();
 extern "C"  __declspec(dllimport) void clsClientRect(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllimport) int __getpos(int x, int y);
+extern "C"  __declspec(dllimport) int __drawMinimize(LPWINDOWCLASS window);
 
 extern "C"  __declspec(dllimport) int __drawVertical(int x, int y, int len, int colorBuf, int color, char* bak);
 
