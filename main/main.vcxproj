@@ -230,7 +230,7 @@
     <ClCompile Include="fileWindow.cpp" />
     <ClCompile Include="mainUtils.cpp" />
     <ClCompile Include="guiHelper.cpp" />
-    <ClCompile Include="ScreenVideo.cpp" />
+    <ClCompile Include="ScreenVector.cpp" />
     <ClCompile Include="SpiralBall.cpp" />
     <ClCompile Include="SquareVector.cpp" />
     <ClCompile Include="TestWindow.cpp" />
@@ -258,7 +258,7 @@
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="mainUtils.h" />
     <ClInclude Include="guiHelper.h" />
-    <ClInclude Include="ScreenVideo.h" />
+    <ClInclude Include="ScreenVector.h" />
     <ClInclude Include="SpiralBall.h" />
     <ClInclude Include="SquareVector.h" />
     <ClInclude Include="TestWindow.h" />

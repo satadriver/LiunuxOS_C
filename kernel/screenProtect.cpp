@@ -79,7 +79,7 @@ int initScreenProtect() {
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
 		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 
-	gScreenProtectWindowID = addWindow(0, "__screenProtect");
+	gScreenProtectWindowID = addWindow(0, __FUNCTION__);
 
 	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -193,7 +193,7 @@ int gBaseColor = 0;
 int gVectorGraphTid = 0;
 char* gVectorGraphBuf = 0;
 
-void stopVectorGraph() {
+void stopSquareVideo() {
 	int ret = 0;
 
 	__kRemoveExactTimer(gVectorGraphTid);
@@ -213,12 +213,12 @@ void stopVectorGraph() {
 }
 
 
-void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
+void SquareVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	unsigned int asc = __kGetKbd(gVectorGraphWid) & 0xff;
 	if (asc == 0x1b)
 	{
-		stopVectorGraph();
+		stopSquareVideo();
 		return;
 	}
 
@@ -266,7 +266,7 @@ void VectorGraph(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	return;
 }
 
-void initVectorGraph() {
+void initSquareVideo() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	gVectorGraphBuf = (char*)__kMalloc(backsize);
@@ -277,16 +277,16 @@ void initVectorGraph() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
 
-	gVectorGraphWid = addWindow(FALSE, "VectorGraph");
+	gVectorGraphWid = addWindow(FALSE, __FUNCTION__);
 
-	gVectorGraphTid = __kAddExactTimer((DWORD)VectorGraph, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
+	gVectorGraphTid = __kAddExactTimer((DWORD)SquareVideo, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
 	gBaseColor = 0;
 }
 
 
 
-void EllipseScreenColor() {
+void EllipseVideo() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -301,7 +301,7 @@ void EllipseScreenColor() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, "EllipseScreenColor");
+	DWORD windowid = addWindow(FALSE, __FUNCTION__);
 
 	int A = 13;
 	int B = 7;
@@ -364,7 +364,7 @@ void EllipseScreenColor() {
 
 
 
-void SpiralVectorGraph() {
+void SpiralBallVideo() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -383,7 +383,7 @@ void SpiralVectorGraph() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0xffffff, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, "SpiralVectorGraph");
+	DWORD windowid = addWindow(FALSE, __FUNCTION__);
 	
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
@@ -595,7 +595,7 @@ void SpiralVectorGraph() {
 
 
 
-void CubeVectorGraph() {
+void CubeVideo() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -608,7 +608,7 @@ void CubeVectorGraph() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE,  "CubeVectorGraph");
+	DWORD windowid = addWindow(FALSE,  __FUNCTION__);
 
 	while (1)
 	{
@@ -665,7 +665,7 @@ void CubeVectorGraph() {
 
 
 
-void SnowScreenShow() {
+void DiamondVideo() {
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
 	DWORD backGround = __kMalloc(backsize);
@@ -676,7 +676,7 @@ void SnowScreenShow() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, "SnowScreenShow");
+	DWORD windowid = addWindow(FALSE, __FUNCTION__);
 
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
@@ -896,7 +896,7 @@ double friction(double v, double radius) {
 	return r;
 }
 
-void TrajectoryProc(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
+void TrajectoryVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
 
 	char szout[1024];
@@ -1071,7 +1071,7 @@ void initTrajectory() {
 
 	g_circle_buf = (char*)__kMalloc((int)(g_radius + 4) * 2 * 2 * (int)(g_radius + 4) * gBytesPerPixel);
 
-	gTrajectWid = addWindow(FALSE, "Trajectory");
+	gTrajectWid = addWindow(FALSE, __FUNCTION__);
 
 	POINT p;
 	p.x = 0;
@@ -1083,7 +1083,7 @@ void initTrajectory() {
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
 	g_frame_delay = (double)CMOS_EXACT_INTERVAL * 2.0;
-	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
+	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryVideo, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 
 	double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;

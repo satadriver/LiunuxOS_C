@@ -1,4 +1,4 @@
 #pragma once
 #include "def.h"
 
-int CubeVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam);
+extern "C" __declspec(dllexport)int CubeVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam);

@@ -8,4 +8,4 @@
 #define SPIRAL_SMALL_CIRCLE_SIZE3	24
 #define AXIS_COLOR					0
 
-int SpiralBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam);
+extern "C" __declspec(dllexport) int SpiralBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam);

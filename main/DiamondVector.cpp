@@ -79,13 +79,13 @@ void DiamondAnimation(WINDOWCLASS * window) {
 
 
 
-int DiamondVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+extern "C" __declspec(dllexport)int DiamondVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
 	char szout[1024];
 
 	WINDOWCLASS window;
 
-	initFullWindow(&window, filename, tid);
+	initFullWindow(&window, filename, tid,0);
 
 	DiamondAnimation(&window);
 

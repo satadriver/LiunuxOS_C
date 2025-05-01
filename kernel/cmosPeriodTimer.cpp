@@ -168,6 +168,9 @@ int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD
 			gPeriodTimer[i].param2 = param2;
 			gPeriodTimer[i].param3 = param3;
 			gPeriodTimer[i].param4 = param4;
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			gPeriodTimer[i].pid = proc->pid;
+			gPeriodTimer[i].tid = proc->tid;
 
 			char szout[1024];
 			__printf(szout, "__kAddCmosTimer addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
@@ -205,12 +208,14 @@ void __kPeriodTimerProc() {
 		{
 			if (gPeriodTimer[i].tickcnt < *lptickcnt)
 			{
+				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+				if (gPeriodTimer[i].pid == proc->pid && gPeriodTimer[i].tid == proc->tid) {
+					gPeriodTimer[i].tickcnt = *lptickcnt + gPeriodTimer[i].ticks;
 
-				gPeriodTimer[i].tickcnt = *lptickcnt + gPeriodTimer[i].ticks;
-
-				typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
-				ptrfunction lpfunction = (ptrfunction)gPeriodTimer[i].func;
-				result = lpfunction(gPeriodTimer[i].param1, gPeriodTimer[i].param2, gPeriodTimer[i].param3, gPeriodTimer[i].param4);
+					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
+					ptrfunction lpfunction = (ptrfunction)gPeriodTimer[i].func;
+					result = lpfunction(gPeriodTimer[i].param1, gPeriodTimer[i].param2, gPeriodTimer[i].param3, gPeriodTimer[i].param4);
+				}
 			}
 		}
 	}

@@ -23,4 +23,4 @@ void initDesktopWindow(WINDOWCLASS* window, char* filename, int tid);
 
 void initIcon(FILEICON* clickitem, char* name, int tid, int id, int x, int y);
 
-void initFullWindow(WINDOWCLASS* window, char* filename, int tid);
+void initFullWindow(WINDOWCLASS* window, char* filename, int tid,int fill);

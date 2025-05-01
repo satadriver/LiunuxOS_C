@@ -126,7 +126,7 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 	WINDOWCLASS window;
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
 	__strcpy(window.caption, filename);
-	initFullWindow(&window, funcname, tid);
+	initFullWindow(&window, funcname, tid,0);
 
 	int mx = window.width / 2;
 	int my = window.height / 2;

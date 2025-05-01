@@ -117,7 +117,7 @@
     <ClCompile Include="DiamondVector.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ScreenVideo.cpp">
+    <ClCompile Include="ScreenVector.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="SquareVector.cpp">
@@ -197,7 +197,7 @@
     <ClInclude Include="DiamondVector.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ScreenVideo.h">
+    <ClInclude Include="ScreenVector.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SquareVector.h">

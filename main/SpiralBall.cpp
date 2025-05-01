@@ -263,7 +263,7 @@ void SpiralAnimation(WINDOWCLASS * window) {
 }
 
 
-int SpiralBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+extern "C" __declspec(dllexport)int SpiralBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
 	char szout[1024];
 
@@ -271,7 +271,7 @@ int SpiralBall(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 
 	WINDOWCLASS window;
 
-	initFullWindow(&window, filename, tid);
+	initFullWindow(&window, filename, tid,1);
 
 	SpiralAnimation(&window);
 

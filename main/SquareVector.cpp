@@ -47,28 +47,7 @@ void stopSqaureAnimation() {
 
 void SqaureAnimation() {
 
-	unsigned int ck = __kGetKbd(g_sqaure_window.id);
-	unsigned int asc = ck & 0xff;
-	if (asc == 0x1b)
-	{
-		stopSqaureAnimation();
-		return;
-	}
 
-	MOUSEINFO mouseinfo;
-	__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-	int ret = __kGetMouse(&mouseinfo, g_sqaure_window.id);
-	if (mouseinfo.status & 1)
-	{
-		if (mouseinfo.x >= g_sqaure_window.shutdownx && mouseinfo.x <= g_sqaure_window.shutdownx + g_sqaure_window.capHeight)
-		{
-			if (mouseinfo.y >= g_sqaure_window.shutdowny && mouseinfo.y <= g_sqaure_window.shutdowny + g_sqaure_window.capHeight)
-			{
-				stopSqaureAnimation();
-				return;
-			}
-		}
-	}
 
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
@@ -123,13 +102,41 @@ void initSquareVector() {
 
 
 
-int SquareVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+extern "C" __declspec(dllexport) int SquareVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
 	char szout[1024];
 
-	initFullWindow(&g_sqaure_window, filename, tid);
+	initFullWindow(&g_sqaure_window, filename, tid,1);
 
 	initSquareVector();
+
+	while (1) {
+		unsigned int ck = __kGetKbd(g_sqaure_window.id);
+		unsigned int asc = ck & 0xff;
+		if (asc == 0x1b)
+		{
+			
+			break;
+		}
+
+		MOUSEINFO mouseinfo;
+		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+		int ret = __kGetMouse(&mouseinfo, g_sqaure_window.id);
+		if (mouseinfo.status & 1)
+		{
+			if (mouseinfo.x >= g_sqaure_window.shutdownx && mouseinfo.x <= g_sqaure_window.shutdownx + g_sqaure_window.capHeight)
+			{
+				if (mouseinfo.y >= g_sqaure_window.shutdowny && mouseinfo.y <= g_sqaure_window.shutdowny + g_sqaure_window.capHeight)
+				{
+					break;
+				}
+			}
+		}
+
+		__sleep(0);
+	}
+
+	stopSqaureAnimation();
 
 	return 0;
 }

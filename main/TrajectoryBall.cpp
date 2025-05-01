@@ -139,32 +139,12 @@ void stopTrajectoryBall() {
 	return;
 }
 
+
+
 void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
 
 	char szout[1024];
-
-	unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
-	if (asc == 0x1b)
-	{
-		stopTrajectoryBall();
-		return;
-	}
-
-	MOUSEINFO mouseinfo;
-	__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-	__kGetMouse(&mouseinfo, gTrajectWid);
-	if (mouseinfo.status & 1)	//left click
-	{
-		if (mouseinfo.x >= g_tb_window.shutdownx && mouseinfo.x <= g_tb_window.shutdownx + g_tb_window.capHeight)
-		{
-			if (mouseinfo.y >= g_tb_window.shutdowny && mouseinfo.y <= g_tb_window.shutdowny + g_tb_window.capHeight)
-			{
-				stopTrajectoryBall();
-				return;
-			}
-		}
-	}
 
 	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000.0;
 	if (__abs(g_centerY - ((double)gVideoHeight - (double)g_radius)) <= 1.0) {
@@ -308,7 +288,7 @@ void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 
 
-void TrajectoryInit() {
+void TrajectoryBallInit() {
 	int ret = 0;
 	char szout[1024];
 
@@ -316,6 +296,8 @@ void TrajectoryInit() {
 
 	//gTrajectBuf = (char*)__kMalloc(backsize);
 	gTrajectBuf = (char*)g_tb_window.backBuf;
+
+	g_circle_color = ~g_tb_window.color;
 
 	g_circle_buf = (char*)__kMalloc((int)(g_radius + 4) * 2 * 2 * (int)(g_radius + 4) * gBytesPerPixel);
 
@@ -380,15 +362,41 @@ void TrajectoryInit() {
 
 
 
-int TrajectoryBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+extern "C" __declspec(dllexport)int TrajectoryBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
 	char szout[1024];
 
 	int retvalue = 0;	
 
-	initFullWindow(&g_tb_window, filename, tid);
+	initFullWindow(&g_tb_window, filename, tid,1);
 
-	TrajectoryInit();
+	TrajectoryBallInit();
+
+	while (1) {
+		unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
+		if (asc == 0x1b)
+		{
+			break;
+		}
+
+		MOUSEINFO mouseinfo;
+		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+		__kGetMouse(&mouseinfo, gTrajectWid);
+		if (mouseinfo.status & 1)	//left click
+		{
+			if (mouseinfo.x >= g_tb_window.shutdownx && mouseinfo.x <= g_tb_window.shutdownx + g_tb_window.capHeight)
+			{
+				if (mouseinfo.y >= g_tb_window.shutdowny && mouseinfo.y <= g_tb_window.shutdowny + g_tb_window.capHeight)
+				{
+					break;
+				}
+			}
+		}
+
+		__sleep(0);
+	}
+
+	stopTrajectoryBall();
 
 	return 0;
 }

@@ -30,7 +30,7 @@
 #pragma comment(linker, "/STACK:0x100000")
 
 
-int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
+extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 
 	//cmd size is always less than 256 bytes
 	char szout[0x1000];

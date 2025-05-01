@@ -8,4 +8,4 @@
 
 int parseCmdParams(char* cmd, char params[COMMAND_LINE_STRING_LIMIT][COMMAND_LINE_STRING_LIMIT]);
 
-extern "C" int __cmd(char* cmd, WINDOWCLASS * window, char* filename, int pid);
+extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS * window, char* filename, int pid);

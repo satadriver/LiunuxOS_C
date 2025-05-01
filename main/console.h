@@ -17,6 +17,6 @@ int removeCursor();
 
 int RemoveCursor(WINDOWCLASS* w);
 
-extern "C" int __cmd(char* cmd, WINDOWCLASS * window, char* filename, int pid);
+
 
 extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, char * filename,char * funcname, DWORD param);

@@ -1,5 +1,5 @@
 #include "timer8254.h"
-
+#include "process.h"
 #include "cmosExactTimer.h"
 #include "utils.h"
 
@@ -47,6 +47,9 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 			g8254Timer[i].param2 = param2;
 			g8254Timer[i].param3 = param3;
 			g8254Timer[i].param4 = param4;
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			g8254Timer[i].pid = proc->pid;
+			g8254Timer[i].tid = proc->tid;
 			char szout[1024];
 			__printf(szout, "__kAddCmosTimer addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", 
 			 addr,i,delay,param1,param2,param3,param4);
@@ -88,12 +91,14 @@ void __k8254TimerProc() {
 		{
 			if (g8254Timer[i].tickcnt < *lptickcnt)
 			{
+				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+				if (g8254Timer[i].pid == proc->pid && g8254Timer[i].tid == proc->tid) {
+					g8254Timer[i].tickcnt = *lptickcnt + g8254Timer[i].ticks;
 
-				g8254Timer[i].tickcnt = *lptickcnt + g8254Timer[i].ticks;
-
-				typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
-				ptrfunction lpfunction = (ptrfunction)g8254Timer[i].func;
-				result = lpfunction(g8254Timer[i].param1, g8254Timer[i].param2, g8254Timer[i].param3, g8254Timer[i].param4);
+					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
+					ptrfunction lpfunction = (ptrfunction)g8254Timer[i].func;
+					result = lpfunction(g8254Timer[i].param1, g8254Timer[i].param2, g8254Timer[i].param3, g8254Timer[i].param4);
+				}
 			}
 		}
 	}

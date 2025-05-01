@@ -164,7 +164,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 }
 
 
-void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
+void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 
 	window->capColor = 0x00ffff;
 	window->capHeight = GRAPHCHAR_HEIGHT * 2;
@@ -180,7 +180,12 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 
 	window->width = gVideoWidth - window->frameSize;
 
-	window->height = gWindowHeight - window->frameSize - window->capHeight;
+	int height = gWindowHeight;
+	if (fill) {
+		height = gVideoHeight;
+	}
+
+	window->height = height - window->frameSize - window->capHeight;
 
 	window->zoomin = 1;
 
@@ -193,13 +198,12 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid) {
 	window->left = window->frameSize >> 1;
 	window->top = (window->frameSize >> 1) + window->capHeight;
 	window->right = gVideoWidth - (window->frameSize >> 1) - 1;
-	window->bottom = gWindowHeight - (window->frameSize >> 1) - 1;
+	window->bottom = height - (window->frameSize >> 1) - 1;
 
 	window->showX = window->pos.x + (window->frameSize >> 1);
 	window->showY = window->pos.y + (window->frameSize >> 1) + window->capHeight;
 
 	window->cursorColor = ~window->color;
-
 
 	window->prev = 0;
 	window->next = 0;

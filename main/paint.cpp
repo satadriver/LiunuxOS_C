@@ -18,13 +18,13 @@
 #define PALETTE_FACTOR	3
 
 
-int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD runparam) {
+extern "C" __declspec(dllexport)int __kPaint(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD runparam) {
 	char szout[1024];
 
 	int retvalue = 0;
 
 	WINDOWCLASS window;
-	initFullWindow(&window, filename, tid);
+	initFullWindow(&window, filename, tid,0);
 
 	unsigned int pencilColor = 0x00;
 

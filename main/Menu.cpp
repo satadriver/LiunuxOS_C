@@ -3,7 +3,7 @@
 #include "mouse.h"
 #include "video.h"
 #include "Utils.h"
-//#include "screenProtect.h"
+#include "screenProtect.h"
 #include "console.h"
 #include "paint.h"
 #include "malloc.h"
@@ -13,7 +13,7 @@
 #include "VM86.h"
 #include "ChinesePoem.h"
 #include	"clock.h"
-#include "ScreenVideo.h"
+#include "ScreenVector.h"
 #include "DiamondVector.h"
 #include "EllipseVector.h"
 #include "SpiralBall.h"
@@ -215,7 +215,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	
 	__strcpy(menu->menuname[12], "Diamond Vector");
 
-	__strcpy(menu->menuname[13], "Spiral Vector");
+	__strcpy(menu->menuname[13], "Spiral Ball");
 	
 	//menu->menuname[14][0] = 0;
 
@@ -228,16 +228,16 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	menu->funcaddr[5] = (DWORD)__kClock;
 	menu->funcaddr[6] = (DWORD)__kChinesePoem;
 
-	menu->funcaddr[7] = (DWORD)ScreenVideo;
-	menu->funcaddr[8] = (DWORD)TrajectoryBall;
-	menu->funcaddr[9] = (DWORD)EllipseVector;
+	menu->funcaddr[7] = (DWORD)initScreenProtect;
+	menu->funcaddr[8] = (DWORD)initTrajectory;
+	menu->funcaddr[9] = (DWORD)EllipseVideo;
 	
-	menu->funcaddr[10] = (DWORD)SquareVector;
+	menu->funcaddr[10] = (DWORD)initSquareVideo;
 	
-	menu->funcaddr[11] = (DWORD)CubeVector;
+	menu->funcaddr[11] = (DWORD)CubeVideo;
 	
-	menu->funcaddr[12] = (DWORD)DiamondVector;
-	menu->funcaddr[13] = (DWORD)SpiralBall;
+	menu->funcaddr[12] = (DWORD)DiamondVideo;
+	menu->funcaddr[13] = (DWORD)SpiralBallVideo;
 	
 	menu->validItem = 14;
 

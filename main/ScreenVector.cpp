@@ -36,7 +36,7 @@ WINDOWCLASS g_sv_window;
 
 
 
-int stopScreenVideo() {
+int stopScreenVector() {
 	int ret = 0;
 
 	__kRemoveExactTimer(gTimerID);
@@ -53,34 +53,14 @@ int stopScreenVideo() {
 	//__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)src);
 	//removeWindow(gScrnWindowID);
 	//gScrnWindowID = 0;
+	__DestroyWindow(&g_sv_window);
 
 	return TRUE;
 }
 
 extern "C" __declspec(dllexport) void ScreenAnimation() {
 	int ret = 0;
-	unsigned int ck = __kGetKbd(gScrnWindowID);
-	unsigned int asc = ck & 0xff;
-	if (asc == 0x1b)
-	{
-		stopScreenVideo();
-		return;
-	}
 
-	MOUSEINFO mouseinfo;
-	__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-	ret = __kGetMouse(&mouseinfo, g_sv_window.id);
-	if (mouseinfo.status & 1)
-	{
-		if (mouseinfo.x >= g_sv_window.shutdownx && mouseinfo.x <= g_sv_window.shutdownx + g_sv_window.capHeight)
-		{
-			if (mouseinfo.y >= g_sv_window.shutdowny && mouseinfo.y <= g_sv_window.shutdowny + g_sv_window.capHeight)
-			{
-				stopScreenVideo();
-				return;
-			}
-		}
-	}
 
 	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
@@ -122,10 +102,12 @@ extern "C" __declspec(dllexport) void ScreenAnimation() {
 }
 
 
-int initScreenVideo() {
+int initScreenVector() {
 	int ret = 0;
 
 	unsigned int r = __random(0);
+
+	gCircleColor = ~g_sv_window.color;
 
 	gCircleCenterX = r % gVideoWidth;
 	if (gCircleCenterX + gRadius >= gVideoWidth)
@@ -178,15 +160,43 @@ int initScreenVideo() {
 
 
 
-int ScreenVideo(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+extern "C" __declspec(dllexport)int ScreenVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
 	char szout[1024];
+	int ret = 0;
 
-	initFullWindow(&g_sv_window, filename, tid);
+	initFullWindow(&g_sv_window, filename, tid,1);
 
-	initScreenVideo();
+	initScreenVector();
 
-	//__DestroyWindow(&g_window);
+	while (1) {
+
+		unsigned int ck = __kGetKbd(gScrnWindowID);
+		unsigned int asc = ck & 0xff;
+		if (asc == 0x1b)
+		{
+			
+			break;
+		}
+
+		MOUSEINFO mouseinfo;
+		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+		ret = __kGetMouse(&mouseinfo, g_sv_window.id);
+		if (mouseinfo.status & 1)
+		{
+			if (mouseinfo.x >= g_sv_window.shutdownx && mouseinfo.x <= g_sv_window.shutdownx + g_sv_window.capHeight)
+			{
+				if (mouseinfo.y >= g_sv_window.shutdowny && mouseinfo.y <= g_sv_window.shutdowny + g_sv_window.capHeight)
+				{
+					break;
+				}
+			}
+		}
+
+		__sleep(0);
+	}
+
+	stopScreenVector();
 
 	return 0;
 }

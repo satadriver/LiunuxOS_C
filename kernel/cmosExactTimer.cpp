@@ -83,7 +83,7 @@ void __kExactTimerProc() {
 			if (gExactTimer[i].tickcnt <= *lptickcnt)
 			{
 				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-				if (gExactTimer[i].pid == proc->pid) {
+				if (gExactTimer[i].pid == proc->pid && gExactTimer[i].tid == proc->tid) {
 
 					gExactTimer[i].tickcnt = *lptickcnt + gExactTimer[i].ticks;
 
