@@ -242,7 +242,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					mouseinfo.y > menu.pos.y && mouseinfo.y < menu.pos.y + menu.height)
 				{
 					int funcno = (mouseinfo.y - menu.pos.y) / GRAPHCHAR_HEIGHT / 2;
-					if (funcno > 0 && funcno < RIGHTCLICK_MENU_HEIGHT/2/ GRAPHCHAR_HEIGHT)
+					if (funcno >= 0 && funcno < RIGHTCLICK_MENU_HEIGHT/2/ GRAPHCHAR_HEIGHT)
 					{
 						DWORD func = menu.funcaddr[funcno];
 						if (func) {
@@ -281,7 +281,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 					int seq = (mouseinfo.y - gPopupMenu.pos.y) / GRAPHCHAR_HEIGHT / 2;
 					int cnt = LEFTCLICK_MENU_HEIGHT / 2 / GRAPHCHAR_HEIGHT;
-					if (seq > 0 && seq < cnt)
+					if (seq >= 0 && seq < cnt)
 					{
 						LPWINDOWCLASS window = gPopupMenu.item[seq].window;
 						int valid = gPopupMenu.item[seq].valid;

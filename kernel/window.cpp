@@ -225,11 +225,11 @@ int removeWindow(int id) {
 
 
 int MaximizeWindow(LPWINDOWCLASS window) {
-
-	__asm{cli}
+	char szout[1024];
+	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = 0; 
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 	if (proc->tid == window->tid) {
 		proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -239,23 +239,28 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	LPWINDOWSINFO topwinfo = getTopWindow();
 	if (topwinfo == 0) {
 		//error
+		__printf(szout, "%s getTopWindow error\r\n", __FUNCTION__);
+	}
+	else {
+		__printf(szout, "%s getTopWindow %s\r\n", __FUNCTION__,topwinfo->window->winname);
+
+		if (topwinfo->window->minBuf) {
+			LPPROCESS_INFO winproc = tss + topwinfo->window->tid;
+			//winproc->videoBase = topwinfo->window->minBuf;
+		}
 	}
 
-	if (topwinfo->window->minBuf) {
-		LPPROCESS_INFO winproc = tss + topwinfo->window->tid;
-		winproc->videoBase = topwinfo->window->minBuf;
-	}	
-
+	__asm {cli}
 	//char* videoBase = GetVideoBase();
-	
+	__kRestoreMouse();
+
 	int width = window->width + window->frameSize;
 	int height = window->height + window->frameSize + window->capHeight;
-
-	char* src = (char*)gGraphBase;
+	char* src = (char*)gGraphBase + window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel;
 	char* dst =(char*)window->backBuf;
 	for (int i = 0; i < height; i++) {
 		for (int k = 0; k < width; k++) {
-			for (int j = 0; k < gBytesPerPixel; j++) {
+			for (int j = 0; j < gBytesPerPixel; j++) {
 				*dst= src[i*gBytesPerLine + k * gBytesPerPixel + j];
 				dst++;
 			}
@@ -264,6 +269,8 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 	__memcpy((char*)gGraphBase, window->minBuf, size);
+	__kRefreshMouseBackup();
+	__kDrawMouse();
 
 	proc->videoBase = (char*)gGraphBase;
 
@@ -280,22 +287,38 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 
 int MinimizeWindow(WINDOWCLASS* window) {
+	char szout[1024];
+	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window, window->winname);
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 	if (window->minBuf == 0) {
 		window->minBuf = (char*)__kMalloc(gVideoHeight * gVideoWidth * gBytesPerPixel);
 	}
 	
-	__asm {
-		cli
-	}
+	//char* videoBase = GetVideoBase();
 
-	char* videoBase = GetVideoBase();
+	__asm {cli}
 
+	__kRestoreMouse();
 	//int size = (window->height + window->frameSize + window->capHeight) * (window->width + window->frameSize) * gBytesPerPixel;
 	__memcpy(window->minBuf, (char*)gGraphBase, size);
 
-	__restoreWindow(window);
+	int width = window->width + window->frameSize;
+	int height = window->height + window->frameSize + window->capHeight;
+	char* dst = (char*)gGraphBase + window->pos.y * gBytesPerLine + window->pos.x * gBytesPerPixel;
+	char* src = (char*)window->backBuf;
+	for (int i = 0; i < height; i++) {
+		for (int k = 0; k < width; k++) {
+			for (int j = 0; j < gBytesPerPixel; j++) {
+				dst[i * gBytesPerLine + k * gBytesPerPixel + j] = *src;
+				src++;
+			}
+		}
+	}
+
+	__kRefreshMouseBackup();
+	__kDrawMouse();
+	//__restoreWindow(window);
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	proc->videoBase = window->minBuf;
