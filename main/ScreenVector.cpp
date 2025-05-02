@@ -165,7 +165,7 @@ extern "C" __declspec(dllexport)int ScreenVector(unsigned int retaddr, int tid, 
 	char szout[1024];
 	int ret = 0;
 
-	initFullWindow(&g_sv_window, filename, tid,1);
+	initFullWindow(&g_sv_window, funcname, tid,1);
 
 	initScreenVector();
 
@@ -189,6 +189,13 @@ extern "C" __declspec(dllexport)int ScreenVector(unsigned int retaddr, int tid, 
 				if (mouseinfo.y >= g_sv_window.shutdowny && mouseinfo.y <= g_sv_window.shutdowny + g_sv_window.capHeight)
 				{
 					break;
+				}
+			}
+			if (mouseinfo.x >= g_sv_window.minx && mouseinfo.x <= g_sv_window.minx + g_sv_window.capHeight)
+			{
+				if (mouseinfo.y >= g_sv_window.miny && mouseinfo.y <= g_sv_window.miny + g_sv_window.capHeight)
+				{
+					MinimizeWindow(&g_sv_window);
 				}
 			}
 		}

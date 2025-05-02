@@ -368,7 +368,7 @@ extern "C" __declspec(dllexport)int TrajectoryBall(unsigned int retaddr, int tid
 
 	int retvalue = 0;	
 
-	initFullWindow(&g_tb_window, filename, tid,1);
+	initFullWindow(&g_tb_window, funcname, tid,1);
 
 	TrajectoryBallInit();
 
@@ -389,6 +389,14 @@ extern "C" __declspec(dllexport)int TrajectoryBall(unsigned int retaddr, int tid
 				if (mouseinfo.y >= g_tb_window.shutdowny && mouseinfo.y <= g_tb_window.shutdowny + g_tb_window.capHeight)
 				{
 					break;
+				}
+			}
+
+			if (mouseinfo.x >= g_tb_window.minx && mouseinfo.x <= g_tb_window.minx + g_tb_window.capHeight)
+			{
+				if (mouseinfo.y >= g_tb_window.miny && mouseinfo.y <= g_tb_window.miny + g_tb_window.capHeight)
+				{
+					MinimizeWindow(&g_tb_window);
 				}
 			}
 		}

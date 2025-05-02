@@ -123,13 +123,11 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 					return 0;
 				}
 			}
-
 			if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight)
 			{
 				if (mouseinfo.y >= window.miny && mouseinfo.y <= window.miny + window.capHeight)
 				{
-
-					
+					MinimizeWindow(&window);
 				}
 			}
 		}

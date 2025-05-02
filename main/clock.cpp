@@ -231,6 +231,13 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 					return 0;
 				}
 			}
+			if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight)
+			{
+				if (mouseinfo.y >= window.miny && mouseinfo.y <= window.miny + window.capHeight)
+				{
+					MinimizeWindow(&window);
+				}
+			}
 		}
 
 		__sleep(100);

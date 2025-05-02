@@ -54,6 +54,13 @@ void EllipseAnimation(WINDOWCLASS * window) {
 					return;
 				}
 			}
+			if (mouseinfo.x >= window->minx && mouseinfo.x <= window->minx + window->capHeight)
+			{
+				if (mouseinfo.y >= window->miny && mouseinfo.y <= window->miny + window->capHeight)
+				{
+					MinimizeWindow(window);
+				}
+			}
 		}
 
 		__sleep(0);
@@ -98,7 +105,7 @@ extern "C" __declspec(dllexport)int EllipseVector(unsigned int retaddr, int tid,
 
 	WINDOWCLASS window;
 
-	initFullWindow(&window, filename, tid,0);
+	initFullWindow(&window, funcname, tid,0);
 
 	EllipseAnimation(&window);
 

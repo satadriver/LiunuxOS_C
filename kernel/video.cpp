@@ -521,8 +521,12 @@ void clsClientRect(WINDOWCLASS * window) {
 
 
 int __backspaceChar() {
-
-	WINDOWCLASS* window = getProcessWindow(-1);
+	int tid = __GetCurrentTid();
+	WINDOWSINFO* winfo = __FindProcessWindow(tid);
+	if (winfo == 0) {
+		return 0;
+	}
+	WINDOWCLASS* window = winfo->window;
 	window->showX -= GRAPHCHAR_WIDTH;
 	if (window->showX < 0 && window->showY > 0)
 	{
@@ -555,8 +559,6 @@ int __drawGraphChars( char* str, int color) {
 
 	int* x = 0;
 	int* y = 0;
-	WINDOWCLASS* window = getProcessWindow(-1);
-
 	int ret = 0;
 	GetProcessTextPos(&x, &y);
 
@@ -825,7 +827,7 @@ int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor,WINDOWCLASS
 
 
 int __drawCCS(unsigned char* font, int color) {
-	WINDOWCLASS* window = getProcessWindow(-1);
+
 	int* x = 0;
 	int* y = 0;
 	GetProcessTextPos(&x, &y);

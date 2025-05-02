@@ -18,6 +18,10 @@ typedef struct
 #pragma pack()
 
 
+int __GetCurrentTid();
+
+int __GetCurrentPid();
+
 char* getMainboardDate();
 
 char* getComports();

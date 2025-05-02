@@ -134,9 +134,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		else if (ck == VK_F2)
 		{
 			//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
-			if (__findProcessFileName("ScreenVideo") == FALSE)
+			if (__findProcessFileName("ScreenVector") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "ScreenVideo", 3, 0);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "ScreenVector", 3, 0);
 			}
 			continue;
 		}
@@ -227,26 +227,30 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		ret = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
+			//__printf(szout, "mouse left click,x:%d,y:%d,computer left:%d,right:%d,top:%d,bottom:%d\r\n",mouseinfo.x,mouseinfo.y, computer.pos.x,
+			//	computer.pos.x + computer.frameSize + computer.width, computer.pos.y, computer.pos.y + computer.height + computer.frameSize);
+
 			if (menu.status)
 			{
+				__printf(szout, "menu  on\r\n");
+
 				menu.status = 0;
 
 				__restoreRightMenu(&menu);
 
-				if ((mouseinfo.x > menu.pos.x) && (mouseinfo.x < menu.pos.x + menu.width))
+				if ((mouseinfo.x > menu.pos.x) && (mouseinfo.x < menu.pos.x + menu.width)&&
+					mouseinfo.y > menu.pos.y && mouseinfo.y < menu.pos.y + menu.height)
 				{
-					if (mouseinfo.y > menu.pos.y && mouseinfo.y < menu.pos.y + menu.height)
+					int funcno = (mouseinfo.y - menu.pos.y) / GRAPHCHAR_HEIGHT / 2;
+					if (funcno > 0 && funcno < RIGHTCLICK_MENU_HEIGHT/2/ GRAPHCHAR_HEIGHT)
 					{
-						int funcno = (mouseinfo.y - menu.pos.y) / GRAPHCHAR_HEIGHT / 2;
-						if (funcno > 0 && funcno < menu.validItem)
-						{
-							DWORD func = menu.funcaddr[funcno];
-
+						DWORD func = menu.funcaddr[funcno];
+						if (func) {
 							int cnt = menu.paramcnt[funcno];
 
 							int paramSize = cnt * sizeof(DWORD);
 
-							DWORD * params = (DWORD*)&menu.funcparams[funcno][0];
+							DWORD* params = (DWORD*)&menu.funcparams[funcno][0];
 
 							__asm {
 								mov ecx, cnt
@@ -256,100 +260,92 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 								add esi, paramSize
 								__copyParams :
 								sub esi, 4
-								mov eax, [esi]
-								push eax
-								loop __copyParams
-								__callfunc :
+									mov eax, [esi]
+									push eax
+									loop __copyParams
+									__callfunc :
 								mov eax, func
-								call eax
-								add esp, paramSize
+									call eax
+									add esp, paramSize
 							}
 						}
 					}
 				}
 			}
 			else if (gPopupMenu.status) {
+				//__printf(szout, "popup  on\r\n");
 				gPopupMenu.status = 0;
 				__restoreLeftMenu(&gPopupMenu);
-				if ((mouseinfo.x > gPopupMenu.pos.x) && (mouseinfo.x < gPopupMenu.pos.x + gPopupMenu.width))
-				{
-					if (mouseinfo.y > gPopupMenu.pos.y && mouseinfo.y < gPopupMenu.pos.y + gPopupMenu.height)
+				if ( (mouseinfo.x >= gPopupMenu.pos.x) && (mouseinfo.x <= gPopupMenu.pos.x + gPopupMenu.width)&&
+					mouseinfo.y >= gPopupMenu.pos.y && mouseinfo.y <= gPopupMenu.pos.y + gPopupMenu.height)	{
+
+					int seq = (mouseinfo.y - gPopupMenu.pos.y) / GRAPHCHAR_HEIGHT / 2;
+					int cnt = LEFTCLICK_MENU_HEIGHT / 2 / GRAPHCHAR_HEIGHT;
+					if (seq > 0 && seq < cnt)
 					{
-						int funcno = (mouseinfo.y - gPopupMenu.pos.y) / GRAPHCHAR_HEIGHT / 2;
-						if (funcno > 0 && funcno < POPUPMENU_LIMIT)
-						{
-							int wid = gPopupMenu.item[funcno].windowid;
-							char *winname = gPopupMenu.item[funcno].winname;
-							MaximizeWindow(wid);
+						LPWINDOWCLASS window = gPopupMenu.item[seq].window;
+						int valid = gPopupMenu.item[seq].valid;
+						if (valid &&  window) {
+							MaximizeWindow(window);
 						}
 					}
 				}
 			}
-			else if (mouseinfo.x > gVideoWidth - TASKBAR_HEIGHT && mouseinfo.x < gVideoWidth)
+			else if (mouseinfo.x > gVideoWidth - TASKBAR_HEIGHT && mouseinfo.x < gVideoWidth && 
+				mouseinfo.y > gVideoHeight - TASKBAR_HEIGHT && mouseinfo.y < gVideoHeight)
 			{
-				if ((mouseinfo.y > gVideoHeight - TASKBAR_HEIGHT) && mouseinfo.y < gVideoHeight)
-				{
-					gPopupMenu.pos.x = mouseinfo.x;
-					gPopupMenu.pos.y = mouseinfo.y;
-					gPopupMenu.status = mouseinfo.status;
-					__drawLeftMenu(&gPopupMenu);
-				}
-			}
+				//__printf(szout, "popup click\r\n");
 
-			else if (mouseinfo.x >= 0 && mouseinfo.x < gVideoWidth - TASKBAR_HEIGHT)
-			{
-				if ((mouseinfo.y >= gWindowHeight) && mouseinfo.y < gVideoHeight)
-				{
-					ret = TaskbarOnClick(&window);
-				}
+				gPopupMenu.pos.x = mouseinfo.x;
+				gPopupMenu.pos.y = mouseinfo.y;
+				gPopupMenu.status = mouseinfo.status;
+				__drawLeftMenu(&gPopupMenu);
 			}
-			else if (mouseinfo.x >= computer.pos.x && mouseinfo.x < computer.pos.x + computer.frameSize + computer.width)
+			else if (mouseinfo.x >= 0 && mouseinfo.x < gVideoWidth - TASKBAR_HEIGHT && mouseinfo.y > gWindowHeight && mouseinfo.y < gVideoHeight)
 			{
-				if (mouseinfo.y >= computer.pos.y && mouseinfo.y <= computer.pos.y + computer.height + computer.frameSize)
-				{
+				//__printf(szout, "taskbar click\r\n");
+				ret = TaskbarOnClick(&window);	
+			}
+			else if (mouseinfo.x >= computer.pos.x && mouseinfo.x <= (computer.pos.x + computer.frameSize + computer.width) &&
+				mouseinfo.y >= computer.pos.y && mouseinfo.y <= (computer.pos.y + computer.height + computer.frameSize)){
+					//__printf(szout, "open file manager\r\n");
 					taskcmd.cmd = UNKNOWN_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrHD");
 
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
 					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
-				}
+				
 			}
-
-			else if (mouseinfo.x >= atapi.pos.x && mouseinfo.x < (atapi.pos.x + atapi.frameSize + atapi.width))
-			{
-				if (mouseinfo.y >= atapi.pos.y && mouseinfo.y <= (atapi.pos.y + atapi.height + atapi.frameSize))
-				{
+			else if (mouseinfo.x >= atapi.pos.x && mouseinfo.x <= (atapi.pos.x + atapi.frameSize + atapi.width) && 
+				mouseinfo.y >= atapi.pos.y && mouseinfo.y <= (atapi.pos.y + atapi.height + atapi.frameSize)){
 					taskcmd.cmd = CDROM_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrISO");
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
-				}
+				
 			}
-
-			else if (mouseinfo.x >= floppy.pos.x && mouseinfo.x < (floppy.pos.x + floppy.frameSize + floppy.width))
-			{
-				if (mouseinfo.y >= floppy.pos.y && mouseinfo.y <= (floppy.pos.y + floppy.height + floppy.frameSize))
-				{
+			else if (mouseinfo.x >= floppy.pos.x && mouseinfo.x < (floppy.pos.x + floppy.frameSize + floppy.width) &&
+				mouseinfo.y >= floppy.pos.y && mouseinfo.y <= (floppy.pos.y + floppy.height + floppy.frameSize) ){
 					taskcmd.cmd = FLOPPY_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrFllopy");
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
-				}
+				
 			}	
 		}
 		else if (mouseinfo.status & 2)	//right click
 		{
-			if (mouseinfo.x > gVideoWidth - TASKBAR_HEIGHT && mouseinfo.x < gVideoWidth)
-			{
-				if ((mouseinfo.y > gVideoHeight - TASKBAR_HEIGHT) && mouseinfo.y < gVideoHeight)
-				{
+			//__printf(szout, "mouse right click\r\n");
+
+			if (mouseinfo.x > gVideoWidth - TASKBAR_HEIGHT && mouseinfo.x < gVideoWidth && 
+				mouseinfo.y > gVideoHeight - TASKBAR_HEIGHT && mouseinfo.y < gVideoHeight){
 					menu.pos.x = mouseinfo.x;
 					menu.pos.y = mouseinfo.y;
 					menu.status = mouseinfo.status;
 					__drawRightMenu(&menu);
-				}
+				
 			}
 		}
 		else if (mouseinfo.status & 4)	//middle click

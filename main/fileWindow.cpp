@@ -137,6 +137,14 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 					//__sleep(-1);
 				}
 			}
+
+			if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight)
+			{
+				if (mouseinfo.y >= window.miny && mouseinfo.y <= window.miny + window.capHeight)
+				{
+					MinimizeWindow(&window);
+				}
+			}
 		}
 
 		__sleep(0);

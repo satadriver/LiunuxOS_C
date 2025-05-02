@@ -426,6 +426,13 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 					return 0;
 				}
 			}
+			if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight)
+			{
+				if (mouseinfo.y >= window.miny && mouseinfo.y <= window.miny + window.capHeight)
+				{
+					MinimizeWindow(&window);
+				}
+			}
 
 			while (1) {
 				__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));

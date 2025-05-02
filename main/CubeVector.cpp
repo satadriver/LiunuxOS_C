@@ -52,6 +52,13 @@ void CubeAnimation(WINDOWCLASS* window) {
 					return;
 				}
 			}
+			if (mouseinfo.x >= window->minx && mouseinfo.x <= window->minx + window->capHeight)
+			{
+				if (mouseinfo.y >= window->miny && mouseinfo.y <= window->miny + window->capHeight)
+				{
+					MinimizeWindow(window);
+				}
+			}
 		}
 
 		__sleep(0);
@@ -99,7 +106,7 @@ extern "C" __declspec(dllexport)int CubeVector(unsigned int retaddr, int tid, ch
 
 	WINDOWCLASS window;
 
-	initFullWindow(&window, filename, tid,1);
+	initFullWindow(&window, funcname, tid,1);
 
 	CubeAnimation(&window);
 

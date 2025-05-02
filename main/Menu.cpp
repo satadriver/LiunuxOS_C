@@ -396,9 +396,10 @@ int __drawLeftMenu(POPUPMENU* menu) {
 
 	for (int i = 0; i < menu->height / GRAPHCHAR_WIDTH / 2; i++)
 	{
-		if (menu->item[i].winname[0] )
+		if (menu->item[i].valid && menu->item[i].window)
 		{
-			__drawGraphChar((char*)menu->item[i].winname[0], 0, startpos - gGraphBase, 0);
+			LPWINDOWCLASS window = menu->item[i].window;
+			__drawGraphChar((char*)menu->item[i].window->winname, 0, startpos - gGraphBase, 0);
 			startpos += GRAPHCHAR_HEIGHT * gBytesPerLine * 2;
 		}
 	}

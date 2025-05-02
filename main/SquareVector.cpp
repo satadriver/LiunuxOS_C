@@ -106,7 +106,7 @@ extern "C" __declspec(dllexport) int SquareVector(unsigned int retaddr, int tid,
 
 	char szout[1024];
 
-	initFullWindow(&g_sqaure_window, filename, tid,1);
+	initFullWindow(&g_sqaure_window, funcname, tid,1);
 
 	initSquareVector();
 
@@ -129,6 +129,13 @@ extern "C" __declspec(dllexport) int SquareVector(unsigned int retaddr, int tid,
 				if (mouseinfo.y >= g_sqaure_window.shutdowny && mouseinfo.y <= g_sqaure_window.shutdowny + g_sqaure_window.capHeight)
 				{
 					break;
+				}
+			}
+			if (mouseinfo.x >= g_sqaure_window.minx && mouseinfo.x <= g_sqaure_window.minx + g_sqaure_window.capHeight)
+			{
+				if (mouseinfo.y >= g_sqaure_window.miny && mouseinfo.y <= g_sqaure_window.miny + g_sqaure_window.capHeight)
+				{
+					MinimizeWindow(&g_sqaure_window);
 				}
 			}
 		}

@@ -24,7 +24,7 @@ extern "C" __declspec(dllexport)int __kPaint(unsigned int retaddr, int tid, char
 	int retvalue = 0;
 
 	WINDOWCLASS window;
-	initFullWindow(&window, filename, tid,0);
+	initFullWindow(&window, funcname, tid,0);
 
 	unsigned int pencilColor = 0x00;
 

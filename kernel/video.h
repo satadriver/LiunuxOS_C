@@ -1,6 +1,7 @@
 #pragma once
 
 #include "def.h"
+//#include "window.h"
 
 
 #ifndef _VIDEO_H_H_H
@@ -127,11 +128,11 @@ typedef struct  {
 #define FULLWINDOW_TOP				0
 #define FULLWINDOW_LEFT				0
 
-#define RIGHTCLICK_MENU_WIDTH		160
-#define RIGHTCLICK_MENU_HEIGHT		240
+#define RIGHTCLICK_MENU_WIDTH		192
+#define RIGHTCLICK_MENU_HEIGHT		256
 
 
-#define LEFTCLICK_MENU_WIDTH		240
+#define LEFTCLICK_MENU_WIDTH		192
 #define LEFTCLICK_MENU_HEIGHT		256
 
 extern "C" int g_ScreenMode;
@@ -203,36 +204,41 @@ typedef struct {
 
 }RECT,*LPRECT;
 
+
+
+
+
+
 typedef struct  _FILEICON
 {
 	_FILEICON* next;
 	_FILEICON* prev;
-	 POINT pos;		//window postion x and y
+	POINT pos;		//window postion x and y
 
-	 int frameSize;
-	 int frameColor;
+	int frameSize;
+	int frameColor;
 
-	 int width;
-	 int height;
+	int width;
+	int height;
 
-	 unsigned int color;
-	 char name[WINDOW_NAME_LIMIT];
-	 int nameHeight;
-	 unsigned int namecolor;
+	unsigned int color;
+	char name[WINDOW_NAME_LIMIT];
+	int nameHeight;
+	unsigned int namecolor;
 
-	 int zoomin;
-	 int showY;
-	 int showX;
+	int zoomin;
+	int showY;
+	int showX;
 
-	 int id;
-	 int tid;
-	 int pid;
+	int id;
+	int tid;
+	int pid;
 
-	 unsigned char * backGround;
-	 unsigned int backsize;
+	unsigned char* backGround;
+	unsigned int backsize;
 
-	 int namebgcolor;
-}FILEICON,*LPFILEICON;
+	int namebgcolor;
+}FILEICON, * LPFILEICON;
 
 
 typedef struct __WINDOWCLASS {
@@ -298,34 +304,7 @@ typedef struct __WINDOWCLASS {
 
 	char winname[WINDOW_NAME_LIMIT];
 
-}WINDOWCLASS,*LPWINDOWCLASS;
-
-
-typedef struct {
-	POINT pos;
-	int status;
-
-	int width;
-	int height;
-	unsigned int color;
-	DWORD funcaddr[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2];
-	char menuname[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2][RIGHTCLICK_MENU_WIDTH / GRAPHCHAR_WIDTH ];
-	DWORD funcparams[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2][16];
-	DWORD paramcnt[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2];
-	int validItem;
-
-	int zoomin;
-
-	int id;
-	int tid;
-	int pid;
-	
-	char name[WINDOW_NAME_LIMIT];
-
-	unsigned int backGround;
-	unsigned int backsize;
-}RIGHTMENU, *LPRIGHTMENU;
-
+}WINDOWCLASS, * LPWINDOWCLASS;
 
 typedef struct
 {
@@ -336,7 +315,30 @@ typedef struct
 
 }FMWINDOW, * LPFMWINDOW;
 
+typedef struct {
+	POINT pos;
+	int status;
 
+	int width;
+	int height;
+	unsigned int color;
+	DWORD funcaddr[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2];
+	char menuname[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2][RIGHTCLICK_MENU_WIDTH / GRAPHCHAR_WIDTH];
+	DWORD funcparams[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2][16];
+	DWORD paramcnt[RIGHTCLICK_MENU_HEIGHT / GRAPHCHAR_WIDTH / 2];
+	int validItem;
+
+	int zoomin;
+
+	int id;
+	int tid;
+	int pid;
+
+	char name[WINDOW_NAME_LIMIT];
+
+	unsigned int backGround;
+	unsigned int backsize;
+}RIGHTMENU, * LPRIGHTMENU;
 
 
 #pragma pack()

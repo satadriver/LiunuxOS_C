@@ -840,12 +840,12 @@ int __printf(char* buf, char* format, ...) {
 
 	if (g_ScreenMode) {
 		
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-		if (proc->window) {
-			LPWINDOWSINFO window = __FindWindowID(proc->window);
+		LPWINDOWSINFO winfo = __FindProcessWindow(proc->tid);
+		if (winfo) {
+			LPWINDOWCLASS window = winfo->window;
 			if (window) {
-				__drawWindowChars(buf, 0, window->window);
+				__drawWindowChars(buf, 0, window);
 			}
 			else {
 				int endpos = __drawGraphChars((char*)buf, 0);
@@ -1045,10 +1045,11 @@ DWORD __enterLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
+		mov esi, lockvalue
 		__waitZeroValue:
 		mov eax, 0
 		mov edx, 1
-		lock cmpxchg[lockvalue], edx
+		lock cmpxchg ds:[esi], edx
 		jz __entryFree
 		mov result,eax
 		nop
@@ -1065,10 +1066,11 @@ DWORD __leaveLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
+		mov esi, lockvalue
 		__leavelockLoop:
 		mov eax, 1
 		mov edx, 0
-		lock cmpxchg[lockvalue], edx
+		lock cmpxchg ds:[esi], edx
 		jz _over
 		mov result,eax
 		pause	
@@ -1155,7 +1157,15 @@ int __reset() {
 	}
 }
 
+int __GetCurrentTid() {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	return proc->tid;
+}
 
+int __GetCurrentPid() {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	return proc->pid;
+}
 
 int __sleep(int millisecs) {
 	__asm {

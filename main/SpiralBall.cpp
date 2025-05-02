@@ -271,7 +271,7 @@ extern "C" __declspec(dllexport)int SpiralBall(unsigned int retaddr, int tid, ch
 
 	WINDOWCLASS window;
 
-	initFullWindow(&window, filename, tid,1);
+	initFullWindow(&window, funcname, tid,1);
 
 	SpiralAnimation(&window);
 
