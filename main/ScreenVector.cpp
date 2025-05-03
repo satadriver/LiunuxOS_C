@@ -28,8 +28,6 @@ int gRadius = 64;
 int gDeltaX = 3;
 int gDeltaY = 3;
 
-int gScrnWindowID = 0;
-
 int gTimerID = 0;
 
 WINDOWCLASS g_sv_window;
@@ -171,11 +169,10 @@ extern "C" __declspec(dllexport)int ScreenVector(unsigned int retaddr, int tid, 
 
 	while (1) {
 
-		unsigned int ck = __kGetKbd(gScrnWindowID);
+		unsigned int ck = __kGetKbd(g_sv_window.id);
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
-		{
-			
+		{		
 			break;
 		}
 

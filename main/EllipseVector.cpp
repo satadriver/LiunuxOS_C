@@ -105,7 +105,7 @@ extern "C" __declspec(dllexport)int EllipseVector(unsigned int retaddr, int tid,
 
 	WINDOWCLASS window;
 
-	initFullWindow(&window, funcname, tid,0);
+	initFullWindow(&window, funcname, tid,1);
 
 	EllipseAnimation(&window);
 

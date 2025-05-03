@@ -12,6 +12,10 @@
 #include "window.h"
 #include "servicesProc.h"
 
+#define POLYGON_SIZE	0x10
+
+#define POLYGON_RADIUS	0x100
+
 
 void DiamondAnimation(WINDOWCLASS * window) {
 	//DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
@@ -80,7 +84,7 @@ void DiamondAnimation(WINDOWCLASS * window) {
 			}
 		}
 
-		__diamond(gVideoWidth / 2, gVideoHeight / 2, 0x100, 0x100, 0);
+		__diamond(gVideoWidth / 2, gVideoHeight / 2, POLYGON_RADIUS, POLYGON_SIZE, 0);
 	}
 }
 

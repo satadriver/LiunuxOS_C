@@ -727,7 +727,7 @@ int __initTask0(char * videobase) {
 	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
 	process0->videoBase = (char*)videobase;
 	process0->showX = 0;
-	process0->showY = 160;
+	process0->showY = 0;
 	process0->window = 0;
 	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
 
