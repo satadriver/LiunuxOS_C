@@ -402,6 +402,20 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			ret = __kGetMouse(&mouseinfo, window.window.id);
 			if (mouseinfo.status & 1)
 			{
+				if (mouseinfo.x >= window.window.minx && mouseinfo.x <= window.window.minx + window.window.capHeight &&
+					mouseinfo.y >= window.window.miny && mouseinfo.y <= window.window.miny + window.window.capHeight)
+				{
+					MinimizeWindow(&window.window);
+					continue;
+				}
+
+				if (mouseinfo.x >= window.window.shutdownx && mouseinfo.x <= window.window.shutdownx + window.window.capHeight &&
+					mouseinfo.y >= window.window.shutdowny && mouseinfo.y <= window.window.shutdowny + window.window.capHeight)
+				{
+					__DestroyWindow(&window.window);
+					return 0;
+				}
+
 				//y positon is page
 				int y = (mouseinfo.y - window.window.capHeight - window.window.frameSize) / window.fsheight;
 

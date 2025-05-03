@@ -232,7 +232,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 			if (menu.status)
 			{
-				__printf(szout, "menu  on\r\n");
+				//__printf(szout, "menu  on\r\n");
 
 				menu.status = 0;
 
