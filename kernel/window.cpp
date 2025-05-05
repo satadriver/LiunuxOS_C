@@ -137,6 +137,7 @@ LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 		if (window) {
 			*x = (int*)&(window->showX);
 			*y = (int*)&(window->showY);
+			return winfo;
 		}
 	}
 

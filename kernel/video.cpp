@@ -567,7 +567,7 @@ int __drawGraphChars( char* str, int color) {
 
 	*y = resultpos / gBytesPerLine;
 
-	*y = (resultpos % gBytesPerLine) / gBytesPerPixel;
+	*x = (resultpos % gBytesPerLine) / gBytesPerPixel;
 
 	if (*y >= gWindowHeight)
 	{
