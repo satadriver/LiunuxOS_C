@@ -486,14 +486,28 @@ int readSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char
 
 	waitReady(gAtaBasePort + 7);
 
-	outportb(gAtaBasePort + 7, HD_LBA48READ_COMMAND);
+#define READ_MULTIPLE_SECTOR
 
+#ifdef READ_MULTIPLE_SECTOR
+	outportb(gAtaBasePort + 7, HD_MUTIPLEREAD_COMMAND);
+	char* lpbuf = buf;
+	//for (int i = 0; i < seccnt; i++)
+	{
+		int res = waitComplete(gAtaBasePort + 7);
+		readsector(gAtaBasePort, (BYTES_PER_SECTOR / 4)*seccnt, lpbuf);
+		lpbuf += BYTES_PER_SECTOR * seccnt;
+	}
+#else
+	outportb(gAtaBasePort + 7, HD_LBA48READ_COMMAND);
 	char* lpbuf = buf;
 	for (int i = 0; i < seccnt; i++) {
 		int res = waitComplete(gAtaBasePort + 7);
 		readsector(gAtaBasePort, BYTES_PER_SECTOR / 4, lpbuf);
 		lpbuf += BYTES_PER_SECTOR;
 	}
+#endif
+
+
 
 	return seccnt * BYTES_PER_SECTOR;
 }

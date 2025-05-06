@@ -86,7 +86,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
 
-	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
+	__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
 
 	while (1)
 	{
