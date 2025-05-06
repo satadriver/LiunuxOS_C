@@ -50,8 +50,50 @@
 #include "cmosAlarm.h"
 #include "elf.h"
 #include "guihelper.h"
+#include "coprocessor.h"
+
+#define ALARMER_SECOND_INTERVAL		60
 
 
+
+
+extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char szout[1024];
+
+	char cputype[1024];
+	getCpuType(cputype);
+	char cpuinfo[1024];
+	getCpuInfo(cpuinfo);
+	__printf(szout, "CPU MODEL:%s,details:%s,SSE:%d,video height:%d,width:%d,pixel:%d\n",
+		cputype, cpuinfo, isSSE(), gVideoHeight, gVideoWidth, gBytesPerPixel);
+
+	showPciDevs();
+
+	__enableBreakPoint();
+
+	enableSingleStep();
+
+	disableSingleStep();
+
+	enableOverflow();
+
+	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
+
+	sysEntryProc();
+
+	callgateEntry(0, 0);
+
+	displayCCPoem();
+
+	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
+
+	while (1) {
+
+		__sleep(0);
+	}
+
+	return;
+}
 
 int g_test1Cnt = 0;
 

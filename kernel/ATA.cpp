@@ -303,7 +303,7 @@ int waitComplete(WORD port) {
 	//waitInterval(0);
 	//delay();
 
-	__delay();
+	//__delay();
 
 	int errcnt = 0;
 

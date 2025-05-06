@@ -281,7 +281,7 @@ void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)        ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0, gVideoHeight - TASKBAR_HEIGHT * 2);
-	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
+	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_tb_window.color);
 
 }
 
@@ -355,7 +355,7 @@ void TrajectoryBallInit() {
 
 	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)        ", g_centerX, g_centerY, g_x_s, g_y_s);
 	int showPos = __getpos(0, gVideoHeight - TASKBAR_HEIGHT * 2);
-	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
+	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_tb_window.color);
 }
 
 

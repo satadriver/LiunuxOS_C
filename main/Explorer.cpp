@@ -16,7 +16,7 @@
 #include "window.h"
 #include "ProcessDos.h"
 #include "ata.h"
-
+#include "TestWindow.h"
 #include "Kernel.h"
 #include "mainUtils.h"
 #include "coprocessor.h"
@@ -37,7 +37,7 @@
 #include "cmosAlarm.h"
 #include "elf.h"
 #include "guihelper.h"
-#include	"clock.h"
+#include"clock.h"
 #include "ScreenVector.h"
 #include "DiamondVector.h"
 #include "EllipseVector.h"
@@ -49,21 +49,14 @@
 
 #define EXPLORER_TASKNAME			"__kExplorer"
 
-#define ALARMER_SECOND_INTERVAL		60
-
-
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
 
 	char szout[1024];
 
-	//initWindowList();
-
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
-
-	//v86Process(0x4f02, 0, 0, 0x4112, 0, 0, 0, 0, 0x10);
-
+	
 	WINDOWCLASS window;
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid);
 
@@ -83,42 +76,17 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	RIGHTMENU menu;
 	initRightMenu(&menu, tid);
 
-	//POPUPMENU popup;
 	initPopupMenu(&gPopupMenu);
 
 	__initMouse(gVideoWidth, gVideoHeight);
 
-	char cputype[1024];
-	getCpuType(cputype);
-	char cpuinfo[1024];
-	getCpuInfo(cpuinfo);
-	__printf(szout, "CPU MODEL:%s,details:%s,SSE:%d,video height:%d,width:%d,pixel:%d\n", 
-		cputype, cpuinfo,isSSE(), gVideoHeight, gVideoWidth, gBytesPerPixel);
-
-	showPciDevs();
-
-	__enableBreakPoint();
-
-	enableSingleStep();
-
-	disableSingleStep();
-
-	enableOverflow();
-
-	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
-
-	sysEntryProc();
-
-	callgateEntry(0, 0);
-
-	displayCCPoem();
-
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-
-	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
+
+
+	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
 
 	while (1)
 	{
