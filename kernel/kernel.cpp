@@ -150,7 +150,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	//for(int i = 0;i < 0x100;i ++)
 	{
 		int ck = __kGetKbd(window.id)&0xff;
-		if (ck ) {
+		if (ck==0x1b ) {
 			break;
 		}
 		__sleep(0);
