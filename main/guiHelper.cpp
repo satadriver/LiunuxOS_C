@@ -112,6 +112,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 
 void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
+	int ret = 0;
 	__memset((char*)window, 0, sizeof(WINDOWCLASS));
 
 	window->capColor = 0;
@@ -140,7 +141,6 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	window->pid = proc->pid;
 
-
 	window->left = (window->frameSize >> 1) + window->pos.x;
 	window->top = (window->frameSize >> 1) + window->capHeight + window->pos.y;
 	window->right = window->left + window->width - 1;
@@ -148,15 +148,16 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 
 	window->showX = window->left;
 	window->showY = window->top;
-	window->cursorX = window->showX;
-	window->cursorY = window->showY;
+	//window->cursorX = window->showX;
+	//window->cursorY = window->showY;
 	window->cursorColor = ~window->color;
 
 	window->minBuf = 0;
 
 	window->id = addWindow((DWORD)window, window->winname);
-
-	int ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
+	if (window->showMode) {
+		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
+	}
 
 	window->prev = 0;
 	window->next = 0;

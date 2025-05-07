@@ -58,6 +58,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
 	
 	WINDOWCLASS window;
+	window.showMode = 1;
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid);
 
 	WINDOWCLASS taskbar;
@@ -85,7 +86,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
-	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
+	__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
 
 	while (1)
 	{

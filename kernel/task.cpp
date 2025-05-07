@@ -715,7 +715,7 @@ int __initTask0(char * videobase) {
 	//initTaskSwitchTss();
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	__strcpy(process0->filename, KERNEL_DLL_MODULE_NAME);
-	__strcpy(process0->funcname, "__kernelEntry");
+	__strcpy(process0->funcname, "__kKernel");
 	process0->status = TASK_RUN;
 	process0->tid = 0;
 	process0->pid = 0;

@@ -292,9 +292,11 @@ typedef struct __WINDOWCLASS {
 
 	char cursorBuf[GRAPHCHAR_HEIGHT * GRAPHCHAR_HEIGHT * 4];
 	int cursorID;
-	int cursorX;
-	int cursorY;
+	//int cursorX;
+	//int cursorY;
 	int cursorColor;
+
+	int showMode;
 
 	int tag;
 	int showBakX;
@@ -343,6 +345,7 @@ typedef struct {
 
 #pragma pack()
 
+void initDesktopWindow(WINDOWCLASS* window, char* name, int tid);
 
 unsigned short* getGBKCCIdx(unsigned short gbk);
 

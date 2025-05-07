@@ -224,6 +224,9 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	initDebugger();
 
+	WINDOWCLASS window;
+	window.showMode = 0;
+
 	char cmd[1024];
 	char* lpcmd = cmd;
 	while (1)

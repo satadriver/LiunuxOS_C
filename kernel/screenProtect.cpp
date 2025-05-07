@@ -662,7 +662,9 @@ void CubeVideo() {
 }
 
 
+#define POLYGON_SIZE	0x10
 
+#define POLYGON_RADIUS	0x100
 
 
 void DiamondVideo() {
@@ -720,7 +722,7 @@ void DiamondVideo() {
 			}
 		}
 
-		__diamond(gVideoWidth/2, gVideoHeight/2, 0x100, 0x100, 0);
+		__diamond(gVideoWidth/2, gVideoHeight/2, POLYGON_RADIUS, POLYGON_SIZE, 0);
 	}
 }
 

@@ -69,6 +69,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gKernelData = kerneldata;
 	gKernel16 = kernel16;
 	gKernel32 = kernel32;
+	
 	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
 
@@ -107,7 +108,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	BPCodeStart();
 
 	__asm {
-		in al, 0x60
+		//in al, 0x60
 		sti
 	}
 
@@ -116,8 +117,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #else
 
 #endif
-
-	__printf(szout, "Hello world of Liunux!\r\n");
 
 	ret = StartVirtualTechnology();
 	if (ret) {
@@ -141,15 +140,29 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	//ret = loadLibRunFun("c:\\liunux\\main.dll", "__kMainProcess");
 
-	//__kGetKbd(0);
+	__printf(szout, "Hello world of Liunux!\r\nPress any key to continue...\r\n");
+
+	WINDOWCLASS window;
+	window.showMode = 0;
+	initDesktopWindow(&window, "__kKernel", 0);
+
+	while (1) 
+	//for(int i = 0;i < 0x100;i ++)
+	{
+		int ck = __kGetKbd(window.id)&0xff;
+		if (ck ) {
+			break;
+		}
+		__sleep(0);
+	}
 
 	while (1)
 	{
 		if (__findProcessFuncName("__kExplorer") == FALSE)
 		{
-			__printf(szout, "__kCreateProcess __kExplorer before\r\n");
+			//__printf(szout, "__kCreateProcess __kExplorer before\r\n");
 			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
-			__printf(szout, "__kCreateProcess __kExplorer end\r\n");
+			//__printf(szout, "__kCreateProcess __kExplorer end\r\n");
 		}
 
 		__asm {

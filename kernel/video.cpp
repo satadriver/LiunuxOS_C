@@ -1499,3 +1499,58 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 
 
 
+void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
+	int ret = 0;
+	__memset((char*)window, 0, sizeof(WINDOWCLASS));
+
+	window->capColor = 0;
+	window->capHeight = 0;
+	window->color = BACKGROUND_COLOR;
+	window->frameSize = 0;
+	window->frameColor = 0;
+	__strcpy(window->caption, name);
+	__strcpy(window->winname, name);
+
+	window->backBuf = 0;
+
+	window->pos.x = FULLWINDOW_TOP;
+
+	window->pos.y = FULLWINDOW_LEFT;
+
+	window->width = gVideoWidth + window->frameSize;
+
+	window->height = gWindowHeight + window->frameSize + window->capHeight;
+
+	window->zoomin = 1;
+
+	window->tid = tid;
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	window->pid = proc->pid;
+
+	window->left = (window->frameSize >> 1) + window->pos.x;
+	window->top = (window->frameSize >> 1) + window->capHeight + window->pos.y;
+	window->right = window->left + window->width - 1;
+	window->bottom = window->top + window->height - 1;
+
+	window->showX = window->left;
+	window->showY = window->top;
+	//window->cursorX = window->showX;
+	//window->cursorY = window->showY;
+	window->cursorColor = ~window->color;
+
+	window->minBuf = 0;
+
+	window->id = addWindow((DWORD)window, window->winname);
+
+	if (window->showMode) {
+		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
+	}
+
+	window->prev = 0;
+	window->next = 0;
+
+	proc->window = window->id;
+	tss[tid].window = window->id;
+}
