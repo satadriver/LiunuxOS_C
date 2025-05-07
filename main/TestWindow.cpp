@@ -83,12 +83,12 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 
 	callgateEntry(0, 0);
 
-	displayCCPoem();
-
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 
-	while (1) {
+	//return ;
 
+	//while (1) 
+	{
 		__sleep(0);
 	}
 

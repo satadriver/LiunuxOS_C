@@ -1499,7 +1499,7 @@ int __diamond2(int startx, int starty, int raduis, int cnt, DWORD color) {
 
 
 
-void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
+void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	int ret = 0;
 	__memset((char*)window, 0, sizeof(WINDOWCLASS));
 

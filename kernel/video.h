@@ -345,7 +345,7 @@ typedef struct {
 
 #pragma pack()
 
-void initDesktopWindow(WINDOWCLASS* window, char* name, int tid);
+void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show);
 
 unsigned short* getGBKCCIdx(unsigned short gbk);
 

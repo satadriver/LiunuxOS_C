@@ -111,7 +111,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 }
 
 
-void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
+void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	int ret = 0;
 	__memset((char*)window, 0, sizeof(WINDOWCLASS));
 
@@ -155,7 +155,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid) {
 	window->minBuf = 0;
 
 	window->id = addWindow((DWORD)window, window->winname);
-	if (window->showMode) {
+	if (show) {
 		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 	}
 

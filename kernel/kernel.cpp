@@ -143,8 +143,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__printf(szout, "Hello world of Liunux!\r\nPress any key to continue...\r\n");
 
 	WINDOWCLASS window;
-	window.showMode = 0;
-	initDesktopWindow(&window, "__kKernel", 0);
+
+	initDesktopWindow(&window, "__kKernel", 0,0);
 
 	while (1) 
 	//for(int i = 0;i < 0x100;i ++)
