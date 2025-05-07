@@ -8,6 +8,8 @@
 #define MOUSE_SHOW_RATIO			40
 #define MOUSE_BORDER_COLOR			0
 
+#define MOUSE_GRANULARITY			GRAPHCHAR_HEIGHT
+
 #pragma pack (1)
 typedef struct
 {
@@ -67,6 +69,8 @@ extern "C"  __declspec(dllexport) void restoreMouse();
 
 extern "C"  __declspec(dllexport) void __kMouseProc();
 
+extern "C"  __declspec(dllexport) int GetMouseInfo(LPMOUSEINFO lpmouse);
+
 extern "C"  __declspec(dllexport) int __kGetMouse(LPMOUSEINFO lpmouse, int wid);
 
 extern "C"  __declspec(dllexport) void __kRefreshMouseBackup();
@@ -75,7 +79,7 @@ extern "C"  __declspec(dllexport) void __kRestoreMouse();
 
 extern "C"  __declspec(dllexport) void __kDrawMouse();
 
-
+extern "C"  __declspec(dllexport) void insertMouse(MOUSEINFO* info);
 #else
 extern "C" __declspec(dllimport) DWORD gMouseID;
 extern "C"  __declspec(dllimport) void __initMouse(int x, int y);
@@ -87,8 +91,11 @@ extern "C"  __declspec(dllimport) void restoreMouse();
 extern "C"  __declspec(dllimport) void drawMouse();
 
 extern "C"  __declspec(dllimport) void __kMouseProc();
+extern "C"  __declspec(dllimport) int GetMouseInfo(LPMOUSEINFO lpmouse);
 extern "C"  __declspec(dllimport) int __kGetMouse(LPMOUSEINFO lpmouse, int wid);
 extern "C"  __declspec(dllimport) void __kRefreshMouseBackup();
 extern "C"  __declspec(dllimport) void __kRestoreMouse();
 extern "C"  __declspec(dllimport) void __kDrawMouse();
+
+extern "C"  __declspec(dllimport) void insertMouse(MOUSEINFO * info);
 #endif

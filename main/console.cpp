@@ -69,7 +69,7 @@ int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DW
 			char* sztab = "    ";
 			__drawWindowChars(( char*)sztab, DEFAULT_FONT_COLOR, &window);
 		}
-		else if (asc == 0x0a)
+		else if (asc == 0x0d)
 		{
 			window.showX = (window.pos.x + (window.frameSize >> 1));
 

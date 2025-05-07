@@ -85,13 +85,47 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
-
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
 
 	while (1)
 	{
+		MOUSEINFO mouseinfo;
+		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+
 		unsigned int ck = __kGetKbd(window.id) & 0xff;
-		if (ck == VK_F1)
+		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d) {
+			if (ck == VK_RIGHT) {
+				mouseinfo.status = 0;
+				mouseinfo.x = MOUSE_GRANULARITY;
+				mouseinfo.y = 0;
+				insertMouse(&mouseinfo);
+			}
+			else if (ck == VK_LEFT) {
+				mouseinfo.status = 0;
+				mouseinfo.x = -MOUSE_GRANULARITY;
+				mouseinfo.y = 0;
+				insertMouse(&mouseinfo);
+			}
+			else if (ck == VK_UP) {
+				mouseinfo.status = 0;
+				mouseinfo.x = 0;
+				mouseinfo.y = MOUSE_GRANULARITY;
+				insertMouse(&mouseinfo);
+			}
+			else if (ck == VK_DOWN) {
+				mouseinfo.status = 0;
+				mouseinfo.x = 0;
+				mouseinfo.y = -MOUSE_GRANULARITY;
+				insertMouse(&mouseinfo);
+			}
+			else if (ck == 0x0d) {
+				mouseinfo.status = 1;
+				mouseinfo.x = 0;
+				mouseinfo.y = 0;
+				insertMouse(&mouseinfo);
+			}
+		}
+		else if (ck == VK_F1)
 		{
 			if (__findProcessFileName("__kConsole") == FALSE)
 			{			
@@ -190,8 +224,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			continue;
 		}
 
-		MOUSEINFO mouseinfo;
-		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+
 		ret = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{

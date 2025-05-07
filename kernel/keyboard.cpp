@@ -25,7 +25,7 @@ VK_DOWN, VK_NEXT, VK_INSERT, VK_DELETE, 0, 0, 0, VK_F11, VK_F12, 0, 0, 0, 0, 0, 
 
 unsigned char shiftScanCodesTransBuf[96]=
 {0, VK_ESCAPE, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', VK_BACK, VK_TAB,
-'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x0a, VK_CONTROL, 'A', 'S',\
+'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x0d, VK_CONTROL, 'A', 'S',\
 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', VK_LSHIFT, '|', 'Z', 'X', 'C', 'V', 
 'B', 'N', 'M', '<', '>', '?', VK_RSHIFT, '*', VK_MENU, ' ', VK_CAPSLOCK, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5,\
 VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_NUMSLOCK, VK_SCROLLLOCK, '7', '8', '9', '-', '4', '5', '6', '+', '1',
@@ -160,7 +160,7 @@ void __kPutKbd(unsigned char c,int wid) {
 
 	}
 	else {
-		return;
+		//return;
 	}
 
 	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;

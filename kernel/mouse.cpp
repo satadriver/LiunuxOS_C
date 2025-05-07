@@ -20,6 +20,8 @@ DWORD gMouseColor =	MOUSE_SHOW_COLOR;
 
 #define MOUSE_FACTOR_SIZE	30
 
+//MOUSEINFO g_mouse_info = { 0 };
+
 
 void mousetest() {
 
@@ -68,6 +70,7 @@ void invalidMouse() {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->bInvalid = TRUE;
 }
+
 
 
 void __kMouseProc() {
@@ -191,7 +194,13 @@ void __kMouseProc() {
 	}
 }
 
-
+int GetMouseInfo(LPMOUSEINFO lpmouse) {
+	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	lpmouse->status = data->mintrData.status;
+	lpmouse->x = data->mouseX;
+	lpmouse->y = data->mouseY;
+	return 0;
+}
 
 int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 
