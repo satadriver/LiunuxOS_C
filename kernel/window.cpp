@@ -287,16 +287,20 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 
 
-int MinimizeWindow(WINDOWCLASS* window) {
+int MinimizeWindow(WINDOWCLASS* lpwindow) {
 	char szout[1024];
-	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window, window->winname);
+	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, lpwindow, lpwindow->winname);
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
+
+
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	int tid = proc->tid;
+	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,tid);
+	//char* videoBase = GetVideoBase();
 	if (window->minBuf == 0) {
 		window->minBuf = (char*)__kMalloc(gVideoHeight * gVideoWidth * gBytesPerPixel);
 	}
-	
-	//char* videoBase = GetVideoBase();
 
 	__asm {cli}
 
@@ -321,7 +325,6 @@ int MinimizeWindow(WINDOWCLASS* window) {
 	__kDrawMouse();
 	//__restoreWindow(window);
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	proc->videoBase = window->minBuf;
 
 	insertPopupItem(window);

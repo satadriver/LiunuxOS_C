@@ -507,8 +507,6 @@ int readSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned char
 	}
 #endif
 
-
-
 	return seccnt * BYTES_PER_SECTOR;
 }
 

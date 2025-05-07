@@ -92,7 +92,7 @@ DWORD copyKernelCR3(DWORD addr, DWORD size, DWORD *cr3) {
 	return tablecnt;
 }
 
-DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,int tag) {
+DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,int attr) {
 
 	char szout[1024];
 
@@ -101,7 +101,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,i
 		return FALSE;
 	}
 
-	tag = tag | PAGE_READWRITE | PAGE_PRESENT;
+	attr = attr | PAGE_READWRITE | PAGE_PRESENT;
 
 	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
 
@@ -133,7 +133,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,i
 			}
 			__memset((char*)pagetable, 0, PAGE_SIZE);
 
-			cr3[i] = (DWORD)pagetable | (PAGE_PRESENT| (tag ));
+			cr3[i] = (DWORD)pagetable | (PAGE_PRESENT| attr);
 		}
 
 		int j = 0;
@@ -147,7 +147,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,i
 
 		for (; j < ITEM_IN_PAGE; j++)
 		{
-			pagetable[j] = phyaddr | (PAGE_PRESENT | (tag ));
+			pagetable[j] = phyaddr | (PAGE_PRESENT | attr);
 			remapcnt++;
 			if (remapcnt >= remapTotal)
 			{
@@ -162,7 +162,7 @@ DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,i
 	return remapcnt;
 }
 
-DWORD linear2phy(DWORD linearAddr,int pid) {
+DWORD linear2phyByPid(DWORD linearAddr,int pid) {
 
 	int tablesize = ITEM_IN_PAGE*PAGE_SIZE;
 
@@ -193,7 +193,7 @@ DWORD linear2phy(DWORD linearAddr) {
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	int pid = process->pid;
-	return linear2phy(linearAddr, pid);
+	return linear2phyByPid(linearAddr, pid);
 }
 
 
