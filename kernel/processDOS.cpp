@@ -242,6 +242,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		tss->tss.es = tss->tss.cs;
 		tss->tss.fs = tss->tss.cs;
 		tss->tss.gs = tss->tss.cs;
+		tss->tss.ecx = 0xfff;
 
 		//*(WORD*)(tss->tss.esp + addr) = 0;
 

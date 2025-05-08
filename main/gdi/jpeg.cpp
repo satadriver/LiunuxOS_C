@@ -131,6 +131,8 @@ static  long *iclp;
 ////////////////////////////////////////////////////////////////
 BOOL LoadJpegFile(char * hJpegBuf, int JpegBufSize, char * bmpfiledata, int * bmpdatasize)
 {
+	lpJpegBuf = (unsigned char*)hJpegBuf;
+
 	DWORD          ImgSize;
 	DWORD          BufSize;
 	int				funcret;

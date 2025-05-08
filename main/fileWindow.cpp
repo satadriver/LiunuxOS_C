@@ -31,7 +31,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 	WINDOWCLASS window;
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
 	__strcpy(window.caption, filename);
-	initFullWindow(&window, funcname, tid,0);
+	initFullWindow(&window, funcname, tid,1);
 
 	if (cmd == SHOW_WINDOW_BMP || cmd == SHOW_WINDOW_TXT || cmd == SHOW_WINDOW_JPEG)
 	{
@@ -71,7 +71,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 			int showend = __drawGraphChar(( char*)data, DEFAULT_FONT_COLOR, (unsigned int)cappos,window.color);
 		}
 		else if (cmd == SHOW_WINDOW_JPEG) {
-			int bmpsize = filesize * 16;
+			int bmpsize = filesize * 64;
 			char * bmpdata = (char*)__kMalloc(bmpsize);
 			
 			retvalue = LoadJpegFile(filebuf, filesize, bmpdata, &bmpsize);
