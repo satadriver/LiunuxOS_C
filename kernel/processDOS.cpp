@@ -23,6 +23,7 @@ DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 
 void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc) {
+	char szout[1024];
 	if ((env->eflags & 0x20000) && prev->level == 3 && proc->level == 3) {
 		DWORD reip = (WORD)env->eip;
 		DWORD rcs = (WORD)env->cs;
@@ -38,6 +39,7 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 					proc->status = TASK_OVER;
 					prev->status = TASK_OVER;
 					info[i].status = TASK_OVER;
+					__printf(szout,"kill dos program:%s,pid:%d\r\n",info->name, info[i].pid);
 					break;
 				}
 			}
@@ -46,7 +48,7 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 }
 
 
-int getVm86ProcAddr(int type, DWORD filedata, int size, int pid) {
+int getVm86ProcAddr(char * fn,int type, DWORD filedata, int size, int pid) {
 
 	LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
 	for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
@@ -58,6 +60,8 @@ int getVm86ProcAddr(int type, DWORD filedata, int size, int pid) {
 			info[i].pid = pid;
 
 			info[i].size = size;
+
+			__strcpy(info[i].name, fn);
 
 			if (type == DOS_EXE_FILE)
 			{
@@ -101,10 +105,10 @@ int relocDos(DWORD loadseg) {
 }
 
 
-DWORD __allocVm86Addr(int type, DWORD filedata, int filesize, int pid) {
+DWORD __allocVm86Addr(char * fn,int type, DWORD filedata, int filesize, int pid) {
 	int ret = 0;
 
-	DWORD seg = getVm86ProcAddr(type, filedata, filesize, pid);
+	DWORD seg = getVm86ProcAddr(fn,type, filedata, filesize, pid);
 	if (seg >= INT13_RM_FILEBUF_SEG || seg <= 0)
 	{
 		return FALSE;

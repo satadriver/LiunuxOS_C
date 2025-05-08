@@ -428,7 +428,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 			return FALSE;
 		}
 		else {
-			DWORD dosaddr = __allocVm86Addr(petype,filedata, filesize, result.number);
+			DWORD dosaddr = __allocVm86Addr(filename,petype,filedata, filesize, result.number);
 			if (dosaddr)
 			{
 				ret = __initDosTss(result.lptss, result.number, dosaddr, filename, funcname, 3, params);
