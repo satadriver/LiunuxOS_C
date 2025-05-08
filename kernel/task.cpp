@@ -428,7 +428,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			fninit
 		}
 	}
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x200) {
 		__int64 timeh2 = __krdtsc() - timeh1;
 
 		DWORD cpureq;
@@ -635,7 +635,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->es = process->tss.es;
 	env->ss = process->tss.ss;
 
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x400) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x200) {
 		__int64 timeh2 = __krdtsc() - timeh1;
 
 		DWORD cpureq;

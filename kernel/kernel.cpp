@@ -119,7 +119,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #endif
 
 	ret = StartVirtualTechnology();
-	if (ret) {
+	if (ret) 
+	{
 		StopVirtualTechnology();
 	}
 	
