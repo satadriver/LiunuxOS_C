@@ -85,8 +85,6 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
 
-	//return ;
-
 	//while (1) 
 	{
 		__sleep(0);

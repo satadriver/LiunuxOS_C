@@ -194,38 +194,7 @@ void __kMouseProc() {
 	}
 }
 
-int GetMouseInfo(LPMOUSEINFO lpmouse) {
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
-	lpmouse->status = data->mintrData.status;
-	lpmouse->x = data->mouseX;
-	lpmouse->y = data->mouseY;
-	return 0;
-}
 
-int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
-
-	if (isTopWindow(wid))
-	{
-		LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
-		if (data->mouseBufHdr == data->mouseBufTail)
-		{
-			return FALSE;
-		}
-
-		lpmouse->status = data->mouseBuf[data->mouseBufTail].status;
-		lpmouse->x = data->mouseBuf[data->mouseBufTail].x;
-		lpmouse->y = data->mouseBuf[data->mouseBufTail].y;
-		data->mouseBufTail++;
-		if (data->mouseBufTail >= MOUSE_POS_LIMIT)
-		{
-			data->mouseBufTail = 0;
-		}
-		return TRUE;
-	}
-	else {
-		return FALSE;
-	}
-}
 
 
 int isGeometryMouse(int x,int y) {
@@ -429,15 +398,58 @@ void __initMouse(int x,int y) {
 
 
 void insertMouse(MOUSEINFO * info) {
+	__kRestoreMouse();
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	data->mouseX += info->x;
+	data->mouseY += info->y;
+	data->mintrData.status = info->status;
+
+	//return;
+	
 	data->mouseBuf[data->mouseBufHdr].status = info->status;
-	data->mouseBuf[data->mouseBufHdr].x = info->x;
-	data->mouseBuf[data->mouseBufHdr].y = info->y;
+	data->mouseBuf[data->mouseBufHdr].x = data->mouseX;
+	data->mouseBuf[data->mouseBufHdr].y = data->mouseY;
 
 	data->mouseBufHdr++;
 	if (data->mouseBufHdr >= MOUSE_POS_LIMIT)
 	{
 		data->mouseBufHdr = 0;
+	}
+	
+	__kRefreshMouseBackup();
+	__kDrawMouse();
+}
+
+int GetMouseInfo(LPMOUSEINFO lpmouse) {
+	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	lpmouse->status = data->mintrData.status;
+	lpmouse->x = data->mouseX;
+	lpmouse->y = data->mouseY;
+	return 0;
+}
+
+int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
+
+	if (isTopWindow(wid))
+	{
+		LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+		if (data->mouseBufHdr == data->mouseBufTail)
+		{
+			return FALSE;
+		}
+
+		lpmouse->status = data->mouseBuf[data->mouseBufTail].status;
+		lpmouse->x = data->mouseBuf[data->mouseBufTail].x;
+		lpmouse->y = data->mouseBuf[data->mouseBufTail].y;
+		data->mouseBufTail++;
+		if (data->mouseBufTail >= MOUSE_POS_LIMIT)
+		{
+			data->mouseBufTail = 0;
+		}
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 

@@ -86,7 +86,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
-
+	__MyTestTask(0, 0, 0, 0, 0);
 	displayCCPoem();
 
 	while (1)
@@ -95,7 +95,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
 
 		unsigned int ck = __kGetKbd(window.id) & 0xff;
-		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d) {
+		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d||ck == 0x0a) {
 			if (ck == VK_RIGHT) {
 				mouseinfo.status = 0;
 				mouseinfo.x = MOUSE_GRANULARITY;
@@ -111,17 +111,23 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			else if (ck == VK_UP) {
 				mouseinfo.status = 0;
 				mouseinfo.x = 0;
-				mouseinfo.y = MOUSE_GRANULARITY;
+				mouseinfo.y =- MOUSE_GRANULARITY;
 				insertMouse(&mouseinfo);
 			}
 			else if (ck == VK_DOWN) {
 				mouseinfo.status = 0;
 				mouseinfo.x = 0;
-				mouseinfo.y = -MOUSE_GRANULARITY;
+				mouseinfo.y = MOUSE_GRANULARITY;
 				insertMouse(&mouseinfo);
 			}
 			else if (ck == 0x0d) {
 				mouseinfo.status = 1;
+				mouseinfo.x = 0;
+				mouseinfo.y = 0;
+				insertMouse(&mouseinfo);
+			}
+			else if (ck == 0x0a) {
+				mouseinfo.status = 2;
 				mouseinfo.x = 0;
 				mouseinfo.y = 0;
 				insertMouse(&mouseinfo);

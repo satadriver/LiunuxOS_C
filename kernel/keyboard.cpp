@@ -15,7 +15,7 @@ WORD gKeyboardID = 0;
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
 unsigned char ScanCodesBuf[96] =
 { 0, VK_ESCAPE, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', VK_BACK, VK_TAB, \
-'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0x0a, VK_CONTROL, 'a', 's',\
+'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0x0d, VK_CONTROL, 'a', 's',\
 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', VK_LSHIFT, '\\','z','x','c','v',
 'b','n','m',',','.','/', VK_RSHIFT, VK_PRINT, VK_MENU, ' ', VK_CAPSLOCK, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5,\
 VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_NUMSLOCK, VK_SCROLLLOCK, VK_HOME, VK_UP, VK_PRIOR, '-', VK_LEFT, '5', VK_RIGHT, '+', VK_END,
@@ -25,7 +25,7 @@ VK_DOWN, VK_NEXT, VK_INSERT, VK_DELETE, 0, 0, 0, VK_F11, VK_F12, 0, 0, 0, 0, 0, 
 
 unsigned char shiftScanCodesTransBuf[96]=
 {0, VK_ESCAPE, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', VK_BACK, VK_TAB,
-'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x0d, VK_CONTROL, 'A', 'S',\
+'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x0a, VK_CONTROL, 'A', 'S',\
 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', VK_LSHIFT, '|', 'Z', 'X', 'C', 'V', 
 'B', 'N', 'M', '<', '>', '?', VK_RSHIFT, '*', VK_MENU, ' ', VK_CAPSLOCK, VK_F1, VK_F2, VK_F3, VK_F4, VK_F5,\
 VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, VK_NUMSLOCK, VK_SCROLLLOCK, '7', '8', '9', '-', '4', '5', '6', '+', '1',

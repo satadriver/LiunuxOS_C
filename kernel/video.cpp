@@ -1544,7 +1544,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 
 	window->id = addWindow((DWORD)window, window->winname);
 
-	if (window->showMode) {
+	if (show) {
 		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 	}
 
