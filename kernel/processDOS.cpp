@@ -39,7 +39,7 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 					proc->status = TASK_OVER;
 					prev->status = TASK_OVER;
 					info[i].status = TASK_OVER;
-					__printf(szout,"kill dos program:%s,pid:%d\r\n",info->name, info[i].pid);
+					__printf(szout,"kill dos program:%s,pid:%d\r\n",info[i].name, info[i].pid);
 					break;
 				}
 			}
@@ -287,7 +287,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->level = level & 3;
 
 	tss->showX = 0;
-	tss->showY = 0;
+	tss->showY = 32;
 	tss->window = 0;
 	tss->videoBase = (char*)gGraphBase;
 

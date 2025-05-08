@@ -560,10 +560,18 @@ int __drawGraphChars( char* str, int color) {
 	int* x = 0;
 	int* y = 0;
 	int ret = 0;
-	GetProcessTextPos(&x, &y);
+
+	int bkcolor = 0;
+	LPWINDOWSINFO winfo = GetProcessTextPos(&x, &y);
+	if (winfo ) {
+		bkcolor = winfo->window->color;
+	}
+	else {
+		bkcolor = BACKGROUND_COLOR;
+	}
 
 	unsigned int pos = __getpos(*x,*y);
-	int resultpos = __drawGraphChar(str, color, pos, 0);		//BACKGROUND_COLOR
+	int resultpos = __drawGraphChar(str, color, pos, bkcolor);		//BACKGROUND_COLOR
 
 	*y = resultpos / gBytesPerLine;
 
