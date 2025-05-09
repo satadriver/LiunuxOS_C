@@ -6,7 +6,7 @@
 #include "keyboard.h"
 #include "serialUART.h"
 
-
+#include "mouse.h"
 
 
 
@@ -197,31 +197,93 @@ mouseid = identify(); // see Get Device ID, 0xF2
 */
 
 void enableMouseZAxis() {
-	setMouseRate(200);
-	setMouseRate(100);
-	setMouseRate(80);
+	setMouseSampleRate(200);
+	setMouseSampleRate(100);
+	setMouseSampleRate(80);
 	getMouseID();
 }
 
-void setMouseRate(int rate) {
+
+
+void insert8042Key(char key) {
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd2);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, key);
+}
+
+
+void insert8042Mouse(LPMOUSEINFO mouse) {
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd3);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, mouse->status);
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd3);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, mouse->x);
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd3);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, mouse->y);
+}
+
+void setMouseResolution(int res) {
 	char szout[256];
 
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
-	outportb(PS2_DATA_PORT, 0xf3);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, 0xe8);
 
 	int c1 = 0;
 	int c2 = 0;
-	__wait8042Full();
-	c1 = inportb(PS2_DATA_PORT);
+	//__wait8042Full();
+	//c1 = inportb(PS2_DATA_PORT);
 
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
 
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, res);
+
+	//__wait8042Full();
+	//c2 = inportb(PS2_DATA_PORT);
+
+	int result = (c1 << 8) + c2;
+	__printf(szout, "%s param:%d result:%d\r\n", __FUNCTION__, res, result);
+}
+
+
+void setMouseSampleRate(int rate) {
+	char szout[256];
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, 0xf3);
+
+	int c1 = 0;
+	int c2 = 0;
+	//__wait8042Full();
+	//c1 = inportb(PS2_DATA_PORT);
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+
+	__wait8042Empty();
 	outportb(PS2_DATA_PORT, rate);
 
-	__wait8042Full();
-	c2 = inportb(PS2_DATA_PORT);
+	//__wait8042Full();
+	//c2 = inportb(PS2_DATA_PORT);
 
 	int result = (c1 << 8) + c2;
 	__printf(szout, "%s param:%d result:%d\r\n", __FUNCTION__,rate, result);
@@ -266,7 +328,7 @@ int getMouseID() {
 
 	int c1 = 0;
 	int c2 = 0;
-	__wait8042Full();
+	//__wait8042Full();
 	c1 = inportb(PS2_DATA_PORT);
 
 	//__wait8042Full();
@@ -462,20 +524,25 @@ unsigned short getTimerCounter(int num) {
 void init8042() {
 
 	__wait8042Empty();
-
 	outportb(PS2_COMMAND_PORT, 0xad);
 
 	__wait8042Empty();
-
 	outportb(PS2_COMMAND_PORT, 0x60);
 
 	__wait8042Empty();
-
 	outportb(PS2_DATA_PORT, 0X47);
 
 	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0x20);
 
+	__wait8042Full();
+	int c = inportb(PS2_DATA_PORT);
+
+	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xae);
+
+	char szout[256];
+	__printf(szout, "8042 init value:%d\r\n", c);
 
 }
 

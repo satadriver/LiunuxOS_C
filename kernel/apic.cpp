@@ -467,7 +467,7 @@ int g_ap_ids[256] = { 0 };
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	char szout[1024];
-	//__printf(szout, "__kApInitProc start\r\n");
+	__printf(szout, "__kApInitProc start\r\n");
 
 	DescriptTableReg gdtbase;
 	__asm {
@@ -485,12 +485,15 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 		mov eax, PDE_ENTRY_VALUE
 		mov cr3, eax
+	}
 
+
+	__asm {
 		mov eax, cr0
 		or eax, 0x80000000
 		mov cr0, eax
+		
 	}
-
 	int id = *(DWORD*) 0xFEE00020;
 	id = id >> 24;
 
@@ -499,9 +502,13 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "AP id:%d ready\r\n", id);
 
-	__asm {
-		sti
-		hlt
+	__asm{sti}
+
+	while (1) {
+		__asm {
+			
+			hlt
+		}
 	}
 }
 

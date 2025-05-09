@@ -1,5 +1,7 @@
 #pragma once
 
+#include "mouse.h"
+
 #define PS2_COMMAND_PORT	0x64
 #define PS2_DATA_PORT		0x60
 
@@ -32,6 +34,8 @@ void enablePCE();
 void enableSpeaker();
 void getKeyboardID();
 
+
+
 void __wait8042Empty();
 
 void __wait8042Full();
@@ -39,7 +43,13 @@ void __wait8042Full();
 #define __waitPs2Out __wait8042Full
 #define __waitPs2In __wait8042Empty
 
-void setMouseRate(int rate);
+void setMouseSampleRate(int rate);
+void setMouseResolution(int res);
+
+
+void insert8042Key(char key);
+
+void insert8042Mouse(LPMOUSEINFO mouse);
 
 int getMouseID();
 

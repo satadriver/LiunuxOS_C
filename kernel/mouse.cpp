@@ -74,6 +74,7 @@ void invalidMouse() {
 
 
 void __kMouseProc() {
+	char szout[256];
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	int * pos = (int*)&data->mintrData.status;
 	int counter = 0;
@@ -85,7 +86,12 @@ void __kMouseProc() {
 			break;
 		}
 
-		int md = inportb(0x60);
+		if ((status & 0x20) == 0) {
+			__printf(szout, "mouse data null\r\n");
+			return;
+		}
+
+		int md = inportbs(0x60);
 		*pos = md;
 		pos++;
 
@@ -125,15 +131,18 @@ void __kMouseProc() {
 		}
 	}
 	
+	//data->mintrData.y = data->mintrData.y & 0x7f;
+	//data->mintrData.x = data->mintrData.x & 0x7f;
+
 	if (data->mintrData.status & 0x20) {	//y = 1
-		
+		//data->mintrData.y = -(256-data->mintrData.y);
 	}
 	else{
-		//data->mintrData.y = -data->mintrData.y;
+		
 	}
 
 	if (data->mintrData.status & 0x10) {	//x = 1
-		//data->mintrData.x = -data->mintrData.x;
+		//data->mintrData.x = -(256 - data->mintrData.x);
 	}
 	else {
 
@@ -141,57 +150,61 @@ void __kMouseProc() {
 
 	data->mintrData.y = -data->mintrData.y;
 
-	if (data->mintrData.x || data->mintrData.y)
-	{
-		//if (gScreenProtectWindowID == 0)
+	if ((data->mintrData.status & 0x80) == 0 && (data->mintrData.status & 0x40) == 0) {
+
+		if (data->mintrData.x || data->mintrData.y)
 		{
-			__kRestoreMouse();
+			//if (gScreenProtectWindowID == 0)
+			{
+				__kRestoreMouse();
+			}
+
+			data->mouseX += data->mintrData.x;
+			if (data->mouseX >= gVideoWidth)
+			{
+				data->mouseX = gVideoWidth - 1;
+			}
+			else if (data->mouseX < 0)
+			{
+				data->mouseX = 0;
+			}
+
+			data->mouseY += data->mintrData.y;
+			if (data->mouseY >= gVideoHeight)
+			{
+				data->mouseY = gVideoHeight - 1;
+			}
+			else if (data->mouseY < 0)
+			{
+				data->mouseY = 0;
+			}
+
+			//if (gScreenProtectWindowID == 0) 
+			{
+				__kDrawMouse();
+			}
 		}
 
-		data->mouseX += data->mintrData.x;
-		if (data->mouseX >= gVideoWidth)
+		if (data->mintrData.status & 7)
 		{
-			data->mouseX = gVideoWidth-1;
-		}
-		else if (data->mouseX < 0)
-		{
-			data->mouseX = 0;
+			data->mouseBuf[data->mouseBufHdr].status = data->mintrData.status;
+			data->mouseBuf[data->mouseBufHdr].x = data->mouseX;
+			data->mouseBuf[data->mouseBufHdr].y = data->mouseY;
+
+			data->mouseBufHdr++;
+			if (data->mouseBufHdr >= MOUSE_POS_LIMIT)
+			{
+				data->mouseBufHdr = 0;
+			}
 		}
 
-		data->mouseY += data->mintrData.y;
-		if (data->mouseY >= gVideoHeight)
+		if (gMouseTest)
 		{
-			data->mouseY = gVideoHeight-1;
-		}
-		else if (data->mouseY < 0)
-		{
-			data->mouseY = 0;
-		}
-
-		//if (gScreenProtectWindowID == 0) 
-		{
-			__kDrawMouse();
+			mousetest();
 		}
 	}
-	
 
-	if (data->mintrData.status & 7)
-	{
-		data->mouseBuf[data->mouseBufHdr].status = data->mintrData.status;
-		data->mouseBuf[data->mouseBufHdr].x = data->mouseX;
-		data->mouseBuf[data->mouseBufHdr].y = data->mouseY;
 
-		data->mouseBufHdr++;
-		if (data->mouseBufHdr >= MOUSE_POS_LIMIT)
-		{
-			data->mouseBufHdr = 0;
-		}
-	}
-
-	if (gMouseTest)
-	{
-		mousetest();
-	}
 }
 
 
@@ -347,13 +360,14 @@ void __kRefreshMouseBackup() {
 
 void __initMouse(int x,int y) {
 
-	//setMouseRate(240);
+	enableMouse();
 
-	//gMouseID = getMouseID();
+	setMouseSampleRate(200);
+	setMouseResolution(3);
+
+	gMouseID = getMouseID();
 	char szout[1024];
 	__printf(szout, "keyboard id:%d,mouse id:%d\n", gKeyboardID, gMouseID);
-
-	enableMouse();
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->mouseX = x/2;

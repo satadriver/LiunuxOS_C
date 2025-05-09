@@ -52,7 +52,7 @@ int runcmd(char * cmd) {
 		__initVideo(glpVesaInfo, gFontBase);
 
 		enableMouse();
-		setMouseRate(200);
+		setMouseSampleRate(200);
 		/*
 		VesaSimpleInfo vsi[64];
 		res = getVideoMode(vsi);
