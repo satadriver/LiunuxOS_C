@@ -162,7 +162,7 @@ int isScancodeAsc(unsigned char c);
 
 #ifdef DLL_EXPORT
 
-extern "C" __declspec(dllexport)WORD gKeyboardID;
+extern "C" __declspec(dllexport)int gKeyboardID;
 
 extern "C"  __declspec(dllexport) DWORD gKbdTest;
 

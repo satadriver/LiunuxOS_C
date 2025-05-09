@@ -50,7 +50,7 @@ void mousetest();
 
 extern "C" void MouseIntProc();
 
-int getMouseID();
+
 
 
 int isGeometryBorder(int x, int y);

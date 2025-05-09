@@ -85,7 +85,7 @@ void __kMouseProc() {
 			break;
 		}
 
-		int md = inportbs(0x60);
+		int md = inportb(0x60);
 		*pos = md;
 		pos++;
 
@@ -342,41 +342,18 @@ void __kRefreshMouseBackup() {
 	}
 }
 
-int getMouseID() {
-	int mid = 0;
-	__asm {
-		call __wait8042Empty
-		mov al, 0xd4
-		out 64h, al
 
-		call __wait8042Empty
-		mov al, 0xf2
-		out 60h, al
-
-		//call waitPs2In
-		//mov al, 0x20
-		//out 64h, al
-
-		//call waitPs2Out
-
-		in al, 60h
-		movzx eax, al
-		mov mid, eax
-	}
-	return mid;
-}
 
 
 void __initMouse(int x,int y) {
 
-	enableMouse();
+	//setMouseRate(240);
 
-	gMouseID = getMouseID();
-
-	setMouseRate(200);
-
+	//gMouseID = getMouseID();
 	char szout[1024];
-	__printf(szout, "keyboard id:%x, mouse id:%d\n", gKeyboardID,gMouseID);
+	__printf(szout, "keyboard id:%d,mouse id:%d\n", gKeyboardID, gMouseID);
+
+	enableMouse();
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->mouseX = x/2;

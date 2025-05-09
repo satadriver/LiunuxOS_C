@@ -1,6 +1,12 @@
 #pragma once
 
+#define PS2_COMMAND_PORT	0x64
+#define PS2_DATA_PORT		0x60
 
+#define TIMER_COMMAND_REG	0X43
+
+#define CMOS_NUM_PORT		0X70
+#define CMOS_DATA_PORT		0X71
 
 void initDevices();
 void init8254();
@@ -34,6 +40,8 @@ void __wait8042Full();
 #define __waitPs2In __wait8042Empty
 
 void setMouseRate(int rate);
+
+int getMouseID();
 
 void disableMouse();
 

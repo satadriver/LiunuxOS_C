@@ -10,7 +10,7 @@
 
 DWORD gKbdTest = FALSE;
 
-WORD gKeyboardID = 0;
+int gKeyboardID = 0;
 
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
 unsigned char ScanCodesBuf[96] =

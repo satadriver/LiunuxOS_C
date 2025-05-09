@@ -6,13 +6,7 @@
 #include "keyboard.h"
 #include "serialUART.h"
 
-#define PS2_COMMAND_PORT	0x64
-#define PS2_DATA_PORT		0x60
 
-#define TIMER_COMMAND_REG	0X43
-
-#define CMOS_NUM_PORT		0X70
-#define CMOS_DATA_PORT		0X71
 
 
 
@@ -172,7 +166,7 @@ void initDevices() {
 	init8042();
 	initCMOS();
 	enableMouse();
-	setMouseRate(200);
+	//setMouseRate(200);
 	enableSpeaker();
 	getKeyboardID();
 	initSerial();
@@ -193,16 +187,94 @@ void initTextModeDevices() {
 	initSerial();
 }
 
+/*
+To enable the Intellimouse Z-axis extension, you have to set some magic into the sample rate:
 
-void setMouseRate(int rate) {
-	__wait8042Empty();
+set_mouse_rate(200);  // see the example above
+set_mouse_rate(100);
+set_mouse_rate(80);
+mouseid = identify(); // see Get Device ID, 0xF2
+*/
 
-	outportb(PS2_COMMAND_PORT, 0xf3);
-
-	__wait8042Empty();
-	outportb(PS2_DATA_PORT, rate);
+void enableMouseZAxis() {
+	setMouseRate(200);
+	setMouseRate(100);
+	setMouseRate(80);
+	getMouseID();
 }
 
+void setMouseRate(int rate) {
+	char szout[256];
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+	outportb(PS2_DATA_PORT, 0xf3);
+
+	int c1 = 0;
+	int c2 = 0;
+	__wait8042Full();
+	c1 = inportb(PS2_DATA_PORT);
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+
+	outportb(PS2_DATA_PORT, rate);
+
+	__wait8042Full();
+	c2 = inportb(PS2_DATA_PORT);
+
+	int result = (c1 << 8) + c2;
+	__printf(szout, "%s param:%d result:%d\r\n", __FUNCTION__,rate, result);
+}
+
+//https://www.cnblogs.com/LinKArftc/p/5735627.html
+//83ABh
+void getKeyboardID() {
+	int c = 0;
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, 0Xf2);
+
+	__wait8042Full();
+	char c1 = inportb(PS2_DATA_PORT);
+
+	__wait8042Full();
+	char c2 = inportb(PS2_DATA_PORT);
+
+	__wait8042Full();
+	unsigned char high = inportb(PS2_DATA_PORT);
+
+	__wait8042Full();
+	unsigned char low = inportb(PS2_DATA_PORT);
+
+	gKeyboardID = (high << 8) | low;
+
+	char szout[1024];
+	__printf(szout, "keyboardid:%x\r\n", gKeyboardID);
+}
+
+
+int getMouseID() {
+
+	int c = 0;
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, 0xf2);
+
+	int c1 = 0;
+	int c2 = 0;
+	__wait8042Full();
+	c1 = inportb(PS2_DATA_PORT);
+
+	//__wait8042Full();
+	//c2 = inportb(PS2_DATA_PORT);
+
+	return (c1 << 8) + c2;
+
+}
 
 
 void disableMouse() {
@@ -407,30 +479,6 @@ void init8042() {
 
 }
 
-//https://www.cnblogs.com/LinKArftc/p/5735627.html
-//83ABh
-void getKeyboardID() {
-
-	__wait8042Empty();
-	outportb(PS2_DATA_PORT, 0Xf2);
-
-	//__wait8042Full();
-	//unsigned char ack = inportw(PS2_DATA_PORT);
-
-	//__wait8042Empty();
-	//outportb(PS2_DATA_PORT, 0x20);
-
-	__wait8042Full();
-	unsigned char high = inportw(PS2_DATA_PORT);
-
-	__wait8042Full();
-	unsigned char low = inportw(PS2_DATA_PORT);
-
-	gKeyboardID = (high << 8) | low;
-
-	char szout[1024];
-	//__printf(szout, "keyboardid:%x\r\n", gKeyboardID);
-}
 
 //编程RTC时，禁用NMI和其它中断是“极其必要的”。 这是因为如果发生中断，RTC可能会处于 “未定义” (不工作) 状态。
 //这通常不是什么大事，但是有两个问题： RTC从不由BIOS初始化，它由电池备份。 因此，即使是冷重启也可能不足以使RTC脱离未定义的状态!
