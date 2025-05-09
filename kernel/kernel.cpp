@@ -77,6 +77,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initGdt();
 	initIDT();
+	SetIVTVector();
 
 	initDevices();
 
@@ -100,6 +101,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enablePCE();
 	enableMCE();
 	enableTSD();
+	//enableVMXE();
 
 	initDebugger();
 

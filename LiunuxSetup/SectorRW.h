@@ -151,7 +151,7 @@ typedef struct _NTFSDBR {
 #define SECTOR_SIZE					512
 #define DEVICENAME					"\\\\.\\PHYSICALDRIVE0"
 
-#define EMPTY_SECTOR_NEED			0x400
+#define EMPTY_SECTOR_NEED			0x800
 
 #define MBR_SIGNATURE               0xAA55
 

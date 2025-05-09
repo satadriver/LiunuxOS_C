@@ -27,7 +27,7 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 	if ((env->eflags & 0x20000) && prev->level == 3 && proc->level == 3) {
 		DWORD reip = (WORD)prev->tss.eip;
 		DWORD rcs = (WORD)prev->tss.cs;
-		WORD code = *(WORD*)((rcs << 4) + reip - 2);
+		WORD code = *(WORD*)((rcs << 4) + reip + 2);
 		WORD code2 = *(WORD*)((rcs << 4) + reip );
 		if (code == 0xfeeb && code2 == 0xfeeb) {
 
@@ -168,8 +168,13 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	WORD offset = (addr & 0x0f);
 
 	tss->sleep = 0;
-
+	tss->copyMap = 0;
 	tss->fpu = TRUE;
+#ifdef SINGLE_TASK_TSS
+	tss->tss.trap = 1;
+#else
+	tss->tss.trap = 0;
+#endif
 
 	tss->tss.esp0 = TASKS_STACK0_BASE + (pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;

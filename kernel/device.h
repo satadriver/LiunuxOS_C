@@ -19,7 +19,7 @@ void enablePVI();
 void enableTSD();
 
 void enableDE();
-
+void enableVMXE();
 void enableMCE();
 void enablePCE();
 

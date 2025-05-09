@@ -157,7 +157,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
 				if (thread) {
-					__kCreateProcess(VSMAINDLL_LOAD_ADDRESS, imageSize, "main.dll", "__kClock", 3, 0);
+					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kClock", 3, 0);
 				}
 			}
 			continue;

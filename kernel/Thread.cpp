@@ -84,7 +84,12 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	LPPROCESS_INFO tss = freetask.lptss;
 	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
-	
+	tss->copyMap = 0;
+#ifdef SINGLE_TASK_TSS
+	tss->tss.trap = 1;
+#else
+	tss->tss.trap = 0;
+#endif
 	tss->tss.cr3 = process->tss.cr3;
 	tss->heapbase = process->heapbase;
 	tss->heapsize = process->heapsize;

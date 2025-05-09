@@ -121,7 +121,7 @@ void initCoprocessor() {
 
 		mov eax, cr0
 		or eax, 0x10		//et = 1
-		or eax, 0x20		//ne = 1, trap but not interrupt IRQ13
+		or eax, 0x20		//ne = 1, trap 10h but not interrupt IRQ13
 		mov cr0, eax
 
 		//mov eax,cr4

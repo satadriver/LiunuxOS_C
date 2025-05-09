@@ -163,7 +163,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 		DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_bmp");
 
-		return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
+		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 		//return __kCreateProcess(MAIN_DLL_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 	}
 	else if (__memcmp(files->pathname + fnlen - 4, ".wav", 4) == 0)
@@ -177,7 +177,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	{
 		cmd.cmd = SHOW_WINDOW_TXT;
 
-		return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
+		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 
 		DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_txt");
@@ -186,7 +186,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	{
 		cmd.cmd = SHOW_WINDOW_JPEG;
 
-		return __kCreateProcess(VSMAINDLL_LOAD_ADDRESS, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
+		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 
 		DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_jpg");

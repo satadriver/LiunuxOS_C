@@ -102,12 +102,18 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	tss->pid = tid;
 	tss->tid = tid;
+#ifdef SINGLE_TASK_TSS
+	tss->tss.trap = 1;
+#else
 	tss->tss.trap = 0;
+#endif
+	
 	tss->tss.ldt = 0;
 	tss->fpu = TRUE;
 
 	DWORD syslevel = level & 3;
 	tss->level = syslevel;
+	tss->copyMap = 0;
 
 	DWORD eflags = 0x200202;	//if = 1,et = 1
 	if (syslevel)

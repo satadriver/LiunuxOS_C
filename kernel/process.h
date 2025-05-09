@@ -79,6 +79,7 @@ typedef struct
 	DWORD dr7;
 
 	char fpu;
+	char copyMap;
 
 	char filename[256];
 

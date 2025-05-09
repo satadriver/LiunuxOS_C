@@ -399,8 +399,26 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	//process->tss.ldt = ldtreg.addr;
 
 	
-	__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
-	__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
+	if (prev->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)prev, (char*)process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)prev + off, (char*)process + off, lsize);
+	}
+	else {
+		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+	}
+	if (process->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)process, (char*)next, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)process + off, (char*)next + off, lsize);
+	}
+	else {
+		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
+	}
 	
 	//tasktest();
 
@@ -513,6 +531,9 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		}
 
 		if (next == prev) {
+			if (prev->status == TASK_OVER) {
+				__printf(szout,"task switch error!\r\n");
+			}
 			return FALSE;
 		}
 
@@ -568,12 +589,13 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	}
 	process->tss.cr3 = dwcr3;
 
-	if (env->eflags & 0x20000) {
-		process->tss.gs = KERNEL_MODE_DATA;
-		process->tss.fs = KERNEL_MODE_DATA;
-		process->tss.ds = KERNEL_MODE_DATA;
-		process->tss.es = KERNEL_MODE_DATA;
-		process->tss.ss = KERNEL_MODE_DATA;
+	if (env->eflags & 0x20000) 
+	{
+		//process->tss.gs = KERNEL_MODE_DATA;
+		//process->tss.fs = KERNEL_MODE_DATA;
+		//process->tss.ds = KERNEL_MODE_DATA;
+		//process->tss.es = KERNEL_MODE_DATA;
+		//process->tss.ss = KERNEL_MODE_DATA;
 	}
 
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
@@ -583,9 +605,26 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
 
-
-	__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
-	__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
+	if (prev->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)prev, (char*)process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)prev+off, (char*)process+ off, lsize);
+	}
+	else {
+		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+	}
+	if (process->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)process, (char*)next, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO)  - off;
+		__memcpy((char*)process + off, (char*)next + off, lsize);
+	}
+	else {
+		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
+	}
 
 	if (process->tss.eflags & 0x20000) {
 	}
@@ -673,6 +712,25 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 	}
 }
 
+#define IVT_PROCESS_SEGMENT		0X500
+
+void SetIVTVector() {
+	DWORD addr = IVT_PROCESS_SEGMENT;				//from 0x500 to 0x7c00 is available memory address
+	DWORD vector = (addr << 4) + 0;
+	*(DWORD*)addr = 0xcf;			//iret opcode
+	DWORD* ivt = (DWORD*)0;		//dos int call
+	for (int seq = 0; seq < 0x100; seq++) {
+		if (seq >= 0x10 && seq < 0x20) {
+			continue;
+		}
+		else if (seq == 0x20 || seq == 0x21) {
+			continue;
+		}
+		else {
+			ivt[seq] = vector;
+		}
+	}
+}
 
 void initTaskSwitchTss() {
 
@@ -740,18 +798,6 @@ int __initTask0(char * videobase) {
 	*/
 
 	//__memset((char*)V86_TASKCONTROL_ADDRESS, 0, LIMIT_V86_PROC_COUNT*12);
-
-	/*
-	DWORD addr = 0x500;		//from 0x500 to 0x7c00 is available memory address
-	*(DWORD*)addr = 0xcf;	//iret opcode
-	DWORD* vector = (DWORD * )(0x20*4);		//dos int call
-	for (int i = 0x20; i < 0x100; i++) {
-		WORD* v = (WORD*)vector;
-		*v = 0;
-		*(v + 1) = (0x500 >> 4);
-		vector++;
-	}
-	*/
 
 	return 0;
 }

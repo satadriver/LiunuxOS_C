@@ -23,6 +23,10 @@
 //cr4
 //https://www.cnblogs.com/ck1020/p/6115200.html
 
+//硬件使用 VIF 和 VIP 来管理 VM86 模式下的中断：
+//VIF 替代 IF 控制虚拟中断的允许 / 禁止。
+//VIP 标记挂起的中断，触发操作系统介入。
+//VM86 程序执行 STI 指令 → 硬件置 VIP=1（而非直接允许中断）。操作系统检测到 VIP = 1 → 模拟中断处理 → 完成后清 VIP 并可能置 VIF = 1。
 void enableVME() {
 	__asm {
 		//mov eax,cr4
@@ -39,6 +43,13 @@ void enableVME() {
 	}
 }
 
+
+//CR4.PVI（Protected-mode Virtual Interrupts） 是 x86 架构中 CR4 寄存器 的一个标志位（位 1），
+//用于在 保护模式（Protected Mode） 下为 特权级 3（用户态） 的任务提供 硬件虚拟中断支持。
+//它的作用与 CR4.VME（Virtual 8086 Mode Extensions）类似，但针对的是保护模式（而非虚拟 8086 模式）。
+//允许在 CPL = 3（用户态） 的任务中，使用 硬件虚拟中断机制（类似 EFLAGS.VIF / VIP 在 VM86 模式的作用）。
+//当用户态程序执行 STI（允许中断）或 CLI（禁止中断）时，不会直接修改 EFLAGS.IF（真实的中断允许标志），而是修改 EFLAGS.VIF（虚拟中断标志）。
+//如果中断发生时 VIF = 0（虚拟中断禁止），CPU 会设置 EFLAGS.VIP = 1（虚拟中断挂起），并触发 #GP（General Protection Fault）异常，由操作系统处理。
 void enablePVI() {
 	__asm {
 		//mov eax, cr4
@@ -55,7 +66,7 @@ void enablePVI() {
 	}
 }
 
-
+//TSD=0：所有特权级均可执行 RDTSC。TSD = 1：仅内核态（CPL = 0）可执行。
 void enableTSD() {
 	__asm {
 		//mov eax, cr4
@@ -121,7 +132,21 @@ void enablePCE() {
 	}
 }
 	
+void enableVMXE() {
+	__asm {
+		//mov eax,cr4
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
 
+		or eax,0x2000
+
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
+		//mov cr4 ,eax
+	}
+}
 
 void __wait8042Full() {
 	unsigned char status = 0;

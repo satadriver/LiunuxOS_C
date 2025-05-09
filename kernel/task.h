@@ -44,7 +44,7 @@ typedef struct {
 
 #pragma pack()
 
-#define DOS_TASK_OVER			0X20000000
+
 #define DOS_PROCESS_RUNCODE		0X80000000
 
 #define TASK_OVER				0
@@ -62,6 +62,8 @@ void tasktest();
 //TASK_LIST_ENTRY* removeTaskList(int tid);
 
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
+
+void SetIVTVector();
 
 int __initTask0(char * videobase);
 

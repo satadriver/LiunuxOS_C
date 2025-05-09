@@ -45,7 +45,7 @@
 
 //#define SINGLE_TASK_TSS
 
-//#define VM86_PROCESS_TASK
+#define VM86_PROCESS_TASK
 
 //#define DISABLE_PAGE_MAPPING
 
@@ -345,6 +345,9 @@ typedef struct {
 	unsigned char	iomapEnd;			//104 + 32 + 8192
 
 } TSS, * LPTSS;
+
+//VM86 I/O Permission Bitmap（VM86 I/O 权限位图）或 Interrupt Redirection Bitmap（中断重定向位图）。
+//位 = 0：允许 VM86 程序直接执行 INT n，硬件从 IVT 加载中断处理程序。位 = 1：拦截 INT n，触发 #GP 异常，由操作系统接管（模拟或拒绝）。
 
 #pragma pack(pop)
 
