@@ -110,7 +110,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	BPCodeStart();
 
 	__asm {
-		//in al, 0x60
 		sti
 	}
 
@@ -146,11 +145,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__printf(szout, "Hello world of Liunux!\r\nPress any key to continue...\r\n");
 
 	WINDOWCLASS window;
-
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
 	while (1) 
-	//for(int i = 0;i < 0x100;i ++)
 	{
 		int ck = __kGetKbd(window.id)&0xff;
 		if (ck==0x1b ) {
@@ -159,15 +156,18 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__sleep(0);
 	}
 
+	if (__findProcessFuncName("__kExplorer") == FALSE)
+	{
+		//__printf(szout, "__kCreateProcess __kExplorer before\r\n");
+		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
+		//__printf(szout, "__kCreateProcess __kExplorer end\r\n");
+	}
+
+	//AllocateAP(INTR_8259_MASTER + 1);
+	//AllocateAP(INTR_8259_SLAVE + 4);
+
 	while (1)
 	{
-		if (__findProcessFuncName("__kExplorer") == FALSE)
-		{
-			//__printf(szout, "__kCreateProcess __kExplorer before\r\n");
-			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
-			//__printf(szout, "__kCreateProcess __kExplorer end\r\n");
-		}
-
 		__asm {
 			hlt
 		}

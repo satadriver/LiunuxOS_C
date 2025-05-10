@@ -10,6 +10,13 @@
 #include "cmosExactTimer.h"
 #include "cmosPeriodTimer.h"
 #include "core.h"
+#include "device.h"
+#include "coprocessor.h"
+
+
+int gAllocateAp = 0;
+
+unsigned long g_allocate_ap_lock = 0;
 
 #define APIC_CORE_MAX_COUNT	64
 
@@ -352,7 +359,7 @@ extern "C" void __declspec(dllexport) __kApInitProc_old() {
 	idtbase.addr = IDT_BASE;
 
 	initKernelTss((TSS*)AP_TSS_BASE + 0x4000*g_ApNumber, AP_STACK0_BASE + TASK_STACK0_SIZE* (g_ApNumber+1) - STACK_TOP_DUMMY,
-		TASKS_AP_STACK_BASE + KTASK_STACK_SIZE*(g_ApNumber + 1)- STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
+		AP_KSTACK_BASE + KTASK_STACK_SIZE*(g_ApNumber + 1)- STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor(AP_TSS_BASE + 0x4000 * g_ApNumber, 3, sizeof(TSS) - 1, 
 		(TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + sizeof(TssDescriptor) * g_ApNumber));
 
@@ -466,44 +473,75 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 //https://www.zhihu.com/question/594531181/answer/2982337869
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
+	__asm {
+		cli
+	}
+
 	char szout[1024];
-	__printf(szout, "__kApInitProc start\r\n");
+
+	__enterSpinlock(&g_allocate_ap_lock);
+	int id = *(DWORD*)0xFEE00020;
+	id = id >> 24;
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	int* apids = (int*)AP_ID_ADDRESS;
+	apids[seq] = id;
+	*(int*)AP_TOTAL_ADDRESS = seq + 1;
+	__leaveSpinlock(&g_allocate_ap_lock);
+
+	__printf(szout, "AP:%d %s entry\r\n", id,__FUNCTION__);
+
+	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff;
+	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
+		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
+
+	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1,(TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR ));
 
 	DescriptTableReg gdtbase;
 	__asm {
-		cli
-
 		sgdt gdtbase
 	}
 
 	gdtbase.addr = GDT_BASE;
-	//gdtbase.size = 0x7f;
+	gdtbase.size  +=  sizeof(TssDescriptor);
 
 	__asm {
 		//do not use lgdt lpgdt,why?
 		lgdt gdtbase
 
+		mov ax, AP_TSS_DESCRIPTOR
+		ltr ax
+
 		mov eax, PDE_ENTRY_VALUE
 		mov cr3, eax
-	}
 
-
-	__asm {
 		mov eax, cr0
 		or eax, 0x80000000
-		mov cr0, eax
-		
+		mov cr0, eax	
 	}
-	int id = *(DWORD*) 0xFEE00020;
-	id = id >> 24;
 
-	int seq = *(int*)AP_TOTAL_ADDRESS;
-	int* apids = (int*)AP_ID_ADDRESS;
-	apids[seq] = id;
-	seq++;
-	*(int*)AP_TOTAL_ADDRESS = seq;
+	DescriptTableReg idtbase;
+	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
+	idtbase.addr = IDT_BASE;
+	__asm {
+		//不要使用 lidt lpidt,why?
+		lidt idtbase
+	}
 
-	__printf(szout, "AP id:%d ready\r\n", id);
+	initCoprocessor();
+
+	enableVME();
+	enablePCE();
+	enableMCE();
+	enableTSD();
+
+	DWORD v = *(DWORD*)0xFEE000F0;
+	v = v | 0x100;
+	*(DWORD*)0xFEE000F0 = v;
+	//enableLocalApic();
+
+	//enableIoApic();
+
+	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
 
 	__asm{sti}
 
@@ -515,9 +553,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 }
 
-int gAllocateAp = 0;
 
-unsigned long g_allocate_ap_lock = 0;
 
 int AllocateAP(int vn) {
 
@@ -563,7 +599,6 @@ void BPCodeStart() {
 
 	*(int*)AP_TOTAL_ADDRESS = 0;
 
-
 	DWORD v = *(DWORD*)0xFEE000F0;
 	v = v | 0x100;
 	*(DWORD*)0xFEE000F0 = v;
@@ -571,14 +606,14 @@ void BPCodeStart() {
 	v = 0xc4500;
 	*(DWORD*)0xFEE00300 = v;
 
-	for (int i = 0; i < 0x100000; i++) {
+	for (int i = 0; i < 0x10000; i++) {
 		;
 	}
 
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)0xFEE00300 = v;
 
-	for (int i = 0; i < 0x100000; i++) {
+	for (int i = 0; i < 0x10000; i++) {
 		;
 	}
 
