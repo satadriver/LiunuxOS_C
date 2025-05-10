@@ -34,7 +34,9 @@ void mousetest() {
 	{
 		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel + (gVideoWidth/2)*gBytesPerPixel;
 
-		__sprintf(szout, "mouse X:%x,mouse Y:%x,status:%x                ", mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
+		int id = *(DWORD*)0xFEE00020 >> 24;
+
+		__sprintf(szout, "cpu:%d,mouse X:%x,mouse Y:%x,status:%x                ", id,mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
 		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 	}
 }

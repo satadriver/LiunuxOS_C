@@ -158,13 +158,13 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	if (__findProcessFuncName("__kExplorer") == FALSE)
 	{
-		//__printf(szout, "__kCreateProcess __kExplorer before\r\n");
 		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
-		//__printf(szout, "__kCreateProcess __kExplorer end\r\n");
 	}
 
-	//AllocateAP(INTR_8259_MASTER + 1);
-	//AllocateAP(INTR_8259_SLAVE + 4);
+	__sleep(1000);
+
+	AllocateAP(INTR_8259_MASTER + 1);
+	AllocateAP(INTR_8259_SLAVE + 4);
 
 	while (1)
 	{

@@ -599,6 +599,10 @@ void BPCodeStart() {
 
 	*(int*)AP_TOTAL_ADDRESS = 0;
 
+	int id = *(DWORD*)0xFEE00020 >>24;
+	char szout[256];
+	__printf(szout, "bp id:%d\r\n", id);
+
 	DWORD v = *(DWORD*)0xFEE000F0;
 	v = v | 0x100;
 	*(DWORD*)0xFEE000F0 = v;
