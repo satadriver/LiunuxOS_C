@@ -12,7 +12,7 @@
 #include "device.h"
 
 
- DWORD gMouseTest = 0;
+ DWORD gMouseTest = 1;
 
 DWORD gMouseID = 0;
 
@@ -20,7 +20,8 @@ DWORD gMouseColor =	MOUSE_SHOW_COLOR;
 
 #define MOUSE_FACTOR_SIZE	30
 
-//MOUSEINFO g_mouse_info = { 0 };
+//1. many mouse command has no response 0xfa
+//2. mouse packet process?
 
 
 void mousetest() {
@@ -28,12 +29,12 @@ void mousetest() {
 	char szout[1024];
 	MOUSEINFO mouseinfo;
 	__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
-	unsigned int ret = __kGetMouse(&mouseinfo,gMouseTest);
+	unsigned int ret = GetMousePacket(&mouseinfo);
 	if (ret)
 	{
 		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel + (gVideoWidth/2)*gBytesPerPixel;
 
-		__sprintf(szout, "mouse x:%x,mouse y:%x,status:%x\n", mouseinfo.x,mouseinfo.y,mouseinfo.status);
+		__sprintf(szout, "mouse X:%x,mouse Y:%x,status:%x                ", mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
 		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 	}
 }
@@ -96,9 +97,19 @@ void __kMouseProc() {
 		pos++;
 
 		counter++;
-		if (gMouseID)
+		if (gMouseID ==3 || gMouseID==4)
 		{
 			if (counter >= 4)
+			{
+				break;
+			}
+			else {
+				continue;
+			}
+		}
+		if (gMouseID ==0x81)
+		{
+			if (counter >= 5)
 			{
 				break;
 			}
@@ -121,44 +132,42 @@ void __kMouseProc() {
 	{
 		if (counter != 4)
 		{
-			return;
+			//return;
 		}
 	}
 	else {
 		if (counter != 3)
 		{
-			return;
+			//return;
 		}
 	}
 	
 	//data->mintrData.y = data->mintrData.y & 0x7f;
 	//data->mintrData.x = data->mintrData.x & 0x7f;
 
+	data->mintrData.y = -data->mintrData.y;
+
 	if (data->mintrData.status & 0x20) {	//y = 1
-		//data->mintrData.y = -(256-data->mintrData.y);
+		//data->mintrData.y = -data->mintrData.y;
 	}
 	else{
 		
 	}
 
 	if (data->mintrData.status & 0x10) {	//x = 1
-		//data->mintrData.x = -(256 - data->mintrData.x);
+		//data->mintrData.x =  - data->mintrData.x;
 	}
 	else {
 
 	}
 
-	data->mintrData.y = -data->mintrData.y;
-
 	if ((data->mintrData.status & 0x80) == 0 && (data->mintrData.status & 0x40) == 0) {
 
 		if (data->mintrData.x || data->mintrData.y)
 		{
-			//if (gScreenProtectWindowID == 0)
-			{
-				__kRestoreMouse();
-			}
 
+			__kRestoreMouse();
+			
 			data->mouseX += data->mintrData.x;
 			if (data->mouseX >= gVideoWidth)
 			{
@@ -178,11 +187,7 @@ void __kMouseProc() {
 			{
 				data->mouseY = 0;
 			}
-
-			//if (gScreenProtectWindowID == 0) 
-			{
-				__kDrawMouse();
-			}
+			__kDrawMouse();	
 		}
 
 		if (data->mintrData.status & 7)
@@ -198,13 +203,11 @@ void __kMouseProc() {
 			}
 		}
 
-		if (gMouseTest)
-		{
-			mousetest();
-		}
 	}
-
-
+	if (gMouseTest)
+	{
+		mousetest();
+	}
 }
 
 
@@ -361,13 +364,13 @@ void __kRefreshMouseBackup() {
 void __initMouse(int x,int y) {
 
 	enableMouse();
-
+	setMouseScale();
 	setMouseSampleRate(200);
 	setMouseResolution(3);
 
 	gMouseID = getMouseID();
 	char szout[1024];
-	__printf(szout, "keyboard id:%d,mouse id:%d\n", gKeyboardID, gMouseID);
+	__printf(szout, "keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->mouseX = x/2;
@@ -411,12 +414,13 @@ void insertMouse(MOUSEINFO * info) {
 	__kDrawMouse();
 }
 
-int GetMouseInfo(LPMOUSEINFO lpmouse) {
+int GetMousePacket(LPMOUSEINFO lpmouse) {
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	lpmouse->status = data->mintrData.status;
-	lpmouse->x = data->mouseX;
-	lpmouse->y = data->mouseY;
-	return 0;
+	lpmouse->x = data->mintrData.x;
+	lpmouse->y = data->mintrData.y;
+	lpmouse->z = data->mintrData.z;
+	return 1;
 }
 
 int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {

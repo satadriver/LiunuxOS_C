@@ -24,6 +24,7 @@ typedef struct
 	int x;
 	int y;
 	int z;
+	int scroll;
 }MOUSEINFO, *LPMOUSEINFO;
 
 typedef struct {
@@ -69,7 +70,7 @@ extern "C"  __declspec(dllexport) void restoreMouse();
 
 extern "C"  __declspec(dllexport) void __kMouseProc();
 
-extern "C"  __declspec(dllexport) int GetMouseInfo(LPMOUSEINFO lpmouse);
+extern "C"  __declspec(dllexport) int GetMousePacket(LPMOUSEINFO lpmouse);
 
 extern "C"  __declspec(dllexport) int __kGetMouse(LPMOUSEINFO lpmouse, int wid);
 
@@ -91,7 +92,7 @@ extern "C"  __declspec(dllimport) void restoreMouse();
 extern "C"  __declspec(dllimport) void drawMouse();
 
 extern "C"  __declspec(dllimport) void __kMouseProc();
-extern "C"  __declspec(dllimport) int GetMouseInfo(LPMOUSEINFO lpmouse);
+extern "C"  __declspec(dllimport) int GetMousePacket(LPMOUSEINFO lpmouse);
 extern "C"  __declspec(dllimport) int __kGetMouse(LPMOUSEINFO lpmouse, int wid);
 extern "C"  __declspec(dllimport) void __kRefreshMouseBackup();
 extern "C"  __declspec(dllimport) void __kRestoreMouse();

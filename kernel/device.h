@@ -45,6 +45,7 @@ void __wait8042Full();
 
 void setMouseSampleRate(int rate);
 void setMouseResolution(int res);
+void setMouseScale();
 
 
 void insert8042Key(char key);

@@ -456,9 +456,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
-int g_ap_count = 0;
+//int g_ap_count = 0;
 
-int g_ap_ids[256] = { 0 };
+//int g_ap_ids[256] = { 0 };
 
 //https://blog.csdn.net/weixin_46645613/article/details/120406002
 //https://zhuanlan.zhihu.com/p/406213995
@@ -497,8 +497,11 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	int id = *(DWORD*) 0xFEE00020;
 	id = id >> 24;
 
-	g_ap_ids[g_ap_count] = id;
-	g_ap_count++;
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	int* apids = (int*)AP_ID_ADDRESS;
+	apids[seq] = id;
+	seq++;
+	*(int*)AP_TOTAL_ADDRESS = seq;
 
 	__printf(szout, "AP id:%d ready\r\n", id);
 
@@ -512,11 +515,54 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 }
 
+int gAllocateAp = 0;
 
+unsigned long g_allocate_ap_lock = 0;
+
+int AllocateAP(int vn) {
+
+	int total = *(int*)(AP_TOTAL_ADDRESS);
+	int* ids = (int*)AP_ID_ADDRESS;
+	if (total > 0) {
+		__enterSpinlock(&g_allocate_ap_lock);
+
+		while (true)
+		{
+			int value = *(DWORD*)0xFEE00300;
+			if (value & 0x1000) {
+				__sleep(0);
+			}
+			else {
+				break;
+			}
+		}
+
+
+		int id = ids[gAllocateAp]<<24;
+		*(DWORD*)0xFEE00310 = id;
+			
+		int v = 0x4000|vn;
+		*(DWORD*)0xFEE00300 = v;
+
+		gAllocateAp++;
+		if (gAllocateAp >= total) {
+			gAllocateAp = 0;
+		}
+
+		__leaveSpinlock(&g_allocate_ap_lock);
+		return TRUE;
+		
+	}
+
+	return 0;
+}
 
 
 
 void BPCodeStart() {
+
+	*(int*)AP_TOTAL_ADDRESS = 0;
+
 
 	DWORD v = *(DWORD*)0xFEE000F0;
 	v = v | 0x100;

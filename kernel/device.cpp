@@ -235,7 +235,6 @@ void insert8042Mouse(LPMOUSEINFO mouse) {
 }
 
 void setMouseResolution(int res) {
-	char szout[256];
 
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
@@ -243,27 +242,29 @@ void setMouseResolution(int res) {
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, 0xe8);
 
-	int c1 = 0;
-	int c2 = 0;
-	//__wait8042Full();
-	//c1 = inportb(PS2_DATA_PORT);
-
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
 
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, res);
-
-	//__wait8042Full();
-	//c2 = inportb(PS2_DATA_PORT);
-
-	int result = (c1 << 8) + c2;
-	__printf(szout, "%s param:%d result:%d\r\n", __FUNCTION__, res, result);
 }
 
 
+
+void setMouseScale() {
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, 0xe6);
+}
+
+
+
+
+
+
 void setMouseSampleRate(int rate) {
-	char szout[256];
 
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
@@ -271,22 +272,12 @@ void setMouseSampleRate(int rate) {
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, 0xf3);
 
-	int c1 = 0;
-	int c2 = 0;
-	//__wait8042Full();
-	//c1 = inportb(PS2_DATA_PORT);
-
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
 
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, rate);
 
-	//__wait8042Full();
-	//c2 = inportb(PS2_DATA_PORT);
-
-	int result = (c1 << 8) + c2;
-	__printf(szout, "%s param:%d result:%d\r\n", __FUNCTION__,rate, result);
 }
 
 //https://www.cnblogs.com/LinKArftc/p/5735627.html
@@ -327,14 +318,10 @@ int getMouseID() {
 	outportb(PS2_DATA_PORT, 0xf2);
 
 	int c1 = 0;
-	int c2 = 0;
 	//__wait8042Full();
 	c1 = inportb(PS2_DATA_PORT);
 
-	//__wait8042Full();
-	//c2 = inportb(PS2_DATA_PORT);
-
-	return (c1 << 8) + c2;
+	return c1 ;
 
 }
 
