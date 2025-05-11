@@ -47,7 +47,7 @@
 #include "TrajectoryBall.h"
 #include "CubeVector.h"
 
-#define EXPLORER_TASKNAME			"__kExplorer"
+
 
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
@@ -86,8 +86,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
-	//__MyTestTask(0, 0, 0, 0, 0);
-	//displayCCPoem();
+	__MyTestTask(0, 0, 0, 0, 0);
+	displayCCPoem();
 
 	while (1)
 	{
@@ -236,8 +236,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		ret = __kGetMouse(&mouseinfo, window.id);
 		if (mouseinfo.status & 1)	//left click
 		{
-			__printf(szout, "mouse left click,x:%d,y:%d,computer left:%d,right:%d,top:%d,bottom:%d\r\n",mouseinfo.x,mouseinfo.y, computer.pos.x,
-				computer.pos.x + computer.frameSize + computer.width, computer.pos.y, computer.pos.y + computer.height + computer.frameSize);
+			//__printf(szout, "mouse left click,x:%d,y:%d,computer left:%d,right:%d,top:%d,bottom:%d\r\n",mouseinfo.x,mouseinfo.y, computer.pos.x,
+			//	computer.pos.x + computer.frameSize + computer.width, computer.pos.y, computer.pos.y + computer.height + computer.frameSize);
 
 			if (menu.status)
 			{
@@ -346,7 +346,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		}
 		else if (mouseinfo.status & 2)	//right click
 		{
-			__printf(szout, "mouse right click\r\n");
+			//__printf(szout, "mouse right click\r\n");
 
 			if (mouseinfo.x > gVideoWidth - TASKBAR_HEIGHT && mouseinfo.x < gVideoWidth && 
 				mouseinfo.y > gVideoHeight - TASKBAR_HEIGHT && mouseinfo.y < gVideoHeight){

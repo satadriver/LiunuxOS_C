@@ -77,7 +77,7 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 
 	enableOverflow();
 
-	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL, (DWORD)__doAlarmTask, 0);
+	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL*5, (DWORD)__doAlarmTask, 0);
 
 	sysEntryProc();
 

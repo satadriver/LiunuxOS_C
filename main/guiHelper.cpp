@@ -153,11 +153,11 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->cursorColor = ~window->color;
 
 	window->minBuf = 0;
-
-	window->id = addWindow((DWORD)window, window->winname);
+	
 	if (show) {
 		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 	}
+	window->id = addWindow((WINDOWCLASS*)window, window->winname);
 
 	window->prev = 0;
 	window->next = 0;

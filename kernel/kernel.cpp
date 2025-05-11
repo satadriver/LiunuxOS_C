@@ -85,7 +85,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initPaging();
 
-	initDll();
+	
 
 	initEfer();
 
@@ -109,6 +109,14 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	BPCodeStart();
 
+	ret = StartVirtualTechnology();
+	if (ret)
+	{
+		StopVirtualTechnology();
+	}
+
+	initDll();
+
 	__asm {
 		sti
 	}
@@ -118,12 +126,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #else
 
 #endif
-
-	ret = StartVirtualTechnology();
-	if (ret) 
-	{
-		StopVirtualTechnology();
-	}
 	
 	initFileSystem();
 
@@ -156,9 +158,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__sleep(0);
 	}
 
-	if (__findProcessFuncName("__kExplorer") == FALSE)
+	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
-		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kExplorer", 3, 0);
+		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
 	__sleep(1000);

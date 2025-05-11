@@ -10,7 +10,7 @@
 
 
 
-LPWINDOWSINFO gWindowsList = 0;
+extern "C" __declspec(dllexport)LPWINDOWSINFO gWindowsList = 0;
 
 
 extern "C" __declspec(dllexport) POPUPMENU gPopupMenu = { 0 };
@@ -20,6 +20,7 @@ unsigned long g_window_lock = 0;
 
 void initWindowList() {
 	gWindowsList = (LPWINDOWSINFO)__kMalloc(WINDOW_LIST_BUF_SIZE);
+	//gWindowsList = (LPWINDOWSINFO)WINDOW_INFO_BASE;
 	__memset((char*)gWindowsList, 0, WINDOW_LIST_BUF_SIZE);
 
 	initListEntry((LPLIST_ENTRY)&gWindowsList->list);
@@ -114,6 +115,33 @@ int getFreeWindow() {
 	return 0;
 }
 
+int traversalWindow(char* outbuf) {
+	char* buf = outbuf;
+	int size = 0;
+	if (gWindowsList == 0) {
+		return 0;
+	}
+	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
+	LPWINDOWSINFO tmp = info;
+	do
+	{
+		if (info == 0) {
+			break;
+		}
+		if (info->valid )
+		{
+	
+
+			int len = __printf(buf+size, "%s window id:%d,name:%s\r\n",__FUNCTION__, info->window->id, info->window->winname);
+			size += len;
+		}
+		else {
+			info = (LPWINDOWSINFO)(info->list.next);
+		}
+	} while (info && info != tmp);
+
+	return size;
+}
 
 
 char* GetVideoBase() {
@@ -178,19 +206,24 @@ LPWINDOWSINFO getTopWindow() {
 }
 
 
-int addWindow(DWORD lpwindow,  char * wname) {
+int addWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 	char szout[1024];
+
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	int tid = proc->tid;
+	WINDOWCLASS* lpwindow = (WINDOWCLASS*)linear2phyByPid((unsigned long)ptrwindow, tid);
 
 	LPWINDOWSINFO window = __FindWindow(wname);
 	if (window)
 	{
+		__printf(szout, "%s error id:%d name:%s\n", __FUNCTION__, window->window->id, window->window->winname);
 		return FALSE;
 	}
 
 	int seq = getFreeWindow();
 	if (seq == FALSE)
 	{
-		__printf(szout, "getFreeWindow error,first:%x,last:%x\n", gWindowsList->list.next, gWindowsList->list.prev);
+		__printf(szout, "%s getFreeWindow error id:%d name:%s\n", __FUNCTION__, lpwindow->id, lpwindow->winname);
 		return 0;
 	}
 
@@ -220,11 +253,13 @@ int removeWindow(int id) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
+	char szout[1024];
+	
 	LPWINDOWSINFO window = & gWindowsList [ id];
 	if (window->valid) {
 
 		__enterLock(&g_window_lock);
-
+		__printf(szout, "%s id:%x,name:%s\r\n", __FUNCTION__, window->window->id, window->window->winname);
 		window->valid = FALSE;
 		window->window = 0;
 
@@ -232,8 +267,7 @@ int removeWindow(int id) {
 
 		__leaveLock(&g_window_lock);
 	}
-	char szout[1024];
-	__printf(szout, "%s id:%x,name:%s\r\n",__FUNCTION__, window->window->id, window->window->winname);
+
 	return TRUE;
 }
 
@@ -292,7 +326,7 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	deletePopupItem(window);
 
 	//make to be top window
-	window->id = addWindow((unsigned long)window, window->winname);
+	window->id = addWindow((WINDOWCLASS*)window, window->winname);
 
 	__asm{sti}
 
