@@ -47,7 +47,7 @@ void setMouseSampleRate(int rate);
 void setMouseResolution(int res);
 void setMouseScale();
 
-
+void enableMouseZAxis();
 void insert8042Key(char key);
 
 void insert8042Mouse(LPMOUSEINFO mouse);

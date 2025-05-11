@@ -200,7 +200,7 @@ void enableMouseZAxis() {
 	setMouseSampleRate(200);
 	setMouseSampleRate(100);
 	setMouseSampleRate(80);
-	getMouseID();
+	gMouseID = getMouseID();
 }
 
 

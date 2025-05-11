@@ -370,9 +370,12 @@ void __initMouse(int x,int y) {
 	setMouseSampleRate(200);
 	setMouseResolution(3);
 
+	//enableMouseZAxis();
+
 	gMouseID = getMouseID();
 	char szout[1024];
 	__printf(szout, "keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
+	gMouseID = 0;
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->mouseX = x/2;

@@ -34,12 +34,25 @@ int g_IoApicID[APIC_CORE_MAX_COUNT];
 
 
 void enableRcba() {
+	outportd(0xcf8, 0x8000f8f0);
+
+	gRcbaBase = (DWORD*)(inportd(0xcfc) & 0xffffc000);
 	*gRcbaBase = *gRcbaBase | 1;
 }
 
 void enableFerr() {
+	outportd(0xcf8, 0x8000f8f0);
 
-	*gOicBase = *gOicBase | 0x200;
+	gRcbaBase = (DWORD*)(inportd(0xcfc) & 0xffffc000);
+
+	gOicBase = (DWORD*)((DWORD)gRcbaBase + 0x31fe);
+
+	DWORD v = *gOicBase;
+
+	v = (v & 0xffffff00) | 0x200;
+
+	*gOicBase = v;
+
 }
 
 void iomfence() {
@@ -50,20 +63,20 @@ void iomfence() {
 
 void setIoApicID(int id) {
 	iomfence();
-	*(DWORD*)(0xfee00000) = 0;
+	*(DWORD*)(0xfec00000) = 0;
 	iomfence();
-	*(DWORD*)(0xfee00010) = (id & 0x0f) << 24 ;
+	*(DWORD*)(0xfec00010) = (id & 0x0ff) << 24 ;
 
 }
 
-void setIoRedirect(int id,int idx,int vector,int mode) {
-	*(DWORD*)(0xfee00000) = idx ;
+void setIoRedirect(int idx,int id,int vector,int mode) {
+	*(DWORD*)(0xfec00000) = idx ;
 	iomfence();
-	*(DWORD*)(0xfee00010) = vector + ( mode << 8);
+	*(DWORD*)(0xfec00010) = vector + ( mode << 8);
 	iomfence();
-	*(DWORD*)(0xfee00000) = idx + 1;
+	*(DWORD*)(0xfec00000) = idx +1;
 	iomfence();
-	*(DWORD*)(0xfee00010) = ((id & 0x0f) << 24) ;
+	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24) ;
 }
 
 
@@ -76,7 +89,7 @@ void enableIoApic() {
 	gOicBase = (DWORD*)((DWORD)gRcbaBase + 0x31fe);
 
 	DWORD v = *gOicBase;
-
+	
 	v = (v & 0xffffff00) | 0x100;
 
 	*gOicBase = v;
@@ -537,9 +550,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	DWORD v = *(DWORD*)0xFEE000F0;
 	v = v | 0x100;
 	*(DWORD*)0xFEE000F0 = v;
-	//enableLocalApic();
-
-	//enableIoApic();
 
 	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
 
@@ -560,6 +570,8 @@ int AllocateAP(int vn) {
 	int total = *(int*)(AP_TOTAL_ADDRESS);
 	int* ids = (int*)AP_ID_ADDRESS;
 	if (total > 0) {
+
+		
 		__enterSpinlock(&g_allocate_ap_lock);
 
 		while (true)
@@ -579,6 +591,7 @@ int AllocateAP(int vn) {
 			
 		int v = 0x4000|vn;
 		*(DWORD*)0xFEE00300 = v;
+		
 
 		gAllocateAp++;
 		if (gAllocateAp >= total) {
@@ -586,7 +599,7 @@ int AllocateAP(int vn) {
 		}
 
 		__leaveSpinlock(&g_allocate_ap_lock);
-		return TRUE;
+		return gAllocateAp;
 		
 	}
 
@@ -599,9 +612,11 @@ void BPCodeStart() {
 
 	*(int*)AP_TOTAL_ADDRESS = 0;
 
-	int id = *(DWORD*)0xFEE00020 >>24;
+	//enableLocalApic();
+
+	int bpid = *(DWORD*)0xFEE00020 >>24;
 	char szout[256];
-	__printf(szout, "bp id:%d\r\n", id);
+	__printf(szout, "bp id:%d\r\n", bpid);
 
 	DWORD v = *(DWORD*)0xFEE000F0;
 	v = v | 0x100;
@@ -610,19 +625,45 @@ void BPCodeStart() {
 	v = 0xc4500;
 	*(DWORD*)0xFEE00300 = v;
 
-	for (int i = 0; i < 0x10000; i++) {
-		;
+	__int64 tmp = 0;
+	for (int i = 0; i < 0x100000; i++) {
+		tmp += i;
 	}
 
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)0xFEE00300 = v;
 
-	for (int i = 0; i < 0x10000; i++) {
-		;
+	tmp = 1;
+	for (int i = 0; i < 0x100000; i++) {
+		tmp = tmp *i;
 	}
+	//return;
 
-	while (1) {
-		break;
+	int c = *(int*)AP_TOTAL_ADDRESS;
+	if (c > 0) {
+		enableIoApic();
+
+		int* ids = (int*)AP_ID_ADDRESS;
+		int id = ids[0];
+		setIoRedirect(0x12, id, INTR_8259_MASTER + 1, 0);
+		setIoRedirect(0x14, id, INTR_8259_MASTER, 0);
+		setIoRedirect(0x16, id, INTR_8259_MASTER + 3, 0);
+		setIoRedirect(0x18, id, INTR_8259_MASTER + 4, 0);
+		setIoRedirect(0x1a, id, INTR_8259_MASTER + 5, 0);
+		setIoRedirect(0x1c, id, INTR_8259_MASTER + 6, 0);
+		setIoRedirect(0x1e, id, INTR_8259_MASTER + 7, 0);
+
+		setIoRedirect(0x20, id, INTR_8259_SLAVE + 0, 0);
+		setIoRedirect(0x22, id, INTR_8259_SLAVE + 1, 0);
+		setIoRedirect(0x24, id, INTR_8259_SLAVE + 2, 0);
+		setIoRedirect(0x26, id, INTR_8259_SLAVE + 3, 0);
+		setIoRedirect(0x28, id, INTR_8259_SLAVE + 4, 0);
+		setIoRedirect(0x2a, id, INTR_8259_SLAVE + 5, 0);
+		setIoRedirect(0x2c, id, INTR_8259_SLAVE + 6, 0);
+		setIoRedirect(0x2e, id, INTR_8259_SLAVE + 7, 0);
+
+		setIoRedirect(0x30, id, INTR_8259_SLAVE + 8, 0);
+
 	}
 
 	return;
