@@ -100,7 +100,7 @@ LPWINDOWSINFO __FindProcessWindow(int tid) {
 	return 0;
 }
 
-LPWINDOWSINFO getFreeWindow() {
+int getFreeWindow() {
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList;
 
 	int cnt = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO) - 1;
@@ -108,7 +108,7 @@ LPWINDOWSINFO getFreeWindow() {
 	{
 		if (info[i].valid == 0)
 		{
-			return &info[i];
+			return  i;
 		}
 	}
 	return 0;
@@ -150,8 +150,14 @@ LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 
 
 DWORD isTopWindow(int wid) {
-	LPWINDOWSINFO window = wid + gWindowsList;
+	if (gWindowsList == 0) {
+		return 0;
+	}
+	LPWINDOWSINFO window = & gWindowsList[ wid] ;
 	LPWINDOWSINFO prev = (LPWINDOWSINFO)gWindowsList->list.prev;
+	if (prev == 0) {
+		return 0;
+	}
 	if (window == (LPWINDOWSINFO)prev)
 	{
 		if (prev->window->id == wid) 
@@ -181,45 +187,53 @@ int addWindow(DWORD lpwindow,  char * wname) {
 		return FALSE;
 	}
 
-	window = getFreeWindow();
-	if (window == FALSE)
+	int seq = getFreeWindow();
+	if (seq == FALSE)
 	{
 		__printf(szout, "getFreeWindow error,first:%x,last:%x\n", gWindowsList->list.next, gWindowsList->list.prev);
-		return -1;
+		return 0;
 	}
+
+	window = (LPWINDOWSINFO)&gWindowsList [seq];
+
+	__enterLock(&g_window_lock);
 
 	window->window =(WINDOWCLASS*)lpwindow;
 
 	window->valid = TRUE;
-	int seq = window - gWindowsList;
+	//int seq = window - gWindowsList;
 	window->window->id = seq;
 
-	__strncpy(window->window->winname, wname, WINDOW_NAME_LIMIT - 1);
-
-	__enterLock(&g_window_lock);
+	//__strncpy(window->window->winname, wname, WINDOW_NAME_LIMIT - 1);
 
 	addlistTail(&gWindowsList->list, &window->list);
 
 	__leaveLock(&g_window_lock);
 
-// 	__printf(szout, "add windowid:%x,first:%x,top:%x\n", i, gWindowsList ,gWindowLast);
+ 	__printf(szout, "%s id:%x,name:%s\r\n",__FUNCTION__, seq, window->window->winname );
 
 	return seq;
 }
 
 
 int removeWindow(int id) {
+	if (gWindowsList == 0) {
+		return 0;
+	}
+	LPWINDOWSINFO window = & gWindowsList [ id];
+	if (window->valid) {
 
-	LPWINDOWSINFO window = gWindowsList + id;
+		__enterLock(&g_window_lock);
 
-	window->valid = FALSE;
+		window->valid = FALSE;
+		window->window = 0;
 
-	__enterLock(&g_window_lock);
-	
-	removelist(&gWindowsList->list, &window->list);
+		removelist(&gWindowsList->list, &window->list);
 
-	__leaveLock(&g_window_lock);
-
+		__leaveLock(&g_window_lock);
+	}
+	char szout[1024];
+	__printf(szout, "%s id:%x,name:%s\r\n",__FUNCTION__, window->window->id, window->window->winname);
 	return TRUE;
 }
 

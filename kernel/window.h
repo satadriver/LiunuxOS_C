@@ -51,7 +51,7 @@ int insertPopupItem(LPWINDOWCLASS window);
 
 int deletePopupItem(LPWINDOWCLASS window);
 
-LPWINDOWSINFO getFreeWindow();
+int getFreeWindow();
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) POPUPMENU gPopupMenu;

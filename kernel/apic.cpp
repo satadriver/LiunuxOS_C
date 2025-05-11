@@ -637,7 +637,7 @@ void BPCodeStart() {
 	for (int i = 0; i < 0x100000; i++) {
 		tmp = tmp *i;
 	}
-	//return;
+	return;
 
 	int c = *(int*)AP_TOTAL_ADDRESS;
 	if (c > 0) {
