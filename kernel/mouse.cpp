@@ -94,7 +94,7 @@ void __kMouseProc() {
 			return;
 		}
 
-		int md = inportbs(0x60);
+		int md = inportb(0x60);
 		*pos = md;
 		pos++;
 
@@ -144,8 +144,12 @@ void __kMouseProc() {
 		}
 	}
 	
-	//data->mintrData.y = data->mintrData.y & 0x7f;
-	//data->mintrData.x = data->mintrData.x & 0x7f;
+	//https://wiki.osdev.org/PS/2_Mouse
+	int state = data->mintrData.status;
+
+	data->mintrData.x = data->mintrData.x - ((state << 4) & 0x100);
+
+	data->mintrData.y = data->mintrData.y - ((state << 3) & 0x100);
 
 	data->mintrData.y = -data->mintrData.y;
 
@@ -375,7 +379,7 @@ void __initMouse(int x,int y) {
 	gMouseID = getMouseID();
 	char szout[1024];
 	__printf(szout, "keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
-	gMouseID = 0;
+	//gMouseID = 0;
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	data->mouseX = x/2;
