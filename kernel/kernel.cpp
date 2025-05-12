@@ -85,8 +85,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initPaging();
 
-	
-
 	initEfer();
 
 	initACPI();

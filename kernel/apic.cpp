@@ -547,9 +547,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableMCE();
 	enableTSD();
 
-	DWORD v = *(DWORD*)0xFEE000F0;
-	v = v | 0x100;
-	*(DWORD*)0xFEE000F0 = v;
+	//DWORD v = *(DWORD*)0xFEE000F0;
+	//v = v | 0x100;
+	//*(DWORD*)0xFEE000F0 = v;
 
 	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
 

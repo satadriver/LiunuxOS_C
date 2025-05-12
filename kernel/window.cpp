@@ -178,6 +178,10 @@ LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 
 
 DWORD isTopWindow(int wid) {
+	if (g_ScreenMode == 0) {
+		return TRUE;
+	}
+
 	if (gWindowsList == 0) {
 		return 0;
 	}

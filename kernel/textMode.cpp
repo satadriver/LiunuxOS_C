@@ -21,7 +21,7 @@
 #include "kernel.h"
 #include "processDOS.h"
 #include "cmosPeriodTimer.h"
-
+#include "apic.h"
 
 
 LPVESAINFORMATION glpVesaInfo;
@@ -112,6 +112,9 @@ int runcmd(char * cmd) {
 			dt.year, dt.month, dt.dayInMonth, dt.hour, dt.minute, dt.second);
 		outputStr(datetime, OUTPUT_TEXTMODE_COLOR);
 	}
+	else {
+		outputStr("Unrecognized command!\r\n", OUTPUT_TEXTMODE_COLOR);
+	}
 	
 	return 0;
 }
@@ -127,11 +130,11 @@ int outputStr(char* str,char color) {
 
 int outputChar(char c,char color) {
 
-	if (c == 0x0a ) {
+	if (c == 0x0d ) {
 		gTxtOffset = (gTxtOffset / LINE_SIZE) * LINE_SIZE + LINE_SIZE;
 		
 	}
-	else if (c == 0x0d) {
+	else if (c == 0x0a) {
 		//int mod = gTxtOffset % LINE_SIZE;
 		//if (mod) {
 		//	gTxtOffset -= mod;
@@ -183,6 +186,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	gFont = fontbase;
 	glpVesaInfo = vesa;
 
+	/*
  	DWORD svgaregs[16];
  	DWORD svgadev = 0;
  	DWORD svgairq = 0;
@@ -193,13 +197,19 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 			gTxtBuf = (char*)(svgaregs[i] & 0xfffffff0);
 		}
 	}
-
+	*/
 	gTxtBuf = (char*)TEXTMODE_BASE;
 
 	gTxtOffset = 0;
 
+	outputStr("Welcome to LiunuxOS!\r\n", OUTPUT_TEXTMODE_COLOR);
+
 	initGdt();
+
 	initIDT();
+	SetIVTVector();
+
+	//outputStr("GDT idt\r\n", OUTPUT_TEXTMODE_COLOR);
 
 	initTextModeDevices();
 
@@ -207,25 +217,38 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	initPaging();	
 
-	initDll();
+	//outputStr("page\r\n", OUTPUT_TEXTMODE_COLOR);
 
 	initEfer();
+	enableVME();
+	enablePCE();
+	enableMCE();
+	enableTSD();
 
 	initCoprocessor();
 
+	//outputStr("initCoprocessor\r\n", OUTPUT_TEXTMODE_COLOR);
+
 	initTimer();
 
+	initDebugger();
+
+	//outputStr("initDebugger\r\n", OUTPUT_TEXTMODE_COLOR);
+
+	initDll();
+
+	BPCodeStart();
+
+	//outputStr("BPCodeStart\r\n", OUTPUT_TEXTMODE_COLOR);
+
+	WINDOWCLASS window;
+	initDesktopWindow(&window, "__kKernel", 0, 0);
+
 	__asm {
-		in al, 60h
 		sti	
 	}
 
 	initFileSystem();
-
-	initDebugger();
-
-	WINDOWCLASS window;
-	window.showMode = 0;
 
 	char cmd[1024];
 	char* lpcmd = cmd;
@@ -244,7 +267,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 			if (lpcmd - cmd >= sizeof(cmd)) {
 				lpcmd = cmd;
 			}
-			else if (asc == 0x0a) {
+			else if (asc == 0x0d) {
 				lpcmd--;
 				*lpcmd = 0;
 				lpcmd = cmd;
