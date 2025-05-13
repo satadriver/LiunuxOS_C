@@ -141,12 +141,12 @@ extern "C" __declspec(dllexport) void callgateEntry(DWORD  params,DWORD count) {
 
 
 
-void readmsr(DWORD no, DWORD *lowpart, DWORD * highpart) {
+void readmsr(DWORD num, DWORD *lowpart, DWORD * highpart) {
 	__asm {
 		xor eax, eax
 		xor edx, edx
 
-		mov ecx, no
+		mov ecx, num
 		rdmsr
 
 		mov ecx, lowpart
@@ -157,13 +157,13 @@ void readmsr(DWORD no, DWORD *lowpart, DWORD * highpart) {
 	}
 
 	char szout[1024];
-	__printf(szout, "read msr:%x,high:%x,low:%x\r\n", no, *highpart, *lowpart);
+	__printf(szout, "read msr:%x,high:%x,low:%x\r\n", num, *highpart, *lowpart);
 
 }
 
-void writemsr(DWORD reg, DWORD lowpart, DWORD highpart) {
+void writemsr(DWORD num, DWORD lowpart, DWORD highpart) {
 	__asm {
-		mov ecx, reg
+		mov ecx, num
 
 		mov eax, lowpart
 

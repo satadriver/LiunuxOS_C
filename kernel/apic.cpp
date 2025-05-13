@@ -20,11 +20,11 @@ unsigned long g_allocate_ap_lock = 0;
 
 #define APIC_CORE_MAX_COUNT	64
 
-DWORD * gApicBase = 0;
+char * gApicBase = 0;
 DWORD * gSvrBase = 0;
 DWORD * gOicBase = 0;
 DWORD * gHpetBase = 0;
-DWORD * gRcbaBase = 0;
+char * gRcbaBase = 0;
 
 int g_ApNumber = 0;
 
@@ -36,14 +36,14 @@ int g_IoApicID[APIC_CORE_MAX_COUNT];
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
 
-	gRcbaBase = (DWORD*)(inportd(0xcfc) & 0xffffc000);
+	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
 	*gRcbaBase = *gRcbaBase | 1;
 }
 
 void enableFerr() {
 	outportd(0xcf8, 0x8000f8f0);
 
-	gRcbaBase = (DWORD*)(inportd(0xcfc) & 0xffffc000);
+	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
 
 	gOicBase = (DWORD*)((DWORD)gRcbaBase + 0x31fe);
 
@@ -84,7 +84,7 @@ void enableIoApic() {
 
 	outportd(0xcf8, 0x8000f8f0);
 
-	gRcbaBase = (DWORD*)(inportd(0xcfc) & 0xffffc000);
+	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
 
 	gOicBase = (DWORD*)((DWORD)gRcbaBase + 0x31fe);
 
@@ -108,28 +108,37 @@ DWORD* getOicBase() {
 	return gOicBase;
 }
 
-DWORD* getRcbaBase() {
+char* getRcbaBase() {
 	outportd(0xcf8, 0x8000f8f0);
 	DWORD base = inportd(0xcfc) & 0xffffc000;
 
-	gRcbaBase = (DWORD*)base;
+	gRcbaBase = (char*)base;
 
 	return gRcbaBase;
 }
 
 int enableLocalApic() {
 
+	
 	DWORD high = 0;
 	DWORD low = 0;
 	int res = 0;
 	readmsr(0x1b,&low,&high);
-	low = low | 0xc00;
+	low  = low & 0xFFFFF000;
+	low = low | 0xFEE00000;
+	low = low | 0x800;
 	writemsr(0x1b, low, high);
+	gApicBase = (char*)(low & 0xfffff000);
+	
+	
+	char szout[256];
+	//__printf(szout, "apic base address:%x\r\n", gApicBase);
 
-	gApicBase = (DWORD*)(low & 0xfffff000);
+	gApicBase = (char*)0xfee00000;
+	*(DWORD*)(gApicBase + 0x80) = 0;
 
 	gSvrBase = (DWORD*)((DWORD)gApicBase + 0xf0);
-	*gSvrBase = *gSvrBase | 0x1100;
+	*gSvrBase = *gSvrBase | 0x10f;
 
 	int id = getLocalApicID();
 
@@ -197,7 +206,7 @@ int getLocalApicID() {
 
 extern "C" void __declspec(dllexport) __kBspInitProc() {
 
-	enableLocalApic();
+	//enableLocalApic();
 
 	int id = getLocalApicID();
 
@@ -268,10 +277,12 @@ int initHpet() {
 		*(long long*)(APIC_HPET_BASE + 0x20) = 0;
 
 		long long* regs = (long long*)(APIC_HPET_BASE + 0x100);	
+		*(long long*)(APIC_HPET_BASE + 0x100 + 4) = 0;
 
 		for (int i = 0; i < cnt; i++) {
 			if (i == 0) {
 				regs[i] = 0x40 + 8 + 4 + 2 - 2;
+				break;
 			}
 			else if (i == 2) {
 				regs[i] = 0x1000 + 0x40 + 4 + 2 - 2;
@@ -285,7 +296,15 @@ int initHpet() {
 			i += 2;
 		}
 
+
+
+		
+
+		*(long long*)(APIC_HPET_BASE + 0x100 + 8) = 143182;
+
 		*(long long*)(APIC_HPET_BASE + 0xf0) = 0;
+
+		*(long long*)(APIC_HPET_BASE + 0xf0 + 4) = 0;
 
 		return TRUE;
 	}
@@ -366,60 +385,7 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 
 
-extern "C" void __declspec(dllexport) __kApInitProc_old() {
-	DescriptTableReg idtbase;
-	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE;
 
-	initKernelTss((TSS*)AP_TSS_BASE + 0x4000*g_ApNumber, AP_STACK0_BASE + TASK_STACK0_SIZE* (g_ApNumber+1) - STACK_TOP_DUMMY,
-		AP_KSTACK_BASE + KTASK_STACK_SIZE*(g_ApNumber + 1)- STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor(AP_TSS_BASE + 0x4000 * g_ApNumber, 3, sizeof(TSS) - 1, 
-		(TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + sizeof(TssDescriptor) * g_ApNumber));
-
-	DescriptTableReg gdtbase;
-	__asm {
-		sgdt gdtbase
-	}
-
-	DWORD lptssdesc = (DWORD)(AP_TSS_DESCRIPTOR + sizeof(TssDescriptor) * g_ApNumber);
-
-	gdtbase.addr = GDT_BASE;
-	gdtbase.size = AP_TSS_DESCRIPTOR + sizeof(TssDescriptor) * g_ApNumber - 1;
-	__asm{
-		lgdt gdtbase
-
-		mov eax, lptssdesc
-		ltr ax
-
-		mov ax, ldtSelector
-		lldt ax
-
-		lidt idtbase
-	}
-
-	enableLocalApic();
-
-	int id = getLocalApicID();
-
-	g_LocalApicID[g_ApNumber+1] = id;
-
-	enableIoApic();
-
-	setIoApicID(g_ApNumber+1);
-
-	g_ApNumber++;
-
-	char szout[1024];
-	__printf(szout, "idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
-
-	*(DWORD*)0xFEE00310 = 0;
-	*(DWORD*)0xFEE00300 = 0x4030;
-
-	__asm {
-		sti
-		hlt
-	}
-}
 
 /*
 短跳转（Short Jmp，只能跳转到256字节的范围内），对应机器码：EB
@@ -456,6 +422,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
+
 		*(DWORD*)0xFEE000B0 = 0;
 	}
 
@@ -476,92 +443,8 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
-//int g_ap_count = 0;
 
-//int g_ap_ids[256] = { 0 };
 
-//https://blog.csdn.net/weixin_46645613/article/details/120406002
-//https://zhuanlan.zhihu.com/p/406213995
-//https://zhuanlan.zhihu.com/p/678582090
-//https://www.zhihu.com/question/594531181/answer/2982337869
-
-extern "C" void __declspec(dllexport) __kApInitProc() {
-	__asm {
-		cli
-	}
-
-	char szout[1024];
-
-	__enterSpinlock(&g_allocate_ap_lock);
-	int id = *(DWORD*)0xFEE00020;
-	id = id >> 24;
-	int seq = *(int*)AP_TOTAL_ADDRESS;
-	int* apids = (int*)AP_ID_ADDRESS;
-	apids[seq] = id;
-	*(int*)AP_TOTAL_ADDRESS = seq + 1;
-	__leaveSpinlock(&g_allocate_ap_lock);
-
-	__printf(szout, "AP:%d %s entry\r\n", id,__FUNCTION__);
-
-	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff;
-	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
-		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
-
-	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1,(TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR ));
-
-	DescriptTableReg gdtbase;
-	__asm {
-		sgdt gdtbase
-	}
-
-	gdtbase.addr = GDT_BASE;
-	gdtbase.size  +=  sizeof(TssDescriptor);
-
-	__asm {
-		//do not use lgdt lpgdt,why?
-		lgdt gdtbase
-
-		mov ax, AP_TSS_DESCRIPTOR
-		ltr ax
-
-		mov eax, PDE_ENTRY_VALUE
-		mov cr3, eax
-
-		mov eax, cr0
-		or eax, 0x80000000
-		mov cr0, eax	
-	}
-
-	DescriptTableReg idtbase;
-	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE;
-	__asm {
-		//不要使用 lidt lpidt,why?
-		lidt idtbase
-	}
-
-	initCoprocessor();
-
-	enableVME();
-	enablePCE();
-	enableMCE();
-	enableTSD();
-
-	//DWORD v = *(DWORD*)0xFEE000F0;
-	//v = v | 0x100;
-	//*(DWORD*)0xFEE000F0 = v;
-
-	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
-
-	__asm{sti}
-
-	while (1) {
-		__asm {
-			
-			hlt
-		}
-	}
-}
 
 
 
@@ -606,23 +489,130 @@ int AllocateAP(int vn) {
 	return 0;
 }
 
+void IoApicRedirect(int idx,  int vector, int mode) {
+
+	int id = 0;
+	__enterSpinlock(&g_allocate_ap_lock);
+	int total = *(int*)(AP_TOTAL_ADDRESS);
+	int* ids = (int*)AP_ID_ADDRESS;
+	id = ids[gAllocateAp];
+	gAllocateAp++;
+	if (gAllocateAp >= total) {
+		gAllocateAp = 0;
+	}
+	__leaveSpinlock(&g_allocate_ap_lock);
+
+	*(DWORD*)(0xfec00000) = idx;
+	iomfence();
+	*(DWORD*)(0xfec00010) = vector + (mode << 8);
+	iomfence();
+	*(DWORD*)(0xfec00000) = idx + 1;
+	iomfence();
+	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24);
+}
+
+
+//https://blog.csdn.net/weixin_46645613/article/details/120406002
+//https://zhuanlan.zhihu.com/p/406213995
+//https://zhuanlan.zhihu.com/p/678582090
+//https://www.zhihu.com/question/594531181/answer/2982337869
+
+extern "C" void __declspec(dllexport) __kApInitProc() {
+	__asm {
+		cli
+	}
+
+	char szout[1024];
+
+	__enterSpinlock(&g_allocate_ap_lock);
+	int id = *(DWORD*)0xFEE00020;
+	id = id >> 24;
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	int* apids = (int*)AP_ID_ADDRESS;
+	apids[seq] = id;
+	*(int*)AP_TOTAL_ADDRESS = seq + 1;
+	__leaveSpinlock(&g_allocate_ap_lock);
+
+	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
+
+	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff;
+	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
+		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
+
+	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR));
+
+	DescriptTableReg gdtbase;
+	__asm {
+		sgdt gdtbase
+	}
+
+	gdtbase.addr = GDT_BASE;
+	gdtbase.size += sizeof(TssDescriptor);
+
+	__asm {
+		//do not use lgdt lpgdt,why?
+		lgdt gdtbase
+
+		mov ax, AP_TSS_DESCRIPTOR
+		ltr ax
+
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+	}
+
+	DescriptTableReg idtbase;
+	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
+	idtbase.addr = IDT_BASE;
+	__asm {
+		//不要使用 lidt lpidt,why?
+		lidt idtbase
+	}
+
+	initCoprocessor();
+
+	enableVME();
+	enablePCE();
+	enableMCE();
+	enableTSD();
+
+#ifdef APIC_ENABLE
+	
+	enableIoApic();
+	*(DWORD*)0xfec00000 = 0x00;
+	*(DWORD*)0xfec00010 = id << 28;
+	//*(DWORD*)0xFEE000F0 = 0x10f;
+	*(DWORD*)0xfee00350 = 0x10000;
+#endif
+
+	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
+
+	__asm {sti}
+
+	while (1) {
+		__asm {
+
+			hlt
+		}
+	}
+}
 
 
 void BPCodeStart() {
 
 	*(int*)AP_TOTAL_ADDRESS = 0;
 
-	//enableLocalApic();
 
 	int bpid = *(DWORD*)0xFEE00020 >>24;
 	char szout[256];
 	__printf(szout, "bp id:%d\r\n", bpid);
 
-	DWORD v = *(DWORD*)0xFEE000F0;
-	v = v | 0x100;
-	*(DWORD*)0xFEE000F0 = v;
 
-	v = 0xc4500;
+
+	DWORD v = 0xc4500;
 	*(DWORD*)0xFEE00300 = v;
 
 	__int64 tmp = 0;
@@ -634,37 +624,51 @@ void BPCodeStart() {
 	*(DWORD*)0xFEE00300 = v;
 
 	tmp = 1;
-	for (int i = 0; i < 0x100000; i++) {
+	for (int i = 0; i < 0x010000000; i++) {
 		tmp = tmp *i;
 	}
-	return;
 
+#ifdef APIC_ENABLE
 	int c = *(int*)AP_TOTAL_ADDRESS;
 	if (c > 0) {
+		enableIMCR();
+
+		outportb(0x21, 0xff);
+		outportb(0xa1, 0xff);
+
+		*(DWORD*)0xfee00350 = 0x10000;
+
 		enableIoApic();
 
-		int* ids = (int*)AP_ID_ADDRESS;
-		int id = ids[0];
-		setIoRedirect(0x12, id, INTR_8259_MASTER + 1, 0);
-		setIoRedirect(0x14, id, INTR_8259_MASTER, 0);
-		setIoRedirect(0x16, id, INTR_8259_MASTER + 3, 0);
-		setIoRedirect(0x18, id, INTR_8259_MASTER + 4, 0);
-		setIoRedirect(0x1a, id, INTR_8259_MASTER + 5, 0);
-		setIoRedirect(0x1c, id, INTR_8259_MASTER + 6, 0);
-		setIoRedirect(0x1e, id, INTR_8259_MASTER + 7, 0);
+		*(DWORD*)0xfec00000 =  0x00; 
+		*(DWORD*)0xfec00010 = (~bpid)<<28;
 
-		setIoRedirect(0x20, id, INTR_8259_SLAVE + 0, 0);
-		setIoRedirect(0x22, id, INTR_8259_SLAVE + 1, 0);
-		setIoRedirect(0x24, id, INTR_8259_SLAVE + 2, 0);
-		setIoRedirect(0x26, id, INTR_8259_SLAVE + 3, 0);
-		setIoRedirect(0x28, id, INTR_8259_SLAVE + 4, 0);
-		setIoRedirect(0x2a, id, INTR_8259_SLAVE + 5, 0);
-		setIoRedirect(0x2c, id, INTR_8259_SLAVE + 6, 0);
-		setIoRedirect(0x2e, id, INTR_8259_SLAVE + 7, 0);
 
-		setIoRedirect(0x30, id, INTR_8259_SLAVE + 8, 0);
+		IoApicRedirect(0x14, INTR_8259_MASTER, 0);
+		IoApicRedirect(0x12,  INTR_8259_MASTER + 1, 0);	
+		IoApicRedirect(0x16,  INTR_8259_MASTER + 3, 0);
+		IoApicRedirect(0x18,  INTR_8259_MASTER + 4, 0);
+		IoApicRedirect(0x1a,  INTR_8259_MASTER + 5, 0);
+		IoApicRedirect(0x1c,  INTR_8259_MASTER + 6, 0);
+		IoApicRedirect(0x1e,  INTR_8259_MASTER + 7, 0);
 
+		IoApicRedirect(0x20,  INTR_8259_SLAVE + 0, 0);
+		IoApicRedirect(0x22,  INTR_8259_SLAVE + 1, 0);
+		IoApicRedirect(0x24,  INTR_8259_SLAVE + 2, 0);
+		IoApicRedirect(0x26,  INTR_8259_SLAVE + 3, 0);
+		IoApicRedirect(0x28,  INTR_8259_SLAVE + 4, 0);
+		IoApicRedirect(0x2a,  INTR_8259_SLAVE + 5, 0);
+		IoApicRedirect(0x2c,  INTR_8259_SLAVE + 6, 0);
+		IoApicRedirect(0x2e,  INTR_8259_SLAVE + 7, 0);
+
+		IoApicRedirect(0x30,  INTR_8259_SLAVE + 8, 0);
+
+		initHpet();
+
+
+		__printf(szout, "bp init ok\r\n");
 	}
+#endif
 
 	return;
 }

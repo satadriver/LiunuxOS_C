@@ -532,6 +532,10 @@ void __declspec(naked) SoundInterruptProc(LIGHT_ENVIRONMENT* stack) {
 		__kSoundInterruptionProc();
 
 		outportb(0x20, 0x20);
+#ifdef APIC_ENABLE
+		* (DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEc00040 = 0;
+#endif
 	}
 
 	__asm {

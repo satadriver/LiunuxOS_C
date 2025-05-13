@@ -38,7 +38,7 @@ int enableHpet();
 
 
 
-DWORD* getRcbaBase();
+char* getRcbaBase();
 
 int initHpet();
 

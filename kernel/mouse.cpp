@@ -485,6 +485,10 @@ __declspec(naked) void MouseIntProc() {
 		__kMouseProc();
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);
+#ifdef APIC_ENABLE
+		* (DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEc00040 = 0;
+#endif
 	}
 	__asm {
 		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0

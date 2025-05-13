@@ -35,7 +35,7 @@
 #define ULONG_PTR unsigned long* 
 #define ULONGLONG unsigned __int64
 
-
+//#define APIC_ENABLE
 
 #define LIUNUX_DEBUG_LOG_ON
 

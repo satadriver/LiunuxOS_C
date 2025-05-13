@@ -20,11 +20,13 @@ int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	ret = osWriter();
 
 	SectorReaderWriter::close();
-
+#ifdef _WIN32
 	system("shutdown /r /t 0");
+#elif defined __linux__
+	execl("/sbin/reboot", "reboot", NULL);
+#else
 
-	//execl("/sbin/reboot", "reboot", NULL);
-
+#endif
 	ExitProcess(0);
 
 	return 0;

@@ -219,6 +219,10 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 			}
 		}
 		outportb(0x20, 0x20);
+#ifdef APIC_ENABLE
+		* (DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEc00040 = 0;
+#endif
 	}
 
 	__asm {
@@ -313,6 +317,10 @@ extern "C"  __declspec(naked) void __kCom2Proc(LIGHT_ENVIRONMENT * stack) {
 			}
 		}
 		outportb(0x20, 0x20);
+#ifdef APIC_ENABLE
+		* (DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEc00040 = 0;
+#endif
 	}
 	
 	__asm {

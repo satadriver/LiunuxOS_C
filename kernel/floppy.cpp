@@ -195,6 +195,11 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, "FloppyIntProc!\r\n");
 
 		outportb(0x20, 0x20);
+
+#ifdef APIC_ENABLE
+		* (DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEc00040 = 0;
+#endif
 	}
 
 	__asm {

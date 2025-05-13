@@ -163,8 +163,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	__sleep(1000);
 
-	AllocateAP(INTR_8259_MASTER + 1);
-	AllocateAP(INTR_8259_SLAVE + 4);
+	//AllocateAP(INTR_8259_MASTER + 1);
+	//AllocateAP(INTR_8259_SLAVE + 4);
 
 	while (1)
 	{
