@@ -32,6 +32,8 @@ int g_LocalApicID[APIC_CORE_MAX_COUNT];
 
 int g_IoApicID[APIC_CORE_MAX_COUNT];
 
+int g_bsp_id = 0;
+
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -66,7 +68,6 @@ void setIoApicID(int id) {
 	*(DWORD*)(0xfec00000) = 0;
 	iomfence();
 	*(DWORD*)(0xfec00010) = (id & 0x0ff) << 24 ;
-
 }
 
 void setIoRedirect(int idx,int id,int vector,int mode) {
@@ -146,7 +147,6 @@ int enableLocalApic() {
 
 	__asm {
 	init_apic:
-		; 检查APIC支持
 			mov eax, 1
 			cpuid
 			test edx, (1 << 9)
@@ -183,6 +183,7 @@ int enableLocalApic() {
 			__no_apic:
 
 	}
+	enableIMCR();
 
 	*(DWORD*)(0xfee00000 + 0x320) = 0x40 | (1 << 17);
 	char szout[256];
@@ -249,65 +250,13 @@ int getLocalApicID() {
 }
 
 
-extern "C" void __declspec(dllexport) __kBspInitProc() {
 
-	//enableLocalApic();
-
-	int id = getLocalApicID();
-
-	g_LocalApicID[g_ApNumber] = id;
-
-	enableIoApic();
-
-	setIoApicID(g_ApNumber);
-
-	setIoRedirect(0x12, id, INTR_8259_MASTER + 1, 0);
-	setIoRedirect(0x14, id, INTR_8259_MASTER , 0xa0);
-	setIoRedirect(0x16, id, INTR_8259_MASTER + 3, 0);
-	setIoRedirect(0x18, id, INTR_8259_MASTER + 4, 0);
-	setIoRedirect(0x1a, id, INTR_8259_MASTER + 5, 0);
-	setIoRedirect(0x1c, id, INTR_8259_MASTER + 6, 0);
-	setIoRedirect(0x1e, id, INTR_8259_MASTER + 7, 0);
-
-	setIoRedirect(0x20, id, INTR_8259_SLAVE + 0, 0);
-	setIoRedirect(0x22, id, INTR_8259_SLAVE + 1, 0);
-	setIoRedirect(0x24, id, INTR_8259_SLAVE + 2, 0);
-	setIoRedirect(0x26, id, INTR_8259_SLAVE + 3, 0);
-	setIoRedirect(0x28, id, INTR_8259_SLAVE + 4, 0);
-	setIoRedirect(0x2a, id, INTR_8259_SLAVE + 5, 0);
-	setIoRedirect(0x2c, id, INTR_8259_SLAVE + 6, 0);
-	setIoRedirect(0x2e, id, INTR_8259_SLAVE + 7, 0);
-
-	setIoRedirect(0x30, id, INTR_8259_SLAVE + 8, 0);
-
-	*(DWORD*)0xfee00300 = 0xc4500;	//发送 INIT IPI, 使所有 processor 执行 INIT
-	iomfence();
-
-	DWORD addr = AP_INIT_ADDRESS >> 12;
-
-	*(DWORD*)0xfee00300 = 0xc4600 | addr;	//发送 Start - up IPI，AP的起始物理地址为0x1B000
-	iomfence();
-
-	*(DWORD*)0xfee00300 = 0xc4600 | addr;	//再次发送 Start - up IPI，AP的起始物理地址为0x1B000
-	iomfence();
-
-	enableIMCR();
-
-	outportb(0x21, 0xff);
-	outportb(0xa1, 0xff);
-
-	*(DWORD*)0xfee00350 = 0x10000;
-
-	initHpet();
-}
 
 
 int initHpet() {
 	int res = 0;
 
 	enableHpet();
-
-
 
 	long long id = *(long long*)APIC_HPET_BASE;
 
@@ -357,83 +306,63 @@ int initHpet() {
 
 	}
 
-
-
-	
-
 	return FALSE;
 }
 
 
 
+void IoApicRedirect(int idx, int idnum, int vector, int mode) {
 
-
-
-
-extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
-	__asm {
-		pushad
-		push ds
-		push es
-		push fs
-		push gs
-		push ss
-
-		push esp
-		sub esp, 4
-		push ebp
-		mov ebp, esp
-
-		mov eax, KERNEL_MODE_DATA
-		mov ds, ax
-		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-	}
-
-	{
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-		char szout[1024];
-
-		int tag = *(int*)(APIC_HPET_BASE + 0x20);
-		if (tag & 1) {
-			__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-			*(long*)(APIC_HPET_BASE + 0x108) = 0;
+	int id = 0;
+	if (idnum == -1) {
+		__enterSpinlock(&g_allocate_ap_lock);
+		int total = *(int*)(AP_TOTAL_ADDRESS);
+		int* ids = (int*)AP_ID_ADDRESS;
+		id = ids[gAllocateAp];
+		gAllocateAp++;
+		if (gAllocateAp >= total) {
+			gAllocateAp = 0;
 		}
-		else if (tag & 2) {
-			DWORD c = *(long*)(APIC_HPET_BASE + 0xf0);
-			DWORD cmp = *(long*)(APIC_HPET_BASE + 0x128);
-		}
-
-		*(long *)0xFEE000B0 = 0;
+		__leaveSpinlock(&g_allocate_ap_lock);
+	}
+	else {
+		id = idnum;
 	}
 
-	__asm {
-#ifdef SINGLE_TASK_TSS
-		mov eax, dword ptr ds : [CURRENT_TASK_TSS_BASE + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
-#endif
-
-		mov esp, ebp
-		pop ebp
-		add esp, 4
-		pop esp
-		pop ss
-		pop gs
-		pop fs
-		pop es
-		pop ds
-		popad
-#ifdef SINGLE_TASK_TSS
-		mov esp, dword ptr ss : [esp - 20]
-#endif	
-
-		clts
-		iretd
-
-		jmp HpetInterrupt
-	}
+	*(DWORD*)(0xfec00000) = idx;
+	iomfence();
+	*(DWORD*)(0xfec00010) = vector + (mode << 8);
+	iomfence();
+	*(DWORD*)(0xfec00000) = idx + 1;
+	iomfence();
+	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24);
 }
+
+int InitIoApic() {
+	
+	IoApicRedirect(0x14, g_bsp_id, INTR_8259_MASTER, 0xa0);
+	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
+	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
+	IoApicRedirect(0x18, g_bsp_id, INTR_8259_MASTER + 4, 0);
+	IoApicRedirect(0x1a, g_bsp_id, INTR_8259_MASTER + 5, 0);
+	IoApicRedirect(0x1c, g_bsp_id, INTR_8259_MASTER + 6, 0);
+	IoApicRedirect(0x1e, g_bsp_id, INTR_8259_MASTER + 7, 0);
+
+	IoApicRedirect(0x20, g_bsp_id, INTR_8259_SLAVE + 0, 0);
+	IoApicRedirect(0x22, g_bsp_id, INTR_8259_SLAVE + 1, 0);
+	IoApicRedirect(0x24, g_bsp_id, INTR_8259_SLAVE + 2, 0);
+	IoApicRedirect(0x26, g_bsp_id, INTR_8259_SLAVE + 3, 0);
+	IoApicRedirect(0x28, g_bsp_id, INTR_8259_SLAVE + 4, 0);
+	IoApicRedirect(0x2a, g_bsp_id, INTR_8259_SLAVE + 5, 0);
+	IoApicRedirect(0x2c, g_bsp_id, INTR_8259_SLAVE + 6, 0);
+	IoApicRedirect(0x2e, g_bsp_id, INTR_8259_SLAVE + 7, 0);
+
+	IoApicRedirect(0x30, 0, INTR_8259_SLAVE + 8, 0);
+
+	return 0;
+}
+
+
 
 
 
@@ -500,74 +429,18 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 
 
-int AllocateAP(int vn) {
-
-	int total = *(int*)(AP_TOTAL_ADDRESS);
-	int* ids = (int*)AP_ID_ADDRESS;
-	if (total > 0) {
-
-		
-		__enterSpinlock(&g_allocate_ap_lock);
-
-		while (true)
-		{
-			int value = *(DWORD*)0xFEE00300;
-			if (value & 0x1000) {
-				__sleep(0);
-			}
-			else {
-				break;
-			}
-		}
 
 
-		int id = ids[gAllocateAp]<<24;
-		*(DWORD*)0xFEE00310 = id;
-			
-		int v = 0x4000|vn;
-		*(DWORD*)0xFEE00300 = v;
-		
-
-		gAllocateAp++;
-		if (gAllocateAp >= total) {
-			gAllocateAp = 0;
-		}
-
-		__leaveSpinlock(&g_allocate_ap_lock);
-		return gAllocateAp;
-		
-	}
-
-	return 0;
-}
-
-void IoApicRedirect(int idx,  int vector, int mode) {
-
-	int id = 0;
-	__enterSpinlock(&g_allocate_ap_lock);
-	int total = *(int*)(AP_TOTAL_ADDRESS);
-	int* ids = (int*)AP_ID_ADDRESS;
-	id = ids[gAllocateAp];
-	gAllocateAp++;
-	if (gAllocateAp >= total) {
-		gAllocateAp = 0;
-	}
-	__leaveSpinlock(&g_allocate_ap_lock);
-
-	*(DWORD*)(0xfec00000) = idx;
-	//iomfence();
-	*(DWORD*)(0xfec00010) = vector + (mode << 8);
-	//iomfence();
-	*(DWORD*)(0xfec00000) = idx + 1;
-	//iomfence();
-	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24);
-}
 
 
 //https://blog.csdn.net/weixin_46645613/article/details/120406002
 //https://zhuanlan.zhihu.com/p/406213995
 //https://zhuanlan.zhihu.com/p/678582090
 //https://www.zhihu.com/question/594531181/answer/2982337869
+
+
+
+
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	__asm {
@@ -625,7 +498,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 
 	initCoprocessor();
-
 	enableVME();
 	enablePCE();
 	enableMCE();
@@ -634,10 +506,12 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #ifdef APIC_ENABLE
 	
 	enableIoApic();
-	*(DWORD*)0xfec00000 = 0x00;
-	*(DWORD*)0xfec00010 = id << 28;
-	//*(DWORD*)0xFEE000F0 = 0x10f;
-	*(DWORD*)0xfee00350 = 0x10000;
+
+	setIoApicID(id);
+
+	*(DWORD*)(0xFEE00000 + 0x350) = 0x10000;
+
+	* (DWORD*)(0xFEE000F0) = 0x1ff;
 #endif
 
 	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
@@ -656,12 +530,14 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 void BPCodeStart() {
 
 	*(int*)AP_TOTAL_ADDRESS = 0;
+
 #ifdef APIC_ENABLE
 	enableLocalApic();
 #endif
-	int bpid = *(DWORD*)0xFEE00020 >>24;
+
+	g_bsp_id = *(DWORD*)0xFEE00020 >>24;
 	char szout[256];
-	__printf(szout, "bp id:%d\r\n", bpid);
+	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
 
 
 
@@ -669,7 +545,7 @@ void BPCodeStart() {
 	*(DWORD*)0xFEE00300 = v;
 
 	__int64 tmp = 0;
-	for (int i = 0; i < 0x100000; i++) {
+	for (int i = 0; i < 0x10000; i++) {
 		tmp += i;
 	}
 
@@ -684,44 +560,119 @@ void BPCodeStart() {
 #ifdef APIC_ENABLE
 	int c = *(int*)AP_TOTAL_ADDRESS;
 	if (c > 0) {
-		enableIMCR();
-
-		outportb(0x21, 0xff);
-		outportb(0xa1, 0xff);
-
-		*(DWORD*)0xfee00350 = 0x10000;
-
+		initHpet();
 		enableIoApic();
 
-		*(DWORD*)0xfec00000 =  0x00; 
-		*(DWORD*)0xfec00010 = (~bpid)<<28;
+		setIoApicID(g_bsp_id);
 
-
-		IoApicRedirect(0x14, INTR_8259_MASTER, 0xa0);
-		IoApicRedirect(0x12,  INTR_8259_MASTER + 1, 0);	
-		IoApicRedirect(0x16,  INTR_8259_MASTER + 3, 0);
-		IoApicRedirect(0x18,  INTR_8259_MASTER + 4, 0);
-		IoApicRedirect(0x1a,  INTR_8259_MASTER + 5, 0);
-		IoApicRedirect(0x1c,  INTR_8259_MASTER + 6, 0);
-		IoApicRedirect(0x1e,  INTR_8259_MASTER + 7, 0);
-
-		IoApicRedirect(0x20,  INTR_8259_SLAVE + 0, 0);
-		IoApicRedirect(0x22,  INTR_8259_SLAVE + 1, 0);
-		IoApicRedirect(0x24,  INTR_8259_SLAVE + 2, 0);
-		IoApicRedirect(0x26,  INTR_8259_SLAVE + 3, 0);
-		IoApicRedirect(0x28,  INTR_8259_SLAVE + 4, 0);
-		IoApicRedirect(0x2a,  INTR_8259_SLAVE + 5, 0);
-		IoApicRedirect(0x2c,  INTR_8259_SLAVE + 6, 0);
-		IoApicRedirect(0x2e,  INTR_8259_SLAVE + 7, 0);
-
-		IoApicRedirect(0x30,  INTR_8259_SLAVE + 8, 0);
-
-		initHpet();
-
+		InitIoApic();
 
 		__printf(szout, "bp init ok\r\n");
 	}
 #endif
 
 	return;
+}
+
+
+
+extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		char szout[1024];
+
+		int tag = *(int*)(APIC_HPET_BASE + 0x20);
+		if (tag & 1) {
+			__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+			*(long*)(APIC_HPET_BASE + 0x108) = 0;
+		}
+		else if (tag & 2) {
+			DWORD c = *(long*)(APIC_HPET_BASE + 0xf0);
+			DWORD cmp = *(long*)(APIC_HPET_BASE + 0x128);
+		}
+
+		*(long*)0xFEE000B0 = 0;
+	}
+
+	__asm {
+#ifdef SINGLE_TASK_TSS
+		mov eax, dword ptr ds : [CURRENT_TASK_TSS_BASE + PROCESS_INFO.tss.cr3]
+		mov cr3, eax
+#endif
+
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+#ifdef SINGLE_TASK_TSS
+		mov esp, dword ptr ss : [esp - 20]
+#endif	
+
+		clts
+		iretd
+
+		jmp HpetInterrupt
+	}
+}
+
+int AllocateAP(int vn) {
+
+	int total = *(int*)(AP_TOTAL_ADDRESS);
+	int* ids = (int*)AP_ID_ADDRESS;
+	if (total > 0) {
+		__enterSpinlock(&g_allocate_ap_lock);
+
+		while (true)
+		{
+			int value = *(DWORD*)0xFEE00300;
+			if (value & 0x1000) {
+				__sleep(0);
+			}
+			else {
+				break;
+			}
+		}
+
+		int id = ids[gAllocateAp] << 24;
+		*(DWORD*)0xFEE00310 = id;
+
+		int v = 0x4000 | vn;
+		*(DWORD*)0xFEE00300 = v;
+
+		gAllocateAp++;
+		if (gAllocateAp >= total) {
+			gAllocateAp = 0;
+		}
+
+		__leaveSpinlock(&g_allocate_ap_lock);
+		return gAllocateAp;
+	}
+
+	return 0;
 }
