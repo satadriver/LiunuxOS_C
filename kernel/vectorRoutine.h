@@ -117,3 +117,5 @@ void CtrlProtectException(LIGHT_ENVIRONMENT* stack);
 void HypervisorInjectException(LIGHT_ENVIRONMENT* stack);
 void VMMCommException(LIGHT_ENVIRONMENT* stack);
 void SecurityException(LIGHT_ENVIRONMENT* stack);
+
+void ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack);

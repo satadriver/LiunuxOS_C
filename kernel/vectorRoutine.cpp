@@ -1526,12 +1526,14 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[1024];
 		__printf(szout, "Parallel1IntProc!\r\n");
-		outportb(0x20, 0x20);
-		int v = inportb(0x378 + 1);
+
 
 #ifdef APIC_ENABLE
 		* (DWORD*)0xFEE000B0 = 0;
 		*(DWORD*)0xFEc00040 = 0;
+#else
+		outportb(0x20, 0x20);
+		int v = inportb(0x378 + 1);
 #endif
 	}
 
@@ -1961,6 +1963,9 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
+
+
+
 void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
@@ -2007,6 +2012,55 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 #ifdef APIC_ENABLE
 		* (DWORD*)0xFEE000B0 = 0;
 		*(DWORD*)0xFEc00040 = 0;
+#endif
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+	}
+}
+
+
+
+void __declspec(naked) ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack) {
+
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+	}
+
+	{
+#ifdef APIC_ENABLE
+		* (DWORD*)0xFEE000B0 = 0;
 #endif
 	}
 

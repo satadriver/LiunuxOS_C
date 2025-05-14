@@ -397,6 +397,9 @@ void initIDT() {
 	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
 	
 	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
+#ifdef APIC_ENABLE
+	makeTrapGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + 0xff);
+#endif	
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;

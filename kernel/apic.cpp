@@ -119,7 +119,7 @@ char* getRcbaBase() {
 
 int enableLocalApic() {
 
-	
+	/*
 	DWORD high = 0;
 	DWORD low = 0;
 	int res = 0;
@@ -128,8 +128,7 @@ int enableLocalApic() {
 	low = low | 0xFEE00000;
 	low = low | 0x800;
 	writemsr(0x1b, low, high);
-	gApicBase = (char*)(low & 0xfffff000);
-	
+	gApicBase = (char*)(low & 0xfffff000);	
 	
 	char szout[256];
 	//__printf(szout, "apic base address:%x\r\n", gApicBase);
@@ -141,8 +140,54 @@ int enableLocalApic() {
 	*gSvrBase = *gSvrBase | 0x10f;
 
 	int id = getLocalApicID();
+	*/
 
-	return id;
+	char* apic_base = 0;
+
+	__asm {
+	init_apic:
+		; 检查APIC支持
+			mov eax, 1
+			cpuid
+			test edx, (1 << 9)
+			jz __no_apic
+
+			; 设置APIC基地址(先不启用)
+			mov ecx, 0x1B
+			rdmsr
+			and eax, 0xFFFFF000
+			or eax, 0xFEE00000
+			wrmsr
+			mov[apic_base], eax
+
+			; 初始化关键寄存器
+			mov edi, eax
+			mov dword ptr ds:[edi + 0xF0], 0x1FF; 伪中断向量
+			mov dword ptr  ds : [edi + 0x80], 0; TPR
+			mov dword ptr ds : [edi + 0x350], 0x10000; 禁用LVT性能监控
+			mov dword ptr  ds : [edi + 0x360], 0x10000; 禁用LVT热传感器
+
+			//mov dword[edi + 0x320], 0x40 | (1 << 17); 向量32, 定时器模式
+
+			; 禁用8259A PIC
+			mov al, 0xFF
+			out 0xA1, al
+			out 0x21, al
+
+			; 最后启用APIC
+			mov ecx, 0x1B
+			rdmsr
+			or eax, 0x800
+			wrmsr
+
+			__no_apic:
+
+	}
+
+	*(DWORD*)(0xfee00000 + 0x320) = 0x40 | (1 << 17);
+	char szout[256];
+	__printf(szout, "apic base address:%x\r\n", apic_base);
+	return 0;
 }
 
 int enableHpet() {
@@ -217,7 +262,7 @@ extern "C" void __declspec(dllexport) __kBspInitProc() {
 	setIoApicID(g_ApNumber);
 
 	setIoRedirect(0x12, id, INTR_8259_MASTER + 1, 0);
-	setIoRedirect(0x14, id, INTR_8259_MASTER , 0);
+	setIoRedirect(0x14, id, INTR_8259_MASTER , 0xa0);
 	setIoRedirect(0x16, id, INTR_8259_MASTER + 3, 0);
 	setIoRedirect(0x18, id, INTR_8259_MASTER + 4, 0);
 	setIoRedirect(0x1a, id, INTR_8259_MASTER + 5, 0);
@@ -262,10 +307,13 @@ int initHpet() {
 
 	enableHpet();
 
+
+
 	long long id = *(long long*)APIC_HPET_BASE;
 
 	HPET_GCAP_ID_REG * gcap = (HPET_GCAP_ID_REG*)&id;
-	if (gcap->tick == 0x0429b17f) {
+	//if (gcap->tick == 0x0429b17f) 
+	{
 		int cnt = gcap->count;
 
 		DWORD tick = gcap->tick;
@@ -282,7 +330,7 @@ int initHpet() {
 		for (int i = 0; i < cnt; i++) {
 			if (i == 0) {
 				regs[i] = 0x40 + 8 + 4 + 2 - 2;
-				break;
+				//break;
 			}
 			else if (i == 2) {
 				regs[i] = 0x1000 + 0x40 + 4 + 2 - 2;
@@ -296,18 +344,22 @@ int initHpet() {
 			i += 2;
 		}
 
-
-
-		
-
 		*(long long*)(APIC_HPET_BASE + 0x100 + 8) = 143182;
+
+		*(long long*)(APIC_HPET_BASE + 0x100 + 12) = 0;
 
 		*(long long*)(APIC_HPET_BASE + 0xf0) = 0;
 
 		*(long long*)(APIC_HPET_BASE + 0xf0 + 4) = 0;
 
-		return TRUE;
+		char szout[256];
+		__printf(szout, "hpet counter:%x\r\n", gcap->tick);
+
 	}
+
+
+
+	
 
 	return FALSE;
 }
@@ -503,11 +555,11 @@ void IoApicRedirect(int idx,  int vector, int mode) {
 	__leaveSpinlock(&g_allocate_ap_lock);
 
 	*(DWORD*)(0xfec00000) = idx;
-	iomfence();
+	//iomfence();
 	*(DWORD*)(0xfec00010) = vector + (mode << 8);
-	iomfence();
+	//iomfence();
 	*(DWORD*)(0xfec00000) = idx + 1;
-	iomfence();
+	//iomfence();
 	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24);
 }
 
@@ -604,8 +656,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 void BPCodeStart() {
 
 	*(int*)AP_TOTAL_ADDRESS = 0;
-
-
+#ifdef APIC_ENABLE
+	enableLocalApic();
+#endif
 	int bpid = *(DWORD*)0xFEE00020 >>24;
 	char szout[256];
 	__printf(szout, "bp id:%d\r\n", bpid);
@@ -644,7 +697,7 @@ void BPCodeStart() {
 		*(DWORD*)0xfec00010 = (~bpid)<<28;
 
 
-		IoApicRedirect(0x14, INTR_8259_MASTER, 0);
+		IoApicRedirect(0x14, INTR_8259_MASTER, 0xa0);
 		IoApicRedirect(0x12,  INTR_8259_MASTER + 1, 0);	
 		IoApicRedirect(0x16,  INTR_8259_MASTER + 3, 0);
 		IoApicRedirect(0x18,  INTR_8259_MASTER + 4, 0);
