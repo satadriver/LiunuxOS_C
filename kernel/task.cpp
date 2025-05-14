@@ -285,7 +285,41 @@ int __resumePid(int pid) {
 }
 
 
+void debugReg(PROCESS_INFO *src, PROCESS_INFO * dst) {
+	
+	__asm {
+		mov eax,dr0
+		mov dst.dr0,eax
+		mov eax, dr1
+		mov dst.dr1, eax
+		mov eax, dr2
+		mov dst.dr2, eax
+		mov eax, dr3
+		mov dst.dr3, eax
+		mov eax, dr6
+		mov dst.dr6, eax
+		mov eax, dr7
+		mov dst.dr7, eax
 
+		mov eax, src.dr0
+		mov dr0,eax
+
+		mov eax, src.dr1
+		mov dr1, eax
+
+		mov eax, src.dr2
+		mov dr2, eax
+
+		mov eax, src.dr3
+		mov dr3, eax
+
+		mov eax, src.dr6
+		mov dr6, eax
+
+		mov eax, src.dr7
+		mov dr7, eax
+	}
+}
 
 
 #ifndef SINGLE_TASK_TSS
@@ -398,7 +432,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
 
-	
+	debugReg(next, prev);
+
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)process, off);
@@ -604,6 +639,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	//		sldt ldtreg;
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
+	debugReg(next, prev);
 
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
