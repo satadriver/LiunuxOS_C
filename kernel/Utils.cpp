@@ -1020,7 +1020,12 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(void* lockv) {
 		mov eax, 1
 		lock xchg[lockv], eax
 		cmp eax, 0
-		jnz __spinlock_xchg
+		jz __get_spinlock
+		nop
+		pause
+		nop
+		jmp __spinlock_xchg
+		__get_spinlock:
 	}
 	return TRUE;
 }
