@@ -285,38 +285,42 @@ int __resumePid(int pid) {
 }
 
 
-void debugReg(PROCESS_INFO *src, PROCESS_INFO * dst) {
+void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 	
 	__asm {
-		mov eax,dr0
-		mov dst.dr0,eax
-		mov eax, dr1
-		mov dst.dr1, eax
-		mov eax, dr2
-		mov dst.dr2, eax
-		mov eax, dr3
-		mov dst.dr3, eax
-		mov eax, dr6
-		mov dst.dr6, eax
-		mov eax, dr7
-		mov dst.dr7, eax
+		mov ebx, prev
 
-		mov eax, src.dr0
+		mov eax,dr0
+		mov ds : [ebx + PROCESS_INFO.dr0],eax
+		mov eax, dr1
+		mov ds : [ebx + PROCESS_INFO.dr1], eax
+		mov eax, dr2
+		mov ds : [ebx + PROCESS_INFO.dr2], eax
+		mov eax, dr3
+		mov ds : [ebx + PROCESS_INFO.dr3], eax
+		mov eax, dr6
+		mov ds : [ebx + PROCESS_INFO.dr6], eax
+		mov eax, dr7
+		mov ds : [ebx + PROCESS_INFO.dr7], eax
+
+		mov ebx, next
+
+		mov eax, ds:[ebx + PROCESS_INFO.dr0]
 		mov dr0,eax
 
-		mov eax, src.dr1
+		mov eax, ds : [ebx + PROCESS_INFO.dr1]
 		mov dr1, eax
 
-		mov eax, src.dr2
+		mov eax, ds:[ebx + PROCESS_INFO.dr2]
 		mov dr2, eax
 
-		mov eax, src.dr3
+		mov eax, ds:[ebx + PROCESS_INFO.dr3]
 		mov dr3, eax
 
-		mov eax, src.dr6
+		mov eax, ds:[ebx + PROCESS_INFO.dr6]
 		mov dr6, eax
 
-		mov eax, src.dr7
+		mov eax, ds:[ebx + PROCESS_INFO.dr7]
 		mov dr7, eax
 	}
 }
