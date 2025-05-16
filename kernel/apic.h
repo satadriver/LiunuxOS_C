@@ -44,7 +44,7 @@ int initHpet();
 
 void enableRcba();
 
-void enableFerr();
+void EnableFloatError();
 
 void enableIMCR();
 

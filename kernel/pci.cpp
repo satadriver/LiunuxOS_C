@@ -6,9 +6,7 @@
 
 
 
-#define PCI_INDEX_PORT		0Xcf8
 
-#define PCI_VALUE_PORT		0XcfC
 
 //bit31:valid
 //bit 16-23:bus no		device=1 is pci bridge
@@ -52,6 +50,31 @@ int getNorthBridge(DWORD* regs, DWORD* dev, DWORD* irq) {
 	return getPciDevBasePort(regs, 0x0600, dev, irq);
 }
 
+
+int GetPciReg(int bus, int dev, int fun,int reg) {
+
+	DWORD pci = makePciAddr(bus, dev, fun, reg);
+
+	outportd(0xcf8, pci);
+	DWORD v = inportd(0xcfc);
+	if (v && v != 0xffffffff)
+	{
+		return v;
+	}
+
+	return 0;
+}
+
+int SetPciReg(int bus, int dev, int fun, int reg,DWORD v) {
+
+	DWORD pci = makePciAddr(bus, dev, fun, reg);
+
+	outportd(0xcf8, pci);
+
+	outportd(0xcfc,v);
+
+	return 0;
+}
 
 int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd) {
 	__asm{cli}
@@ -130,10 +153,11 @@ int listpci(DWORD* dst) {
 			lpdst++;
 
 			
-			if ( (v == 0x200) ||  (v== 0x0300) || (v== 0x0401) || (v == 0x0c03) || (v == 0x0c05) ) {
-				int baseregidx = (bdf & 0xffffff00) + 0x10;
+			//if ( (v == 0x200) ||  (v== 0x0300) || (v== 0x0401) || (v == 0x0c03) || (v == 0x0c05) ) 
+			{
+				int baseregidx = (bdf & 0xffffff00) + 0x00;	//0x10
 				int regcnt = 0;
-				DWORD regs[8];
+				DWORD regs[0x40];
 				for (int i = 0; i < 4; i++)
 				{
 					outportd(0xcf8, baseregidx);
@@ -149,7 +173,7 @@ int listpci(DWORD* dst) {
 					}
 				}
 
-				if (regcnt == 4) {
+				if (regcnt ) {
 					char szout[1024];
 					__printf(szout, "dev:%x,type:%x, regs:%x,%x,%x,%x\n", bdf, v, regs[0], regs[1], regs[2], regs[3]);
 				}
@@ -190,10 +214,6 @@ void showAllPciDevs() {
 
 
 int showPciDevs() {
-
-	showAllPciDevs();
-	return 0;
-
 
 	char szout[1024];
 	__printf(szout, ( char*)"\n\npci devices:\n");

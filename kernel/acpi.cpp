@@ -4,7 +4,6 @@
 #include "video.h"
 
 
-DWORD gHPET_EOI = 0;
 
 static const ACPIFadt *acpiFadt = 0;
 
@@ -13,92 +12,9 @@ static const ACPIHeader *acpiSsdt = 0;
 static const ACPIHeader *acpiDsdt = 0;
 
 
-void heptEOI() {
-	if (gHPET_EOI)
-	{
-		DWORD base = 0xfed00000;
-		unsigned __int64 * gintr_sta = (unsigned __int64 *)(base + 0x20);
-		*gintr_sta = 0xff;
-	}
-}
 
 
-void initHPET() {
-	DWORD base = 0xfed00000;
 
-	unsigned __int64 * gcap_id = (unsigned __int64 *)(base + 0);
-	unsigned __int64 counter = (*gcap_id >> 32);
-	unsigned short provider = (*gcap_id & 0xffff0000) >> 16;
-	if (counter == 0x0429b17f)
-	{
-		unsigned __int64 * gen_conf = (unsigned __int64 *)(base + 0x10);
-
-		unsigned __int64 * gintr_sta = (unsigned __int64 *)(base + 0x20);
-
-		unsigned __int64 * main_cnt = (unsigned __int64 *)(base + 0xf0);
-
-		unsigned __int64 * tim0_conf = (unsigned __int64 *)(base + 0x100);
-
-		unsigned __int64 * tim0_comp = (unsigned __int64 *)(base + 0x108);
-
-		unsigned __int64 * tim1_conf = (unsigned __int64 *)(base + 0x120);
-
-		unsigned __int64 * tim1_comp= (unsigned __int64 *)(base + 0x128);
-
-		*gen_conf = 3;
-
-		*gintr_sta = 0;
-
-		*tim0_conf = 0x4c;
-		if (*tim0_conf & 2)
-		{
-			gHPET_EOI = TRUE;
-		}
-
-		*tim0_comp = 14300;	//69.841279ns
-
-		*main_cnt = 0;
-	}
-}
-
-
-//fec00000
-//fed00000
-//fee00000
-DWORD getRCBA() {
-	outportd(0xcf8, 0x8000f8f0);
-	DWORD addr = inportd(0xcfc);
-	addr = addr & 0xffffc000;
-	if (addr >= 0xfec00000 && addr <= 0xfee00000)
-	{
-		DWORD * v = (DWORD*)(addr + 0x3404);
-		*v = 0x80;
-
-		initHPET();
-
-		char szout[1024];
-		__printf(szout, "RCBA:%x\n", v);
-
-	}
-
-	return TRUE;
-}
-
-
-//bit 9:enable irq 13
-//bit 8:enable apic io
-DWORD enableFloatIRQ() {
-	outportd(0xcf8, 0x8000f8f0);
-	DWORD addr = inportd(0xcfc);
-	addr = addr & 0xffffc000;
-
-	DWORD * v = (DWORD*)(addr + 0x31fe);
-	*v = *v | 0x200;
-
-	char szout[1024];
-	__printf(szout, "OIC:%x\n", v);
-	return TRUE;
-}
 
 static int parseApic(ACPIHeaderApic *apic)
 {

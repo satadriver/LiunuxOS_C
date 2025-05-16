@@ -137,16 +137,13 @@ typedef struct  {
 //https://blog.csdn.net/miss_lazygoat/article/details/48161645?spm=1001.2101.3001.6650.2&utm_medium=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-2-48161645-blog-18353301.235%5Ev43%5Epc_blog_bottom_relevance_base9&depth_1-utm_source=distribute.pc_relevant.none-task-blog-2%7Edefault%7EBlogCommendFromBaidu%7ERate-2-48161645-blog-18353301.235%5Ev43%5Epc_blog_bottom_relevance_base9&utm_relevant_index=5
 
 
-void heptEOI();
 
-void initHPET();
+
 
 extern "C"  __declspec(dllexport) int doReboot(void);
 
 extern "C"  __declspec(dllexport) int doPowerOff(void);
 
-extern "C"  __declspec(dllexport) DWORD getRCBA();
 
-extern "C"  __declspec(dllexport) DWORD enableFloatIRQ();
 
 int initACPI(void);

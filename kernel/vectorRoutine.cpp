@@ -1244,6 +1244,10 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 #ifdef APIC_ENABLE
 		* (DWORD*)0xFEE000B0 = 0;
 		*(DWORD*)0xFEc00040 = 0;
+
+		DWORD base = 0xfed00000;
+		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
+		*gintr_sta = 0xff;
 #endif
 	}
 

@@ -46,7 +46,9 @@
 
 #include "def.h"
 
+#define PCI_INDEX_PORT		0Xcf8
 
+#define PCI_VALUE_PORT		0XcfC
 
 #pragma pack(push,1)
 
@@ -67,7 +69,9 @@ typedef struct
 
 #pragma pack(pop)
 
+int GetPciReg(int bus, int dev, int fun, int reg);
 
+int SetPciReg(int bus, int dev, int fun, int reg, DWORD v);
 
 extern "C" __declspec(dllexport) int listpci(DWORD * dst);
 

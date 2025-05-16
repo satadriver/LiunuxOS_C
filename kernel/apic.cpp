@@ -42,7 +42,9 @@ void enableRcba() {
 	*gRcbaBase = *gRcbaBase | 1;
 }
 
-void enableFerr() {
+//bit 9:enable irq 13
+//bit 8:enable apic io
+void EnableFloatError() {
 	outportd(0xcf8, 0x8000f8f0);
 
 	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
@@ -191,6 +193,10 @@ int enableLocalApic() {
 	return 0;
 }
 
+//fec00000
+//fed00000
+//fee00000
+
 int enableHpet() {
 	outportd(0xcf8, 0x8000f8f0);
 
@@ -248,6 +254,9 @@ int getLocalApicID() {
 		
 	}
 }
+
+
+
 
 
 
@@ -538,7 +547,6 @@ void BPCodeStart() {
 	g_bsp_id = *(DWORD*)0xFEE00020 >>24;
 	char szout[256];
 	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
-
 
 
 	DWORD v = 0xc4500;

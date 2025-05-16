@@ -67,7 +67,7 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 	__printf(szout, "CPU MODEL:%s,details:%s,SSE:%d,video height:%d,width:%d,pixel:%d\n",
 		cputype, cpuinfo, isSSE(), gVideoHeight, gVideoWidth, gBytesPerPixel);
 
-	showPciDevs();
+	showAllPciDevs();
 
 	__enableBreakPoint();
 

@@ -29,6 +29,8 @@ void DiamondAnimation(WINDOWCLASS * window) {
 
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
+	int edge = 3;
+
 	while (1)
 	{
 		unsigned int ck = __kGetKbd(window->id);
@@ -84,7 +86,11 @@ void DiamondAnimation(WINDOWCLASS * window) {
 			}
 		}
 
-		__diamond(gVideoWidth / 2, gVideoHeight / 2, POLYGON_RADIUS, POLYGON_SIZE, 0);
+		__diamond(gVideoWidth / 2, gVideoHeight / 2, POLYGON_RADIUS, edge, 0);
+		edge++;
+		if (edge >= POLYGON_SIZE) {
+			edge = 3;
+		}
 	}
 }
 

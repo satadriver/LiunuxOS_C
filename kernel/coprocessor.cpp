@@ -3,7 +3,7 @@
 #include "task.h"
 #include "Utils.h"
 #include "video.h"
-#include "acpi.h"
+#include "apic.h"
 
 int gFpuStatus = 0;
 
@@ -137,7 +137,7 @@ void initCoprocessor() {
 		__emit 0xe0
 	}
 
-	enableFloatIRQ();
+	EnableFloatError();
 
 	enableSSE();
 

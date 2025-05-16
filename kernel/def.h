@@ -36,6 +36,7 @@
 #define ULONGLONG unsigned __int64
 
 //#define APIC_ENABLE
+
 #define LIUNUXOS_VERSION		"1.0.1"
 
 #define LIUNUX_DEBUG_LOG_ON
