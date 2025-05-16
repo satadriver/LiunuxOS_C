@@ -11,6 +11,11 @@
 #define PAGE_ACCESSED		0X20
 #define PAGE_DIRT			0X40
 
+#define PAGE64_MASK1 0XFF8000000000
+#define PAGE64_MASK2   0X7FC0000000
+#define PAGE64_MASK3     0X3FE00000
+#define PAGE64_MASK4       0X1FF000
+
 
 void initPaging();
 
@@ -28,6 +33,7 @@ void freeProcessPages(int pid);
 
 void linearMapping();
 
+void InitPage64();
 
 #ifdef DLL_EXPORT
 

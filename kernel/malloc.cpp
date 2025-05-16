@@ -11,11 +11,11 @@
 #include "heap.h"
 
 
-DWORD gAvailableSize = 0;
+QWORD gAvailableSize = 0;
 
-DWORD gAvailableBase = 0;
+QWORD gAvailableBase = 0;
 
-DWORD gAllocLimitSize = 0;
+QWORD gAllocLimitSize = 0;
 
 DWORD gAllocLock = FALSE;
 
@@ -109,8 +109,8 @@ int initMemory() {
 				__int64 sh = ards->LengthHigh;
 				__int64 s = (sh << 32) + sl;
 
-				gAvailableBase = (DWORD)b;
-				gAvailableSize = (DWORD)s;
+				gAvailableBase = (QWORD)b;
+				gAvailableSize = (QWORD)s;
 
 				if (gAvailableBase > MEMMORY_ALLOC_BASE )
 				{

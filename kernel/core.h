@@ -119,11 +119,10 @@ struct TaskGateDescriptor {
 };
 
 
-
-
-
 #pragma pack()
 
+
+void EnterLongMode();
 
 void initGdt();
 

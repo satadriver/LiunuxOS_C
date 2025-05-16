@@ -13,7 +13,7 @@
 #include "keyboard.h"
 #include "serialUART.h"
 #include "mouse.h"
-
+#include "core.h"
 #include "servicesProc.h"
 #include "task.h"
 #include "vectorRoutine.h"
@@ -409,5 +409,126 @@ void initIDT() {
 	__asm {
 		//不要使用 lidt lpidt,why?
 		lidt idtbase
+	}
+}
+
+
+void InitIdt64() {
+
+}
+
+int InitGdt64() {
+	QWORD* gdt = (QWORD*)GDT64_BASE_ADDR;
+	gdt[0] = 0;
+	gdt[1] = 0x0020980000000000;
+	gdt[2] = 0x0020920000000000;
+	return 24;
+}
+
+int Is64Supported() {
+	int v = 0;
+	__asm {
+		mov eax, 0x80000000
+		cpuid
+		cmp eax, 0x80000001
+		jb __no_long_mode
+
+		mov eax, 0x80000001
+		cpuid
+		test edx, 1 << 29; 测试LM位
+		jz __no_long_mode
+		mov[v], 1
+		__no_long_mode:
+	}
+	return v;
+}
+
+
+void EnablePage64() {
+	__asm {
+		mov eax, PDE64_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+	}
+}
+
+void SetLongMode() {
+	__asm {
+		mov ecx, 0xC0000080; EFER MSR
+		rdmsr
+		or eax, 1 << 8; 设置LME位
+		wrmsr
+	}
+}
+
+void InitPAE() {
+	__asm {
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
+		//mov eax, cr4
+
+
+
+		//mov eax, cr4
+		or eax, 1 << 5; 设置PAE位
+		//mov cr4, eax
+
+		//mov cr4, eax
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
+	}
+}
+
+
+
+void EnterLongMode() {
+	int ret = Is64Supported();
+	if (ret) {
+		__asm {
+			cli
+
+			mov eax, cr0
+			and eax, 0x7fffffff
+			mov cr0, eax
+		}
+
+		int gdtlen = InitGdt64();
+		DescriptTableReg gdtbase;
+		gdtbase.size = gdtlen - 1;
+
+		gdtbase.addr = GDT64_BASE_ADDR;
+
+		__asm {lgdt gdtbase}
+
+		InitIdt64();
+
+		InitPage64();
+
+		InitPAE();
+
+		EnablePage64();
+
+		SetLongMode();
+
+		unsigned char jmpstub[16];
+		jmpstub[0] = 0xea;
+		jmpstub[1] = 8;
+		jmpstub[0] = 0;
+
+
+		__asm {
+			lea eax, _LongModeEntryPoint
+			mov dword ptr ds:[jmpstub+2],eax
+			call far ptr jmpstub
+
+			_LongModeEntryPoint:
+			
+			jmp _LongModeEntryPoint
+		}
 	}
 }

@@ -3,6 +3,11 @@
 #include "def.h"
 #include "ListEntry.h"
 
+
+extern QWORD gAvailableSize;
+
+extern QWORD gAvailableBase;
+
 #pragma pack(1)
 
 typedef struct 
