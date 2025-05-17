@@ -33,7 +33,7 @@ void freeProcessPages(int pid);
 
 void linearMapping();
 
-void InitPage64();
+void InitPage64(QWORD* base);
 
 #ifdef DLL_EXPORT
 

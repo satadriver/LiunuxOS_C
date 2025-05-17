@@ -471,8 +471,6 @@ void InitPAE() {
 		__emit 0xe0
 		//mov eax, cr4
 
-
-
 		//mov eax, cr4
 		or eax, 1 << 5; 设置PAE位
 		//mov cr4, eax
@@ -484,7 +482,7 @@ void InitPAE() {
 	}
 }
 
-
+unsigned char jmpstub[16];
 
 void EnterLongMode() {
 	int ret = Is64Supported();
@@ -507,28 +505,48 @@ void EnterLongMode() {
 
 		InitIdt64();
 
-		InitPage64();
+		InitPage64((QWORD*) PDE64_ENTRY_VALUE);
 
 		InitPAE();
-
-		EnablePage64();
-
-		SetLongMode();
-
-		unsigned char jmpstub[16];
 		jmpstub[0] = 0xea;
 		jmpstub[1] = 8;
-		jmpstub[0] = 0;
+		jmpstub[2] = 0;
 
+		//EnablePage64();
 
+		//SetLongMode();
 		__asm {
+			mov eax, PDE64_ENTRY_VALUE
+
+			mov cr3, eax
+
+
+
+			mov ecx, 0xC0000080; EFER MSR
+			rdmsr
+			or eax, 1 << 8; 设置LME位
+			wrmsr
+
+			mov eax, cr0
+			or eax, 0x80000000
+			mov cr0, eax
+		}
+
+	__testloop:
+		goto __testloop;
+
+		__asm{
 			lea eax, _LongModeEntryPoint
-			mov dword ptr ds:[jmpstub+2],eax
+			mov dword ptr ds : [jmpstub + 3] , eax
 			call far ptr jmpstub
 
-			_LongModeEntryPoint:
-			
+			_LongModeEntryPoint :
+
 			jmp _LongModeEntryPoint
 		}
+
+
+
+
 	}
 }

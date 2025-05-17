@@ -91,7 +91,7 @@ int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd)
 			v = v >> 16;
 			if (v == devClsVender)
 			{
-				*dev = bdf;
+				*dev = bdf&0x00ffff00;
 
 				outportd(0xcf8, bdf&0xffffff00);
 				*vd = v;

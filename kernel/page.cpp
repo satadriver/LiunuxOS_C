@@ -228,77 +228,77 @@ void freeProcessPages(int pid) {
 
 
 
-void InitPage64() {
-	
-	int bs4 = 0x1000 / 8 * 0x1000;	//2M
+void InitPage64(QWORD * base) {
+#ifdef _DEBUG
+	gAvailableSize = 0x44000000;
+#endif
+	QWORD bs5 = 0x1000;
 
-	int bs3 = 0x1000 / 8 * bs4;		//1G
+	QWORD bs4 = 0x1000 / 8 * 0x1000;	//2M
 
-	int bs2 = 0x1000 / 8 * bs3;		//512G
+	QWORD bs3 = 0x1000 / 8 * bs4;		//1G
 
-	int bs1 = 0x1000 / 8 * bs2;		//512*512G
+	QWORD bs2 = 0x1000 / 8 * bs3;		//512G
 
-	int cnt1 = gAvailableSize / bs1;
-	int mod1 = gAvailableSize % bs1;
+	QWORD bs1 = 0x1000 / 8 * bs2;		//512*512G
+
+	QWORD cnt1 = gAvailableSize / bs1;
+	QWORD mod1 = gAvailableSize % bs1;
 	if (mod1) {
 		cnt1++;
 	}
 
-	int cnt2 = gAvailableSize / bs2;
-	int mod2 = gAvailableSize % bs2;
+	QWORD cnt2 = gAvailableSize / bs2;
+	QWORD mod2 = gAvailableSize % bs2;
 	if (mod2) {
 		cnt2++;
 	}
 
-	int cnt3 = gAvailableSize / bs3;
-	int mod3 = gAvailableSize % bs3;
+	QWORD cnt3 = gAvailableSize / bs3;
+	QWORD mod3 = gAvailableSize % bs3;
 	if (mod3) {
 		cnt3++;
 	}
 
-	int cnt4 = gAvailableSize / bs4;
-	int mod4 = gAvailableSize % bs4;
+	QWORD cnt4 = gAvailableSize / bs4;
+	QWORD mod4 = gAvailableSize % bs4;
 	if (mod4) {
 		cnt4++;
 	}
 
-	QWORD* table = (QWORD*)PDE64_ENTRY_VALUE;
+	QWORD* table1 = (QWORD*)base;
 
-	int ps1 = ((cnt1 * sizeof(QWORD) + 0x1000) / 0x1000) * 0x1000;
+	QWORD ps1 = (cnt1) * 0x1000;
 
-	QWORD* table1 = (QWORD*)table  + ps1 / sizeof(QWORD);
+	QWORD* table2 = (QWORD*)table1  + ps1 / sizeof(QWORD);
 
-	int ps2 = ((cnt2 * sizeof(QWORD) + 0x1000) / 0x1000) * 0x1000;
+	QWORD ps2 = (cnt2) * 0x1000;
 
-	QWORD* table2 = (QWORD*)table1 + ps2 / sizeof(QWORD);
+	QWORD* table3= (QWORD*)table2 + ps2 / sizeof(QWORD);
 
-	int ps3 = ((cnt3 * sizeof(QWORD) + 0x1000) / 0x1000) * 0x1000;
+	QWORD ps3 = cnt3* 0x1000;
 
-	QWORD* table3 = (QWORD*)table2 +  ps3 / sizeof(QWORD);
+	QWORD* table4 = (QWORD*)table3 +  ps3 / sizeof(QWORD);
 
-	int ps4 = ((cnt4 * sizeof(QWORD) + 0x1000) / 0x1000) * 0x1000;
-
-	QWORD* table4 = (QWORD*)table3 + 0x1000 / sizeof(QWORD) + ps4 / sizeof(QWORD);
-
-	for (int m = 0; m < 512; m++) {
-		QWORD v = (m << 12) | 7;
-		table4[m] = v;
+	QWORD ps4 = cnt4 * 0x1000;
+	
+	for (QWORD i = 0; i < cnt1; i++) {
+		
+		for (QWORD j = 0; j < cnt2; j++) {
+			table1[j] = ((QWORD)table2 | 7) + bs2 * j;
+			for (QWORD k = 0; k < cnt3; k++) {
+				table2[k] = ((QWORD)table3 | 7) + bs3 * k;
+				for (QWORD n = 0; n < cnt4; n++) {
+					table3[n] = ((QWORD)table4 | 7) + bs4 * n;
+					for (QWORD m = 0; m < 512; m++) 
+					{
+						QWORD v = ((m << 12) | 7)+n*bs4;
+						table4[m] = v ;
+					}
+				}
+			}
+		}
 	}
-	for (int j = 0; j < 512; j++) {
-
-		QWORD v = (j << 21) | 7;
-		table3[j] = (QWORD)table4 | 7;
-	}
-	for (int i = 0; i < 512; i++) {
-		QWORD v = (i << 30) | 7;
-		table2[i] =( QWORD)table3|7;
-	}
-	for (int n = 0; n < 512; n++) {
-		QWORD v = (n << 38) | 7;
-		table1[n] = (QWORD)table2 | 7 ;
-	}
-
-
 }
 
 

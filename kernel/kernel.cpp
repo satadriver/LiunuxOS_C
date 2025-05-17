@@ -35,6 +35,7 @@
 #include "acpi.h"
 #include "window.h"
 #include "VMM.h"
+#include "rtl8139.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -114,6 +115,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	}
 
 	initDll();
+
+	//initNIC();
+
+	//EnterLongMode();
 
 	__asm {
 		sti
@@ -235,27 +240,9 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	double angle = 0.1 ;
-	for (int i = 0; i < 100; i++) {
-		double dc = __cos(angle);
-		double ds = __sin(angle);
+	QWORD* buf = (QWORD*) new char[0x100000];
 
-		double v = dc * dc + ds * ds;
-		angle += 0.1;
-		if (i >= 0x100) {
-			break;
-		}
-	}
-
-
-	double das = __asin(__sin(PI*2/3));
-	double dac = __acos(__cos(PI*3/4));
-
-	double adac = PI * 3 / 4;
-
-	double adas = __sin(PI * 2 / 3);
-
-	double res = __sqrt(0.0001);
+	InitPage64(buf);
 
 #ifdef _DEBUG
 	mytest(0);
