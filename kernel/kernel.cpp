@@ -118,7 +118,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	//initNIC();
 
-	//EnterLongMode();
+	EnterLongMode();
 
 	__asm {
 		sti

@@ -422,7 +422,11 @@ int InitGdt64() {
 	gdt[0] = 0;
 	gdt[1] = 0x0020980000000000;
 	gdt[2] = 0x0020920000000000;
-	return 24;
+	gdt[3] = 0x0020f80000000000;
+	gdt[4] = 0x0020f20000000000;
+	gdt[5] = 0x00cff80000000000;
+	gdt[6] = 0x00cff20000000000;
+	return 8*sizeof(QWORD);
 }
 
 int Is64Supported() {
@@ -508,19 +512,17 @@ void EnterLongMode() {
 		InitPage64((QWORD*) PDE64_ENTRY_VALUE);
 
 		InitPAE();
+
 		jmpstub[0] = 0xea;
-		jmpstub[1] = 8;
-		jmpstub[2] = 0;
+		jmpstub[5] = 8;
+		jmpstub[6] = 0;
 
 		//EnablePage64();
 
 		//SetLongMode();
 		__asm {
 			mov eax, PDE64_ENTRY_VALUE
-
 			mov cr3, eax
-
-
 
 			mov ecx, 0xC0000080; EFER MSR
 			rdmsr
@@ -537,16 +539,97 @@ void EnterLongMode() {
 
 		__asm{
 			lea eax, _LongModeEntryPoint
-			mov dword ptr ds : [jmpstub + 3] , eax
-			call far ptr jmpstub
+			mov dword ptr ds : [jmpstub + 1] , eax
+			lea eax,jmpstub
+			jmp eax
+			//jmp jmpstub
 
 			_LongModeEntryPoint :
-
+			mov ax,8
+			mov ds,ax
+			mov es,ax
+			mov fs,ax
+			mov gs,ax
+			mov ss,ax
 			jmp _LongModeEntryPoint
 		}
 
-
-
-
 	}
+}
+
+
+
+
+
+void makeTss64Descriptor(DWORD base, int dpl, int size, TssDescriptor* descriptor) {
+	descriptor->present = 1;
+	descriptor->dpl = dpl;
+	descriptor->system = 0;
+	descriptor->type = TSS_DESCRIPTOR;
+
+	descriptor->avl = 0;
+	descriptor->unused = 0;
+	descriptor->db = 0;
+	descriptor->granularity = 0;
+	descriptor->baseLow = base & 0xffff;
+	descriptor->baseMid = (base >> 16) & 0xff;
+	descriptor->baseHigh = (base >> 24) & 0xff;
+	descriptor->len = size & 0xffff;
+	descriptor->lenHigh = (size >> 16) & 0xf;
+}
+
+
+void makeLDT64Descriptor(DWORD base, int dpl, int size, TssDescriptor* descriptor) {
+	descriptor->present = 1;
+	descriptor->dpl = dpl;
+	descriptor->system = 0;
+	descriptor->type = LDT_DESCRIPTOR;
+
+	descriptor->avl = 0;
+	descriptor->unused = 0;
+	descriptor->db = 0;
+	descriptor->granularity = 0;
+	descriptor->baseLow = base & 0xffff;
+	descriptor->baseMid = (base >> 16) & 0xff;
+	descriptor->baseHigh = (base >> 24) & 0xff;
+	descriptor->len = size & 0xffff;
+	descriptor->lenHigh = (size >> 16) & 0xf;
+}
+
+
+
+
+
+void makeCallGate64Descriptor(QWORD base, DWORD selector, int dpl, int paramcnt, CallGateDescriptor* descriptor) {
+	descriptor->present = 1;
+	descriptor->paramCnt = paramcnt;
+	descriptor->system = 0;
+	descriptor->type = CALLGATE_DESCRIPTOR;
+	descriptor->dpl = dpl;
+	descriptor->selector = (USHORT)selector;
+	descriptor->baseLow = base & 0xffff;
+	descriptor->baseHigh = (base >> 16) & 0xffff;
+}
+
+void makeIntGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGateDescriptor* descriptor) {
+	descriptor->present = 1;
+	descriptor->system = 0;
+	descriptor->type = INTGATE_DESCRIPTOR;
+	descriptor->dpl = dpl;
+	descriptor->unused = 0;
+	descriptor->selector = (USHORT)selector;
+	descriptor->baseLow = base & 0xffff;
+
+	descriptor->baseHigh = (base >> 16) & 0xffff;
+}
+
+void makeTrapGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGateDescriptor* descriptor) {
+	descriptor->present = 1;
+	descriptor->system = 0;
+	descriptor->type = TRAPGATE_DESCRIPTOR;
+	descriptor->unused = 0;
+	descriptor->dpl = dpl;
+	descriptor->selector = (USHORT)selector;
+	descriptor->baseLow = base & 0xffff;
+	descriptor->baseHigh = (base >> 16) & 0xffff;
 }

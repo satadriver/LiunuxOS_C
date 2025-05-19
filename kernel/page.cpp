@@ -289,14 +289,17 @@ void InitPage64(QWORD * base) {
 			for (QWORD k = 0; k < cnt3; k++) {
 				table2[k] = ((QWORD)table3 | 7) + bs3 * k;
 				for (QWORD n = 0; n < cnt4; n++) {
-					table3[n] = ((QWORD)table4 | 7) + bs4 * n;
+					table3[n] = ((QWORD)table4 | 7) ;
 					for (QWORD m = 0; m < 512; m++) 
 					{
 						QWORD v = ((m << 12) | 7)+n*bs4;
 						table4[m] = v ;
 					}
+					table4 += PAGE_SIZE / 8;
 				}
+				table3 += PAGE_SIZE / 8;
 			}
+			table2 += PAGE_SIZE / 8;
 		}
 	}
 }
