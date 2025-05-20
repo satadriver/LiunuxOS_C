@@ -233,6 +233,9 @@ void mytest(LIGHT_ENVIRONMENT  * stack) {
 
 #endif
 
+
+#include "pe64.h"
+#include <stdio.h>
 #ifdef _USRDLL
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {
 	return TRUE;
@@ -240,9 +243,17 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	QWORD* buf = (QWORD*) new char[0x100000];
-
-	InitPage64(buf);
+	char* data = new char[0x100000];
+	FILE* hf = fopen("liunux64.dll","rb+");
+	fseek(hf, 0, 2);
+	int fs = ftell(hf);
+	fseek(hf, 0, 0);
+	fread(data, 1, fs, hf);
+	fclose(hf);
+	char* exebuf = new char[0x100000];
+	char * realbuf = (char*)MemLoadDll64(data,exebuf);
+	char* addr2 = (char*)getAddrFromOrd64((char*)realbuf, 1);
+	char* addr = getAddrFromName64(realbuf, "__kMytest64");
 
 #ifdef _DEBUG
 	mytest(0);

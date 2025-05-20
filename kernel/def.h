@@ -159,7 +159,7 @@
 #define LIB_INFO_SIZE			0X10000
 #define LIB_INFO_BASE			0X5d0000
 
-#define WINDOW_INFO_BASE		0x5e0000
+#define TSS64_STACK0_BASE		0x5e0000
 
 #define KERNEL_TASK_STACK_BASE 	 0x600000
 #define KERNEL_TASK_STACK_TOP 	 (KERNEL_TASK_STACK_BASE + KTASK_STACK_SIZE - STACK_TOP_DUMMY)
@@ -202,7 +202,9 @@
 #define PTE64_ENTRY_VALUE		PDE64_ENTRY_VALUE + PAGE_SIZE
 
 #define GDT64_BASE_ADDR				0xf00000
-#define IDT64_BASE_ADDR				GDT64_BASE_ADDR + 0x1000
+#define IDT64_BASE_ADDR				GDT64_BASE_ADDR + 0x10000
+
+#define TSS64_BASE_ADDRESS			IDT64_BASE_ADDR + 0x10000
 
 #define KERNEL_DLL_BASE			0x1000000
 
@@ -319,6 +321,8 @@ typedef struct {
 	char _reserved[22];		//42
 }DATALOADERINFO;
 
+
+
 typedef struct {
 	DWORD link; // 保存前一个 TSS 段选择子，使用 call 指令切换寄存器的时候由CPU填写。
 
@@ -360,7 +364,28 @@ typedef struct {
 } TSS, * LPTSS;
 
 //VM86 I/O Permission Bitmap（VM86 I/O 权限位图）或 Interrupt Redirection Bitmap（中断重定向位图）。
-//位 = 0：允许 VM86 程序直接执行 INT n，硬件从 IVT 加载中断处理程序。位 = 1：拦截 INT n，触发 #GP 异常，由操作系统接管（模拟或拒绝）。
+//位 = 0：允许 VM86 程序直接执行 INT n，硬件从 IVT 加载中断处理程序。
+//位 = 1：拦截 INT n，触发 #GP 异常，由操作系统接管（模拟或拒绝）。
+
+
+typedef struct {
+	DWORD reservedDw;
+	QWORD rsp0;
+	QWORD rsp1;
+	QWORD rsp2;
+	QWORD reservedQw1;
+	QWORD ist0;
+	QWORD ist1;
+	QWORD ist2;
+	QWORD ist3;
+	QWORD ist4;
+	QWORD ist5;
+	QWORD ist6;
+
+	QWORD reservedQw2;
+	WORD reservedw;
+	WORD iomap;
+}TSS64_DATA, * LPTSS64_DATA;
 
 #pragma pack(pop)
 

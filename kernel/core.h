@@ -118,6 +118,27 @@ struct TaskGateDescriptor {
 	WORD unused3;
 };
 
+struct IntTrapGate64Descriptor {
+	struct IntTrapGateDescriptor itg32;
+	QWORD baseHigh32;
+};
+
+
+struct CallGate64Descriptor {
+	struct CallGateDescriptor cg32;
+	QWORD baseHigh32;
+};
+
+#define Ldt64Descriptor Tss64Descriptor
+
+struct Tss64Descriptor {
+
+	struct TssDescriptor tss32; 
+	
+	QWORD baseHigh32;
+};
+
+
 
 #pragma pack()
 
@@ -147,6 +168,19 @@ void makeCallGateDescriptor(DWORD base, DWORD selector, int dpl, int paramcnt, C
 void makeIntGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDescriptor* descriptor);
 
 void makeTrapGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDescriptor* descriptor);
+
+
+void makeTss64Descriptor(QWORD base, int dpl, int size, Tss64Descriptor* descriptor);
+
+void makeLDT64Descriptor(QWORD base, int dpl, int size, Tss64Descriptor* descriptor);
+
+void makeCallGate64Descriptor(QWORD base, DWORD selector, int dpl, int paramcnt, CallGate64Descriptor* descriptor);
+
+void makeIntGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGate64Descriptor* descriptor);
+
+void makeTrapGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGate64Descriptor* descriptor);
+
+void initTss64(TSS64_DATA* tss, QWORD rsp);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) void initEfer();

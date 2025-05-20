@@ -218,6 +218,7 @@
     <ClCompile Include="heap.cpp" />
     <ClCompile Include="parallel.cpp" />
     <ClCompile Include="pcnet.cpp" />
+    <ClCompile Include="pe64.cpp" />
     <ClCompile Include="processDOS.cpp" />
     <ClCompile Include="elf.cpp" />
     <ClCompile Include="exception.cpp" />
@@ -281,6 +282,7 @@
     <ClInclude Include="heap.h" />
     <ClInclude Include="parallel.h" />
     <ClInclude Include="pcnet.h" />
+    <ClInclude Include="pe64.h" />
     <ClInclude Include="processDOS.h" />
     <ClInclude Include="elf.h" />
     <ClInclude Include="exception.h" />

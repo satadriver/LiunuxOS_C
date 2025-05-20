@@ -108,7 +108,7 @@ bool relocTable(char* chBaseAddress)
 	return TRUE;
 }
 
-bool mapFileWithAttrib(char* pFileBuff, char* chBaseAddress,DWORD * cr3)
+bool mapFileWithAttr(char* pFileBuff, char* chBaseAddress,DWORD * cr3)
 {
 
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)pFileBuff;

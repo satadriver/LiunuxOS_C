@@ -412,10 +412,95 @@ void initIDT() {
 	}
 }
 
-
+/*
 void InitIdt64() {
 
+	IntTrapGate64Descriptor* descriptor = (IntTrapGate64Descriptor*)IDT64_BASE_ADDR;
+	for (int i = 0; i < 256; i++)
+	{
+		makeTrapGate64Descriptor((DWORD)AnonymousException, KERNEL_MODE_CODE, 3, descriptor + i);
+	}
+
+	makeTrapGateDescriptor((DWORD)DivideError, KERNEL_MODE_CODE, 3, descriptor + 0);
+	makeTrapGateDescriptor((DWORD)DebugTrap, KERNEL_MODE_CODE, 3, descriptor + 1);
+
+	makeTrapGateDescriptor((DWORD)NmiInterrupt, KERNEL_MODE_CODE, 3, descriptor + 2);
+
+	makeTrapGateDescriptor((DWORD)BreakPointTrap, KERNEL_MODE_CODE, 3, descriptor + 3);
+
+	makeTrapGateDescriptor((DWORD)OverflowException, KERNEL_MODE_CODE, 3, descriptor + 4);
+	makeTrapGateDescriptor((DWORD)BoundRangeExceed, KERNEL_MODE_CODE, 3, descriptor + 5);
+	makeTrapGateDescriptor((DWORD)UndefinedOpcode, KERNEL_MODE_CODE, 3, descriptor + 6);
+	makeTrapGateDescriptor((DWORD)DeviceUnavailable, KERNEL_MODE_CODE, 3, descriptor + 7);
+	makeTrapGateDescriptor((DWORD)DoubleFault, KERNEL_MODE_CODE, 3, descriptor + 8);
+
+	makeTrapGateDescriptor((DWORD)CoprocSegOverrun, KERNEL_MODE_CODE, 3, (descriptor + 9));
+
+	makeTaskGateDescriptor((DWORD)kTssExceptSelector, 3, (TaskGateDescriptor*)(descriptor + 10));
+
+	makeTrapGateDescriptor((DWORD)SegmentUnpresent, KERNEL_MODE_CODE, 3, descriptor + 11);
+	makeTrapGateDescriptor((DWORD)StackSegFault, KERNEL_MODE_CODE, 3, descriptor + 12);
+	makeTrapGateDescriptor((DWORD)GeneralProtection, KERNEL_MODE_CODE, 3, descriptor + 13);
+	makeTrapGateDescriptor((DWORD)PageFault, KERNEL_MODE_CODE, 3, descriptor + 14);
+	makeTrapGateDescriptor((DWORD)AnonymousException, KERNEL_MODE_CODE, 3, descriptor + 15);
+	makeTrapGateDescriptor((DWORD)FloatPointError, KERNEL_MODE_CODE, 3, descriptor + 16);
+	makeTrapGateDescriptor((DWORD)AlignmentCheck, KERNEL_MODE_CODE, 3, descriptor + 17);
+	makeTrapGateDescriptor((DWORD)MachineCheck, KERNEL_MODE_CODE, 3, descriptor + 18);
+	makeTrapGateDescriptor((DWORD)SIMDException, KERNEL_MODE_CODE, 3, descriptor + 19);
+	makeTrapGateDescriptor((DWORD)VirtualizationException, KERNEL_MODE_CODE, 3, descriptor + 20);
+	makeTrapGateDescriptor((DWORD)CtrlProtectException, KERNEL_MODE_CODE, 3, descriptor + 21);
+
+	makeTrapGateDescriptor((DWORD)HypervisorInjectException, KERNEL_MODE_CODE, 3, descriptor + 28);
+	makeTrapGateDescriptor((DWORD)VMMCommException, KERNEL_MODE_CODE, 3, descriptor + 29);
+	makeTrapGateDescriptor((DWORD)SecurityException, KERNEL_MODE_CODE, 3, descriptor + 30);
+
+#ifdef SINGLE_TASK_TSS
+	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
+#else
+	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
+#endif
+
+	makeIntGateDescriptor((DWORD)KeyboardIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 1);
+	makeIntGateDescriptor((DWORD)SlaveIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 2);
+	makeIntGateDescriptor((DWORD)__kCom2Proc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 3);
+	makeIntGateDescriptor((DWORD)__kCom1Proc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 4);
+	makeIntGateDescriptor((DWORD)Parallel2IntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 5);
+	makeIntGateDescriptor((DWORD)SoundInterruptProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 5);
+	makeIntGateDescriptor((DWORD)Parallel1IntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 7);
+	makeIntGateDescriptor((DWORD)FloppyIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 6);
+
+	makeIntGateDescriptor((DWORD)CmosInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 0);
+	makeIntGateDescriptor((DWORD)Slave1IntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 1);
+	makeIntGateDescriptor((DWORD)NetcardIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 2);
+	makeIntGateDescriptor((DWORD)USBIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 3);
+	makeIntGateDescriptor((DWORD)MouseIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 4);
+	makeIntGateDescriptor((DWORD)CoprocessorIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 5);
+	makeIntGateDescriptor((DWORD)IDEMasterIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 6);
+	makeIntGateDescriptor((DWORD)IDESlaveIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 7);
+
+	makeTrapGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 8);
+
+	makeTrapGateDescriptor((DWORD)servicesProc, KERNEL_MODE_CODE, 3, descriptor + 0x80);
+
+	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
+
+	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
+#ifdef APIC_ENABLE
+	makeTrapGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + 0xff);
+#endif	
+
+	DescriptTableReg idtbase;
+	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
+	idtbase.addr = IDT_BASE;
+	char szout[1024];
+	__printf(szout, "idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
+	__asm {
+		//不要使用 lidt lpidt,why?
+		lidt idtbase
+	}
 }
+*/
+
 
 int InitGdt64() {
 	QWORD* gdt = (QWORD*)GDT64_BASE_ADDR;
@@ -426,6 +511,24 @@ int InitGdt64() {
 	gdt[4] = 0x0020f20000000000;
 	gdt[5] = 0x00cff80000000000;
 	gdt[6] = 0x00cff20000000000;
+	gdt[7] = 0x0000000000000000;
+	short tss_offset = 8 * sizeof (SegDescriptor);
+
+	initTss64((TSS64_DATA*)TSS64_BASE_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
+	makeTss64Descriptor(TSS64_BASE_ADDRESS, 3, sizeof(Tss64Descriptor),(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
+
+	int gdtlen = tss_offset +sizeof(Tss64Descriptor);
+
+	DescriptTableReg gdtbase;
+	gdtbase.size = gdtlen - 1;
+	gdtbase.addr = GDT64_BASE_ADDR;
+
+	__asm {
+		lgdt gdtbase
+
+		mov ax, tss_offset
+		ltr ax
+	}
 	return 8*sizeof(QWORD);
 }
 
@@ -500,14 +603,8 @@ void EnterLongMode() {
 		}
 
 		int gdtlen = InitGdt64();
-		DescriptTableReg gdtbase;
-		gdtbase.size = gdtlen - 1;
 
-		gdtbase.addr = GDT64_BASE_ADDR;
-
-		__asm {lgdt gdtbase}
-
-		InitIdt64();
+		//InitIdt64();
 
 		InitPage64((QWORD*) PDE64_ENTRY_VALUE);
 
@@ -561,75 +658,95 @@ void EnterLongMode() {
 
 
 
-void makeTss64Descriptor(DWORD base, int dpl, int size, TssDescriptor* descriptor) {
-	descriptor->present = 1;
-	descriptor->dpl = dpl;
-	descriptor->system = 0;
-	descriptor->type = TSS_DESCRIPTOR;
+void makeTss64Descriptor(QWORD base, int dpl, int size, Tss64Descriptor* descriptor) {
+	descriptor->tss32.present = 1;
+	descriptor->tss32.dpl = dpl;
+	descriptor->tss32.system = 0;
+	descriptor->tss32.type = TSS_DESCRIPTOR;
 
-	descriptor->avl = 0;
-	descriptor->unused = 0;
-	descriptor->db = 0;
-	descriptor->granularity = 0;
-	descriptor->baseLow = base & 0xffff;
-	descriptor->baseMid = (base >> 16) & 0xff;
-	descriptor->baseHigh = (base >> 24) & 0xff;
-	descriptor->len = size & 0xffff;
-	descriptor->lenHigh = (size >> 16) & 0xf;
+	descriptor->tss32.avl = 0;
+	descriptor->tss32.unused = 0;
+	descriptor->tss32.db = 0;
+	descriptor->tss32.granularity = 0;
+	descriptor->tss32.baseLow = base & 0xffff;
+	descriptor->tss32.baseMid = (base >> 16) & 0xff;
+	descriptor->tss32.baseHigh = (base >> 24) & 0xff;
+	descriptor->tss32.len = size & 0xffff;
+	descriptor->tss32.lenHigh = (size >> 16) & 0xf;
+
+	descriptor->baseHigh32 = base >> 32;
 }
 
 
-void makeLDT64Descriptor(DWORD base, int dpl, int size, TssDescriptor* descriptor) {
-	descriptor->present = 1;
-	descriptor->dpl = dpl;
-	descriptor->system = 0;
-	descriptor->type = LDT_DESCRIPTOR;
+void makeLDT64Descriptor(QWORD base, int dpl, int size, Tss64Descriptor* descriptor) {
+	descriptor->tss32.present = 1;
+	descriptor->tss32.dpl = dpl;
+	descriptor->tss32.system = 0;
+	descriptor->tss32.type = LDT_DESCRIPTOR;
 
-	descriptor->avl = 0;
-	descriptor->unused = 0;
-	descriptor->db = 0;
-	descriptor->granularity = 0;
-	descriptor->baseLow = base & 0xffff;
-	descriptor->baseMid = (base >> 16) & 0xff;
-	descriptor->baseHigh = (base >> 24) & 0xff;
-	descriptor->len = size & 0xffff;
-	descriptor->lenHigh = (size >> 16) & 0xf;
+	descriptor->tss32.avl = 0;
+	descriptor->tss32.unused = 0;
+	descriptor->tss32.db = 0;
+	descriptor->tss32.granularity = 0;
+	descriptor->tss32.baseLow = base & 0xffff;
+	descriptor->tss32.baseMid = (base >> 16) & 0xff;
+	descriptor->tss32.baseHigh = (base >> 24) & 0xff;
+	descriptor->tss32.len = size & 0xffff;
+	descriptor->tss32.lenHigh = (size >> 16) & 0xf;
+
+	descriptor->baseHigh32 = base >> 32;
 }
 
 
 
 
 
-void makeCallGate64Descriptor(QWORD base, DWORD selector, int dpl, int paramcnt, CallGateDescriptor* descriptor) {
-	descriptor->present = 1;
-	descriptor->paramCnt = paramcnt;
-	descriptor->system = 0;
-	descriptor->type = CALLGATE_DESCRIPTOR;
-	descriptor->dpl = dpl;
-	descriptor->selector = (USHORT)selector;
-	descriptor->baseLow = base & 0xffff;
-	descriptor->baseHigh = (base >> 16) & 0xffff;
+void makeCallGate64Descriptor(QWORD base, DWORD selector, int dpl, int paramcnt, CallGate64Descriptor* descriptor) {
+	descriptor->cg32.present = 1;
+	descriptor->cg32.paramCnt = paramcnt;
+	descriptor->cg32.system = 0;
+	descriptor->cg32.type = CALLGATE_DESCRIPTOR;
+	descriptor->cg32.dpl = dpl;
+	descriptor->cg32.selector = (USHORT)selector;
+	descriptor->cg32.baseLow = base & 0xffff;
+	descriptor->cg32.baseHigh = (base >> 16) & 0xffff;
+
+	descriptor->baseHigh32 = base >> 32;
 }
 
-void makeIntGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGateDescriptor* descriptor) {
-	descriptor->present = 1;
-	descriptor->system = 0;
-	descriptor->type = INTGATE_DESCRIPTOR;
-	descriptor->dpl = dpl;
-	descriptor->unused = 0;
-	descriptor->selector = (USHORT)selector;
-	descriptor->baseLow = base & 0xffff;
+void makeIntGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGate64Descriptor* descriptor) {
+	descriptor->itg32.present = 1;
+	descriptor->itg32.system = 0;
+	descriptor->itg32.type = INTGATE_DESCRIPTOR;
+	descriptor->itg32.dpl = dpl;
+	descriptor->itg32.unused = 0;
+	descriptor->itg32.selector = (USHORT)selector;
+	descriptor->itg32.baseLow = base & 0xffff;
 
-	descriptor->baseHigh = (base >> 16) & 0xffff;
+	descriptor->itg32.baseHigh = (base >> 16) & 0xffff;
+
+	descriptor->baseHigh32 = base >> 32;
 }
 
-void makeTrapGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGateDescriptor* descriptor) {
-	descriptor->present = 1;
-	descriptor->system = 0;
-	descriptor->type = TRAPGATE_DESCRIPTOR;
-	descriptor->unused = 0;
-	descriptor->dpl = dpl;
-	descriptor->selector = (USHORT)selector;
-	descriptor->baseLow = base & 0xffff;
-	descriptor->baseHigh = (base >> 16) & 0xffff;
+void makeTrapGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGate64Descriptor* descriptor) {
+	descriptor->itg32.present = 1;
+	descriptor->itg32.system = 0;
+	descriptor->itg32.type = TRAPGATE_DESCRIPTOR;
+	descriptor->itg32.unused = 0;
+	descriptor->itg32.dpl = dpl;
+	descriptor->itg32.selector = (USHORT)selector;
+	descriptor->itg32.baseLow = base & 0xffff;
+	descriptor->itg32.baseHigh = (base >> 16) & 0xffff;
+
+	descriptor->baseHigh32 = base >> 32;
+}
+
+
+void initTss64(TSS64_DATA* tss, QWORD rsp) {
+
+	__memset((char*)tss, 0, sizeof(TSS64_DATA));
+
+	tss->iomap= sizeof(TSS64_DATA);
+	tss->rsp0 = rsp;
+
 }
