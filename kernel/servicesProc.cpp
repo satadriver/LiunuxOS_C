@@ -484,7 +484,7 @@ int __readTemperature(DWORD* tjunction) {
 	*tjunction = Tjunction;
 
 	char szout[1024];
-	__printf(szout, "tjmax:%x,temprature:%x\r\n", Tjunction, temp);
+	__printf(szout, (char*)"tjmax:%x,temprature:%x\r\n", Tjunction, temp);
 
 
 	return temp;

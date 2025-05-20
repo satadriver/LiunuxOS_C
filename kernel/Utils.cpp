@@ -293,7 +293,7 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 
 	char szlineno[16];
 	__memset(szlineno, 0x20, 16);
-	int lnl =__sprintf(szlineno, "%d.", lineno);
+	int lnl =__sprintf(szlineno,(char*) "%d.", lineno);
 	//*(szlineno + lnl) = 0x20;
 	//__strcpy((char*)dst, szlineno);
 	//dst += lnl;
@@ -317,7 +317,7 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 			lineno++;
 
 			__memset(szlineno, 0x20, 16);
-			lnl = __sprintf(szlineno, "%d.", lineno);
+			lnl = __sprintf(szlineno, (char*)"%d.", lineno);
 			//*(szlineno + lnl) = 0x20;
 			//__strcpy((char*)dst, szlineno);
 			//dst += lnl;
@@ -739,10 +739,10 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 			spos += 2;
 			dpos += len;
 		}
-		else if (format[spos] == '%' && ((__memcmp(format + spos + 1, "i64d", 4) == 0) ||
-			__memcmp(format + spos + 1, "I64d", 4) == 0||
-			__memcmp(format + spos + 1, "I64D", 4) == 0||
-			__memcmp(format + spos + 1, "i64D", 4) == 0) ){
+		else if (format[spos] == '%' && ((__memcmp(format + spos + 1, (char*)"i64d", 4) == 0) ||
+			__memcmp(format + spos + 1, (char*)"I64d", 4) == 0||
+			__memcmp(format + spos + 1, (char*)"I64D", 4) == 0||
+			__memcmp(format + spos + 1, (char*)"i64D", 4) == 0) ){
 			spos += 5;
 
 			__int64 li = *( __int64*)params;
@@ -751,10 +751,10 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 
 			params += 2;
 		}
-		else if (format[spos] == '%' && (__memcmp(format + spos + 1, "i64x", 4) == 0 ||
-			__memcmp(format + spos + 1, "I64x", 4) == 0 ||
-			__memcmp(format + spos + 1, "I64X", 4) == 0 ||
-			__memcmp(format + spos + 1, "i64X", 4) == 0) ) {
+		else if (format[spos] == '%' && (__memcmp(format + spos + 1, (char*)"i64x", 4) == 0 ||
+			__memcmp(format + spos + 1, (char*)"I64x", 4) == 0 ||
+			__memcmp(format + spos + 1, (char*)"I64X", 4) == 0 ||
+			__memcmp(format + spos + 1, (char*)"i64X", 4) == 0) ) {
 			spos += 5;
 
 			DWORD numl = *params;

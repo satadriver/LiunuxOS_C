@@ -253,7 +253,10 @@ int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lp
 	char* exebuf = new char[0x100000];
 	char * realbuf = (char*)MemLoadDll64(data,exebuf);
 	char* addr2 = (char*)getAddrFromOrd64((char*)realbuf, 1);
-	char* addr = getAddrFromName64(realbuf, "__kMytest64");
+	typedef int (*ptrfun)();
+	ptrfun mytest1 = (ptrfun) getAddrFromName64(realbuf, "__kMytest64");
+	int ret = mytest1();
+	
 
 #ifdef _DEBUG
 	mytest(0);

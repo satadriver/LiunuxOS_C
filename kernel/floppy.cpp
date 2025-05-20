@@ -192,7 +192,7 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 		int v3 = inportb(0x3f4);
 
 		char szout[1024];
-		__printf(szout, "FloppyIntProc!\r\n");
+		__printf(szout, (char*)"FloppyIntProc!\r\n");
 
 		outportb(0x20, 0x20);
 

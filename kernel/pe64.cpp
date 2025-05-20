@@ -3,6 +3,10 @@
 #include "Utils.h"
 
 
+// 重定位类型定义（64位PE主要使用 IMAGE_REL_BASED_DIR64）
+#define IMAGE_REL_BASED_ABSOLUTE      0  // 无操作
+#define IMAGE_REL_BASED_HIGHLOW       3  // 32位PE使用
+#define IMAGE_REL_BASED_DIR64         10 // 64位PE使用
 
 char* getAddrFromName64(char* module, const char* funname) {
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
@@ -11,8 +15,6 @@ char* getAddrFromName64(char* module, const char* funname) {
 	//DWORD size = nt->OptionalHeader.DataDirectory[0].Size;
 
 	PIMAGE_EXPORT_DIRECTORY exptable = (PIMAGE_EXPORT_DIRECTORY)(exptrva + module);
-
-	// const char * name = (const char*)(exp->Name + module);
 
 	const char** funnames = (const char**)(exptable->AddressOfNames + module);
 	for (unsigned int i = 0; i < exptable->NumberOfNames; i++)
@@ -57,23 +59,17 @@ QWORD getAddrFromOrd64(char* module, DWORD ord) {
 }
 
 
-// 重定位类型定义（64位PE主要使用 IMAGE_REL_BASED_DIR64）
-#define IMAGE_REL_BASED_ABSOLUTE      0  // 无操作
-#define IMAGE_REL_BASED_HIGHLOW       3  // 32位PE使用
-#define IMAGE_REL_BASED_DIR64         10 // 64位PE使用
 
 // 函数：应用PE文件的重定位表
 bool relocTable64(char* pImageBase, ULONGLONG newBase) {
 	//ULONGLONG newBase = (ULONGLONG)pImageBase;
 	PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)pImageBase;
 	if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
-		//printf("Invalid DOS header.\n");
 		return false;
 	}
 
 	PIMAGE_NT_HEADERS64 pNtHeaders = (PIMAGE_NT_HEADERS64)((BYTE*)pImageBase + pDosHeader->e_lfanew);
 	if (pNtHeaders->Signature != IMAGE_NT_SIGNATURE) {
-		//printf("Invalid NT header.\n");
 		return false;
 	}
 
@@ -172,7 +168,7 @@ bool mapFileAttr64(char* pFileBuff, char* chBaseAddress, DWORD* cr3)
 	__memcpy(chBaseAddress, pFileBuff, dwSizeOfHeaders);
 
 	//PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pNt);
-	PIMAGE_SECTION_HEADER pSection = (PIMAGE_SECTION_HEADER)((char*)pNt + sizeof(PIMAGE_NT_HEADERS64));
+	PIMAGE_SECTION_HEADER pSection = (PIMAGE_SECTION_HEADER)((char*)pNt + sizeof(IMAGE_NT_HEADERS64));
 
 	int nNumerOfSections = pNt->FileHeader.NumberOfSections;
 	for (int i = 0; i < nNumerOfSections; i++, pSection++)
@@ -265,10 +261,10 @@ DWORD importTable64(DWORD module) {
 }
 
 QWORD MemLoadDll64(char* filedata, char* addr) {
+	int ret = 0;
 	mapFile64(filedata, addr);
 	importTable64((DWORD)addr);
 
-	//char* exebuf = new char[0x100000];
 	relocTable64(addr, (unsigned long long)addr);
 	setImageBase64(addr);
 	return (QWORD)addr;

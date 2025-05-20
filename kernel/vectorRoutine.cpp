@@ -149,7 +149,7 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 		char szout[1024];
-		__printf(szout, "NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
+		__printf(szout, (char*)"NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
 		//__kException((const char*)"NmiInterrupt", 2, stack);
 #ifdef APIC_ENABLE
 		* (DWORD*)0xFEE000B0 = 0;
@@ -203,7 +203,7 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 
 		char szout[1024];
-		__printf(szout, "OverflowException eip:%x,cs:%x,pid:%d,tid:%d\r\n", stack->eip,stack->cs, current->pid, current->tid);
+		__printf(szout, (char*)"OverflowException eip:%x,cs:%x,pid:%d,tid:%d\r\n", stack->eip,stack->cs, current->pid, current->tid);
 #ifdef APIC_ENABLE
 		* (DWORD*)0xFEE000B0 = 0;
 #endif
@@ -1322,7 +1322,7 @@ void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 		*(DWORD*)0xFEc00040 = 0;
 #endif
 		char szout[1024];
-		__printf(szout, "Com2IntProc!\r\n");
+		__printf(szout, (char*)"Com2IntProc!\r\n");
 		outportb(0x20, 0x20);
 	}
 
@@ -1369,7 +1369,7 @@ void __declspec(naked) Com1IntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "Com1IntProc!\r\n");
+		__printf(szout, (char*)"Com1IntProc!\r\n");
 
 		outportb(0x20, 0x20);
 #ifdef APIC_ENABLE
@@ -1421,7 +1421,7 @@ void __declspec(naked) Parallel2IntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "Parallel2IntProc!\r\n");
+		__printf(szout, (char*)"Parallel2IntProc!\r\n");
 		outportb(0x20, 0x20);
 
 		int v = inportb(0x278 + 1);
@@ -1475,7 +1475,7 @@ void __declspec(naked) FloppyDiskIntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "FloppyDiskIntProc!\r\n");
+		__printf(szout, (char*)"FloppyDiskIntProc!\r\n");
 		outportb(0x20, 0x20);
 
 #ifdef APIC_ENABLE
@@ -1529,7 +1529,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "Parallel1IntProc!\r\n");
+		__printf(szout, (char*)"Parallel1IntProc!\r\n");
 
 
 #ifdef APIC_ENABLE
@@ -1651,7 +1651,7 @@ void __declspec(naked) SlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "SlaveIntProc!\r\n");
+		__printf(szout, (char*)"SlaveIntProc!\r\n");
 		outportb(0x20, 0x20);
 #ifdef APIC_ENABLE
 		* (DWORD*)0xFEE000B0 = 0;
@@ -1703,7 +1703,7 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "Slave1IntProc!\r\n");
+		__printf(szout, (char*)"Slave1IntProc!\r\n");
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);
 #ifdef APIC_ENABLE
@@ -1755,7 +1755,7 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "NetcardIntProc!\r\n");
+		__printf(szout, (char*)"NetcardIntProc!\r\n");
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);
 #ifdef APIC_ENABLE
@@ -1807,7 +1807,7 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "USBIntProc!\r\n");
+		__printf(szout, (char*)"USBIntProc!\r\n");
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);
 #ifdef APIC_ENABLE
@@ -1863,7 +1863,7 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[1024];
-		__printf(szout, "CoprocessorIntProc!\r\n");
+		__printf(szout, (char*)"CoprocessorIntProc!\r\n");
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);
 
@@ -2008,7 +2008,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		int high = inportb(gAtapiBasePort + 5);
 		int size = (high << 8) | low;
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-		__printf(szout, "IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
+		__printf(szout, (char*)"IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
 
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);

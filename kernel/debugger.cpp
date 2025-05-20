@@ -222,7 +222,7 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 	unsigned char code = *(unsigned char*)stack->eip;
 	if (code == 0xcc) {
 		stack->eip++;
-		__printf(szout,"int3(0xcc) is exception\r\n");
+		__printf(szout, (char*)"int3(0xcc) is exception\r\n");
 	}
 	else {
 		//__printf(szout, "int3(0xcc) is trap\r\n");
@@ -238,21 +238,21 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 	if (stack->eflags & 0x20000)
 	{
 		len = __printf(szout,
-			"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp0:%x,ebp:%x,esi:%x,edi:%x,eip:%x,vm86 cs:%x,current eflags:%x,stack eflags:%x,vm86 esp:%x,vm86 ss:%x,vm86 ds:%x,vm86 es:%x,vm86 fs:%x,vm86 gs:%x\n",
+			(char*)"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp0:%x,ebp:%x,esi:%x,edi:%x,eip:%x,vm86 cs:%x,current eflags:%x,stack eflags:%x,vm86 esp:%x,vm86 ss:%x,vm86 ds:%x,vm86 es:%x,vm86 fs:%x,vm86 gs:%x\n",
 			stack->eax, stack->ecx, stack->edx, stack->ebx, stack->esp, stack->ebp, stack->esi, stack->edi, 
 			stack->eip, stack->cs, eflags, stack->eflags, stack->esp3, stack->ss3,stack->ds_v86, stack->es_v86, stack->fs_v86, stack->gs_v86);
 	}
 	else if (stack->cs & 3)
 	{
 		len = __printf(szout,
-			"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,stack eflags:%x,esp3:%x,ss3:%x,ds:%x,es:%x,fs:%x,gs:%x,ss:%x\n",
+			(char*)"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,stack eflags:%x,esp3:%x,ss3:%x,ds:%x,es:%x,fs:%x,gs:%x,ss:%x\n",
 			stack->eax, stack->ecx, stack->edx, stack->ebx, stack->esp, stack->ebp, stack->esi, stack->edi, 
 			stack->eip, stack->cs, eflags, stack->eflags, stack->esp3, stack->ss3,
 			stack->ds, stack->es, stack->fs, stack->gs,stack->ss);
 	}
 	else {
 		len = __printf(szout,
-			"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,stack eflags:%x,ds:%x,es:%x,fs:%x,gs:%x,ss:%x\n",
+			(char*)"BreakPoint eax:%x,ecx:%x,edx:%x,ebx:%x,esp:%x,ebp:%x,esi:%x,edi:%x,eip:%x,cs:%x,current eflags:%x,stack eflags:%x,ds:%x,es:%x,fs:%x,gs:%x,ss:%x\n",
 			stack->eax, stack->ecx, stack->edx, stack->ebx, stack->esp, stack->ebp, stack->esi, stack->edi,stack->eip, stack->cs, eflags, stack->eflags,
 			stack->ds, stack->es, stack->fs, stack->gs, stack->ss);
 	}
@@ -289,13 +289,13 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 			and eax,0xffffdfff
 			mov dr7,eax
 		}
-		len = __printf(szout, "BD BreakPoint eip:%x,cs:%x\r\n",stack->eip,stack->cs);
+		len = __printf(szout, (char*)"BD BreakPoint eip:%x,cs:%x\r\n",stack->eip,stack->cs);
 
 	}
 	
 	if (reg_dr6 & 0x4000)	//BS
 	{
-		len = __printf(szout, "Single Step BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
+		len = __printf(szout, (char*)"Single Step BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
 
 		//__kBreakPoint(stack);
 
@@ -309,7 +309,7 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 	
 	if (reg_dr6 & 0x8000)	//BT
 	{
-		len = __printf(szout, "TSS Trap BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
+		len = __printf(szout, (char*)"TSS Trap BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
 
 	}
 
@@ -387,7 +387,7 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 	
 	if((reg_dr6 & 1) || (reg_dr6 & 2) || (reg_dr6 & 4) || (reg_dr6 & 8)){
 
-		len = __printf(szout, "breakpoint address:%x,type:%d,bplen:%d\r\n",addr, bptype,bplen);
+		len = __printf(szout, (char*)"breakpoint address:%x,type:%d,bplen:%d\r\n",addr, bptype,bplen);
 
 	}
 

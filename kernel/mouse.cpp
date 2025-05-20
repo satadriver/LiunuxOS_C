@@ -36,7 +36,7 @@ void mousetest() {
 
 		int id = *(DWORD*)0xFEE00020 >> 24;
 
-		__sprintf(szout, "cpu:%d,mouse X:%x,mouse Y:%x,status:%x                ", id,mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
+		__sprintf(szout, (char*)"cpu:%d,mouse X:%x,mouse Y:%x,status:%x        ", id,mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
 		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 	}
 }
@@ -90,7 +90,7 @@ void __kMouseProc() {
 		}
 
 		if ((status & 0x20) == 0) {
-			__printf(szout, "mouse data null\r\n");
+			__printf(szout, (char*)"mouse data null\r\n");
 			return;
 		}
 
@@ -378,7 +378,7 @@ void __initMouse(int x,int y) {
 
 	gMouseID = getMouseID();
 	char szout[1024];
-	__printf(szout, "keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
+	__printf(szout, (char*)"keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
 	//gMouseID = 0;
 
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;

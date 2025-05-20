@@ -18,9 +18,63 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="core.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\vectorRoutine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\debugger.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\Utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\keyboard.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\mouse.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\serialUART.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\servicesProc.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="..\kernel\floppy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="core.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\vectorRoutine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\debugger.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\Utils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\keyboard.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\mouse.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\serialUART.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\servicesProc.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\kernel\floppy.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

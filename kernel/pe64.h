@@ -8,3 +8,4 @@ char* getAddrFromName64(char* module, const char* funname);
 QWORD getAddrFromOrd64(char* module, DWORD ord);
 
 bool relocTable64(char* pImageBase, ULONGLONG newBase);
+

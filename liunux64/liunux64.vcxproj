@@ -72,17 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>../kernel;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>../kernel/def.h;$(IncludePath)</IncludePath>
+    <IncludePath>../kernel;../kernel/def.h;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../kernel/def.h;$(IncludePath)</IncludePath>
+    <IncludePath>../kernel;../kernel/def.h;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -146,9 +148,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\kernel\debugger.cpp" />
+    <ClCompile Include="..\kernel\floppy.cpp" />
+    <ClCompile Include="..\kernel\keyboard.cpp" />
+    <ClCompile Include="..\kernel\mouse.cpp" />
+    <ClCompile Include="..\kernel\serialUART.cpp" />
+    <ClCompile Include="..\kernel\servicesProc.cpp" />
+    <ClCompile Include="..\kernel\Utils.cpp" />
+    <ClCompile Include="..\kernel\vectorRoutine.cpp" />
+    <ClCompile Include="core.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\kernel\debugger.h" />
+    <ClInclude Include="..\kernel\floppy.h" />
+    <ClInclude Include="..\kernel\keyboard.h" />
+    <ClInclude Include="..\kernel\mouse.h" />
+    <ClInclude Include="..\kernel\serialUART.h" />
+    <ClInclude Include="..\kernel\servicesProc.h" />
+    <ClInclude Include="..\kernel\Utils.h" />
+    <ClInclude Include="..\kernel\vectorRoutine.h" />
+    <ClInclude Include="core.h" />
     <ClInclude Include="main.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

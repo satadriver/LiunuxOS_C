@@ -176,7 +176,7 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 			if ((status & 6) == 6) //	Receiver Line Status
 			{			
 				status = inportb(COM1PORT + 5);
-				__printf(szout, "com1 Receiver Line Status interrupt\r\n");
+				__printf(szout,(char*) "com1 Receiver Line Status interrupt\r\n");
 			}
 			else if ((status & 6) == 4)		//	Received Data Available
 			{
@@ -210,12 +210,12 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 			else if ((status & 6) == 0)		//Modem Status
 			{
 				status = inportb(COM1PORT + 6);
-				__printf(szout, "com1 Modem Status interrupt\r\n");
+				__printf(szout, (char*)"com1 Modem Status interrupt\r\n");
 			}
 			else if ((status & 8) == 8)
 			{
 				status = inportb(COM1PORT + 6);
-				__printf(szout, "com1 timeout interrupt\r\n");
+				__printf(szout, (char*)"com1 timeout interrupt\r\n");
 			}
 		}
 		outportb(0x20, 0x20);
