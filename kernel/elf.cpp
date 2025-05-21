@@ -163,7 +163,7 @@ int initElf(DWORD file, int filesize, DWORD base) {
 			continue;
 		}
 
-		__printf("function:%s,rel addr:%x,info:%x,new addr:%x\r\n", sym[funcno].st_name + strsym, va, rel[i].r_info, *lpaddr);
+		__printf(szout,"function:%s,rel addr:%x,info:%x,new addr:%x\r\n", sym[funcno].st_name + strsym, va, rel[i].r_info, *lpaddr);
 
 	}
 
@@ -240,7 +240,7 @@ Elf32_Shdr * getSectionByType(DWORD file, int type) {
 
 
 
-Elf32_Shdr * getSectionByName(DWORD file,char * sectionname) {
+Elf32_Shdr * getSectionByName(DWORD file,const char * sectionname) {
 	Elf32_Ehdr * elf = (Elf32_Ehdr*)file;
 	
 	Elf32_Shdr * sh = (Elf32_Shdr*)((DWORD)elf + elf->e_shoff);
@@ -527,7 +527,8 @@ void showAllSegs(DWORD file) {
 	for (int i = 0; i < elf->e_shnum; i++)
 	{
 		char * name = (char*)(sh[i].sh_name + shstr->sh_offset + file);
-		__printf("section name:%s,type:%x,offset:%x,address:%x,size:%x,entsize:%x\r\n",
+		char szout[1024];
+		__printf(szout,"section name:%s,type:%x,offset:%x,address:%x,size:%x,entsize:%x\r\n",
 			name,sh[i].sh_type,sh[i].sh_offset ,sh[i].sh_addr,sh[i].sh_size,sh[i].sh_entsize);
 	}
 }

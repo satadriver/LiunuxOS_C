@@ -65,19 +65,19 @@ int runcmd(char * cmd) {
 		}*/
 
 #ifdef SINGLE_TASK_TSS
-		__createDosCodeProc(gV86VMIEntry,gV86VMISize, "V86VMIEntry");
+		__createDosCodeProc(gV86VMIEntry,gV86VMISize, (char*)"V86VMIEntry");
 #else
-		__createDosCodeProc(gV86VMIEntry, gV86VMISize,"V86VMIEntry");
+		__createDosCodeProc(gV86VMIEntry, gV86VMISize, (char*)"V86VMIEntry");
 #endif
 
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, EXPLORER_TASKNAME, 3, 0);
+		__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, (char*)EXPLORER_TASKNAME, 3, 0);
 
 		while (1)
 		{
 			if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", EXPLORER_TASKNAME, 3, 0);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, (char*)"main.dll", (char*)EXPLORER_TASKNAME, 3, 0);
 			}
 
 			__asm {
@@ -90,14 +90,14 @@ int runcmd(char * cmd) {
 
 		char cpu[1024];
 		getCpuInfo(cpu);
-		__strcat(cpu, "\r\n");
+		__strcat(cpu, (char*)"\r\n");
 		outputStr(cpu, OUTPUT_TEXTMODE_COLOR);
 	}
 	else if (__strcmp(cmd, "cputype") == 0) {
 
 		char cpu[1024];
 		getCpuType(cpu);
-		__strcat(cpu, "\r\n");
+		__strcat(cpu, (char*)"\r\n");
 		outputStr(cpu, OUTPUT_TEXTMODE_COLOR);
 	}
 	else if (__strcmp(cmd, "timestamp") == 0) {
@@ -113,7 +113,7 @@ int runcmd(char * cmd) {
 		outputStr(datetime, OUTPUT_TEXTMODE_COLOR);
 	}
 	else {
-		outputStr("Unrecognized command!\r\n", OUTPUT_TEXTMODE_COLOR);
+		outputStr((char*)"Unrecognized command!\r\n", OUTPUT_TEXTMODE_COLOR);
 	}
 	
 	return 0;
@@ -202,7 +202,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	gTxtOffset = 0;
 
-	outputStr("Welcome to LiunuxOS!\r\n", OUTPUT_TEXTMODE_COLOR);
+	outputStr((char*)"Welcome to LiunuxOS!\r\n", OUTPUT_TEXTMODE_COLOR);
 
 	initGdt();
 
@@ -242,7 +242,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	//outputStr("BPCodeStart\r\n", OUTPUT_TEXTMODE_COLOR);
 
 	WINDOWCLASS window;
-	initDesktopWindow(&window, "__kKernel", 0, 0);
+	initDesktopWindow(&window, (char*)"__kKernel", 0, 0);
 
 	__asm {
 		sti	

@@ -8,15 +8,15 @@
 // extern "C" __declspec(dllexport) DWORD getNtfsDir(DWORD secoff, char * filename);
 extern "C" __declspec(dllexport) unsigned long long getNtfsFileData(unsigned long long secoff, char** buf);
 
-int readNtfsFile(char* filename, char** buf);
+int readNtfsFile(const char* filename, char** buf);
 
-int writeNtfsFile(char* filename, char* buf, int size, int writemode);
+int writeNtfsFile(const char* filename, char* buf, int size, int writemode);
 
 
 #else
-int readNtfsFile(char* filename, char** buf);
+int readNtfsFile(const char* filename, char** buf);
 
-int writeNtfsFile(char* filename, char* buf, int size, int writemode);
+int writeNtfsFile(const char* filename, char* buf, int size, int writemode);
 
 // extern "C" __declspec(dllimport) DWORD getIdxNextDir(char * filename, char * buf);
 // extern "C" __declspec(dllimport) DWORD getRootNextDir(LPCommonAttributeHeader hdr, char * filename);

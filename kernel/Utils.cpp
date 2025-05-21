@@ -89,7 +89,7 @@ int __wmemcmp(wchar_t* src, wchar_t* dst, int len) {
 }
 
 
-int __memcmp(char* src, char* dst, int len) {
+int __memcmp(const char* src, const char* dst, int len) {
 	if (dst == 0 || src == 0) {
 		return 0;
 	}
@@ -106,7 +106,7 @@ int __memcmp(char* src, char* dst, int len) {
 	return 0;
 }
 
-int __strlen(char* s) {
+int __strlen(const char* s) {
 	int len = 0;
 	while (s && *s) {
 		s++;
@@ -221,7 +221,7 @@ wchar_t* __wcsstr(wchar_t* src, wchar_t* dst) {
 }
 
 
-int __strcmp(char * src, char * dst) {
+int __strcmp(const char * src, const  char * dst) {
 	int srclen = __strlen(src);
 	int dstlen = __strlen(dst);
 	if (srclen != dstlen)
@@ -672,7 +672,7 @@ int strf2f(float d,char * buf) {
 	return strlf2lf(d, buf);
 }
 
-int __kFormat(char* buf, char* format, DWORD* params) {
+int __kFormat(char* buf,const char* format, DWORD* params) {
 	
 	if (format == 0 || buf == 0 || params == 0) {
 		return FALSE;
@@ -817,13 +817,13 @@ int __kFormat(char* buf, char* format, DWORD* params) {
 }
 
 
-int __printf(char* buf, char* format, ...) {
+int __printf(char* buf,const char* format, ...) {
 
 	if (format == 0 || buf == 0) {
 		return FALSE;
 	}
 
-	int formatLen = __strlen(format);
+	int formatLen = __strlen((char*)format);
 	if (formatLen == 0) {
 		return FALSE;
 	}
@@ -836,7 +836,7 @@ int __printf(char* buf, char* format, ...) {
 		mov params, eax
 	}
 
-	int len = __kFormat(buf, format, (DWORD*)params);
+	int len = __kFormat(buf, (char*)format, (DWORD*)params);
 
 	if (g_ScreenMode) {
 		
@@ -860,13 +860,13 @@ int __printf(char* buf, char* format, ...) {
 }
 
 
-int __sprintf(char* buf, char* format, ...) {
+int __sprintf(char* buf, const char* format, ...) {
 
 	if (format == 0 || buf == 0) {
 		return FALSE;
 	}
 
-	int formatLen = __strlen(format);
+	int formatLen = __strlen((char*)format);
 	if (formatLen == 0) {
 		return FALSE;
 	}

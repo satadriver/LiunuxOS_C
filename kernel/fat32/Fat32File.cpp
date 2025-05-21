@@ -236,7 +236,7 @@ DWORD openFileWrite(char* curpath, char* leastpath, int writemode, int clusternu
 
 
 
-int readFat32File(char * filename, char ** buf) {
+int readFat32File(const char * filename, char ** buf) {
 	if (buf == 0)
 	{
 		return 0;
@@ -278,7 +278,7 @@ int writeFat32Dir(char * filename) {
 }
 
 
-int writeFat32File(char * filename, char * buf,int size, int writemode) {
+int writeFat32File(const char * filename, char * buf,int size, int writemode) {
 	int ret = 0;
 
 	int dirinsec = 0;

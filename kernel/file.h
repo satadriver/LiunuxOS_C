@@ -102,9 +102,9 @@ extern "C" __declspec(dllexport) int readFileTo(char * filename);
 
 extern "C" int initFileSystem();
 
-extern "C" __declspec(dllexport)  int ( __cdecl * readFile)(char * filename,char ** buf);
+extern "C" __declspec(dllexport)  int ( __cdecl * readFile)(const char * filename,char ** buf);
 
-extern "C" __declspec(dllexport)  int (__cdecl * writeFile)(char * filename, char * buf, int size, int writemode);
+extern "C" __declspec(dllexport)  int (__cdecl * writeFile)(const char * filename, char * buf, int size, int writemode);
 #else
 extern "C" __declspec(dllimport) char * gLogDataPtr;
 extern "C" __declspec(dllimport) MBR gMBR;
@@ -124,9 +124,9 @@ extern "C" __declspec(dllimport)int readFileTo(char * filename);
 extern "C" int initFileSystem();
 
 
-extern "C" __declspec(dllimport)  int(__cdecl * readFile)(char * filename, char ** buf);
+extern "C" __declspec(dllimport)  int(__cdecl * readFile)(const char * filename, char ** buf);
 
-extern "C" __declspec(dllimport)  int(__cdecl * writeFile)(char * filename, char * buf, int size, int writemode);
+extern "C" __declspec(dllimport)  int(__cdecl * writeFile)(const char * filename, char * buf, int size, int writemode);
 
 #endif
 

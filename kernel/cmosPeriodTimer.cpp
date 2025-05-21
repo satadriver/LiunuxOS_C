@@ -72,9 +72,9 @@ void __kPeriodTimer() {
 
 	char szout[256];
 	
-	char*  singlefmt = "%s%s/%s/%s [%s] %s:%s:%s";
-	char* doublefmt =  "%s%s-%s-%s [%s] %s:%s:%s";
-	char*  thirdfmt =  "%s%s\\%s\\%s [%s] %s:%s:%s";
+	const char*  singlefmt = "%s%s/%s/%s [%s] %s:%s:%s";
+	const char* doublefmt =  "%s%s-%s-%s [%s] %s:%s:%s";
+	const char*  thirdfmt =  "%s%s\\%s\\%s [%s] %s:%s:%s";
 	char * fmt = 0;
 
 	int fontcolor = 0;
@@ -82,16 +82,16 @@ void __kPeriodTimer() {
 	int binsec = bcd2binary(second);
 	if ((binsec % 3) == 0)
 	{
-		fmt = singlefmt;
+		fmt = (char*)singlefmt;
 		fontcolor = CMOS_TIMESTAMP_SINGLE_COLOR;
 	}
 	else if ((binsec % 3) == 1)
 	{
-		fmt = doublefmt;
+		fmt =(char*) doublefmt;
 		fontcolor = CMOS_TIMESTAMP_DOUBLE_COLOR;
 	}else if ((binsec % 3) == 2)
 	{
-		fmt = thirdfmt;
+		fmt = (char*)thirdfmt;
 		fontcolor = CMOS_TIMESTAMP_THIRD_COLOR;
 	}
 
@@ -120,9 +120,9 @@ void __kPeriodTimer() {
 
 char* dayOfWeek2str(int n) {
 
-	char* dayweek[8] = { {"Sunday"},{"Monday"},"Tuesday","Wednesday","Thursday","Friday","Saturday","Other" };
+	const char* dayweek[8] = { {"Sunday"},{"Monday"},"Tuesday","Wednesday","Thursday","Friday","Saturday","Other" };
 
-	return dayweek[n];
+	return (char*)dayweek[n];
 }
 
 

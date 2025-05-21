@@ -1074,7 +1074,7 @@ int drawFileManager(LPFMWINDOW w) {
 
 	w->window.backsize = gBytesPerPixel * (w->window.width) * (w->window.height);
 
-	__strcpy(w->window.winname, "FileManagerWindow");
+	__strcpy(w->window.winname,(char*) "FileManagerWindow");
 
 	//w->window.backBuf = (DWORD)__kMalloc(w->window.backsize);
 	//if (w->window.backBuf) 

@@ -147,6 +147,8 @@ void EnterLongMode();
 
 void initGdt();
 
+void InitIdt64();
+
 void initIDT();
 
 void initV86Tss(TSS* tss, DWORD esp0,  DWORD ip,DWORD cs, DWORD cr3, DWORD ldt);

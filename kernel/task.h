@@ -88,7 +88,7 @@ extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByPid(int pid);
 
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFileName(char * filename);
 
-extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(char * funcname);
+extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
 
 
@@ -110,7 +110,7 @@ extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessByPid(int pid);
 
 extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFileName(char * filename);
 
-extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(char * funcname);
+extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
 
 #endif

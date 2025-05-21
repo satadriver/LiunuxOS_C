@@ -143,7 +143,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 
 
 
-LPPROCESS_INFO __findProcessFuncName(char * funcname) {
+LPPROCESS_INFO __findProcessFuncName(const char * funcname) {
 
 	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
@@ -812,8 +812,8 @@ int __initTask0(char * videobase) {
 
 	//initTaskSwitchTss();
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
-	__strcpy(process0->filename, KERNEL_DLL_MODULE_NAME);
-	__strcpy(process0->funcname, "__kKernel");
+	__strcpy(process0->filename, (char*)KERNEL_DLL_MODULE_NAME);
+	__strcpy(process0->funcname, (char*)"__kKernel");
 	process0->status = TASK_RUN;
 	process0->tid = 0;
 	process0->pid = 0;

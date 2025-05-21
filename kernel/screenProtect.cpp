@@ -79,7 +79,7 @@ int initScreenProtect() {
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
 		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 
-	gScreenProtectWindowID = addWindow(0, __FUNCTION__);
+	gScreenProtectWindowID = addWindow(0, (char*) __FUNCTION__);
 
 	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -277,7 +277,7 @@ void initSquareVideo() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
 
-	gVectorGraphWid = addWindow(FALSE, __FUNCTION__);
+	gVectorGraphWid = addWindow(FALSE, (char*) __FUNCTION__);
 
 	gVectorGraphTid = __kAddExactTimer((DWORD)SquareVideo, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -301,7 +301,7 @@ void EllipseVideo() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, __FUNCTION__);
+	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
 
 	int A = 13;
 	int B = 7;
@@ -383,7 +383,7 @@ void SpiralBallVideo() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0xffffff, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, __FUNCTION__);
+	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
 	
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
@@ -408,7 +408,7 @@ void SpiralBallVideo() {
 
 		if (x - cx == 100) {
 			int pos = __getpos((int)x, y);
-			__drawGraphChar("y=cos(x)", AXIS_COLOR, pos, 0);
+			__drawGraphChar((char*)"y=cos(x)", AXIS_COLOR, pos, 0);
 		}	
 	}
 
@@ -428,7 +428,7 @@ void SpiralBallVideo() {
 
 		if (x - cx == 100) {
 			int pos = __getpos((int)x, y);
-			__drawGraphChar("y=sin(x)", AXIS_COLOR, pos, 0);
+			__drawGraphChar((char*)"y=sin(x)", AXIS_COLOR, pos, 0);
 		}
 	}
 
@@ -446,7 +446,7 @@ void SpiralBallVideo() {
 
 		if (x  == 100) {
 			int pos = __getpos((int)x, y);
-			__drawGraphChar("y=x*x", AXIS_COLOR, pos, 0);
+			__drawGraphChar((char*)"y=x*x", AXIS_COLOR, pos, 0);
 		}
 	}
 	
@@ -608,7 +608,7 @@ void CubeVideo() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE,  __FUNCTION__);
+	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
 
 	while (1)
 	{
@@ -678,7 +678,7 @@ void DiamondVideo() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, __FUNCTION__);
+	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
 
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
@@ -1073,7 +1073,7 @@ void initTrajectory() {
 
 	g_circle_buf = (char*)__kMalloc((int)(g_radius + 4) * 2 * 2 * (int)(g_radius + 4) * gBytesPerPixel);
 
-	gTrajectWid = addWindow(FALSE, __FUNCTION__);
+	gTrajectWid = addWindow(FALSE, (char*)__FUNCTION__);
 
 	POINT p;
 	p.x = 0;

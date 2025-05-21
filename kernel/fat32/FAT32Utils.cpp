@@ -12,7 +12,7 @@
 //如果已存在这个文件名，则符号"~"后的数字递增，直到5
 int getFAT32FileName(char * fn,char * dst){
 
-	char * dotstr = __strstr(fn,".");
+	char * dotstr = __strstr(fn, (char*)".");
 	if (dotstr > 0)
 	{
 		int mainnamelen = dotstr - fn;
@@ -24,7 +24,7 @@ int getFAT32FileName(char * fn,char * dst){
 		if (mainnamelen > FAT_MAINNAME_LEN)
 		{
 			__memcpy(mainname, fn, FAT_MAINNAME_LEN - 2);
-			__memcpy(mainname + FAT_MAINNAME_LEN - 2, "~1", 2);
+			__memcpy(mainname + FAT_MAINNAME_LEN - 2, (char*)"~1", 2);
 		}
 		else {
 			__memcpy(mainname, fn, mainnamelen);
@@ -58,7 +58,7 @@ int getFAT32FileName(char * fn,char * dst){
 		if (len > FAT_MAINNAME_LEN)
 		{
 			__memcpy(allname, fn, FAT_MAINNAME_LEN - 2);
-			__memcpy(allname + FAT_MAINNAME_LEN - 2, "~1", 2);
+			__memcpy(allname + FAT_MAINNAME_LEN - 2, (char*)"~1", 2);
 		}
 		else {
 			__memcpy(allname, fn, len);

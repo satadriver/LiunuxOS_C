@@ -137,12 +137,12 @@ unsigned long long make_uint64(unsigned char* buf, int lenth)
 }
 
 
-unsigned long long make_int64(char* buf, int lenth)
+long long make_int64(char* buf, int lenth)
 {
 	long long ui = 0;
 	if (lenth > 8)
 	{
-		return (unsigned long long)0;
+		return ( long long)0;
 	}
 
 	for (int i = 0; i < lenth; i++)
@@ -153,7 +153,7 @@ unsigned long long make_int64(char* buf, int lenth)
 	// 判断符号位,为负则需减取反  
 	if (buf[lenth - 1] >= 0x80)
 	{
-		unsigned long long xorval = 0;
+		 long long xorval = 0;
 		for (int i = 0; i < lenth; i++)
 		{
 			xorval = xorval | (0xFF << 8 * i);

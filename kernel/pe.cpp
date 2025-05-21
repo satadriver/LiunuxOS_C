@@ -14,7 +14,7 @@
 
 
 
-char * gDllLoadPath = "c:\\liunux\\";
+const char * gDllLoadPath = "c:\\liunux\\";
 
 
 
@@ -235,16 +235,16 @@ DWORD importTable(DWORD module) {
 		//__printf(szout, "find lib:%s\r\n", dllname);
 		//__drawGraphChars((unsigned char*)szout, 0);
 
-		if (__strcmp((CHAR*)dllname,"KERNEL32.dll") == 0 ||
-			__strcmp((CHAR*)dllname, "USER32.dll") == 0 ||
-			__strcmp((CHAR*)dllname, "GDI32.dll") == 0)
+		if (__strcmp((const CHAR*)dllname,"KERNEL32.dll") == 0 ||
+			__strcmp((const CHAR*)dllname, "USER32.dll") == 0 ||
+			__strcmp((const CHAR*)dllname, "GDI32.dll") == 0)
 		{
 			impd++;
 			continue;
 		}
-		else if (__strstr((CHAR*)dllname, "api-ms-win-crt-runtime-") || 
-			__strstr((char*)dllname, "VCRUNTIME") || 
-			__strstr((char*)dllname, "MSVCR"))
+		else if (__strstr(( CHAR*)dllname, (char*)"api-ms-win-crt-runtime-") ||
+			__strstr(( char*)dllname, (char*)"VCRUNTIME") ||
+			__strstr(( char*)dllname, (char*)"MSVCR"))
 		{
 			impd++;
 			continue;
@@ -332,7 +332,7 @@ void initDll() {
 	int ms = dl->_maindllSecCnt * BYTES_PER_SECTOR;
 	__memcpy((char*)MAIN_DLL_SOURCE_BASE, (char*)VSMAINDLL_LOAD_ADDRESS, ms);
 
-	__kStoreModule(KERNEL_DLL_MODULE_NAME, KERNEL_DLL_BASE);
+	__kStoreModule((char*)KERNEL_DLL_MODULE_NAME, KERNEL_DLL_BASE);
 
 	memLoadDll((char*)MAIN_DLL_SOURCE_BASE, (char*)MAIN_DLL_BASE);
 }
@@ -352,7 +352,7 @@ DWORD loadLibFile(char * dllname) {
 			__strcpy(szdllpath, dllname);
 		}
 		else {
-			__strcpy(szdllpath, gDllLoadPath);
+			__strcpy(szdllpath, (char*)gDllLoadPath);
 			__strcat(szdllpath, dllname);
 		}
 

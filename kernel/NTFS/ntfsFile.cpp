@@ -435,13 +435,13 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 
 
 
-int writeNtfsFile(char* filename, char* buf, int size, int writemode) {
+int writeNtfsFile(const char* filename, char* buf, int size, int writemode) {
 	return 0;
 }
 
 
 
-int readNtfsFile(char* filename, char** buf) {
+int readNtfsFile(const char* filename, char** buf) {
 
 	if (buf == 0)
 	{

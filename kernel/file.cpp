@@ -8,9 +8,9 @@
 
 
 
-extern "C" __declspec(dllexport)  int (__cdecl * readFile)(char * filename, char ** buf) = readNtfsFile;
+extern "C" __declspec(dllexport)  int (__cdecl * readFile)(const char * filename, char ** buf) = readNtfsFile;
 
-extern "C" __declspec(dllexport)  int (__cdecl * writeFile)(char * filename, char * buf, int size,  int writemode) = writeNtfsFile;
+extern "C" __declspec(dllexport)  int (__cdecl * writeFile)(const char * filename, char * buf, int size,  int writemode) = writeNtfsFile;
 
 MBR		gMBR;
 int		g_mpartOffset = 0;

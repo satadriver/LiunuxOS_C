@@ -211,7 +211,7 @@ extern "C"  __declspec(dllimport) int runElfFunction(char * filename, char * fun
 
 Elf32_Shdr * getSectionByType(DWORD file, int type);
 
-Elf32_Shdr * getSectionByName(DWORD file, char * sectionname);
+Elf32_Shdr * getSectionByName(DWORD file, const  char * sectionname);
 
 char * checkStrExist(DWORD file, char * sectionname);
 
