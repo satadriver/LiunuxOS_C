@@ -599,7 +599,7 @@ void EnterLongMode() {
 		}
 
 		char* databuf = (char*)__kMalloc(0x100000);
-		ret = readFile("liunuxos64.dll",&databuf);
+		ret = readFile("c:\\liunux\\liunuxos64.dll",&databuf);
 		char* realbuf = (char*)MemLoadDll64((char*)databuf, (char*)KERNEL64_DLL_BASE);
 
 		typedef int (*ptrfunction)();

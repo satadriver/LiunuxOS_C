@@ -9,7 +9,9 @@ extern "C" int LiunuxOS64Entry(unsigned long long esptop);
 extern "C" __declspec(dllexport) int __kKernelEntry64() {
 	int ret = 0;
 	ret = LiunuxOS64Entry(KERNEL64_STACK_TOP);
-
+	while (1) {
+		;
+	}
 	return 64;
 }
 

@@ -465,7 +465,18 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	int* apids = (int*)AP_ID_ADDRESS;
 	apids[seq] = id;
 	*(int*)AP_TOTAL_ADDRESS = seq + 1;
-	__leaveSpinlock(&g_allocate_ap_lock);
+
+	__asm {
+		mov eax, KTASK_STACK_SIZE
+		mov ecx, seq
+		inc ecx
+		mul ecx
+		add eax, AP_KSTACK_BASE 
+		sub eax, STACK_TOP_DUMMY
+		//mov esp,eax
+		//mov ebp,eax
+	}
+	
 
 	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
 
@@ -473,7 +484,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
 		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
 
-	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR));
+	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
 
 	DescriptTableReg gdtbase;
 	__asm {
@@ -481,13 +492,17 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 
 	gdtbase.addr = GDT_BASE;
-	gdtbase.size += sizeof(TssDescriptor);
+	gdtbase.size = AP_TSS_DESCRIPTOR + (seq+1)* sizeof(TssDescriptor) - 1;
+
+	short ltr_offset = AP_TSS_DESCRIPTOR + (seq ) * sizeof(TssDescriptor);
+
+	__leaveSpinlock(&g_allocate_ap_lock);
 
 	__asm {
 		//do not use lgdt lpgdt,why?
 		lgdt gdtbase
 
-		mov ax, AP_TSS_DESCRIPTOR
+		mov ax, ltr_offset
 		ltr ax
 
 		mov eax, PDE_ENTRY_VALUE

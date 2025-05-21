@@ -48,7 +48,7 @@
 #define MAIN_DLL_MODULE_NAME	"main.dll"
 #define KERNEL_DLL_MODULE_NAME	"kernel.dll"
 
-#define EXPLORER_TASKNAME			"__kExplorer"
+#define EXPLORER_TASKNAME		"__kExplorer"
 
 //#define SINGLE_TASK_TSS
 
