@@ -256,7 +256,6 @@ int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lp
 	typedef int (*ptrfun)();
 	ptrfun mytest1 = (ptrfun) getAddrFromName64(realbuf, "__kMytest64");
 	int ret = mytest1();
-	
 
 #ifdef _DEBUG
 	mytest(0);

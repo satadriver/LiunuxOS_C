@@ -22,7 +22,8 @@
 #include "parallel.h"
 #include "soundBlaster/sbPlay.h"
 #include "apic.h"
-
+#include "file.h"
+#include "pe64.h"
 
 void makeDataSegDescriptor(DWORD base, int dpl, int bit, int direction, int w, SegDescriptor* descriptor) {
 	descriptor->present = 1;
@@ -584,7 +585,7 @@ void InitPAE() {
 	}
 }
 
-unsigned char jmpstub[16];
+unsigned char g_jmpstub[16];
 
 void EnterLongMode() {
 	int ret = Is64Supported();
@@ -597,6 +598,13 @@ void EnterLongMode() {
 			mov cr0, eax
 		}
 
+		char* databuf = (char*)__kMalloc(0x100000);
+		ret = readFile("liunuxos64.dll",&databuf);
+		char* realbuf = (char*)MemLoadDll64((char*)databuf, (char*)KERNEL64_DLL_BASE);
+
+		typedef int (*ptrfunction)();
+		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(realbuf, "__kKernelEntry64");
+		//ret = fun();
 		int gdtlen = InitGdt64();
 
 		//InitIdt64();
@@ -605,13 +613,14 @@ void EnterLongMode() {
 
 		InitPAE();
 
-		jmpstub[0] = 0xea;
-		jmpstub[5] = 8;
-		jmpstub[6] = 0;
+		g_jmpstub[0] = 0xea;
+		g_jmpstub[5] = 8;
+		g_jmpstub[6] = 0;
 
 		//EnablePage64();
 
 		//SetLongMode();
+
 		__asm {
 			mov eax, PDE64_ENTRY_VALUE
 			mov cr3, eax
@@ -624,28 +633,12 @@ void EnterLongMode() {
 			mov eax, cr0
 			or eax, 0x80000000
 			mov cr0, eax
-		}
 
-	__testloop:
-		goto __testloop;
-
-		__asm{
-			lea eax, _LongModeEntryPoint
-			mov dword ptr ds : [jmpstub + 1] , eax
-			lea eax,jmpstub
+			mov eax, kernel64Entry
+			mov dword ptr ds : [g_jmpstub + 1] , eax
+			lea eax, g_jmpstub
 			jmp eax
-			//jmp jmpstub
-
-			_LongModeEntryPoint :
-			mov ax,8
-			mov ds,ax
-			mov es,ax
-			mov fs,ax
-			mov gs,ax
-			mov ss,ax
-			jmp _LongModeEntryPoint
 		}
-
 	}
 }
 
