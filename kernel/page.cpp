@@ -285,9 +285,9 @@ void InitPage64(QWORD * base) {
 	for (QWORD i = 0; i < cnt1; i++) {
 		
 		for (QWORD j = 0; j < cnt2; j++) {
-			table1[j] = ((QWORD)table2 | 7) + bs2 * j;
+			table1[j] = ((QWORD)table2 | 7) ;
 			for (QWORD k = 0; k < cnt3; k++) {
-				table2[k] = ((QWORD)table3 | 7) + bs3 * k;
+				table2[k] = ((QWORD)table3 | 7) +(k / 512) * PAGE_SIZE;
 				for (QWORD n = 0; n < cnt4; n++) {
 					table3[n] = ((QWORD)table4 | 7) ;
 					for (QWORD m = 0; m < 512; m++) 
@@ -297,7 +297,7 @@ void InitPage64(QWORD * base) {
 					}
 					table4 += PAGE_SIZE / 8;
 				}
-				table3 += PAGE_SIZE / 8;
+				//table3 += PAGE_SIZE / 8;
 			}
 			table2 += PAGE_SIZE / 8;
 		}

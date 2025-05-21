@@ -390,6 +390,7 @@ typedef struct {
 	QWORD reservedQw2;
 	WORD reservedw;
 	WORD iomap;
+	unsigned char ioend;
 }TSS64_DATA, * LPTSS64_DATA;
 
 #pragma pack(pop)

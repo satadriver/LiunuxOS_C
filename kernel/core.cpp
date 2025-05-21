@@ -511,21 +511,9 @@ int InitGdt64() {
 	short tss_offset = 8 * sizeof (SegDescriptor);
 
 	initTss64((TSS64_DATA*)TSS64_BASE_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
-	makeTss64Descriptor(TSS64_BASE_ADDRESS, 3, sizeof(Tss64Descriptor),(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
+	makeTss64Descriptor(TSS64_BASE_ADDRESS, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
 
-	int gdtlen = tss_offset +sizeof(Tss64Descriptor);
-
-	DescriptTableReg gdtbase;
-	gdtbase.size = gdtlen - 1;
-	gdtbase.addr = GDT64_BASE_ADDR;
-
-	__asm {
-		lgdt gdtbase
-
-		mov ax, tss_offset
-		ltr ax
-	}
-	return 8*sizeof(QWORD);
+	return tss_offset + sizeof(Tss64Descriptor);
 }
 
 int Is64Supported() {
@@ -590,6 +578,14 @@ unsigned char g_jmpstub[16];
 void EnterLongMode() {
 	int ret = Is64Supported();
 	if (ret) {
+		char* databuf = (char*)__kMalloc(0x100000);
+		ret = readFile("c:\\liunux\\liunuxos64.dll", &databuf);
+		char* realbuf = (char*)MemLoadDll64((char*)databuf, (char*)KERNEL64_DLL_BASE);
+		typedef int (*ptrfunction)();
+		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(realbuf, "__kKernelEntry64");
+		char szout[1024];
+		__printf(szout, "__kKernelEntry64:%x\r\n", kernel64Entry);
+
 		__asm {
 			cli
 
@@ -598,13 +594,6 @@ void EnterLongMode() {
 			mov cr0, eax
 		}
 
-		char* databuf = (char*)__kMalloc(0x100000);
-		ret = readFile("c:\\liunux\\liunuxos64.dll",&databuf);
-		char* realbuf = (char*)MemLoadDll64((char*)databuf, (char*)KERNEL64_DLL_BASE);
-
-		typedef int (*ptrfunction)();
-		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(realbuf, "__kKernelEntry64");
-		//ret = fun();
 		int gdtlen = InitGdt64();
 
 		//InitIdt64();
@@ -615,11 +604,24 @@ void EnterLongMode() {
 
 		g_jmpstub[0] = 0xea;
 		g_jmpstub[5] = 8;
-		g_jmpstub[6] = 0;
+		g_jmpstub[6] = 0;	
+		* (DWORD*)(g_jmpstub + 1) =(DWORD) kernel64Entry;
 
 		//EnablePage64();
 
 		//SetLongMode();
+
+		DescriptTableReg gdtbase;
+		gdtbase.size = gdtlen - 1;
+		gdtbase.addr = GDT64_BASE_ADDR;
+
+		short tr_offset = gdtlen - sizeof(Tss64Descriptor);
+		__asm {
+			lgdt gdtbase
+
+			mov ax, tr_offset
+			ltr ax
+		}
 
 		__asm {
 			mov eax, PDE64_ENTRY_VALUE
@@ -634,8 +636,9 @@ void EnterLongMode() {
 			or eax, 0x80000000
 			mov cr0, eax
 
-			mov eax, kernel64Entry
-			mov dword ptr ds : [g_jmpstub + 1] , eax
+			__mainloop :
+			//jmp __mainloop;
+
 			lea eax, g_jmpstub
 			jmp eax
 		}
@@ -736,5 +739,5 @@ void initTss64(TSS64_DATA* tss, QWORD rsp) {
 
 	tss->iomap= sizeof(TSS64_DATA);
 	tss->rsp0 = rsp;
-
+	tss->ioend = 0xff;
 }
