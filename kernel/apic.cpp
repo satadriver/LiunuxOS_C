@@ -461,10 +461,11 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__enterSpinlock(&g_allocate_ap_lock);
 	int id = *(DWORD*)0xFEE00020;
 	id = id >> 24;
+	int* apTotal = (int*)AP_TOTAL_ADDRESS;
 	int seq = *(int*)AP_TOTAL_ADDRESS;
 	int* apids = (int*)AP_ID_ADDRESS;
 	apids[seq] = id;
-	*(int*)AP_TOTAL_ADDRESS = seq + 1;
+	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
 
 	__asm {
 		mov eax, KTASK_STACK_SIZE
@@ -553,7 +554,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 void BPCodeStart() {
 
-	*(int*)AP_TOTAL_ADDRESS = 0;
+	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
 #ifdef APIC_ENABLE
 	enableLocalApic();

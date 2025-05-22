@@ -501,11 +501,11 @@ void InitIdt64() {
 int InitGdt64() {
 	QWORD* gdt = (QWORD*)GDT64_BASE_ADDR;
 	gdt[0] = 0;
-	gdt[1] = 0x0020980000000000;
+	gdt[1] = 0x00209a0000000000;
 	gdt[2] = 0x0020920000000000;
-	gdt[3] = 0x0020f80000000000;
+	gdt[3] = 0x0020fa0000000000;
 	gdt[4] = 0x0020f20000000000;
-	gdt[5] = 0x00cff80000000000;
+	gdt[5] = 0x00cffa0000000000;
 	gdt[6] = 0x00cff20000000000;
 	gdt[7] = 0x0000000000000000;
 	short tss_offset = 8 * sizeof (SegDescriptor);
@@ -607,6 +607,7 @@ void EnterLongMode() {
 		g_jmpstub[6] = 0;	
 		* (DWORD*)(g_jmpstub + 1) =(DWORD) kernel64Entry;
 
+		DWORD kernel64Entry32 = (DWORD)kernel64Entry;
 		//EnablePage64();
 
 		//SetLongMode();
@@ -638,6 +639,20 @@ void EnterLongMode() {
 
 			__mainloop :
 			//jmp __mainloop;
+			lea eax, __bit64EntryOffset
+			mov edx, kernel64Entry32
+			mov dword ptr ss:[eax], edx
+
+			_emit 0xea
+			__bit64EntryOffset:
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 8
+			_emit 0
+
+			jmp fword ptr g_jmpstub+1
 
 			lea eax, g_jmpstub
 			jmp eax
