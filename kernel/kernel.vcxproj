@@ -219,6 +219,7 @@
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="heap.cpp" />
+    <ClCompile Include="md5.cpp" />
     <ClCompile Include="parallel.cpp" />
     <ClCompile Include="pcnet.cpp" />
     <ClCompile Include="pe64.cpp" />
@@ -270,7 +271,6 @@
     <ClCompile Include="video.cpp" />
     <ClCompile Include="VMM.cpp" />
     <ClCompile Include="window.cpp" />
-    <ClCompile Include="md5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aes.h" />

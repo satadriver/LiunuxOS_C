@@ -752,10 +752,10 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 	}
 }
 
-#define IVT_PROCESS_SEGMENT		0X500
+
 
 void SetIVTVector() {
-	DWORD addr = IVT_PROCESS_SEGMENT;				//from 0x500 to 0x7c00 is available memory address
+	DWORD addr = IVT_PROCESS_ADDRESS;				//from 0x500 to 0x7c00 is available memory address
 	DWORD vector = (addr << 4) + 0;
 	*(DWORD*)addr = 0xcf;			//iret opcode
 	DWORD* ivt = (DWORD*)0;		//dos int call
