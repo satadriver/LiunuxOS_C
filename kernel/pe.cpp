@@ -214,6 +214,7 @@ int setImageBase(char* chBaseAddress)
 DWORD importTable(DWORD module) {
 
 	char szout[1024];
+	int ret = 0;
 
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
 	PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)((DWORD)dos + dos->e_lfanew);
@@ -227,6 +228,7 @@ DWORD importTable(DWORD module) {
 		if (impd->FirstThunk == 0 && impd->ForwarderChain == 0 && impd->Name == 0 &&
 			impd->DUMMYUNIONNAME.OriginalFirstThunk == 0 && impd->TimeDateStamp == 0)
 		{
+			ret++;
 			break;
 		}
 
@@ -250,10 +252,15 @@ DWORD importTable(DWORD module) {
 			continue;
 		}
 
+		if (__strcmp(dllname,"kernel.dll") == 0) {
+
+		}
 		//dllname here without path,so you need to set default path
 		HMODULE dll = loadLibFile((LPSTR)dllname);
 		if (NULL == dll)
 		{
+			//return 0;
+
 			impd++;
 			continue;
 		}
@@ -275,10 +282,10 @@ DWORD importTable(DWORD module) {
 				if (addr <= 0)
 				{
 					__printf(szout, "getAddrFromOrd function no:%d from lib:%s error\r\n", ord, dllname);
-
 					break;
 				}
 				else{
+					ret++;
 // 					__printf(szout, "getAddrFromOrd function no:%d address:%x from lib:%s ok\r\n", ord,addr, dllname);
 // 					__drawGraphChars((unsigned char*)szout, 0);
 				}
@@ -289,10 +296,10 @@ DWORD importTable(DWORD module) {
 				if (addr <= 0)
 				{
 					__printf(szout, "getAddrFromOrd function:%s from lib:%s error\r\n", impname->Name, dllname);
-
 					break;
 				}
 				else {
+					ret++;
 // 					__printf(szout, "getAddrFromOrd function:%s address:%x from lib:%s ok\r\n", impname->Name,addr, dllname);
 // 					__drawGraphChars((unsigned char*)szout, 0);
 				}
@@ -306,7 +313,7 @@ DWORD importTable(DWORD module) {
 
 		impd++;
 	}
-	return 0;
+	return ret;
 }
 
 
@@ -314,9 +321,13 @@ DWORD importTable(DWORD module) {
 
 
 DWORD memLoadDll(char* filedata, char* addr) {
+	int ret = 0;
 	mapFile(filedata, addr);
-	importTable((DWORD)addr);
-	relocTable(addr);
+	ret = importTable((DWORD)addr);
+	if (ret == 0) {
+		//return 0;
+	}
+	ret = relocTable(addr);
 	setImageBase(addr);
 	return (DWORD)addr;
 }
@@ -362,11 +373,15 @@ DWORD loadLibFile(char * dllname) {
 		{
 			int imagesize = getSizeOfImage((char*)data);
 			char * dllptr = (char*)__kMalloc(imagesize);
-
-			mapFile((char*)data, (char*)dllptr);
+			int ret = 0;
+			ret = mapFile((char*)data, (char*)dllptr);
 			setImageBase((char*)dllptr);
-			importTable((DWORD)dllptr);
-			relocTable((char*)dllptr);
+			ret = importTable((DWORD)dllptr);
+			if (ret == 0) {
+				//__kFree((DWORD)dllptr);
+				//return 0;
+			}
+			ret = relocTable((char*)dllptr);
 
 			__kStoreModule(dllname, (DWORD)dllptr);
 

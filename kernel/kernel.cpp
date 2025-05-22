@@ -236,6 +236,11 @@ void mytest(LIGHT_ENVIRONMENT  * stack) {
 
 #include "pe64.h"
 #include <stdio.h>
+#include "base64.h"
+#include "md5.h"
+#include "aes.h"
+#include "des.h"
+#include "rc4.h"
 #ifdef _USRDLL
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {
 	return TRUE;
@@ -243,20 +248,19 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
-	int v = 0;
+	char mydata[1024];
+	int len = 1024;
+	base64_encode("hello", 5, mydata, &len);
 
-	DWORD addr = 0;
-	__asm {
-		lea eax,[addr]
-		
-		lea edx, __addr
-		mov dword ptr[eax], edx
-		lea eax, __addr
-		jmp eax
+	char outdata[1024];
+	int outlen = 1024;
+	base64_decode(mydata,len, outdata, &outlen);
 
-		__addr:
-		mov [v],1
-	}
+	MD5_CTX ctx;
+	MD5Init(&ctx);
+	unsigned char output[1024];
+	MD5Update(&ctx,(unsigned char*) "hello", 5);
+	MD5Final(&ctx, output);
 
 #ifdef _DEBUG
 	mytest(0);

@@ -46,6 +46,9 @@
     <Filter Include="头文件\cipher">
       <UniqueIdentifier>{6894f3e9-9fa4-4270-9ffe-fdb5a66fee91}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\cipher">
+      <UniqueIdentifier>{0d6dbb60-7582-49c1-9b51-3fe1de2a7990}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="kernel.cpp">
@@ -230,6 +233,21 @@
     </ClCompile>
     <ClCompile Include="pe64.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>源文件\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="aes.cpp">
+      <Filter>源文件\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="des.cpp">
+      <Filter>源文件\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="base64.cpp">
+      <Filter>源文件\cipher</Filter>
+    </ClCompile>
+    <ClCompile Include="rc4.cpp">
+      <Filter>源文件\cipher</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -418,6 +436,21 @@
     </ClInclude>
     <ClInclude Include="pe64.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>源文件\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="aes.h">
+      <Filter>源文件\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="rc4.h">
+      <Filter>源文件\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="des.h">
+      <Filter>源文件\cipher</Filter>
+    </ClInclude>
+    <ClInclude Include="base64.h">
+      <Filter>源文件\cipher</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

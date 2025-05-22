@@ -114,9 +114,13 @@ int setImageBaseV(char* chBaseAddress,DWORD vaddr)
 
 
 DWORD memLoadDllV(char* filedata,int size,char* addr,DWORD vaddr,DWORD * cr3) {
+	int ret = 0;
 	mapFile(filedata, (char*)addr);
 	//remap((DWORD)addr,size,cr3);
-	importTable((DWORD)addr);
+	ret = importTable((DWORD)addr);
+	if (ret == 0) {
+		//return 0;
+	}
 	relocTableV(addr,vaddr);
 	setImageBaseV(addr,vaddr);
 	return (DWORD)addr;

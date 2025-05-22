@@ -205,14 +205,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aes.cpp" />
     <ClCompile Include="apic.cpp" />
     <ClCompile Include="atapi.cpp" />
+    <ClCompile Include="base64.cpp" />
     <ClCompile Include="cmosAlarm.cpp" />
     <ClCompile Include="cmosExactTimer.cpp" />
     <ClCompile Include="cmosPeriodTimer.cpp" />
     <ClCompile Include="coprocessor.cpp" />
     <ClCompile Include="core.cpp" />
     <ClCompile Include="debugger.cpp" />
+    <ClCompile Include="des.cpp" />
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="heap.cpp" />
@@ -242,6 +245,7 @@
     <ClCompile Include="peVirtual.cpp" />
     <ClCompile Include="peResource.cpp" />
     <ClCompile Include="queue.cpp" />
+    <ClCompile Include="rc4.cpp" />
     <ClCompile Include="rtl8139.cpp" />
     <ClCompile Include="serialUART.cpp" />
     <ClCompile Include="screenProtect.cpp" />
@@ -266,10 +270,13 @@
     <ClCompile Include="video.cpp" />
     <ClCompile Include="VMM.cpp" />
     <ClCompile Include="window.cpp" />
+    <ClCompile Include="md5.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="aes.h" />
     <ClInclude Include="apic.h" />
     <ClInclude Include="atapi.h" />
+    <ClInclude Include="base64.h" />
     <ClInclude Include="cmosAlarm.h" />
     <ClInclude Include="cmosExactTimer.h" />
     <ClInclude Include="cmosPeriodTimer.h" />
@@ -277,9 +284,11 @@
     <ClInclude Include="core.h" />
     <ClInclude Include="debugger.h" />
     <ClInclude Include="def.h" />
+    <ClInclude Include="des.h" />
     <ClInclude Include="descriptor.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="heap.h" />
+    <ClInclude Include="md5.h" />
     <ClInclude Include="parallel.h" />
     <ClInclude Include="pcnet.h" />
     <ClInclude Include="pe64.h" />
@@ -306,6 +315,7 @@
     <ClInclude Include="peVirtual.h" />
     <ClInclude Include="peResource.h" />
     <ClInclude Include="queue.h" />
+    <ClInclude Include="rc4.h" />
     <ClInclude Include="rtl8139.h" />
     <ClInclude Include="serialUART.h" />
     <ClInclude Include="screenProtect.h" />
