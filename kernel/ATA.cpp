@@ -19,11 +19,11 @@ WORD gAtaBasePort = 0;
 
 DWORD gATADev = 0;
 
-DWORD gAtapiPackSize = 16;
+unsigned char gAtapiPackSize = 16;
 
 WORD gAtapiBasePort = 0;
 
-DWORD gATAPIDev = 0;
+unsigned char gATAPIDev = 0;
 
 DWORD gMimo = 0;
 
@@ -190,10 +190,10 @@ int getIDEPort() {
 				ret = checkIDEMimo((hdport[i] & 0xffffFFF0));
 				if (ret == 1)
 				{
-					gAtaBasePort = hdport[i] & 0xFFFffff0;
+					gAtaBasePort =(USHORT) hdport[i] & 0xFFFffff0;
 				}
 				else if (ret == 2) {
-					gAtapiBasePort = hdport[i] & 0xFFFffff0;
+					gAtapiBasePort = (USHORT)hdport[i] & 0xFFFffff0;
 				}
 			}
 			else {

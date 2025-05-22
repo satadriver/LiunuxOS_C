@@ -31,7 +31,7 @@ int writeAtapiCMD(unsigned short* cmd) {
 	__asm {
 		cli
 		mov dx, gAtapiBasePort
-		mov ecx, gAtapiPackSize
+		movzx ecx, gAtapiPackSize
 		shr ecx, 1
 		mov esi, cmd
 		cld

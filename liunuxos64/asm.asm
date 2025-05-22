@@ -20,7 +20,7 @@ LiunuxOS64Entry proc
 mov rsp,rcx
 mov rbp,rsp
 
-mov ax,8
+mov ax,16
 mov ds,ax
 mov es,ax
 mov fs,ax

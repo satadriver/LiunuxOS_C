@@ -240,10 +240,10 @@
     <ClCompile Include="aes.cpp">
       <Filter>源文件\cipher</Filter>
     </ClCompile>
-    <ClCompile Include="des.cpp">
+    <ClCompile Include="md5.cpp">
       <Filter>源文件\cipher</Filter>
     </ClCompile>
-    <ClCompile Include="md5.cpp">
+    <ClCompile Include="des.cpp">
       <Filter>源文件\cipher</Filter>
     </ClCompile>
   </ItemGroup>

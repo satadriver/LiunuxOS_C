@@ -26,11 +26,11 @@ extern DWORD gATADrv ;
 
 extern DWORD gATAPIDrv ;
 
-extern DWORD gAtapiPackSize;
+extern unsigned char gAtapiPackSize;
 
 extern DWORD gATADev ;
 
-extern DWORD gATAPIDev ;
+extern unsigned char gATAPIDev ;
 
 extern WORD gAtaBasePort;
 

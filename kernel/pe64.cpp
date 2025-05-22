@@ -164,7 +164,7 @@ bool mapFileAttr64(char* pFileBuff, char* chBaseAddress, DWORD* cr3)
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)pFileBuff;
 	PIMAGE_NT_HEADERS64 pNt = (PIMAGE_NT_HEADERS64)(pFileBuff + pDos->e_lfanew);
 
-	QWORD dwSizeOfHeaders = pNt->OptionalHeader.SizeOfHeaders;
+	int dwSizeOfHeaders = pNt->OptionalHeader.SizeOfHeaders;
 	__memcpy(chBaseAddress, pFileBuff, dwSizeOfHeaders);
 
 	//PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pNt);
@@ -180,7 +180,7 @@ bool mapFileAttr64(char* pFileBuff, char* chBaseAddress, DWORD* cr3)
 
 		char* chDestMem = (char*)((QWORD)chBaseAddress + pSection->VirtualAddress);
 		char* chSrcMem = (char*)((QWORD)pFileBuff + pSection->PointerToRawData);
-		QWORD dwSizeOfRawData = pSection->SizeOfRawData;
+		int dwSizeOfRawData = pSection->SizeOfRawData;
 		__memcpy(chDestMem, chSrcMem, dwSizeOfRawData);
 	}
 
@@ -208,7 +208,7 @@ bool mapFile64(char* pFileBuff, char* chBaseAddress)
 
 		char* chDestMem = (char*)((QWORD)chBaseAddress + pSection->VirtualAddress);
 		char* chSrcMem = (char*)((QWORD)pFileBuff + pSection->PointerToRawData);
-		QWORD dwSizeOfRawData = pSection->SizeOfRawData;
+		int dwSizeOfRawData = pSection->SizeOfRawData;
 		__memcpy(chDestMem, chSrcMem, dwSizeOfRawData);
 	}
 

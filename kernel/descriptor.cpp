@@ -63,7 +63,19 @@ extern "C" __declspec(naked) void __kCallGateProc(DWORD  params, DWORD count) {
 
 		retf 0x08		//ca 08 00		在长调用中使用retf，这点需要注意.
 	}
+	/*
+	ret（近返回）：
 
+C3（无操作数）
+
+C2 imm16（带栈调整，如 ret 4）
+
+retf（远返回）：
+
+CB（无操作数）
+
+CA imm16（带栈调整，如 retf 8）
+	*/
 	//RET immed16:	C2 
 	//RET :		C3 
 	//RETF immed16: //CA 

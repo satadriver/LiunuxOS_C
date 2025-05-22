@@ -83,6 +83,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	initIDT();
 	SetIVTVector();
 
+	initDll();
+
 	initDevices();
 
 	initMemory();
@@ -117,7 +119,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		StopVirtualTechnology();
 	}
 
-	initDll();
+	
 
 	//initNIC();
 
@@ -133,7 +135,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	initFileSystem();
 
-	EnterLongMode();
+	//EnterLongMode();
 
 	int imagesize = getSizeOfImage((char*)KERNEL_DLL_SOURCE_BASE);
 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
