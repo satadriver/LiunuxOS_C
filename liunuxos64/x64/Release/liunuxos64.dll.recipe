@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>E:\virtualbox\vmshare\liunux\LiunuxOS_C\x64\Release\liunuxos64.dll</FullPath>
+      <FullPath>C:\Users\ljg\LiunuxOS_C\x64\Release\liunuxos64.dll</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

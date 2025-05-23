@@ -617,14 +617,12 @@ void EnterLongMode() {
 		gdtbase.addr = GDT64_BASE_ADDR;
 
 		short tr_offset = gdtlen - sizeof(Tss64Descriptor);
-		__asm {
-			//lgdt gdtbase
-
-			mov ax, tr_offset
-			//ltr ax
-		}
 
 		__asm {
+			mov eax, kernel64Entry32
+			lea ebx, __bit64EntryOffset
+			mov ss : [ebx] , eax
+
 			mov eax, PDE64_ENTRY_VALUE
 			mov cr3, eax
 
@@ -637,49 +635,26 @@ void EnterLongMode() {
 			or eax, 0x80000000
 			mov cr0, eax
 
-			__mainloop :
-			//jmp __mainloop;
-			lea eax, g_jmpstub
-			mov edx, kernel64Entry32
-			mov dword ptr ds : [eax + 1] , edx
-
-				
-
-				//jmp fword ptr g_jmpstub + 1
-
-				lea eax, g_jmpstub
-
-				lgdt gdtbase
-
-				jmp eax
+			lgdt gdtbase
+			mov ax, tr_offset
+			ltr ax
 			
-			//push dword ptr 0
-			push dword ptr 8	
-			//push dword ptr 0
-			push kernel64Entry32	
-			retf 
-
-			/*
-			lea eax, __bit64EntryOffset
-			mov edx, kernel64Entry32
-			mov dword ptr ss:[eax], edx
-			mov dword ptr ss : [eax+4] , 0
-			mov byte ptr ss : [eax+8] , 8
-			mov byte ptr ss : [eax+9] , 0
 			_emit 0xea
 			__bit64EntryOffset:
 			_emit 0
 			_emit 0
 			_emit 0
 			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
 			_emit 8
 			_emit 0
-			*/
+			
 
+			push dword ptr 8
+			push dword ptr kernel64Entry32
+			retf
+
+			lea eax, g_jmpstub
+			jmp eax
 
 		}
 	}
