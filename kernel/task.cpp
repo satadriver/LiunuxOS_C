@@ -485,7 +485,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			fninit
 		}
 	}
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x200) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x100) {
 		__int64 timeh2 = __krdtsc() - timeh1;
 
 		DWORD cpureq;
@@ -714,7 +714,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->es = process->tss.es;
 	env->ss = process->tss.ss;
 
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x200) {
+	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg <= 0x100) {
 		__int64 timeh2 = __krdtsc() - timeh1;
 
 		DWORD cpureq;
@@ -756,8 +756,9 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 
 void SetIVTVector() {
 	DWORD addr = IVT_PROCESS_ADDRESS;				//from 0x500 to 0x7c00 is available memory address
-	DWORD vector = IVT_PROCESS_ADDRESS>>4;
+	
 	*(DWORD*)addr = 0xcf;			//iret opcode
+	DWORD vector = (IVT_PROCESS_SEG << 16) + IVT_PROCESS_OFFSET;
 	DWORD* ivt = (DWORD*)0;		//dos int call
 	for (int seq = 0; seq < 0x100; seq++) {
 		if (seq >= 0x10 && seq < 0x20) {

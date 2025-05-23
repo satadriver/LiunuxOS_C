@@ -376,7 +376,7 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 
 	WINDOWCLASS window;
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
-	__strcpy(window.caption, filename);
+	__strcpy(window.caption, funcname);
 	initFullWindow(&window, funcname, tid,0);
 
 	int result = initCCFont();

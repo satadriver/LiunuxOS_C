@@ -30,7 +30,7 @@ int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcnam
 
 	WINDOWCLASS window;
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
-	__strcpy(window.caption, filename);
+	__strcpy(window.caption, funcname);
 	initFullWindow(&window, funcname, tid,1);
 
 	if (cmd == SHOW_WINDOW_BMP || cmd == SHOW_WINDOW_TXT || cmd == SHOW_WINDOW_JPEG)

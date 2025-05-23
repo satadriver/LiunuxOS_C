@@ -29,7 +29,7 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 		DWORD rcs = (WORD)prev->tss.cs;
 		WORD code = *(WORD*)((rcs << 4) + reip + 2);
 		WORD code2 = *(WORD*)((rcs << 4) + reip );
-		if (code == 0xfeeb && code2 == 0xfeeb) {
+		if (code == 0xfeeb || code2 == 0xfeeb) {
 
 			LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
 			for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)

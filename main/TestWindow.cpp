@@ -134,7 +134,7 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 
 	WINDOWCLASS window;
 	__memset((char*)&window, 0, sizeof(WINDOWCLASS));
-	__strcpy(window.caption, filename);
+	__strcpy(window.caption, funcname);
 	initFullWindow(&window, funcname, tid,0);
 
 	DWORD address = getAddrFromName(MAIN_DLL_BASE, "__taskTest1");

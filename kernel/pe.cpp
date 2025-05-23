@@ -326,7 +326,7 @@ DWORD memLoadDll(char* filedata, char* addr) {
 	mapFile(filedata, addr);
 	ret = importTable((DWORD)addr);
 	if (ret == 0) {
-		//return 0;
+		return 0;
 	}
 	ret = relocTable(addr);
 	setImageBase(addr);
@@ -346,7 +346,11 @@ void initDll() {
 
 	__kStoreModule((char*)KERNEL_DLL_MODULE_NAME, KERNEL_DLL_BASE);
 
-	memLoadDll((char*)MAIN_DLL_SOURCE_BASE, (char*)MAIN_DLL_BASE);
+	char* databuf =(char*) MAIN_DLL_SOURCE_BASE;
+	int ret = readFile("c:\\liunux\\main.dll", &databuf);
+	char* realbuf = (char*)memLoadDll((char*)databuf, (char*)MAIN_DLL_BASE);
+
+	//memLoadDll((char*)MAIN_DLL_SOURCE_BASE, (char*)MAIN_DLL_BASE);
 }
 
 
@@ -379,8 +383,8 @@ DWORD loadLibFile(char * dllname) {
 			setImageBase((char*)dllptr);
 			ret = importTable((DWORD)dllptr);
 			if (ret == 0) {
-				//__kFree((DWORD)dllptr);
-				//return 0;
+				__kFree((DWORD)dllptr);
+				return 0;
 			}
 			ret = relocTable((char*)dllptr);
 

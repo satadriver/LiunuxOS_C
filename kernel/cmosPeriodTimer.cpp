@@ -12,10 +12,10 @@
 
 unsigned char readCmosPort(unsigned char port) {
 
-	__asm{cli}
+	//__asm{cli}
 	outportb(0x70, port|0x80);
 	unsigned char c= inportb(0x71);
-	__asm{sti}
+	//__asm{sti}
 	return c;
 	__asm {
 		//in al,70h
