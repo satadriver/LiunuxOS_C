@@ -222,7 +222,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		else if (ck == VK_F11)
 		{
 
-			continue;
+			//continue;
 		}
 		else if (ck == VK_F12) {
 			if (__findProcessFileName("SquareVector") == FALSE)

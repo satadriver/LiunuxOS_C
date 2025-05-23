@@ -119,8 +119,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		StopVirtualTechnology();
 	}
 
-	
-
 	//initNIC();
 
 	__asm {
@@ -135,9 +133,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	initFileSystem();
 
-	//EnterLongMode();
+	EnterLongMode();
 
-	int imagesize = getSizeOfImage((char*)KERNEL_DLL_SOURCE_BASE);
+	int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
 	if (kernelMain)
 	{

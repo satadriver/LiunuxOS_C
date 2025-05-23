@@ -44,7 +44,7 @@
 
 #define LIUNUX_DEBUG_LOG_ON
 
-#define MY_SLAB_FLAG			"LJG"
+#define MY_SLAB_FLAG			"LJG "
 #define MAIN_DLL_MODULE_NAME	"main.dll"
 #define KERNEL_DLL_MODULE_NAME	"kernel.dll"
 

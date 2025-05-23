@@ -119,7 +119,7 @@ DWORD memLoadDllV(char* filedata,int size,char* addr,DWORD vaddr,DWORD * cr3) {
 	//remap((DWORD)addr,size,cr3);
 	ret = importTable((DWORD)addr);
 	if (ret == 0) {
-		return 0;
+		//return 0;
 	}
 	relocTableV(addr,vaddr);
 	setImageBaseV(addr,vaddr);

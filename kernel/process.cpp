@@ -178,9 +178,9 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	result = importTable((DWORD)pemap);
 	if (result == 0) {
 		__printf(szout, "__kCreateTask importTable error when function:%s file:%s\n", funcname, filename);
-		__kFree(pemap);
-		tss->status = TASK_OVER;
-		return FALSE;
+		//__kFree(pemap);
+		//tss->status = TASK_OVER;
+		//return FALSE;
 	}
 	setImageBaseV((char*)pemap, USER_SPACE_START);
 #endif

@@ -326,7 +326,7 @@ DWORD memLoadDll(char* filedata, char* addr) {
 	mapFile(filedata, addr);
 	ret = importTable((DWORD)addr);
 	if (ret == 0) {
-		return 0;
+		//return 0;
 	}
 	ret = relocTable(addr);
 	setImageBase(addr);
@@ -379,8 +379,8 @@ DWORD loadLibFile(char * dllname) {
 			setImageBase((char*)dllptr);
 			ret = importTable((DWORD)dllptr);
 			if (ret == 0) {
-				__kFree((DWORD)dllptr);
-				return 0;
+				//__kFree((DWORD)dllptr);
+				//return 0;
 			}
 			ret = relocTable((char*)dllptr);
 
