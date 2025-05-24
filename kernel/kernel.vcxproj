@@ -205,6 +205,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="aes.cpp" />
     <ClCompile Include="apic.cpp" />
     <ClCompile Include="atapi.cpp" />
     <ClCompile Include="base64.cpp" />
@@ -214,9 +215,11 @@
     <ClCompile Include="coprocessor.cpp" />
     <ClCompile Include="core.cpp" />
     <ClCompile Include="debugger.cpp" />
+    <ClCompile Include="des.cpp" />
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="heap.cpp" />
+    <ClCompile Include="md5.cpp" />
     <ClCompile Include="parallel.cpp" />
     <ClCompile Include="pcnet.cpp" />
     <ClCompile Include="pe64.cpp" />

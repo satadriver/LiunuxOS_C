@@ -573,7 +573,7 @@ void InitPAE() {
 	}
 }
 
-unsigned char g_jmpstub[16];
+
 
 void EnterLongMode() {
 	int ret = Is64Supported();
@@ -602,6 +602,7 @@ void EnterLongMode() {
 
 		InitPAE();
 
+		unsigned char g_jmpstub[16];
 		g_jmpstub[0] = 0xea;
 		g_jmpstub[5] = 8;
 		g_jmpstub[6] = 0;	
@@ -619,9 +620,9 @@ void EnterLongMode() {
 		short tr_offset = gdtlen - sizeof(Tss64Descriptor);
 
 		__asm {
-			mov eax, kernel64Entry32
-			lea ebx, __bit64EntryOffset
-			mov ss : [ebx] , eax
+			lea eax, __bit64EntryOffset
+			mov edx, kernel64Entry32
+			mov  ds : [eax] , edx
 
 			mov eax, PDE64_ENTRY_VALUE
 			mov cr3, eax
@@ -638,6 +639,10 @@ void EnterLongMode() {
 			lgdt gdtbase
 			mov ax, tr_offset
 			ltr ax
+
+			mov ebx,esp
+			mov esi,ebp
+			lea edi, __win64_leave
 			
 			_emit 0xea
 			__bit64EntryOffset:
@@ -655,7 +660,7 @@ void EnterLongMode() {
 
 			lea eax, g_jmpstub
 			jmp eax
-
+__win64_leave:
 		}
 	}
 }
