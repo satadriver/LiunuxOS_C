@@ -154,7 +154,7 @@ int enableLocalApic() {
 			test edx, (1 << 9)
 			jz __no_apic
 
-			; ÉèÖÃAPIC»ùµØÖ·(ÏÈ²»ÆôÓÃ)
+			; è®¾ç½®APICåŸºåœ°å€(å…ˆä¸å¯ç”¨)
 			mov ecx, 0x1B
 			rdmsr
 			and eax, 0xFFFFF000
@@ -162,21 +162,21 @@ int enableLocalApic() {
 			wrmsr
 			mov[apic_base], eax
 
-			; ³õÊ¼»¯¹Ø¼ü¼Ä´æÆ÷
+			; åˆå§‹åŒ–å…³é”®å¯„å­˜å™¨
 			mov edi, eax
-			mov dword ptr ds:[edi + 0xF0], 0x1FF; Î±ÖÐ¶ÏÏòÁ¿
+			mov dword ptr ds:[edi + 0xF0], 0x1FF; ä¼ªä¸­æ–­å‘é‡
 			mov dword ptr  ds : [edi + 0x80], 0; TPR
-			mov dword ptr ds : [edi + 0x350], 0x10000; ½ûÓÃLVTÐÔÄÜ¼à¿Ø
-			mov dword ptr  ds : [edi + 0x360], 0x10000; ½ûÓÃLVTÈÈ´«¸ÐÆ÷
+			mov dword ptr ds : [edi + 0x350], 0x10000; ç¦ç”¨LVTæ€§èƒ½ç›‘æŽ§
+			mov dword ptr  ds : [edi + 0x360], 0x10000; ç¦ç”¨LVTçƒ­ä¼ æ„Ÿå™¨
 
-			//mov dword[edi + 0x320], 0x40 | (1 << 17); ÏòÁ¿32, ¶¨Ê±Æ÷Ä£Ê½
+			//mov dword[edi + 0x320], 0x40 | (1 << 17); å‘é‡32, å®šæ—¶å™¨æ¨¡å¼
 
-			; ½ûÓÃ8259A PIC
+			; ç¦ç”¨8259A PIC
 			mov al, 0xFF
 			out 0xA1, al
 			out 0x21, al
 
-			; ×îºóÆôÓÃAPIC
+			; æœ€åŽå¯ç”¨APIC
 			mov ecx, 0x1B
 			rdmsr
 			or eax, 0x800
@@ -378,11 +378,11 @@ int InitIoApic() {
 
 
 /*
-¶ÌÌø×ª£¨Short Jmp£¬Ö»ÄÜÌø×ªµ½256×Ö½ÚµÄ·¶Î§ÄÚ£©£¬¶ÔÓ¦»úÆ÷Âë£ºEB
-½üÌø×ª£¨Near Jmp£¬¿ÉÌøÖÁÍ¬Ò»¶Î·¶Î§ÄÚµÄµØÖ·£©£¬¶ÔÓ¦»úÆ÷Âë£ºE9
-½üÌø×ª£¨Near call£¬¿ÉÌøÖÁÍ¬Ò»¶Î·¶Î§ÄÚµÄµØÖ·£©£¬¶ÔÓ¦»úÆ÷Âë£ºE8
-Ô¶Ìø×ª£¨Far Jmp£¬¿ÉÌøÖÁÈÎÒâµØÖ·£©£¬¶ÔÓ¦»úÆ÷Âë£º EA
-Ô¶Ìø×ª£¨Far call£¬¿ÉÌøÖÁÈÎÒâµØÖ·£©£¬¶ÔÓ¦»úÆ÷Âë£º 9A
+çŸ­è·³è½¬ï¼ˆShort Jmpï¼Œåªèƒ½è·³è½¬åˆ°256å­—èŠ‚çš„èŒƒå›´å†…ï¼‰ï¼Œå¯¹åº”æœºå™¨ç ï¼šEB
+è¿‘è·³è½¬ï¼ˆNear Jmpï¼Œå¯è·³è‡³åŒä¸€æ®µèŒƒå›´å†…çš„åœ°å€ï¼‰ï¼Œå¯¹åº”æœºå™¨ç ï¼šE9
+è¿‘è·³è½¬ï¼ˆNear callï¼Œå¯è·³è‡³åŒä¸€æ®µèŒƒå›´å†…çš„åœ°å€ï¼‰ï¼Œå¯¹åº”æœºå™¨ç ï¼šE8
+è¿œè·³è½¬ï¼ˆFar Jmpï¼Œå¯è·³è‡³ä»»æ„åœ°å€ï¼‰ï¼Œå¯¹åº”æœºå™¨ç ï¼š EA
+è¿œè·³è½¬ï¼ˆFar callï¼Œå¯è·³è‡³ä»»æ„åœ°å€ï¼‰ï¼Œå¯¹åº”æœºå™¨ç ï¼š 9A
 ff 15 call
 ff 25 call
 */
@@ -481,7 +481,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
 
-	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff;
+	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
 		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
 
@@ -518,7 +518,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
 	__asm {
-		//²»ÒªÊ¹ÓÃ lidt lpidt,why?
+		//ä¸è¦ä½¿ç”¨ lidt lpidt,why?
 		lidt idtbase
 	}
 
