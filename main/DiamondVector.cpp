@@ -64,18 +64,18 @@ void DiamondAnimation(WINDOWCLASS * window) {
 
 		__sleep(0);
 
-
+		
 		for (int y = 0; y < gVideoHeight; y++) {
-			for (int x = 0; x < gVideoWidth; x++) {
-
+			for (int x = 0; x < gVideoWidth; x++) {			
 				int color = 0xffffff;
+				/*
 				__int64 v = __krdtsc();
 				if (v == 0) {
 					v = __random(0);
 				}
 				if (v & 1) {
 					color = 0;
-				}
+				}*/
 
 				unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
