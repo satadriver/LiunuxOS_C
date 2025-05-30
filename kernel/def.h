@@ -50,7 +50,7 @@
 
 #define EXPLORER_TASKNAME		"__kExplorer"
 
-//#define SINGLE_TASK_TSS
+#define SINGLE_TASK_TSS
 
 #define VM86_PROCESS_TASK
 

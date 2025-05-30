@@ -348,13 +348,20 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			number = 0;
 		}
 
+
+
 		//number是最后一个目录的序号
 		while (TRUE)
 		{
+			MOUSEINFO mouseinfo;
+			__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
+
 			unsigned int asc = __kGetKbd(window.window.id) & 0xff;
-			if (asc)
+			int ck = asc;
+			if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || 
+				ck == 0x0d || ck == 0x0a || asc == VK_PRIOR || asc == VK_NEXT || asc == 0x1b)
 			{
-				if (asc == VK_NEXT || asc == VK_DOWN || asc == VK_RIGHT || asc == VK_END )
+				if ( asc == VK_PRIOR )
 				{
 					//check if is last page
 					if ((number / rowlimit) < pagecnt)
@@ -371,7 +378,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						break;
 					}
 				}
-				else if (asc == VK_UP || asc == VK_PRIOR || asc == VK_LEFT || asc == VK_HOME )
+				else if (asc == VK_NEXT)
 				{
 					//check if first page
 					if ((number / rowlimit) > 0)
@@ -388,6 +395,42 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 						break;
 					}
 				}
+				else if (ck == VK_LEFT) {
+					mouseinfo.status = 0;
+					mouseinfo.x = -MOUSE_GRANULARITY * window.cpl;
+					mouseinfo.y = 0;
+					insertMouse(&mouseinfo);
+				}
+				else if (ck == VK_RIGHT) {
+					mouseinfo.status = 0;
+					mouseinfo.x = MOUSE_GRANULARITY * window.cpl;
+					mouseinfo.y = 0;
+					insertMouse(&mouseinfo);
+				}
+				else if (ck == VK_DOWN) {
+					mouseinfo.status = 0;
+					mouseinfo.y = MOUSE_GRANULARITY * window.cpl;
+					mouseinfo.x = 0;
+					insertMouse(&mouseinfo);
+				}
+				else if (ck == VK_UP) {
+					mouseinfo.status = 0;
+					mouseinfo.x = 0;
+					mouseinfo.y = -MOUSE_GRANULARITY * window.cpl;
+					insertMouse(&mouseinfo);
+				}
+				else if (asc == 0x0d) {
+					mouseinfo.status = 1;
+					mouseinfo.x = 0;
+					mouseinfo.y = 0;
+					insertMouse(&mouseinfo);
+				}
+				else if (asc == 0x0a) {
+					mouseinfo.status = 2;
+					mouseinfo.x = 0;
+					mouseinfo.y = 0;
+					insertMouse(&mouseinfo);
+				}
 				else if (asc == 0x1b)
 				{
 					__kFree((DWORD)files);
@@ -396,8 +439,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 				}
 			}
 
-			MOUSEINFO mouseinfo;
-			__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
 			//ret = getmouse(&mouseinfo, window.window.id);
 			ret = __kGetMouse(&mouseinfo, window.window.id);
 			if (mouseinfo.status & 1)
