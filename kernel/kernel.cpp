@@ -148,7 +148,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	//logFile("__kernelEntry\n");
 	
-	//ret = loadLibRunFun("c:\\liunux\\main.dll", "__kMainProcess");
+	//ret = loadLibRunFun(LIUNUX_BASE_PATH "main.dll", "__kMainProcess");
 
 	__printf(szout, "Hello world Liunux!Version:%s\r\nPress any key to continue...\r\n",LIUNUXOS_VERSION);
 

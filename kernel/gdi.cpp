@@ -523,7 +523,7 @@ int initCCFont() {
 	int result = 0;
 	if (gCCFontBase == 0)
 	{
-		result = readFile("c:\\liunux\\HZK16", (char**)&gCCFontBase);
+		result = readFile(LIUNUX_BASE_PATH "HZK16", (char**)&gCCFontBase);
 	}
 
 	// 	char szout[1024];
