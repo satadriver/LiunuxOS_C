@@ -2,6 +2,14 @@
 #include "rtl8139.h"
 #include "pci.h"
 #include "hardware.h"
+#include "Utils.h"
+
+/*
+Master booter最起码需要做这些事情：
+检测MAGIC（Signature）是否为合法值（十六进制55 AA）；
+将 自己移动到其它位置（一般是0x0600），将0x7C00到0x7c00+512K的空间让出来，
+以备其后将boot sector程序装入这个位置，这样才能和直接从软盘直接装入boot sector程序相一致
+*/
 
 unsigned char gMac[6] = { 0 };
 
@@ -21,15 +29,17 @@ void GetNicMac() {
 }
 
 int initNIC() {
-
+    char szout[1024];
 	DWORD regs[16];
 	DWORD dev = 0;
 	DWORD vd = 0;
 	int ret = getPciDevBasePort(regs, 0x0200, &dev, &vd);
     g_nic_dev = dev;
-	if (vd == 0x802910ec) {
+	if (vd == 0x813910ec) {
 		g_nic_iobase = regs[0] & 0xfff8;
         GetNicMac();
+        __printf(szout, "RTL8139 mac address: %x-%x-%x-%x-%x-%x\r\n",
+            gMac[0], gMac[1], gMac[2], gMac[3], gMac[4], gMac[5]);
         rtl8139_init(g_nic_iobase);
 	}
 
@@ -38,6 +48,7 @@ int initNIC() {
 
 // 初始化 RTL8139 网卡
 int rtl8139_init(uint16_t io_base) {
+    char szout[1024];
 
     outportd(0xcf8, g_nic_dev + 4);
     DWORD v = inportd(0xcfc);
@@ -67,7 +78,7 @@ int rtl8139_init(uint16_t io_base) {
     // 5. 启用发送和接收
     outportb(io_base + CR, 0x0C);  // 设置TE(发送使能)和RE(接收使能)位
 
-    //printf("RTL8139 initialized successfully at I/O base 0x%04X\n", io_base);
+    __printf(szout,"RTL8139 initialized successfully at I/O base %x\n", io_base);
     return 0;
 }
 

@@ -117,7 +117,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		StopVirtualTechnology();
 	}
 
-	//initNIC();
+	initNIC();
 
 	__asm {
 		sti
