@@ -177,6 +177,9 @@ int getIDEPort() {
 	DWORD dev = 0;
 	DWORD irq = 0;
 	int cnt = getPciDevBasePort(hdport, 0x0101, &dev, &irq);
+	if (cnt == 0) {
+		cnt = getPciDevBasePort(hdport, 0x0106, &dev, &irq);
+	}
 	for (int i = 0; i < cnt; i++)
 	{
 		if (hdport[i])

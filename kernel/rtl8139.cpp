@@ -5,6 +5,7 @@
 #include "Utils.h"
 
 /*
+ffff:0 f000:e05b
 Master booter最起码需要做这些事情：
 检测MAGIC（Signature）是否为合法值（十六进制55 AA）；
 将 自己移动到其它位置（一般是0x0600），将0x7C00到0x7c00+512K的空间让出来，
@@ -35,7 +36,8 @@ int initNIC() {
 	DWORD vd = 0;
 	int ret = getPciDevBasePort(regs, 0x0200, &dev, &vd);
     g_nic_dev = dev;
-	if (vd == 0x813910ec) {
+	if (vd == 0x813910ec) 
+    {
 		g_nic_iobase = regs[0] & 0xfff8;
         GetNicMac();
         __printf(szout, "RTL8139 mac address: %x-%x-%x-%x-%x-%x\r\n",
