@@ -36,6 +36,7 @@
 #include "window.h"
 #include "VMM.h"
 #include "rtl8139.h"
+#include "pcnet.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -109,7 +110,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initWindowList();
 
-	BPCodeStart();
+	//BPCodeStart();
 
 	ret = StartVirtualTechnology();
 	if (ret)
@@ -117,7 +118,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		StopVirtualTechnology();
 	}
 
-	initNIC();
+	//initNIC();
+
+	//pcnetInit();
 
 	__asm {
 		sti

@@ -20,7 +20,7 @@ int g_nic_dev = 0;
 
 // 接收缓冲区大小 (8KB)
 #define RX_BUF_SIZE 8192
-uint8_t rx_buffer[RX_BUF_SIZE];
+uint8_t rx_buffer8139[RX_BUF_SIZE];
 
 
 void GetNicMac() {
@@ -67,7 +67,7 @@ int rtl8139_init(uint16_t io_base) {
     }
 
     // 2. 配置接收缓冲区
-    uint32_t rx_buf_phys = (uint32_t)rx_buffer;  // 假设是物理地址
+    uint32_t rx_buf_phys = (uint32_t)rx_buffer8139;  // 假设是物理地址
     outportd(io_base + RBSTART, rx_buf_phys);
 
     // 3. 配置接收控制寄存器 (RCR)
