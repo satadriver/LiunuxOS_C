@@ -604,7 +604,7 @@ void EnterLongMode() {
 
 		unsigned char g_jmpstub[16];
 		g_jmpstub[0] = 0xea;
-		g_jmpstub[5] = 8;
+		g_jmpstub[5] = KERNEL_MODE_CODE;
 		g_jmpstub[6] = 0;	
 		* (DWORD*)(g_jmpstub + 1) =(DWORD) kernel64Entry;
 
@@ -640,9 +640,9 @@ void EnterLongMode() {
 			mov ax, tr_offset
 			ltr ax
 
-			mov ebx,esp
-			mov esi,ebp
-			lea edi, __win64_leave
+			lea ecx, __win64_leave
+			mov edx,ebp
+			
 			
 			_emit 0xea
 			__bit64EntryOffset:
@@ -654,13 +654,31 @@ void EnterLongMode() {
 			_emit 0
 			
 
-			push dword ptr 8
+			push dword ptr KERNEL_MODE_CODE
 			push dword ptr kernel64Entry32
 			retf
 
 			lea eax, g_jmpstub
 			jmp eax
-__win64_leave:
+			__win64_leave:
+
+
+		_toBit32:
+
+			mov eax, cr0
+			and eax, 7fffffffh
+			mov cr0, eax
+
+			mov ecx, 0C0000080h
+			rdmsr
+			and eax, 0fffffeffh
+			wrmsr
+
+			mov eax, cr4
+			and eax, 0xffffffdf			//~(1 << 5)
+			mov cr4, eax
+			
+			
 		}
 	}
 }

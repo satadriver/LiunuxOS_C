@@ -44,35 +44,17 @@ LiunuxOS64Entry endp
 
 LiunuxOS64Leave proc 
 
-mov rax,r8
-mov dword ptr [__mode32_address_entry],eax
+cli
+sub rsp,100h
+mov word ptr [rsp],127
+mov dword ptr [rsp + 2], r8
+lgdt fword ptr [esp]
 
-mov rax, cr0
-and eax, 7fffffffh
-mov cr0, rax
+mov [esp],0eah
 
-mov rcx, 0C0000080h
-rdmsr
-and eax, 0fffffeffh
-wrmsr
-
-mov eax,edx
-shl rax,16
-or rax,0ffh
-push rax
-lgdt fword ptr [rsp]
-
-mov rax, rcx
-mov cr3, rax
-
-mov rax, cr0
-or eax, 80000000h
-mov cr0, rax
-
-db 0eah
-__mode32_address_entry:
-dd 0
-dw 8
+mov [esp + 1],edx
+mov word ptr [esp + 5],cx
+jmp esp
 
 LiunuxOS64Leave endp
 

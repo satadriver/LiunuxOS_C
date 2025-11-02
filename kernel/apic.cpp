@@ -616,7 +616,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
 	__asm {
-		//²»ҪʹӃ lidt lpidt,why?
 		lidt idtbase
 	}
 
