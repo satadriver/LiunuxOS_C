@@ -110,7 +110,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initWindowList();
 
-	//BPCodeStart();
+	BPCodeStart();
 
 	ret = StartVirtualTechnology();
 	if (ret)

@@ -99,9 +99,7 @@ void enableIoApic() {
 }
 
 
-//fec00000
-//fed00000
-//fee00000
+
 DWORD* getOicBase() {
 	outportd(0xcf8, 0x8000f8f0);
 	DWORD rcba = inportd(0xcfc) & 0xffffc000;
@@ -120,82 +118,7 @@ char* getRcbaBase() {
 	return gRcbaBase;
 }
 
-int enableLocalApic() {
 
-	/*
-	DWORD high = 0;
-	DWORD low = 0;
-	int res = 0;
-	readmsr(0x1b,&low,&high);
-	low  = low & 0xFFFFF000;
-	low = low | 0xFEE00000;
-	low = low | 0x800;
-	writemsr(0x1b, low, high);
-	gApicBase = (char*)(low & 0xfffff000);	
-	
-	char szout[256];
-	//__printf(szout, "apic base address:%x\r\n", gApicBase);
-
-	gApicBase = (char*)0xfee00000;
-	*(DWORD*)(gApicBase + 0x80) = 0;
-
-	gSvrBase = (DWORD*)((DWORD)gApicBase + 0xf0);
-	*gSvrBase = *gSvrBase | 0x10f;
-
-	int id = getLocalApicID();
-	*/
-
-	char* apic_base = 0;
-
-	__asm {
-	init_apic:
-			mov eax, 1
-			cpuid
-			test edx, (1 << 9)
-			jz __no_apic
-
-			; 设置APIC基地址(先不启用)
-			mov ecx, 0x1B
-			rdmsr
-			and eax, 0xFFFFF000
-			or eax, 0xFEE00000
-			wrmsr
-			mov[apic_base], eax
-
-			; 初始化关键寄存器
-			mov edi, eax
-			mov dword ptr ds:[edi + 0xF0], 0x1FF; 伪中断向量
-			mov dword ptr  ds : [edi + 0x80], 0; TPR
-			mov dword ptr ds : [edi + 0x350], 0x10000; 禁用LVT性能监控
-			mov dword ptr  ds : [edi + 0x360], 0x10000; 禁用LVT热传感器
-
-			//mov dword[edi + 0x320], 0x40 | (1 << 17); 向量32, 定时器模式
-
-			; 禁用8259A PIC
-			mov al, 0xFF
-			out 0xA1, al
-			out 0x21, al
-
-			; 最后启用APIC
-			mov ecx, 0x1B
-			rdmsr
-			or eax, 0x800
-			wrmsr
-
-			__no_apic:
-
-	}
-	enableIMCR();
-
-	*(DWORD*)(0xfee00000 + 0x320) = 0x40 | (1 << 17);
-	char szout[256];
-	__printf(szout, "apic base address:%x\r\n", apic_base);
-	return 0;
-}
-
-//fec00000
-//fed00000
-//fee00000
 
 int enableHpet() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -451,152 +374,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 
 
-extern "C" void __declspec(dllexport) __kApInitProc() {
-	__asm {
-		cli
-	}
-
-	char szout[1024];
-
-	__enterSpinlock(&g_allocate_ap_lock);
-	int id = *(DWORD*)0xFEE00020;
-	id = id >> 24;
-	int* apTotal = (int*)AP_TOTAL_ADDRESS;
-	int seq = *(int*)AP_TOTAL_ADDRESS;
-	int* apids = (int*)AP_ID_ADDRESS;
-	apids[seq] = id;
-	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
-
-	__asm {
-		mov eax, KTASK_STACK_SIZE
-		mov ecx, seq
-		inc ecx
-		mul ecx
-		add eax, AP_KSTACK_BASE 
-		sub eax, STACK_TOP_DUMMY
-		//mov esp,eax
-		//mov ebp,eax
-	}
-	
-
-	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
-
-	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
-		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
-
-	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
-
-	DescriptTableReg gdtbase;
-	__asm {
-		sgdt gdtbase
-	}
-
-	gdtbase.addr = GDT_BASE;
-	gdtbase.size = AP_TSS_DESCRIPTOR + (seq+1)* sizeof(TssDescriptor) - 1;
-
-	short ltr_offset = AP_TSS_DESCRIPTOR + (seq ) * sizeof(TssDescriptor);
-
-	__leaveSpinlock(&g_allocate_ap_lock);
-
-	__asm {
-		//do not use lgdt lpgdt,why?
-		lgdt gdtbase
-
-		mov ax, ltr_offset
-		ltr ax
-
-		mov eax, PDE_ENTRY_VALUE
-		mov cr3, eax
-
-		mov eax, cr0
-		or eax, 0x80000000
-		mov cr0, eax
-	}
-
-	DescriptTableReg idtbase;
-	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE;
-	__asm {
-		//不要使用 lidt lpidt,why?
-		lidt idtbase
-	}
-
-	initCoprocessor();
-	enableVME();
-	enablePCE();
-	enableMCE();
-	enableTSD();
-
-#ifdef APIC_ENABLE
-	
-	enableIoApic();
-
-	setIoApicID(id);
-
-	*(DWORD*)(0xFEE00000 + 0x350) = 0x10000;
-
-	* (DWORD*)(0xFEE000F0) = 0x1ff;
-#endif
-
-	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
-
-	__asm {sti}
-
-	while (1) {
-		__asm {
-
-			hlt
-		}
-	}
-}
 
 
-void BPCodeStart() {
 
-	*(int*)(AP_TOTAL_ADDRESS) = 0;
-
-#ifdef APIC_ENABLE
-	enableLocalApic();
-#endif
-
-	g_bsp_id = *(DWORD*)0xFEE00020 >>24;
-	char szout[256];
-	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
-
-
-	DWORD v = 0xc4500;
-	*(DWORD*)0xFEE00300 = v;
-
-	__int64 tmp = 0;
-	for (int i = 0; i < 0x10000; i++) {
-		tmp += i;
-	}
-
-	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
-	*(DWORD*)0xFEE00300 = v;
-
-	tmp = 1;
-	for (int i = 0; i < 0x010000000; i++) {
-		tmp = tmp *i;
-	}
-
-#ifdef APIC_ENABLE
-	int c = *(int*)AP_TOTAL_ADDRESS;
-	if (c > 0) {
-		initHpet();
-		enableIoApic();
-
-		setIoApicID(g_bsp_id);
-
-		InitIoApic();
-
-		__printf(szout, "bp init ok\r\n");
-	}
-#endif
-
-	return;
-}
 
 
 
@@ -699,4 +479,216 @@ int AllocateAP(int vn) {
 	}
 
 	return 0;
+}
+
+
+
+
+int IsApicSupported() {
+
+	int res = 0;
+
+	__asm {
+		mov eax, 1
+		cpuid
+		test edx, (1 << 9)
+		jz __no_apic
+		mov[res], 1
+
+		__no_apic:
+	}
+	return res;
+}
+
+int enableLocalApic() {
+
+	char* apic_base = 0;
+	unsigned long origin = 0;
+
+	__asm {
+		mov ecx, 0x1B
+		rdmsr
+		mov[origin], eax
+		mov eax, LOCAL_APIC_BASE
+		wrmsr
+
+		mov edi, eax
+		mov dword ptr ds : [edi + 0xF0] , 0x1FF
+		mov dword ptr  ds : [edi + 0x80] , 0
+		mov dword ptr ds : [edi + 0x350] , 0x10000
+		mov dword ptr  ds : [edi + 0x360] , 0x10000
+
+		//mov dword[edi + 0x320], 0x40 | (1 << 17)
+
+		mov al, 0xFF
+		out 0xA1, al
+		out 0x21, al
+
+		mov ecx, 0x1B
+		rdmsr
+		mov[apic_base], eax
+		or eax, 0x800
+		wrmsr
+	}
+	enableIMCR();
+
+	char szout[256];
+	__printf(szout, "apic base address:%x,origin value:%x\r\n", apic_base, origin);
+	return 0;
+}
+
+
+
+//https://blog.csdn.net/weixin_46645613/article/details/120406002
+//https://zhuanlan.zhihu.com/p/406213995
+//https://zhuanlan.zhihu.com/p/678582090
+//https://www.zhihu.com/question/594531181/answer/2982337869
+
+
+
+
+
+extern "C" void __declspec(dllexport) __kApInitProc() {
+	__asm {
+		cli
+	}
+
+	char szout[1024];
+
+	__enterSpinlock(&g_allocate_ap_lock);
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	id = id >> 24;
+	id = id & 0xff;
+
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	int* apids = (int*)AP_ID_ADDRESS;
+	apids[seq] = id;
+	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
+
+	__asm {
+		mov eax, KTASK_STACK_SIZE
+		mov ecx, seq
+		inc ecx
+		mul ecx
+		add eax, AP_KSTACK_BASE
+		sub eax, STACK_TOP_DUMMY
+		//mov esp,eax
+		//mov ebp,eax
+	}
+
+
+	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
+
+	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
+		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
+
+	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
+
+	DescriptTableReg gdtbase;
+	__asm {
+		sgdt gdtbase
+	}
+
+	gdtbase.addr = GDT_BASE;
+	gdtbase.size = AP_TSS_DESCRIPTOR + (seq + 1) * sizeof(TssDescriptor) - 1;
+
+	short ltr_offset = AP_TSS_DESCRIPTOR + (seq) * sizeof(TssDescriptor);
+
+	__leaveSpinlock(&g_allocate_ap_lock);
+
+	__asm {
+		//do not use lgdt lpgdt,why?
+		lgdt gdtbase
+
+		mov ax, ltr_offset
+		ltr ax
+
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+	}
+
+	DescriptTableReg idtbase;
+	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
+	idtbase.addr = IDT_BASE;
+	__asm {
+		//²»ҪʹӃ lidt lpidt,why?
+		lidt idtbase
+	}
+
+	initCoprocessor();
+	enableVME();
+	enablePCE();
+	enableMCE();
+	enableTSD();
+
+#ifdef APIC_ENABLE
+
+	enableIoApic();
+
+	setIoApicID(id);
+
+#endif
+
+	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
+
+	__asm {sti}
+
+	while (1) {
+		__asm {
+
+			hlt
+		}
+	}
+}
+
+
+void BPCodeStart() {
+
+	*(int*)(AP_TOTAL_ADDRESS) = 0;
+
+#ifdef APIC_ENABLE
+	enableLocalApic();
+#endif
+
+	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	char szout[256];
+	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
+
+
+	DWORD v = 0xc4500;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+
+	__int64 tmp = 0;
+	for (int i = 0; i < 0x10000; i++) {
+		tmp += i;
+	}
+
+	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
+	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+
+	tmp = 1;
+	for (int i = 0; i < 0x010000; i++) {
+		tmp = tmp * i;
+	}
+
+#ifdef APIC_ENABLE
+	int c = *(int*)AP_TOTAL_ADDRESS;
+	if (c > 0) {
+		initHpet();
+		enableIoApic();
+
+		setIoApicID(g_bsp_id);
+
+		InitIoApic();
+
+		__printf(szout, "bp init ok\r\n");
+	}
+#endif
+
+	return;
 }

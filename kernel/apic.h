@@ -5,6 +5,7 @@
 #include "task.h"
 
 #define APIC_HPET_BASE  0XFED00000
+#define LOCAL_APIC_BASE			0xfee00000
 
 
 #pragma pack(1)
