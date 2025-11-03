@@ -76,10 +76,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__initVideo(vesa, fontbase);
 
 	char szout[1024];
-	//__printf(szout, "initGdt\r\n");
-	while (1) {
-		break;
-	}
+
 	initGdt();
 	initIDT();
 	SetIVTVector();

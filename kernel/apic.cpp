@@ -18,19 +18,12 @@ int gAllocateAp = 0;
 
 unsigned long g_allocate_ap_lock = 0;
 
-#define APIC_CORE_MAX_COUNT	64
+#define APIC_CORE_MAX_COUNT		256
 
-char * gApicBase = 0;
-DWORD * gSvrBase = 0;
+
 DWORD * gOicBase = 0;
 DWORD * gHpetBase = 0;
 char * gRcbaBase = 0;
-
-int g_ApNumber = 0;
-
-int g_LocalApicID[APIC_CORE_MAX_COUNT];
-
-int g_IoApicID[APIC_CORE_MAX_COUNT];
 
 int g_bsp_id = 0;
 
@@ -193,7 +186,7 @@ int initHpet() {
 	long long id = *(long long*)APIC_HPET_BASE;
 
 	HPET_GCAP_ID_REG * gcap = (HPET_GCAP_ID_REG*)&id;
-	//if (gcap->tick == 0x0429b17f) 
+	if (gcap->tick == 0x0429b17f) 
 	{
 		int cnt = gcap->count;
 
@@ -293,23 +286,6 @@ int InitIoApic() {
 
 	return 0;
 }
-
-
-
-
-
-
-
-/*
-短跳转（Short Jmp，只能跳转到256字节的范围内），对应机器码：EB
-近跳转（Near Jmp，可跳至同一段范围内的地址），对应机器码：E9
-近跳转（Near call，可跳至同一段范围内的地址），对应机器码：E8
-远跳转（Far Jmp，可跳至任意地址），对应机器码： EA
-远跳转（Far call，可跳至任意地址），对应机器码： 9A
-ff 15 call
-ff 25 call
-*/
-
 
 
 
@@ -555,8 +531,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		cli
 	}
 
-#ifdef APIC_ENABLE
 	enableLocalApic();
+
+#ifdef APIC_ENABLE
+	
 #endif
 	
 	char szout[1024];
@@ -645,10 +623,12 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 void BPCodeStart() {
 
-	*(int*)(AP_TOTAL_ADDRESS) = 0;
+	__asm{cli}
 
-#ifdef APIC_ENABLE
+	*(int*)(AP_TOTAL_ADDRESS) = 0;
 	enableLocalApic();
+#ifdef APIC_ENABLE
+	
 	enableIoApic();
 	InitIoApic();
 	initHpet();
@@ -676,8 +656,10 @@ void BPCodeStart() {
 
 #ifdef APIC_ENABLE
 	//setIoApicID(g_bsp_id);
-	__printf(szout, "bp init ok\r\n");
+	__printf(szout, "BSP init ok\r\n");
 #endif
+
+	__asm {sti}
 
 	return;
 }
@@ -689,14 +671,15 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 #ifdef APIC_ENABLE
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	id = id >> 24;
+	int seq = *(int*)AP_TOTAL_ADDRESS;
 	//__enterSpinlock(&g_allocate_ap_lock);
-	if(id == g_bsp_id){
+	if(id == g_bsp_id || seq == 0){
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		//__leaveSpinlock(&g_allocate_ap_lock);
 		return process;
 	}
 
-	int seq = *(int*)AP_TOTAL_ADDRESS;
+	
 	int* apids = (int*)AP_ID_ADDRESS;
 	for(int i = 0;i<seq;i ++){
 		if(apids[i] == id){

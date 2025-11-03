@@ -5,7 +5,7 @@
 #include "task.h"
 #include "process.h"
 
-#define APIC_HPET_BASE  0XFED00000
+#define APIC_HPET_BASE			0XFED00000
 #define LOCAL_APIC_BASE			0xfee00000
 
 
@@ -26,7 +26,7 @@ typedef struct {
 
 
 
-extern "C" int g_ApNumber;
+
 
 int getLocalApicID();
 
