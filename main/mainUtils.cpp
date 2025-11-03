@@ -6,7 +6,7 @@
 #include "task.h"
 #include "malloc.h"
 #include "core.h"
-
+#include "apic.h"
 
 int getcrs(char * szout) {
 
@@ -18,7 +18,7 @@ int getcrs(char * szout) {
 		return 0;
 	}
 
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int dsreg = process->tss.cs;
 	if (dsreg & 3)
 	{

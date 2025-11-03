@@ -5,14 +5,14 @@
 #include "process.h"
 #include "memory.h"
 
-
+#include "apic.h"
 
 
 
 
 DWORD __heapFree(DWORD addr) {
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	if (addr >= tss->heapbase + tss->heapsize || addr <= tss->heapbase) {
 		return 0;
 	}
@@ -96,7 +96,7 @@ DWORD __heapAlloc(int size) {
 
 	int allocsize = getAlignSize(size, sizeof(MS_HEAP_STRUCT)*2);
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	MS_HEAP_STRUCT* lpheap = (MS_HEAP_STRUCT*)tss->heapbase;
 

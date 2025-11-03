@@ -14,7 +14,7 @@
 #include "ListEntry.h"
 #include "window.h"
 #include "elf.h"
-
+#include "apic.h"
 
 
 void __kFreeProcess(int pid) {
@@ -38,7 +38,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
-	LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	int pid = tss[tid].pid;
 
@@ -348,7 +348,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->window = 0;
 	tss->videoBase = (char*)gGraphBase;
 
-	LPPROCESS_INFO thistss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO thistss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 

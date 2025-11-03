@@ -9,7 +9,7 @@
 #include "task.h"
 #include "memory.h"
 #include "heap.h"
-
+#include "apic.h"
 
 QWORD gAvailableSize = 0;
 
@@ -342,7 +342,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 			vmtag = 0;
 		}
 		
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		if (process->pid == pid)
 		{
 			if (vmtag) {
@@ -391,7 +391,7 @@ DWORD __kMalloc(DWORD s) {
 	char szout[1024];
 	DWORD size = 0;
 	int len = 0;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	//DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
 	DWORD ret = __kProcessMalloc(s, &size, 0, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (ret == 0) {
@@ -445,7 +445,7 @@ DWORD __malloc(DWORD s) {
 	char szout[1024];
 
 	DWORD size = 0;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD vaddr = process->vaddr + process->vasize;
 	res = __kProcessMalloc(s,&size, process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
@@ -473,7 +473,7 @@ DWORD __malloc(DWORD s) {
 
 int __free(DWORD linearAddr) {
 
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	if (linearAddr >= process->heapbase + process->heapsize)
 	{
 		return __heapFree(linearAddr);

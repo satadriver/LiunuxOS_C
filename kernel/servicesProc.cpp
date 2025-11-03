@@ -7,6 +7,7 @@
 #include "Utils.h"
 #include "core.h"
 #include "VM86.h"
+#include "apic.h"
 
 DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 
@@ -167,7 +168,7 @@ void sleep(DWORD * params) {
 		times = 1;
 	}
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO cur_tss = tss + tid;

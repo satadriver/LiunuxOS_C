@@ -162,7 +162,7 @@ void __kCoprocessor() {
 		gFpuStatus = 1;
 	}
 	else {
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char * fenv = (char*)FPU_STATUS_BUFFER + (tss->tid << 9);
 		__asm {
 			clts

@@ -418,3 +418,4 @@ typedef struct {
 
 
 extern "C" int g_tagMsg;
+

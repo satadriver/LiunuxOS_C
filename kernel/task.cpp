@@ -13,7 +13,7 @@
 #include "core.h"
 #include "vectorRoutine.h"
 #include "servicesProc.h"
-
+#include "apic.h"
 
 /*
 TASK_LIST_ENTRY *gTasksListPtr = 0;
@@ -342,7 +342,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	//__printf(szout, "__kTaskSchedule entry\r\n");
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 
 	if (process->tid != prev->tid) {
@@ -513,7 +513,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	__k8254TimerProc();
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 
 	if (process->tid != prev->tid) {
@@ -782,9 +782,9 @@ void initTaskSwitchTss() {
 
 	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)idtbase.addr;
 
-	initKernelTss((TSS*)CURRENT_TASK_TSS_BASE, TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,
+	initKernelTss((TSS*)GetCurrentTaskTssBase(), TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,
 		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor(CURRENT_TASK_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
+	makeTssDescriptor((DWORD)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
 #ifdef SINGLE_TASK_TSS
 	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
 #else
@@ -812,7 +812,7 @@ int __initTask0(char * videobase) {
 	}
 
 	//initTaskSwitchTss();
-	LPPROCESS_INFO process0 = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	__strcpy(process0->filename, (char*)LIUNUX_KERNEL32_DLL);
 	__strcpy(process0->funcname, (char*)"__kKernel");
 	process0->status = TASK_RUN;
@@ -828,7 +828,7 @@ int __initTask0(char * videobase) {
 	process0->showX = 0;
 	process0->showY = 0;
 	process0->window = 0;
-	__memcpy((char*)TASKS_TSS_BASE, (char*)CURRENT_TASK_TSS_BASE, sizeof(PROCESS_INFO));
+	__memcpy((char*)TASKS_TSS_BASE, (char*)GetCurrentTaskTssBase(), sizeof(PROCESS_INFO));
 
 	/*
 	__memset((char*)TASKS_LIST_BASE, 0, TASK_LIMIT_TOTAL * sizeof(TASK_LIST_ENTRY));

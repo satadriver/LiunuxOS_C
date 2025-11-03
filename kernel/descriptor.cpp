@@ -8,7 +8,7 @@
 #include "video.h"
 #include "Utils.h"
 #include "Kernel.h"
-
+#include "apic.h"
 
 
 
@@ -210,7 +210,7 @@ DWORD g_sysEntryEip3 = 0;
 extern "C" __declspec(naked) int sysEntry() {
 
 	{
-		LPTSS tss = (LPTSS)CURRENT_TASK_TSS_BASE;
+		LPTSS tss = (LPTSS)GetCurrentTaskTssBase();
 
 		WORD rcs = 0;
 		DWORD resp = 0;

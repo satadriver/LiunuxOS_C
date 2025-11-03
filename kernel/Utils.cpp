@@ -7,7 +7,7 @@
 #include "hardware.h"
 #include "process.h"
 #include "window.h"
-
+#include "apic.h"
 
 int unicode2asc(short* unicode, int unicodelen, char* asc) {
 	int i = 0;
@@ -840,7 +840,7 @@ int __printf(char* buf,const char* format, ...) {
 
 	if (g_ScreenMode) {
 		
-		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		LPWINDOWSINFO winfo = __FindProcessWindow(proc->tid);
 		if (winfo) {
 			LPWINDOWCLASS window = winfo->window;
@@ -1163,12 +1163,12 @@ int __reset() {
 }
 
 int __GetCurrentTid() {
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	return proc->tid;
 }
 
 int __GetCurrentPid() {
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	return proc->pid;
 }
 

@@ -26,7 +26,7 @@
 #include "malloc.h"
 #include "Thread.h"
 #include "fileWindow.h"
-
+#include "apic.h"
 
 
 
@@ -267,7 +267,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	FMWINDOW window;
 	window.window.tid = tid;
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window.window.pid = p->pid;
 	__strcpy(window.window.caption, cmd->filename);
 	drawFileManager(&window);

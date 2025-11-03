@@ -7,6 +7,7 @@
 #include "hardware.h"
 #include "servicesProc.h"
 #include "cmosExactTimer.h"
+#include "apic.h"
 
 TIMER_PROC_PARAM gExactTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
@@ -42,7 +43,7 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 			gExactTimer[i].param3 = param3;
 			gExactTimer[i].param4 = param4;
 
-			LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 			gExactTimer[i].pid = proc->pid;
 			gExactTimer[i].tid = proc->tid;
 
@@ -82,7 +83,7 @@ void __kExactTimerProc() {
 		{
 			if (gExactTimer[i].tickcnt <= *lptickcnt)
 			{
-				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 				if (gExactTimer[i].pid == proc->pid && gExactTimer[i].tid == proc->tid) {
 
 					gExactTimer[i].tickcnt = *lptickcnt + gExactTimer[i].ticks;

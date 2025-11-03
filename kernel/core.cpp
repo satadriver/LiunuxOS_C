@@ -24,6 +24,8 @@
 #include "apic.h"
 #include "file.h"
 #include "pe64.h"
+#include "apic.h"
+
 
 void makeDataSegDescriptor(DWORD base, int dpl, int bit, int direction, int w, SegDescriptor* descriptor) {
 	descriptor->present = 1;
@@ -292,8 +294,8 @@ void initGdt() {
 	makeCodeSegDescriptor(0, 3, 32, 0, 1, ldt + 2);
 	makeDataSegDescriptor(0, 3, 32, 0, 1, ldt + 3);
 
-	initKernelTss((TSS*)CURRENT_TASK_TSS_BASE,TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor(CURRENT_TASK_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
+	initKernelTss((TSS*)GetCurrentTaskTssBase(),TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((unsigned long)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
 
 	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssExceptSelector));
@@ -573,7 +575,21 @@ void InitPAE() {
 	}
 }
 
-
+void DisablePAE() {
+	__asm {
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
+		//mov eax, cr4
+		//mov eax, cr4
+		and eax, 0xffffffdf; Çå³ýPAEÎ»
+		//mov cr4, eax
+		//mov cr4, eax
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
+	}
+}
 
 void EnterLongMode() {
 	int ret = Is64Supported();
@@ -620,6 +636,8 @@ void EnterLongMode() {
 		short tr_offset = gdtlen - sizeof(Tss64Descriptor);
 
 		__asm {
+			push esp
+
 			lea eax, __bit64EntryOffset
 			mov edx, kernel64Entry32
 			mov  ds : [eax] , edx
@@ -643,7 +661,6 @@ void EnterLongMode() {
 			lea ecx, __win64_leave
 			mov edx,ebp
 			
-			
 			_emit 0xea
 			__bit64EntryOffset:
 			_emit 0
@@ -660,10 +677,8 @@ void EnterLongMode() {
 
 			lea eax, g_jmpstub
 			jmp eax
+
 			__win64_leave:
-
-
-		_toBit32:
 
 			mov eax, cr0
 			and eax, 7fffffffh
@@ -674,11 +689,22 @@ void EnterLongMode() {
 			and eax, 0fffffeffh
 			wrmsr
 
-			mov eax, cr4
-			and eax, 0xffffffdf			//~(1 << 5)
-			mov cr4, eax
+			__emit 0x0f
+			__emit 0x20
+			__emit 0xe0
+			//mov eax, cr4
+			//mov eax, cr4
+			and eax, 0xffffffdf
+			//mov cr4, eax
+			//mov cr4, eax
+			__emit 0x0f
+			__emit 0x22
+			__emit 0xe0
 			
+			mov ax, KERNEL_MODE_CODE
+			mov ss,ax
 			
+			pop esp
 		}
 	}
 }

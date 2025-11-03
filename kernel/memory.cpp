@@ -8,6 +8,7 @@
 #include "video.h"
 #include "Utils.h"
 #include "memory.h"
+#include "apic.h"
 
 //当执行程序至少有部分代码和数据在线性地址空间和物理地址空间中具有相同地址时，我们才能改变PG位的设置。
 //此时这部分具有相同地址的代码在分页和未分页世界之间起着桥梁的作用。无论是否开启分页机制，这部分代码都具有相同的地址。
@@ -191,7 +192,7 @@ DWORD linear2phyByPid(DWORD linearAddr,int pid) {
 DWORD linear2phy(DWORD linearAddr) {
 	return linearAddr;
 
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int pid = process->pid;
 	return linear2phyByPid(linearAddr, pid);
 }

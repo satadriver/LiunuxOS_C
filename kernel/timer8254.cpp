@@ -2,7 +2,7 @@
 #include "process.h"
 #include "cmosExactTimer.h"
 #include "utils.h"
-
+#include "apic.h"
 
 TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
 
@@ -47,7 +47,7 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 			g8254Timer[i].param2 = param2;
 			g8254Timer[i].param3 = param3;
 			g8254Timer[i].param4 = param4;
-			LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 			g8254Timer[i].pid = proc->pid;
 			g8254Timer[i].tid = proc->tid;
 			char szout[1024];
@@ -91,7 +91,7 @@ void __k8254TimerProc() {
 		{
 			if (g8254Timer[i].tickcnt < *lptickcnt)
 			{
-				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 				if (g8254Timer[i].pid == proc->pid && g8254Timer[i].tid == proc->tid) {
 					g8254Timer[i].tickcnt = *lptickcnt + g8254Timer[i].ticks;
 

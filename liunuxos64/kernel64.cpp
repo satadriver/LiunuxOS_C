@@ -1,5 +1,6 @@
 
 #include "def.h"
+#include "kernel64.h"
 
 //rcx,rdx,r8,r9
 //rdi,rsi,rdx,rcx
@@ -11,21 +12,30 @@ char* g_regebp32 = 0;
 
 extern "C" int __fastcall LiunuxOS64Entry(char* esptop,char* retaddr);
 
-extern "C" int __fastcall LiunuxOS64Leave(int seg,char * retaddr,char * gdt32);
+extern "C" int __fastcall LiunuxOS64Leave(int seg32,char * retaddr32,char * gdt32,char * rbp32);
 
 
 extern "C"  __declspec(dllexport) int Bit64EntryCPP() {
-	while (1) {
-		//break;
-	}
+
+	__kKernelLeave64(g_bit32Address, g_regebp32);
+
 	return 0;
 }
 
-extern "C" __declspec(dllexport) int __kKernelEntry64(char * retaddr,char * regebp) {
+extern "C" __declspec(dllexport) int __kKernelLeave64(char* retaddr32, char * regebp32) {
+
+	int ret = 0;
+
+	ret = LiunuxOS64Leave(KERNEL_MODE_CODE, retaddr32, (char*)GDT_BASE, regebp32);
+	return ret;
+}
+
+extern "C" __declspec(dllexport) int __kKernelEntry64(char * retaddr32,char * ebp32) {
 	
 	int ret = 0;
-	g_bit32Address = retaddr;
-	g_regebp32 = regebp;
+
+	g_bit32Address = retaddr32;
+	g_regebp32 = ebp32;
 
 	ret = LiunuxOS64Entry((char*)KERNEL64_STACK_TOP,(char*) Bit64EntryCPP);
 

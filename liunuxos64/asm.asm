@@ -42,19 +42,26 @@ call rdx
 LiunuxOS64Entry endp
 
 
+
 LiunuxOS64Leave proc 
 
 cli
+
 sub rsp,100h
-mov word ptr [rsp],127
-mov dword ptr [rsp + 2], r8
+
+mov word ptr [rsp],0fffh
+mov rax,r8
+mov dword ptr [rsp + 2], eax
 lgdt fword ptr [esp]
 
-mov [esp],0eah
+mov rax,r9
+mov rbp,rax
 
-mov [esp + 1],edx
+mov byte ptr [esp],0eah
+mov dword ptr [esp + 1],edx
 mov word ptr [esp + 5],cx
-jmp esp
+mov rax,rsp
+jmp  rax
 
 LiunuxOS64Leave endp
 

@@ -7,7 +7,7 @@
 #include "Pe.h"
 #include "memory.h"
 #include "Thread.h"
-
+#include "apic.h"
 
 
 #define EXCEPTION_TIPS_COLOR 0X9F3F00
@@ -40,7 +40,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		mov rcr4, eax
 	}
 
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = process->tid;
 	int pid = process->pid;
 	int level = process->level;

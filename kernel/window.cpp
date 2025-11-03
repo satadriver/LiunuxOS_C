@@ -7,7 +7,7 @@
 #include "ListEntry.h"
 #include "memory.h"
 #include "mouse.h"
-
+#include "apic.h"
 
 
 extern "C" __declspec(dllexport)LPWINDOWSINFO gWindowsList = 0;
@@ -145,13 +145,13 @@ int traversalWindow(char* outbuf) {
 
 
 char* GetVideoBase() {
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	return proc->videoBase;
 	//return (char*)gGraphBase;
 }
 
 char* SetVideoBase(char * buf) {
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	return proc->videoBase = buf;
 	//return (char*)gGraphBase;
 }
@@ -169,7 +169,7 @@ LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 		}
 	}
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	*x = (int*)&proc->showX;
 	*y = (int*)&proc->showY;
 	
@@ -213,7 +213,7 @@ LPWINDOWSINFO getTopWindow() {
 int addWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 	char szout[1024];
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
 	WINDOWCLASS* lpwindow = (WINDOWCLASS*)linear2phyByPid((unsigned long)ptrwindow, tid);
 
@@ -282,10 +282,10 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	if (proc->tid == window->tid) {
-		proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	}else{	
 		proc = tss + window->tid;
 	}
@@ -346,7 +346,7 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
 	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,tid);
 	//char* videoBase = GetVideoBase();
@@ -432,7 +432,7 @@ int deletePopupItem(LPWINDOWCLASS window) {
 int destroyWindows() {
 	int cnt = 0;
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	LPWINDOWCLASS windows = p->window;
 
@@ -481,7 +481,7 @@ LPWINDOWCLASS getWindowFromName(char * winname) {
 
 LPWINDOWCLASS insertProcWindow(LPWINDOWCLASS window) {
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPWINDOWCLASS w = p->window;
 	if (w)
 	{
@@ -503,7 +503,7 @@ LPWINDOWCLASS insertProcWindow(LPWINDOWCLASS window) {
 }
 
 LPWINDOWCLASS removeProcWindow() {
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPWINDOWCLASS w = p->window;
 	while (w)
 	{
@@ -564,7 +564,7 @@ int getOverlapRect(LPRECT r1, LPRECT r2, LPRECT res) {
 }
 
 LPWINDOWCLASS getLastWindow() {
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPWINDOWCLASS w = p->window;
 	while (w&& w->next)
 	{
@@ -577,7 +577,7 @@ LPWINDOWCLASS getLastWindow() {
 int placeFocus(int x,int y) {
 	int res = 0;
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPWINDOWCLASS w = getLastWindow();
 	while (w)
 	{

@@ -8,7 +8,7 @@
 #include "servicesProc.h"
 #include "cmosExactTimer.h"
 #include "timer8254.h"
-
+#include "apic.h"
 
 unsigned char readCmosPort(unsigned char port) {
 
@@ -168,7 +168,7 @@ int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD
 			gPeriodTimer[i].param2 = param2;
 			gPeriodTimer[i].param3 = param3;
 			gPeriodTimer[i].param4 = param4;
-			LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 			gPeriodTimer[i].pid = proc->pid;
 			gPeriodTimer[i].tid = proc->tid;
 
@@ -208,7 +208,7 @@ void __kPeriodTimerProc() {
 		{
 			if (gPeriodTimer[i].tickcnt < *lptickcnt)
 			{
-				LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 				if (gPeriodTimer[i].pid == proc->pid && gPeriodTimer[i].tid == proc->tid) {
 					gPeriodTimer[i].tickcnt = *lptickcnt + gPeriodTimer[i].ticks;
 

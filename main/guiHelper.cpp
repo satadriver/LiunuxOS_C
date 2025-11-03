@@ -9,7 +9,7 @@
 #include "task.h"
 #include "Utils.h"
 #include "cmd.h"
-
+#include "apic.h"
 
 
 int isTxtFile(char * filename, int fnlen) {
@@ -91,7 +91,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->tid = tid;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
 	window->left = window->pos.x + (window->frameSize >> 1);
@@ -138,7 +138,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->tid = tid;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
 	window->left = (window->frameSize >> 1) + window->pos.x;
@@ -195,7 +195,7 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 	window->tid = tid;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
 	window->left = window->frameSize >> 1;
@@ -247,7 +247,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->zoomin = 1;
 	window->tid = tid;
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
 	window->cursorColor = ~window->color;
@@ -272,7 +272,7 @@ void initIcon(FILEICON* clickitem, char* name, int tid, int id, int x, int y) {
 
 	clickitem->id = id;
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	clickitem->pid = p->pid;
 
 	clickitem->color = FOLDERCOLOR;

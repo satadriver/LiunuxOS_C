@@ -7,6 +7,7 @@
 #include "task.h"
 #include "device.h"
 #include "servicesProc.h"
+#include "apic.h"
 
 DWORD gKbdTest = FALSE;
 
@@ -254,7 +255,7 @@ void __kKeyboardProc() {
 	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
 	if (c == 1 && (data->kbdStatus & CTRLLEFT_SET_FLAG))
 	{
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		//__terminateProcess(tss->pid | 0x80000000,tss->funcname,tss->filename,0);
 		return;
 	}

@@ -5,7 +5,7 @@
 #include "process.h"
 #include "peVirtual.h"
 #include "memory.h"
-
+#include "apic.h"
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -17,7 +17,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	char szout[1024];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	int pid = tss[tid].pid;
 
@@ -80,7 +80,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	DWORD alignsize = getAlignSize(imagesize, PAGE_SIZE);
 	
 	//如果想要修改父进程的信息，必须在CURRENT_TASK_TSS_BASE中修改，否则线程切换时信息还是会被替换
-	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = freetask.lptss;
 	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));

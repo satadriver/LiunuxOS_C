@@ -402,7 +402,7 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[1024];
 
 		int tag = *(int*)(APIC_HPET_BASE + 0x20);
@@ -420,7 +420,9 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
 #ifdef SINGLE_TASK_TSS
-		mov eax, dword ptr ds : [CURRENT_TASK_TSS_BASE + PROCESS_INFO.tss.cr3]
+		call GetCurrentTaskTssBase
+		mov edx, eax
+		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
 		mov cr3, eax
 #endif
 
@@ -553,6 +555,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		cli
 	}
 
+#ifdef APIC_ENABLE
+	enableLocalApic();
+#endif
+	
 	char szout[1024];
 
 	__enterSpinlock(&g_allocate_ap_lock);
@@ -575,7 +581,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		//mov esp,eax
 		//mov ebp,eax
 	}
-
 
 	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
 
@@ -625,14 +630,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableMCE();
 	enableTSD();
 
-#ifdef APIC_ENABLE
-
-	enableIoApic();
-
-	setIoApicID(id);
-
-#endif
-
 	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
 
 	__asm {sti}
@@ -652,12 +649,14 @@ void BPCodeStart() {
 
 #ifdef APIC_ENABLE
 	enableLocalApic();
+	enableIoApic();
+	InitIoApic();
+	initHpet();
 #endif
 
 	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	char szout[256];
 	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
-
 
 	DWORD v = 0xc4500;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
@@ -676,18 +675,42 @@ void BPCodeStart() {
 	}
 
 #ifdef APIC_ENABLE
-	int c = *(int*)AP_TOTAL_ADDRESS;
-	if (c > 0) {
-		initHpet();
-		enableIoApic();
-
-		setIoApicID(g_bsp_id);
-
-		InitIoApic();
-
-		__printf(szout, "bp init ok\r\n");
-	}
+	//setIoApicID(g_bsp_id);
+	__printf(szout, "bp init ok\r\n");
 #endif
 
 	return;
+}
+
+
+
+
+LPPROCESS_INFO GetCurrentTaskTssBase(){
+#ifdef APIC_ENABLE
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	id = id >> 24;
+	//__enterSpinlock(&g_allocate_ap_lock);
+	if(id == g_bsp_id){
+		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		//__leaveSpinlock(&g_allocate_ap_lock);
+		return process;
+	}
+
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	int* apids = (int*)AP_ID_ADDRESS;
+	for(int i = 0;i<seq;i ++){
+		if(apids[i] == id){
+			//__leaveSpinlock(&g_allocate_ap_lock);
+			int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+			LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TSS_BASE + tsssize * i);
+			return process;
+		}
+	}
+
+	return 0;
+#else
+	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	return process;
+#endif
+
 }

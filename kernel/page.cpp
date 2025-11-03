@@ -4,7 +4,7 @@
 #include "malloc.h"
 #include "process.h"
 #include "memory.h"
-
+#include "apic.h"
 
 //BIOS:
 //https://blog.csdn.net/x86ipc/article/details/5303760
@@ -96,7 +96,7 @@ int resetPageIdx(LPMEMALLOCINFO pde) {
 int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,int pid,DWORD vaddr ) {
 	info->size = size;
 	info->addr = addr;
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	info->pid = tss->pid;
 
 	addlistTail( &((LPMEMALLOCINFO)PAGE_ALLOC_LIST)->list, (LPLIST_ENTRY)&info->list);
@@ -113,7 +113,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 		return FALSE;
 	}
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	__enterSpinlock(&gPageAllocLock);
 
@@ -207,7 +207,7 @@ void freeProcessPages(int pid) {
 
 	__enterSpinlock(&gPageAllocLock);
 	
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	LPMEMALLOCINFO base = (LPMEMALLOCINFO)(LPMEMALLOCINFO)gPageAllocList->list.next;
 	LPMEMALLOCINFO info = base;

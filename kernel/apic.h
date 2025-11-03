@@ -3,6 +3,7 @@
 
 #include "def.h"
 #include "task.h"
+#include "process.h"
 
 #define APIC_HPET_BASE  0XFED00000
 #define LOCAL_APIC_BASE			0xfee00000
@@ -62,3 +63,10 @@ extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT * stack);
 void BPCodeStart();
 
 int AllocateAP(int vn);
+
+#ifdef DLL_EXPORT
+
+extern "C" __declspec(dllexport)  LPPROCESS_INFO GetCurrentTaskTssBase();
+#else
+extern "C"  __declspec(dllimport)  LPPROCESS_INFO GetCurrentTaskTssBase();
+#endif

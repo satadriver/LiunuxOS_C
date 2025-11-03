@@ -11,7 +11,7 @@
 #include "PEresource.h"
 #include "file.h"
 #include "pci.h"
-
+#include "apic.h"
 
 VESAINFORMATION* gVesaInfo;
 unsigned char* gCCFontBase = 0;
@@ -1534,7 +1534,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->tid = tid;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
 	window->left = (window->frameSize >> 1) + window->pos.x;

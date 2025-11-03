@@ -14,7 +14,7 @@
 #include "cmosExactTimer.h"
 #include "ata.h"
 #include "coprocessor.h"
-
+#include "apic.h"
 
 
 
@@ -146,7 +146,7 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 		int v3 = inportb(0x70);
 
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-		LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 		char szout[1024];
 		__printf(szout, (char*)"NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
@@ -200,7 +200,7 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 		//__kException((const char*)"OverflowException", 4, stack);
 
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-		LPPROCESS_INFO current = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 		char szout[1024];
 		__printf(szout, (char*)"OverflowException eip:%x,cs:%x,pid:%d,tid:%d\r\n", stack->eip,stack->cs, current->pid, current->tid);
@@ -1234,7 +1234,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[1024];
 		//__printf(szout,"TimerInterrupt\r\n");
 
@@ -1253,7 +1253,9 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
 #ifdef SINGLE_TASK_TSS
-		mov eax, dword ptr ds: [CURRENT_TASK_TSS_BASE + PROCESS_INFO.tss.cr3]
+		call GetCurrentTaskTssBase
+		mov edx,eax
+		mov eax, dword ptr ds: [edx + PROCESS_INFO.tss.cr3]
 		mov cr3, eax
 #endif
 
@@ -1939,7 +1941,7 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 		int low = inportb(gAtaBasePort + 2);
 		int size = (high << 8) | low;
 
-		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		//__printf(szout, "IDEMasterIntProc size:%x tid:%d port:%x status:%x\r\n", size,proc->tid,gAtaBasePort+7,status);
 
 		outportb(0x20, 0x20);
@@ -2007,7 +2009,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		int low = inportb(gAtapiBasePort + 4);
 		int high = inportb(gAtapiBasePort + 5);
 		int size = (high << 8) | low;
-		LPPROCESS_INFO proc = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		__printf(szout, (char*)"IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
 
 		outportb(0x20, 0x20);

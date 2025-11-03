@@ -25,7 +25,7 @@
 #include "Thread.h"
 #include "servicesProc.h"
 #include "pci.h"
-
+#include "apic.h"
 
 #pragma comment(linker, "/STACK:0x100000")
 
@@ -202,7 +202,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		}
 	}
 	else if (__strcmp(params[0], "tss") == 0) {
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		DWORD eflags = 0;
 		__asm {
 			pushfd
