@@ -89,6 +89,10 @@ void enableIoApic() {
 	v = (v & 0xffffff00) | 0x100;
 
 	*gOicBase = v;
+
+	char szout[1024];
+
+	__printf(szout,"oic base:%x,value:%x,rcba base:%x\r\n", gOicBase, v,gRcbaBase);
 }
 
 
@@ -508,10 +512,11 @@ int enableLocalApic() {
 		or eax, 0x800
 		wrmsr
 	}
+
 	enableIMCR();
 
 	char szout[256];
-	__printf(szout, "apic base address:%x,origin value:%x\r\n", apic_base, origin);
+	__printf(szout, "local apic base:%x,origin value:%x\r\n", apic_base, origin);
 	return 0;
 }
 
@@ -528,21 +533,16 @@ int enableLocalApic() {
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	__asm {
-		cli
+		//cli
 	}
 
 	enableLocalApic();
 
-#ifdef APIC_ENABLE
-	
-#endif
-	
 	char szout[1024];
 
 	__enterSpinlock(&g_allocate_ap_lock);
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	id = id >> 24;
-	id = id & 0xff;
+	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	int id = value >> 24;
 
 	int seq = *(int*)AP_TOTAL_ADDRESS;
 	int* apids = (int*)AP_ID_ADDRESS;
@@ -560,7 +560,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		//mov ebp,eax
 	}
 
-	__printf(szout, "AP:%d %s entry\r\n", id, __FUNCTION__);
+	__printf(szout, "ap origin value:%x,id:%d\r\n", value, id);
 
 	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 	initKernelTss((TSS*)AP_TSS_BASE + tsssize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
@@ -608,9 +608,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableMCE();
 	enableTSD();
 
-	__printf(szout, "AP:%d %s complete\r\n", id, __FUNCTION__);
-
-	__asm {sti}
+	//__asm {sti}
 
 	while (1) {
 		__asm {
@@ -623,18 +621,20 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 void BPCodeStart() {
 
-	__asm{cli}
+	//__asm{cli}
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 	enableLocalApic();
+
+	//enableIoApic();
+
 #ifdef APIC_ENABLE
 	
-	enableIoApic();
 	InitIoApic();
 	initHpet();
 #endif
-
-	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	//in bsp the bit 8 of LOCAL_APIC_BASE is set
+	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;		
 	char szout[256];
 	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
 
@@ -656,10 +656,22 @@ void BPCodeStart() {
 
 #ifdef APIC_ENABLE
 	//setIoApicID(g_bsp_id);
-	__printf(szout, "BSP init ok\r\n");
 #endif
 
 	__asm {sti}
+
+	for (int i = 0; i < 0x010000; i++) {
+		tmp = tmp * i;
+	}
+
+	__sleep(3000);
+
+	v = 1<<24;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = v;
+	v = 0xff;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+
+	__printf(szout, "bsp id:%d init ok\r\n", g_bsp_id);
 
 	return;
 }

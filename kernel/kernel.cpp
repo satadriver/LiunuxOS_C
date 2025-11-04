@@ -157,6 +157,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	while (1) 
 	{
+		break;
+
 		int ck = __kGetKbd(window.id)&0xff;
 		if (ck==0x1b ) {
 			break;
@@ -169,7 +171,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
-	__sleep(1000);
+	//__sleep(1000);
 
 	//AllocateAP(INTR_8259_MASTER + 1);
 	//AllocateAP(INTR_8259_SLAVE + 4);
