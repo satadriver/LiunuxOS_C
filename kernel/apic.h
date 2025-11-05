@@ -6,7 +6,12 @@
 #include "process.h"
 
 #define APIC_HPET_BASE			0XFED00000
+
+#define IO_APIC_BASE			0xfec00000
+
 #define LOCAL_APIC_BASE			0xfee00000
+
+#define APIC_CORE_MAX_COUNT		256
 
 
 #pragma pack(1)
@@ -38,7 +43,7 @@ DWORD * getOicBase();
 
 int enableHpet();
 
-
+int IsApicSupported();
 
 char* getRcbaBase();
 
@@ -50,8 +55,6 @@ void EnableFloatError();
 
 void enableIMCR();
 
-extern "C" void __declspec(dllexport) __kApInitProc();
-
 void iomfence();
 
 void setIoRedirect(int id, int idx, int vector, int mode);
@@ -62,7 +65,9 @@ extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT * stack);
 
 void BPCodeStart();
 
-int AllocateAP(int vn);
+extern "C" void __declspec(dllexport) __kApInitProc();
+
+int AllocateApTask(int vn);
 
 #ifdef DLL_EXPORT
 

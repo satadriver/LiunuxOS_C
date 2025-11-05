@@ -2068,10 +2068,9 @@ void __declspec(naked) ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, "ApicSpuriousHandler!\r\n");
 #ifdef APIC_ENABLE
-		* (DWORD*)0xFEE000B0 = 0;
-		
 		
 #endif
+		* (DWORD*)0xFEE000B0 = 0;
 	}
 
 	__asm {

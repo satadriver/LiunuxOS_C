@@ -18,15 +18,15 @@ int gAllocateAp = 0;
 
 unsigned long g_allocate_ap_lock = 0;
 
-#define APIC_CORE_MAX_COUNT		256
-
-
 DWORD * gOicBase = 0;
-DWORD * gHpetBase = 0;
+
 char * gRcbaBase = 0;
+
+DWORD* gHpetBase = 0;
 
 int g_bsp_id = 0;
 
+int g_test_value = 0;
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -315,8 +315,12 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-
 		*(DWORD*)0xFEE000B0 = 0;
+
+		g_test_value++;
+
+		char szout[256];
+		__printf(szout, "IPIIntHandler\r\n");
 	}
 
 	__asm {
@@ -427,7 +431,13 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
-int AllocateAP(int vn) {
+int AllocateApTask(int intnum) {
+
+	if(intnum < 0 || intnum > 255) {
+		return -1;
+	}
+
+	int res = -1;
 
 	int total = *(int*)(AP_TOTAL_ADDRESS);
 	int* ids = (int*)AP_ID_ADDRESS;
@@ -436,7 +446,7 @@ int AllocateAP(int vn) {
 
 		while (true)
 		{
-			int value = *(DWORD*)0xFEE00300;
+			int value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 			if (value & 0x1000) {
 				__sleep(0);
 			}
@@ -445,11 +455,31 @@ int AllocateAP(int vn) {
 			}
 		}
 
-		int id = ids[gAllocateAp] << 24;
-		*(DWORD*)0xFEE00310 = id;
+		int currendptr = gAllocateAp;
+		int currentid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		do {				
+			if (currentid != ids[gAllocateAp]) {
+				break;
+			}
 
-		int v = 0x4000 | vn;
-		*(DWORD*)0xFEE00300 = v;
+			gAllocateAp++;
+			if (gAllocateAp >= total) {
+				gAllocateAp = 0;
+			}
+
+			if (currendptr == gAllocateAp) {
+				__leaveSpinlock(&g_allocate_ap_lock);
+				return -1;
+			}
+		} while (1);
+
+		unsigned int id = ids[gAllocateAp] << 24;
+		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
+
+		int v = 0x000 | intnum;
+		*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+
+		res = gAllocateAp;
 
 		gAllocateAp++;
 		if (gAllocateAp >= total) {
@@ -457,10 +487,13 @@ int AllocateAP(int vn) {
 		}
 
 		__leaveSpinlock(&g_allocate_ap_lock);
-		return gAllocateAp;
+
+		char szout[256];
+		__printf(szout, "AllocateApTask index:%x,id:%x\r\n", res, id);
+		return res;
 	}
 
-	return 0;
+	return -1;
 }
 
 
@@ -533,12 +566,14 @@ int enableLocalApic() {
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	__asm {
-		//cli
+		cli
 	}
-
-	enableLocalApic();
-
+	if (1) {
+		//enableLocalApic();	
+	}
 	char szout[1024];
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
 
 	__enterSpinlock(&g_allocate_ap_lock);
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
@@ -568,6 +603,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	makeTssDescriptor(AP_TSS_BASE + tsssize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
 
+	PROCESS_INFO* process = (PROCESS_INFO*)(AP_TSS_BASE + tsssize * seq);
+	//process->tss.cr3 = PDE_ENTRY_VALUE;
+	process->showX = 0;
+	process->showY = GRAPHCHAR_HEIGHT * seq*8;
 	DescriptTableReg gdtbase;
 	__asm {
 		sgdt gdtbase
@@ -608,23 +647,33 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableMCE();
 	enableTSD();
 
-	//__asm {sti}
+	__asm {sti}
 
 	while (1) {
 		__asm {
-
 			hlt
 		}
+		__printf(szout, "ap id:%d wake\r\n", id);
 	}
 }
 
 
 void BPCodeStart() {
 
-	//__asm{cli}
+	int ret = 0;
+	char szout[256];
+
+	ret = IsApicSupported();
+	if(ret == 0){
+		return;
+	}
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
+
+	__asm{cli}
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
-	enableLocalApic();
+	//enableLocalApic();
 
 	//enableIoApic();
 
@@ -634,44 +683,48 @@ void BPCodeStart() {
 	initHpet();
 #endif
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
-	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;		
-	char szout[256];
-	__printf(szout, "bsp id:%d\r\n", g_bsp_id);
+	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;	
+
+	int ioapic_id = *(DWORD*)(IO_APIC_BASE) >> 24;
+
+	int ioapic_ver = *(DWORD*)(IO_APIC_BASE + 1) & 0xff;
+	
+	__printf(szout, "bsp id:%d,io apic id:%x,version:%x\r\n", g_bsp_id,ioapic_id,ioapic_ver);
 
 	DWORD v = 0xc4500;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
-	__int64 tmp = 0;
-	for (int i = 0; i < 0x10000; i++) {
-		tmp += i;
-	}
+	__asm {sti}
+
+	__sleep(1000);
 
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-
-	tmp = 1;
-	for (int i = 0; i < 0x010000; i++) {
-		tmp = tmp * i;
-	}
 
 #ifdef APIC_ENABLE
 	//setIoApicID(g_bsp_id);
 #endif
 
-	__asm {sti}
+	if (1) {
+		
+		__sleep(1000);
+		int * ids = (int*)AP_ID_ADDRESS;
+		int cnt = *(int*)(AP_TOTAL_ADDRESS);
+		for (int i = 0; i < cnt; i++) {
 
-	for (int i = 0; i < 0x010000; i++) {
-		tmp = tmp * i;
+			
+			__printf(szout, "ap num:%d, id:%d\r\n", i,ids[i]);
+
+			unsigned int id = ids[i] << 24;
+			*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
+			int v = 0x81;
+			*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+		}
+
+		//AllocateApTask(0xff);
+
+		__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
 	}
-
-	__sleep(3000);
-
-	v = 1<<24;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = v;
-	v = 0xff;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-
-	__printf(szout, "bsp id:%d init ok\r\n", g_bsp_id);
 
 	return;
 }
@@ -680,18 +733,22 @@ void BPCodeStart() {
 
 
 LPPROCESS_INFO GetCurrentTaskTssBase(){
-#ifdef APIC_ENABLE
+
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	if (seq == 0) {
+		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		return process;
+	}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	id = id >> 24;
-	int seq = *(int*)AP_TOTAL_ADDRESS;
+	
 	//__enterSpinlock(&g_allocate_ap_lock);
-	if(id == g_bsp_id || seq == 0){
+	if(id == g_bsp_id){
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 		//__leaveSpinlock(&g_allocate_ap_lock);
 		return process;
 	}
 
-	
 	int* apids = (int*)AP_ID_ADDRESS;
 	for(int i = 0;i<seq;i ++){
 		if(apids[i] == id){
@@ -702,10 +759,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 		}
 	}
 
-	return 0;
-#else
 	LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
 	return process;
-#endif
 
 }
