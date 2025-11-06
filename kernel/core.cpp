@@ -306,7 +306,6 @@ void initGdt() {
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc,gKernel16 , PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssV86Selector));
 
-
 	gdtbase.addr = GDT_BASE;
 	__asm {
 		//do not use lgdt lpgdt,why?
