@@ -104,16 +104,16 @@ static int parseDT(ACPIHeader *dt)
 	signatureString[4] = '\0';
 
 	if (signature == *(u32 *)"APIC") {
-		parseApic((ACPIHeaderApic *)dt);
+
 	}
 	else if (signature == *(u32 *)"HPET") {
 
 	}
 	else if (signature == *(u32 *)"FACP") {
-		acpiEnable(dt, 0); /*FADT!!!*/
+
 	}
 	else if (signature == *(u32 *)"SSDT") {
-		acpiEnable(0, dt);  /*SSDT!!!*/
+
 	}
 	return TRUE;
 }
@@ -185,8 +185,7 @@ static int parseRSDP(XSDP_HEADER* xsdp)
 		u64 xsdt = xsdp->XsdtAddress;
 		u32 rsdt = xsdp->RsdtAddress;
 		if (xsdt) {
-			//parseXSDT((ACPIHeader *)xsdt);
-			res = parseRSDT((ACPIHeader*)rsdt);
+			parseXSDT((ACPIHeader *)xsdt);
 		}
 		else {
 			res = parseRSDT((ACPIHeader *)rsdt);

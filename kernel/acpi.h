@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Utils.h"
 
@@ -7,19 +7,46 @@
 #define u32 unsigned int
 #define u64 unsigned __int64
 
+//http://rweverything.com/
 
+//RSDT:Root System Description Table
+//FADT:Fixed ACPI Description Table
+
+/*
+• Root System Description Table(RSDT)
+• Fixed ACPI Description Table(FADT)
+• Firmware ACPI Control Structure(FACS)
+• Differentiated System Description Table(DSDT)
+• Secondary System Description Table(SSDT)
+• Multiple APIC Description Table(MADT)
+• Smart Battery Table(SBST)
+• Extended System Description Table(XSDT)
+• Embedded Controller Boot Resources Table(ECDT)
+• System Locality Distance Information Table(SLIT)
+• System Resource Affinity Table(SRAT)
+• Corrected Platform Error Polling Table(CPEP)
+• Maximum System Characteristics Table(MSCT)
+• ACPI RAS Feature Table(RASF)
+• Memory Power State Table(MPST)
+• Platform Memory Topology Table(PMTT)
+• Boot Graphics Resource Table(BGRT)
+• Firmware Performance Data Table(FPDT)
+• Generic Timer Description Table(GTDT)
+• NVDIMM Firmware Interface Table(NFIT)
+*/
 
 #pragma pack(1)
 
 
+//Root System Description Pointer
 typedef struct {
 	char signature[8];
 	unsigned char checksum;
 	char oemid[6];
 	unsigned char revision;
 	DWORD rsdt;
-}RSDT_HEADER;
 
+}RSDP_HEADER;
 
 typedef struct {
 	char Signature[8];
@@ -34,18 +61,6 @@ typedef struct {
 	uint8_t reserved[3];
 } XSDP_HEADER;
 
-typedef struct {
-	char Signature[4];
-	uint32_t Length;
-	uint8_t Revision;
-	uint8_t Checksum;
-	char OEMID[6];
-	char OEMTableID[8];
-	uint32_t OEMRevision;
-	uint32_t CreatorID;
-	uint32_t CreatorRevision;
-}ACPISDTHeader;
-
 typedef struct  {
 	u32 signature;
 	u32 length;
@@ -58,6 +73,17 @@ typedef struct  {
 	u32 creatorVersion;
 	//u32 data[0];
 } ACPIHeader;
+
+
+typedef struct {
+	ACPIHeader Header;
+	UINT32                      Entry;
+} RSDT_TABLE;
+
+typedef struct {
+	ACPIHeader Header;
+	UINT64                      Entry;
+} XSDT_TABLE;
 
 typedef struct  {
 	ACPIHeader header;
