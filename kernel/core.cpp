@@ -665,14 +665,13 @@ void EnterLongMode() {
 			mov edx,ebp
 			
 			_emit 0xea
-			__bit64EntryOffset:
+		__bit64EntryOffset:
 			_emit 0
 			_emit 0
 			_emit 0
 			_emit 0
 			_emit 8
-			_emit 0
-			
+			_emit 0	
 
 			push dword ptr KERNEL_MODE_CODE
 			push dword ptr kernel64Entry32
@@ -681,7 +680,7 @@ void EnterLongMode() {
 			lea eax, g_jmpstub
 			jmp eax
 
-			__win64_leave:
+		__win64_leave:
 
 			mov eax, cr0
 			and eax, 7fffffffh
@@ -706,6 +705,10 @@ void EnterLongMode() {
 			
 			mov ax, KERNEL_MODE_CODE
 			mov ss,ax
+			mov ds,ax
+			mov es,ax
+			mov fs,ax
+			mov gs,ax
 			
 			pop esp
 		}

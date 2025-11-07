@@ -50,16 +50,19 @@ cli
 sub rsp,100h
 
 mov word ptr [rsp],0fffh
+
 mov rax,r8
 mov dword ptr [rsp + 2], eax
-lgdt fword ptr [esp]
+
+lgdt fword ptr [rsp]
 
 mov rax,r9
 mov rbp,rax
 
 mov byte ptr [esp],0eah
-mov dword ptr [esp + 1],edx
-mov word ptr [esp + 5],cx
+mov dword ptr [rsp + 1],edx
+mov word ptr [rsp + 5],cx
+
 mov rax,rsp
 jmp  rax
 
