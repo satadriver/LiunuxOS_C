@@ -15,7 +15,7 @@
 //Extended Feature Enable Register(EFER) is a model - specific register added in the AMD K6 processor, 
 //to allow enabling the SYSCALL / SYSRET instruction, and later for entering and exiting long mode.
 //This register becomes architectural in AMD64 and has been adopted by Intel.Its MSR number is 0xC0000080.
-void initEfer() {
+void EnableSyscall() {
 	DWORD highpart, lowpart;
 	readmsr(0xC0000080, &lowpart, &highpart);
 
@@ -23,14 +23,27 @@ void initEfer() {
 
 	__asm {
 		mov eax, [lowpart]
-		or eax, 0x4001
+		or eax, 0x001
 		mov[lowpart], eax
 	}
 
-	//writemsr(0xC0000080, lowpart, highpart);
+	writemsr(0xC0000080, lowpart, highpart);
 }
 
+void EnableNXE() {
+	DWORD highpart, lowpart;
+	readmsr(0xC0000080, &lowpart, &highpart);
 
+	//readmsr(0x1f80, &highpart, &lowpart);
+
+	__asm {
+		mov eax, [lowpart]
+		or eax, 0x800
+		mov[lowpart], eax
+	}
+
+	writemsr(0xC0000080, lowpart, highpart);
+}
 
 
 

@@ -87,13 +87,13 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initPaging();
 
-	initEfer();
-
 	initACPI();
 
 	initCoprocessor();
 
 	initTimer();
+
+	EnableSyscall();
 
 	sysEntryInit((DWORD)sysEntry);
 

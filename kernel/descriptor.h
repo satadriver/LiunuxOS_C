@@ -54,12 +54,13 @@ extern "C" void __kCallGateProc(DWORD  params, DWORD size);
 
 extern "C" __declspec(dllexport) void callgateEntry(DWORD  params, DWORD size);
 
+void EnableNXE();
 
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) void initEfer();
+extern "C" __declspec(dllexport) void EnableSyscall();
 
 #else
-extern "C" __declspec(dllimport) void initEfer();
+extern "C" __declspec(dllimport) void EnableSyscall();
 
 #endif
 

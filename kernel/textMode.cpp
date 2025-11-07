@@ -219,7 +219,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	//outputStr("page\r\n", OUTPUT_TEXTMODE_COLOR);
 
-	initEfer();
+	EnableSyscall();
 	enableVME();
 	enablePCE();
 	enableMCE();
