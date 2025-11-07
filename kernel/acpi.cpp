@@ -96,7 +96,7 @@ int acpiEnable(const void *fadt, const void *ssdt)
 	return TRUE;
 }
 
-static int parseDT(ACPIHeader *dt)
+int parseDT(ACPIHeader *dt)
 {
 	u32 signature = dt->signature;
 	char signatureString[5];
@@ -120,7 +120,7 @@ static int parseDT(ACPIHeader *dt)
 
 
 
-static int parseRSDT(ACPIHeader *rsdt)
+int parseRSDT(ACPIHeader *rsdt)
 {
 	//u32 *start = rsdt->data;
 	u32 *start = (u32 *) &rsdt[1];
@@ -134,7 +134,7 @@ static int parseRSDT(ACPIHeader *rsdt)
 }
 
 
-static int parseXSDT(ACPIHeader* rsdt)
+int parseXSDT(ACPIHeader* rsdt)
 {
 	//u32 *start = rsdt->data;
 	u32* start = (u32*)&rsdt[1];
@@ -150,7 +150,7 @@ static int parseXSDT(ACPIHeader* rsdt)
 
 
 
-static int parseRSDP(XSDP_HEADER* xsdp)
+int parseRSDP(XSDP_HEADER* xsdp)
 {
 	int res = 0;
 

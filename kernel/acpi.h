@@ -170,6 +170,8 @@ extern "C"  __declspec(dllexport) int doReboot(void);
 
 extern "C"  __declspec(dllexport) int doPowerOff(void);
 
-
-
+int parseDT(ACPIHeader* dt);
+int parseRSDT(ACPIHeader* rsdt);
+int parseXSDT(ACPIHeader* rsdt);
+int parseRSDP(XSDP_HEADER* xsdp);
 int initACPI(void);

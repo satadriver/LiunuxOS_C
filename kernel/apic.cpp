@@ -52,6 +52,29 @@ void EnableFloatError() {
 
 }
 
+unsigned long ReadIoApicReg(int reg) {
+	*(DWORD*)(IO_APIC_BASE) = reg ;
+	__asm {
+		mfence
+	}
+	return *(DWORD*)(IO_APIC_BASE+0x10);
+}
+
+
+unsigned long WriteIoApicReg(int reg, unsigned long value) {
+	*(DWORD*)(IO_APIC_BASE) = reg ;
+	__asm {
+		mfence
+	}
+	*(DWORD*)(IO_APIC_BASE + 0x10) = value;
+	__asm {
+		mfence
+	}
+	return 0;
+}
+
+
+
 void iomfence() {
 	__asm {
 		mfence
@@ -59,20 +82,15 @@ void iomfence() {
 }
 
 void setIoApicID(int id) {
-	iomfence();
-	*(DWORD*)(0xfec00000) = 0;
-	iomfence();
-	*(DWORD*)(0xfec00010) = (id & 0x0ff) << 24 ;
+
+	WriteIoApicReg(0, (id & 0x0ff) << 24);
+
 }
 
 void setIoRedirect(int idx,int id,int vector,int mode) {
-	*(DWORD*)(0xfec00000) = idx ;
+	WriteIoApicReg(idx, vector + (mode << 8) );
 	iomfence();
-	*(DWORD*)(0xfec00010) = vector + ( mode << 8);
-	iomfence();
-	*(DWORD*)(0xfec00000) = idx +1;
-	iomfence();
-	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24) ;
+	WriteIoApicReg(idx+1, ((id & 0x0ff) << 24) );
 }
 
 
@@ -130,9 +148,11 @@ int enableHpet() {
 
 	*gHpetBase = v;
 
+	char szout[1024];
+	__printf(szout, "hpet base:%x,value:%x\r\n", gHpetBase, v);
+
 	return 0;
 }
-
 
 
 void enableIMCR() {
@@ -142,12 +162,12 @@ void enableIMCR() {
 
 
 int getLVTCount(int n) {
-	int cnt = *(long long*)(0xfee00030) >>16;
+	int cnt = *(long long*)(LOCAL_APIC_BASE + 0x30) >>16;
 	return cnt;
 }
 
 int getLocalApicVersion() {
-	int ver = *(long long*)(0xfee00030) & 0xff;
+	int ver = *(long long*)(LOCAL_APIC_BASE + 0x30) & 0xff;
 	return ver;
 }
 
@@ -171,7 +191,6 @@ int getLocalApicID() {
 		mov ecx, 0
 		cpuid
 		mov eax,edx
-		
 	}
 }
 
@@ -187,6 +206,8 @@ int initHpet() {
 
 	enableHpet();
 
+	char szout[256];
+	
 	long long id = *(long long*)APIC_HPET_BASE;
 
 	HPET_GCAP_ID_REG * gcap = (HPET_GCAP_ID_REG*)&id;
@@ -230,24 +251,26 @@ int initHpet() {
 
 		*(long long*)(APIC_HPET_BASE + 0xf0 + 4) = 0;
 
-		char szout[256];
-		__printf(szout, "hpet counter:%x\r\n", gcap->tick);
-
 	}
+	else {
+		
+	}
+
+	__printf(szout, "hpet gcap->tick %x\r\n", gcap->tick);
 
 	return FALSE;
 }
 
 
 
-void IoApicRedirect(int idx, int idnum, int vector, int mode) {
+void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
-	int id = 0;
-	if (idnum == -1) {
+	int cpuid = 0;
+	if (cpu == -1) {
 		__enterSpinlock(&g_allocate_ap_lock);
 		int total = *(int*)(AP_TOTAL_ADDRESS);
 		int* ids = (int*)AP_ID_ADDRESS;
-		id = ids[gAllocateAp];
+		cpuid = ids[gAllocateAp];
 		gAllocateAp++;
 		if (gAllocateAp >= total) {
 			gAllocateAp = 0;
@@ -255,16 +278,10 @@ void IoApicRedirect(int idx, int idnum, int vector, int mode) {
 		__leaveSpinlock(&g_allocate_ap_lock);
 	}
 	else {
-		id = idnum;
+		cpuid = cpu;
 	}
 
-	*(DWORD*)(0xfec00000) = idx;
-	iomfence();
-	*(DWORD*)(0xfec00010) = vector + (mode << 8);
-	iomfence();
-	*(DWORD*)(0xfec00000) = idx + 1;
-	iomfence();
-	*(DWORD*)(0xfec00010) = ((id & 0x0ff) << 24);
+	setIoRedirect(pin, cpuid, vector, mode);
 }
 
 int InitIoApic() {
@@ -571,6 +588,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
 
+	enableLocalApic();
+
 	__enterSpinlock(&g_allocate_ap_lock);
 
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
@@ -688,20 +707,21 @@ void BPCodeStart() {
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
-	//enableLocalApic();
-
-	//enableIoApic();
+	enableLocalApic();
 
 #ifdef APIC_ENABLE
-	InitIoApic();
-	initHpet();
+		
 #endif
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
 	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;	
 
-	int ioapic_id = *(DWORD*)(IO_APIC_BASE) >> 24;
+	enableRcba();
 
-	int ioapic_ver = *(DWORD*)(IO_APIC_BASE + 1) & 0xff;
+	enableIoApic();
+
+	int ioapic_id = ReadIoApicReg(0) >> 24;
+
+	int ioapic_ver = ReadIoApicReg(1) & 0xff;
 	
 	__printf(szout, "bsp id:%d,io apic id:%x,version:%x\r\n", g_bsp_id,ioapic_id,ioapic_ver);
 
@@ -720,7 +740,6 @@ void BPCodeStart() {
 #endif
 
 	if (1) {
-		
 		__sleep(20);
 
 		int * ids = (int*)AP_ID_ADDRESS;
@@ -737,6 +756,10 @@ void BPCodeStart() {
 		}
 
 		__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
+
+		initHpet();
+
+		InitIoApic();
 	}
 
 	return;

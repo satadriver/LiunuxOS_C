@@ -7,7 +7,7 @@
 
 #define APIC_HPET_BASE			0XFED00000
 
-#define IO_APIC_BASE			0xfec00000
+#define IO_APIC_BASE			0xFEC00000
 
 #define LOCAL_APIC_BASE			0xfee00000
 
@@ -30,8 +30,14 @@ typedef struct {
 #pragma pack()
 
 
+//1. lfence sfence mfence
+// 在读写指令前插入指令后，可以让高速缓存中的数据失效，重新从主内存加载数据、能让写入缓存的最新数据写回到主内存
 
 
+
+unsigned long ReadIoApicReg(int reg);
+
+unsigned long WriteIoApicReg(int reg, unsigned long value);
 
 int getLocalApicID();
 
