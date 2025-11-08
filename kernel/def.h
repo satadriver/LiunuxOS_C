@@ -38,7 +38,7 @@
 #define QWORD	unsigned long long
 
 
-#define APIC_ENABLE
+//#define APIC_ENABLE
 
 #define LIUNUXOS_VERSION		"1.0.1"
 

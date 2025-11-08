@@ -13,7 +13,7 @@ LiunuxOS64Entry PROTO
 
 .code 
 
-
+public LiunuxOS64Entry
 
 LiunuxOS64Entry proc 
 
@@ -41,7 +41,7 @@ call rdx
 
 LiunuxOS64Entry endp
 
-
+public LiunuxOS64Leave
 
 LiunuxOS64Leave proc 
 
@@ -54,10 +54,12 @@ mov word ptr [rsp],0fffh
 mov rax,r8
 mov dword ptr [rsp + 2], eax
 
-lgdt fword ptr [rsp]
-
 mov rax,r9
 mov rbp,rax
+
+lgdt fword ptr [rsp]
+
+
 
 mov byte ptr [esp],0eah
 mov dword ptr [rsp + 1],edx

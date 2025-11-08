@@ -20,11 +20,11 @@
 typedef struct {
 	unsigned char version;
 	unsigned char count : 5;
-	unsigned char width : 1;
+	unsigned char width : 1;		//1:64bit,0:32bit
 	unsigned char reserved : 1;
 	unsigned char compatable : 1;
 	unsigned short venderid;
-	DWORD tick;
+	DWORD tick;			//0x0429b17f
 }HPET_GCAP_ID_REG;
 
 #pragma pack()

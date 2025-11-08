@@ -638,8 +638,10 @@ void EnterLongMode() {
 
 		short tr_offset = gdtlen - sizeof(Tss64Descriptor);
 
+		unsigned long oldEbp = 0;
+		unsigned long oldEsp = 0;
+
 		__asm {
-			push esp
 
 			lea eax, __bit64EntryOffset
 			mov edx, kernel64Entry32
@@ -662,8 +664,9 @@ void EnterLongMode() {
 			ltr ax
 
 			lea ecx, __win64_leave
-			mov edx,ebp
-			
+			mov [oldEbp], ebp
+			mov [oldEsp], esp
+
 			_emit 0xea
 		__bit64EntryOffset:
 			_emit 0
@@ -709,8 +712,12 @@ void EnterLongMode() {
 			mov es,ax
 			mov fs,ax
 			mov gs,ax
-			
-			pop esp
+
+			mov esp,[oldEsp]
+			mov ebp,[oldEbp]
+
+
+
 		}
 	}
 }

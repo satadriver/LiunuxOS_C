@@ -1,0 +1,5 @@
+
+LIBRARY "liunuxos64.dll"
+EXPORTS
+    LiunuxOS64Entry
+    LiunuxOS64Leave

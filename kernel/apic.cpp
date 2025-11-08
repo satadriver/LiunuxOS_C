@@ -18,6 +18,8 @@ int gAllocateAp = 0;
 
 unsigned long g_allocate_ap_lock = 0;
 
+unsigned long g_ap_work_lock = 0;
+
 DWORD * gOicBase = 0;
 
 char * gRcbaBase = 0;
@@ -87,11 +89,7 @@ void setIoApicID(int id) {
 
 }
 
-void setIoRedirect(int idx,int id,int vector,int mode) {
-	WriteIoApicReg(idx, vector + (mode << 8) );
-	iomfence();
-	WriteIoApicReg(idx+1, ((id & 0x0ff) << 24) );
-}
+
 
 
 void enableIoApic() {
@@ -204,64 +202,65 @@ int getLocalApicID() {
 int initHpet() {
 	int res = 0;
 
-	enableHpet();
+	//enableHpet();
 
 	char szout[256];
 	
 	long long id = *(long long*)APIC_HPET_BASE;
 
-	HPET_GCAP_ID_REG * gcap = (HPET_GCAP_ID_REG*)&id;
-	if (gcap->tick == 0x0429b17f) 
-	{
-		int cnt = gcap->count;
+	HPET_GCAP_ID_REG * hg = (HPET_GCAP_ID_REG*)&id;
+	__printf(szout, "hpet version:%d,count:%d,with:%d,compatable:%d,vender:%x,tick%x\r\n ", 
+		hg->version, hg->count, hg->width, hg->compatable,hg->venderid,hg->tick);
+	
+	int cnt = hg->count;
 
-		DWORD tick = gcap->tick;
+	DWORD tick = hg->tick;
 
-		long long total = 143182;		// 14318179 = 1000ms,0x0429b17f
+	long long tc = 143182;		// 14318179 = 1000ms,0x0429b17f=69841279
 
-		*(long long*)(APIC_HPET_BASE + 0x10) = 3;
+	*(long long*)(APIC_HPET_BASE + 0x10) = 0;
 
-		*(long long*)(APIC_HPET_BASE + 0x20) = 0;
-
-		long long* regs = (long long*)(APIC_HPET_BASE + 0x100);	
-		*(long long*)(APIC_HPET_BASE + 0x100 + 4) = 0;
-
-		for (int i = 0; i < cnt; i++) {
-			if (i == 0) {
-				regs[i] = 0x40 + 8 + 4 + 2 - 2;
-				//break;
-			}
-			else if (i == 2) {
-				regs[i] = 0x1000 + 0x40 + 4 + 2 - 2;
-			}
-			else if (i % 2 == 0) {
-				regs[i] = 0x40 + 2 - 2;
-			}
-			else {
-				regs[i] = total;
-			}
-			i += 2;
-		}
-
-		*(long long*)(APIC_HPET_BASE + 0x100 + 8) = 143182;
-
-		*(long long*)(APIC_HPET_BASE + 0x100 + 12) = 0;
-
-		*(long long*)(APIC_HPET_BASE + 0xf0) = 0;
-
-		*(long long*)(APIC_HPET_BASE + 0xf0 + 4) = 0;
-
-	}
-	else {
+	//General Interrupt Status Register
+	*(long long*)(APIC_HPET_BASE + 0x20) = 0;
 		
-	}
+	//timer0
+	unsigned long long* regs = (unsigned long long*)(APIC_HPET_BASE + 0x100);
 
-	__printf(szout, "hpet gcap->tick %x\r\n", gcap->tick);
+	//bit3: writing 1 to this field enables periodic timer and writing 0 enables non - periodic mode.O
+	//bit2:Setting this bit to 1 enables triggering of interrupts. Even if this bit is 0, this timer will still set Tn_INT_STS.
+	regs[0] = 0x40 + 8 + 4;
+	//Timer N Comparator Value Register
+	//compare with main counter to check if an interrupt should be generated.
+	regs[1] = tc;
+	regs[2] = 0;
+
+	regs[4] = 0x4c;
+	regs[5] = tc;
+	regs[6] = 0;
+
+	regs[8] = 0x40;
+	regs[9] = tc;
+	regs[10] = 0;
+
+	//Main Counter Value Register,increase in each interruption
+	//Writes to this register should only be done when the counter is halted (ENABLE_CNF = 0
+	*(long long*)(APIC_HPET_BASE + 0xf0) = 0;
+
+	*(long long*)(APIC_HPET_BASE + 0xf0 + 4) = 0;
+
+	//Tn_INT_STS
+	//bit0:ENABLE_CNF£¬0:main counter is halted, timer interrupts are disabled
+	//bit1:  "legacy replacement" mapping is enabled¡£timer -> irq0  cmos ->irq8
+	*(long long*)(APIC_HPET_BASE + 0x10) = 3;
 
 	return FALSE;
 }
 
-
+void setIoRedirect(int idx, int id, int vector, int mode) {
+	WriteIoApicReg(idx, vector + (mode << 8));
+	iomfence();
+	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
+}
 
 void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
@@ -286,7 +285,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 int InitIoApic() {
 	
-	IoApicRedirect(0x14, g_bsp_id, INTR_8259_MASTER, 0xa0);
+	IoApicRedirect(0x14, g_bsp_id, INTR_8259_MASTER, 0);
 	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
 	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
 	IoApicRedirect(0x18, g_bsp_id, INTR_8259_MASTER + 4, 0);
@@ -303,7 +302,7 @@ int InitIoApic() {
 	IoApicRedirect(0x2c, g_bsp_id, INTR_8259_SLAVE + 6, 0);
 	IoApicRedirect(0x2e, g_bsp_id, INTR_8259_SLAVE + 7, 0);
 
-	IoApicRedirect(0x30, 0, INTR_8259_SLAVE + 8, 0);
+	//IoApicRedirect(0x30, 0, INTR_8259_SLAVE + 8, 0);
 
 	return 0;
 }
@@ -332,9 +331,11 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		*(DWORD*)0xFEE000B0 = 0;
+		// *(DWORD*)0xFEE000B0 = 0;
 
+		__enterSpinlock(&g_ap_work_lock);
 		g_test_value++;
+		__leaveSpinlock(&g_ap_work_lock);
 
 		char szout[256];
 		__printf(szout, "IPIIntHandler\r\n");
@@ -409,14 +410,14 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 		int tag = *(int*)(APIC_HPET_BASE + 0x20);
 		if (tag & 1) {
 			__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-			*(long*)(APIC_HPET_BASE + 0x108) = 0;
+			//*(long*)(APIC_HPET_BASE + 0x108) = 0;
 		}
 		else if (tag & 2) {
 			DWORD c = *(long*)(APIC_HPET_BASE + 0xf0);
 			DWORD cmp = *(long*)(APIC_HPET_BASE + 0x128);
 		}
-
-		*(long*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)0xFEc00040 = 0;
 	}
 
 	__asm {
@@ -568,6 +569,18 @@ int enableLocalApic() {
 }
 
 
+void DisableInt() {
+	__asm {
+
+
+		mov al, 0xFF
+		out 0xA1, al
+		out 0x21, al
+	}
+	enableIMCR();
+}
+
+
 
 //https://blog.csdn.net/weixin_46645613/article/details/120406002
 //https://zhuanlan.zhihu.com/p/406213995
@@ -588,8 +601,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
 
-	enableLocalApic();
-
+#ifdef APIC_ENABLE
+		DisableInt();
+#endif
+	
 	__enterSpinlock(&g_allocate_ap_lock);
 
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
@@ -686,7 +701,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		__asm {
 			hlt
 		}
-		__printf(szout, "ap id:%d wake\r\n", id);
+		//__printf(szout, "ap id:%d wake\r\n", id);
 	}
 }
 
@@ -707,17 +722,10 @@ void BPCodeStart() {
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
-	enableLocalApic();
-
-#ifdef APIC_ENABLE
-		
-#endif
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
 	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;	
 
 	enableRcba();
-
-	enableIoApic();
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -730,37 +738,37 @@ void BPCodeStart() {
 
 	__asm {sti}
 
-	__sleep(20);
+	__sleep(10);
 
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
+	__sleep(50);
+
+	int* ids = (int*)AP_ID_ADDRESS;
+	int cnt = *(int*)(AP_TOTAL_ADDRESS);
+	for (int i = 0; i < cnt; i++) {
+		__printf(szout, "ap num:%d, id:%d\r\n", i, ids[i]);
+
+		//unsigned int id = ids[i] << 24;
+		//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
+		//int v = 0x81;
+		//*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+
+		AllocateApTask(0x81);
+	}
+
+	__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
+
 #ifdef APIC_ENABLE
-	//setIoApicID(g_bsp_id);
-#endif
+		enableIoApic();
 
-	if (1) {
-		__sleep(20);
-
-		int * ids = (int*)AP_ID_ADDRESS;
-		int cnt = *(int*)(AP_TOTAL_ADDRESS);
-		for (int i = 0; i < cnt; i++) {
-			__printf(szout, "ap num:%d, id:%d\r\n", i,ids[i]);
-
-			//unsigned int id = ids[i] << 24;
-			//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
-			//int v = 0x81;
-			//*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-
-			AllocateApTask(0x81);
-		}
-
-		__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
-
-		initHpet();
+		DisableInt();
 
 		InitIoApic();
-	}
+
+		initHpet();
+#endif
 
 	return;
 }
