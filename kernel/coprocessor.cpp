@@ -137,7 +137,7 @@ void initCoprocessor() {
 		__emit 0xe0
 	}
 
-	EnableFloatError();
+	EnableInt13();
 
 	enableSSE();
 

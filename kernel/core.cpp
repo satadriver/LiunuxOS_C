@@ -716,8 +716,12 @@ void EnterLongMode() {
 			mov esp,[oldEsp]
 			mov ebp,[oldEbp]
 
+			mov eax, cr0
+			or eax, 80000000h
+			mov cr0, eax
 
-
+			mov ax, kTssTaskSelector
+			ltr ax
 		}
 	}
 }

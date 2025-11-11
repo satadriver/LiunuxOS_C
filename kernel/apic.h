@@ -57,7 +57,7 @@ int initHpet();
 
 void enableRcba();
 
-void EnableFloatError();
+void EnableInt13();
 
 void enableIMCR();
 

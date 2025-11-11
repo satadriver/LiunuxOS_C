@@ -39,7 +39,7 @@ void enableRcba() {
 
 //bit 9:enable irq 13
 //bit 8:enable apic io
-void EnableFloatError() {
+void EnableInt13() {
 	outportd(0xcf8, 0x8000f8f0);
 
 	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
@@ -152,7 +152,7 @@ int enableHpet() {
 	return 0;
 }
 
-
+//enable io apic
 void enableIMCR() {
 	outportb(0x22, 0x70);
 	outportb(0x23, 0x01);
