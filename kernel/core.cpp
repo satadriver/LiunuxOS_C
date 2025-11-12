@@ -663,9 +663,10 @@ void EnterLongMode() {
 			mov ax, tr_offset
 			ltr ax
 
+			pushad
+
 			lea ecx, __win64_leave
-			mov [oldEbp], ebp
-			mov [oldEsp], esp
+			mov edx,esp
 
 			_emit 0xea
 		__bit64EntryOffset:
@@ -684,7 +685,6 @@ void EnterLongMode() {
 			jmp eax
 
 		__win64_leave:
-
 			mov eax, cr0
 			and eax, 7fffffffh
 			mov cr0, eax
@@ -713,15 +713,17 @@ void EnterLongMode() {
 			mov fs,ax
 			mov gs,ax
 
-			mov esp,[oldEsp]
-			mov ebp,[oldEbp]
+			mov eax, PDE_ENTRY_VALUE
+			mov cr3, eax
 
 			mov eax, cr0
-			or eax, 80000000h
+			or eax, 0x80000000
 			mov cr0, eax
 
 			mov ax, kTssTaskSelector
 			ltr ax
+
+			popad
 		}
 	}
 }

@@ -8,7 +8,7 @@
 #define GDT_BASE				0X560000
 
 unsigned long g_bit32Address = 0;
-unsigned long g_regebp32 = 0;
+unsigned long g_regEsp32 = 0;
 
 extern "C" __declspec(dllexport) int  LiunuxOS64Entry(char* esptop,char* retaddr);
 
@@ -17,7 +17,7 @@ extern "C" __declspec(dllexport) int  LiunuxOS64Leave(int seg32, unsigned long r
 
 extern "C"  __declspec(dllexport)  int Bit64EntryCPP() {
 
-	__kKernelLeave64(g_bit32Address, g_regebp32);
+	__kKernelLeave64(g_bit32Address, g_regEsp32);
 
 	return 0;
 }
@@ -30,12 +30,12 @@ extern "C" __declspec(dllexport) int __kKernelLeave64(unsigned long retaddr32, u
 	return ret;
 }
 
-extern "C" __declspec(dllexport) int __kKernelEntry64(unsigned long retaddr32,unsigned long  ebp32) {
+extern "C" __declspec(dllexport) int __kKernelEntry64(unsigned long retaddr32,unsigned long  esp32) {
 	
 	int ret = 0;
 
 	g_bit32Address = retaddr32;
-	g_regebp32 = ebp32;
+	g_regEsp32 = esp32;
 
 	ret = LiunuxOS64Entry((char*)KERNEL64_STACK_TOP,(char*) Bit64EntryCPP);
 
