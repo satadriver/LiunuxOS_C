@@ -206,17 +206,18 @@ int initHpet() {
 
 	char szout[256];
 	
-	long long id = *(long long*)APIC_HPET_BASE;
+	long long idc = *(long long*)APIC_HPET_BASE;
 
-	HPET_GCAP_ID_REG * hg = (HPET_GCAP_ID_REG*)&id;
-	__printf(szout, "hpet version:%d,count:%d,with:%d,compatable:%d,vender:%x,tick%x\r\n ", 
-		hg->version, hg->count, hg->width, hg->compatable,hg->venderid,hg->tick);
+	HPET_GCAP_ID_REG * hg = (HPET_GCAP_ID_REG*)&idc;
+	//the default value is 0x0429b17f=69841279 about 14.318179MHz	
+	__printf(szout, "hpet config:%x, version:%d,count:%d,with:%d,compatable:%d,vender:%x,tick%x\r\n ", 
+		idc,hg->version, hg->count, hg->width, hg->compatable,hg->venderid,hg->tick);
 	
 	int cnt = hg->count;
 
 	DWORD tick = hg->tick;
 
-	long long tc = 143182;		// 14318179 = 1000ms,0x0429b17f=69841279
+	long long tc = 143182;		// 10ms, 14318179 = 1000ms,0x0429b17f=69841279
 
 	*(long long*)(APIC_HPET_BASE + 0x10) = 0;
 
@@ -232,15 +233,15 @@ int initHpet() {
 	//Timer N Comparator Value Register
 	//compare with main counter to check if an interrupt should be generated.
 	regs[1] = tc;
-	regs[2] = 0;
+	//regs[2] = 0;
 
-	regs[4] = 0x4c;
+	regs[4] = 0x4;
 	regs[5] = tc;
-	regs[6] = 0;
+	//regs[6] = 0;
 
-	regs[8] = 0x40;
-	regs[9] = tc;
-	regs[10] = 0;
+	//regs[8] = 0x4;
+	//regs[9] = tc;
+	//regs[10] = 0;
 
 	//Main Counter Value Register,increase in each interruption
 	//Writes to this register should only be done when the counter is halted (ENABLE_CNF = 0
@@ -260,6 +261,7 @@ void setIoRedirect(int idx, int id, int vector, int mode) {
 	WriteIoApicReg(idx, vector + (mode << 8));
 	iomfence();
 	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
+	iomfence();
 }
 
 void IoApicRedirect(int pin, int cpu, int vector, int mode) {
@@ -285,6 +287,8 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 int InitIoApic() {
 	
+	IoApicRedirect(0x10, 0, 0x81, 0);
+
 	IoApicRedirect(0x14, g_bsp_id, INTR_8259_MASTER, 0);
 	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
 	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
@@ -301,8 +305,6 @@ int InitIoApic() {
 	IoApicRedirect(0x2a, g_bsp_id, INTR_8259_SLAVE + 5, 0);
 	IoApicRedirect(0x2c, g_bsp_id, INTR_8259_SLAVE + 6, 0);
 	IoApicRedirect(0x2e, g_bsp_id, INTR_8259_SLAVE + 7, 0);
-
-	//IoApicRedirect(0x30, 0, INTR_8259_SLAVE + 8, 0);
 
 	return 0;
 }
@@ -407,14 +409,16 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[1024];
 
-		int tag = *(int*)(APIC_HPET_BASE + 0x20);
-		if (tag & 1) {
+		int value = *(int*)(APIC_HPET_BASE + 0x20);
+		if (value & 1) {
 			__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-			//*(long*)(APIC_HPET_BASE + 0x108) = 0;
+			*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffe;
+			*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
+			
+			*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
 		}
-		else if (tag & 2) {
-			DWORD c = *(long*)(APIC_HPET_BASE + 0xf0);
-			DWORD cmp = *(long*)(APIC_HPET_BASE + 0x128);
+		else if (value & 2) {
+			*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffd;
 		}
 		*(DWORD*)0xFEE000B0 = 0;
 		*(DWORD*)0xFEc00040 = 0;
@@ -602,7 +606,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
 
 #ifdef APIC_ENABLE
-		DisableInt();
+		//DisableInt();
 #endif
 	
 	__enterSpinlock(&g_allocate_ap_lock);
@@ -725,7 +729,7 @@ void BPCodeStart() {
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
 	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;	
 
-	enableRcba();
+	
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -743,7 +747,7 @@ void BPCodeStart() {
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
-	__sleep(50);
+	__sleep(100);
 
 	int* ids = (int*)AP_ID_ADDRESS;
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
@@ -761,12 +765,13 @@ void BPCodeStart() {
 	__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
 
 #ifdef APIC_ENABLE
+		enableRcba();
 		enableIoApic();
+		enableHpet();
 
 		DisableInt();
-
 		InitIoApic();
-
+			
 		initHpet();
 #endif
 
