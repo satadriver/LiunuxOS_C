@@ -67,13 +67,26 @@ void setIoRedirect(int id, int idx, int vector, int mode);
 
 void setIoApicID(int id);
 
-extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT * stack);
+
 
 void BPCodeStart();
 
 extern "C" void __declspec(dllexport) __kApInitProc();
 
 int AllocateApTask(int vn);
+
+
+extern "C" void __declspec(dllexport) HpetTimer0Handler(LIGHT_ENVIRONMENT* stack);
+
+extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) LVTLint1Handler(LIGHT_ENVIRONMENT* stack);
+
+extern "C" void __declspec(dllexport) LVTLint0Handler(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 
 #ifdef DLL_EXPORT
 

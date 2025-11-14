@@ -393,9 +393,18 @@ void initIDT() {
 	makeIntGateDescriptor((DWORD)IDESlaveIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 7);
 
 	makeTrapGateDescriptor((DWORD)servicesProc, KERNEL_MODE_CODE, 3, descriptor + 0x80);
+	
+	makeTrapGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + 0x20);
 
-	makeTrapGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + 0x81);
-
+	makeTrapGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTLint0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT0_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTLint1Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT1_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
+	makeTrapGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
+	
 	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
 	
 	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));

@@ -289,15 +289,18 @@ int InitIoApic() {
 	
 	IoApicRedirect(0x10, 0, 0x81, 0);
 
-	IoApicRedirect(0x14, g_bsp_id, INTR_8259_MASTER, 0);
+	IoApicRedirect(0x14, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+
 	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
+
 	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
 	IoApicRedirect(0x18, g_bsp_id, INTR_8259_MASTER + 4, 0);
 	IoApicRedirect(0x1a, g_bsp_id, INTR_8259_MASTER + 5, 0);
 	IoApicRedirect(0x1c, g_bsp_id, INTR_8259_MASTER + 6, 0);
 	IoApicRedirect(0x1e, g_bsp_id, INTR_8259_MASTER + 7, 0);
 
-	IoApicRedirect(0x20, g_bsp_id, INTR_8259_SLAVE + 0, 0);
+	IoApicRedirect(0x20, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+
 	IoApicRedirect(0x22, g_bsp_id, INTR_8259_SLAVE + 1, 0);
 	IoApicRedirect(0x24, g_bsp_id, INTR_8259_SLAVE + 2, 0);
 	IoApicRedirect(0x26, g_bsp_id, INTR_8259_SLAVE + 3, 0);
@@ -362,29 +365,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 
 
-
-
-
-
-
-
-
-//https://blog.csdn.net/weixin_46645613/article/details/120406002
-//https://zhuanlan.zhihu.com/p/406213995
-//https://zhuanlan.zhihu.com/p/678582090
-//https://www.zhihu.com/question/594531181/answer/2982337869
-
-
-
-
-
-
-
-
-
-
-
-extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
+extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
 		pushad
 		push ds
@@ -406,8 +387,349 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		int v = SYSTEM_TIMER0_FACTOR;
+		*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
+
+		char szout[256];
+		__printf(szout, "%s\r\n",__FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+
+
+extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		char szout[256];
+		__printf(szout, "%s\r\n", __FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+
+
+extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		char szout[256];
+		__printf(szout, "%s\r\n", __FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+
+extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		char szout[256];
+		__printf(szout, "%s\r\n", __FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+extern "C" void __declspec(naked) LVTLint1Handler(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		char szout[256];
+		__printf(szout, "%s\r\n", __FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+
+extern "C" void __declspec(naked) LVTLint0Handler(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		char szout[256];
+		__printf(szout, "%s\r\n", __FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		char szout[256];
+		__printf(szout, "%s\r\n", __FUNCTION__);
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		clts
+		iretd
+	}
+}
+
+//https://blog.csdn.net/weixin_46645613/article/details/120406002
+//https://zhuanlan.zhihu.com/p/406213995
+//https://zhuanlan.zhihu.com/p/678582090
+//https://www.zhihu.com/question/594531181/answer/2982337869
+
+
+
+
+
+
+
+
+
+
+
+extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+	}
+
+	{
+		char szout[256];
+		__printf(szout, "HpetInterrupt\r\n");
+
 		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		char szout[1024];
 
 		int value = *(int*)(APIC_HPET_BASE + 0x20);
 		if (value & 1) {
@@ -449,7 +771,7 @@ extern "C" void __declspec(naked) HpetInterrupt(LIGHT_ENVIRONMENT * stack) {
 		clts
 		iretd
 
-		jmp HpetInterrupt
+		jmp HpetTimer0Handler
 	}
 }
 
@@ -710,6 +1032,44 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 }
 
 
+
+int InitApicLVT() {
+
+	return 0;
+
+	unsigned long v = APIC_LVTTIMER_VECTOR | 0x20000;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+
+	v = 1;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
+
+	v = SYSTEM_TIMER0_FACTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
+
+
+
+	v = APIC_LVTTEMPERATURE_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x330) = v;
+
+	v = APIC_LVTPERFORMANCE_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x340) = v;
+
+	v = APIC_LVTLINT0_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = v;
+
+	v = APIC_LVTLINT1_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = v;
+
+	v = APIC_LVTERROR_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x370) = v;
+
+	v = APIC_LVTCMCI_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x2f0) = v;
+
+	return 0;
+}
+
+
 void BPCodeStart() {
 
 	int ret = 0;
@@ -761,6 +1121,8 @@ void BPCodeStart() {
 
 		AllocateApTask(0x81);
 	}
+
+	ret = InitApicLVT();
 
 	__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
 
