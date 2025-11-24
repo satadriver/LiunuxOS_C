@@ -37,6 +37,11 @@
 #define OWORD	__m128
 #define QWORD	unsigned long long
 
+#define APIC_HPET_BASE			0XFED00000
+
+#define IO_APIC_BASE			0xFEC00000
+
+#define LOCAL_APIC_BASE			0xfee00000
 
 //#define APIC_ENABLE
 

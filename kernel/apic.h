@@ -5,11 +5,7 @@
 #include "task.h"
 #include "process.h"
 
-#define APIC_HPET_BASE			0XFED00000
 
-#define IO_APIC_BASE			0xFEC00000
-
-#define LOCAL_APIC_BASE			0xfee00000
 
 #define APIC_CORE_MAX_COUNT		256
 

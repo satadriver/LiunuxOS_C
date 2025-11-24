@@ -247,8 +247,6 @@ int initHpet() {
 	//Writes to this register should only be done when the counter is halted (ENABLE_CNF = 0
 	*(long long*)(APIC_HPET_BASE + 0xf0) = 0;
 
-	*(long long*)(APIC_HPET_BASE + 0xf0 + 4) = 0;
-
 	//Tn_INT_STS
 	//bit0:ENABLE_CNF£¬0:main counter is halted, timer interrupts are disabled
 	//bit1:  "legacy replacement" mapping is enabled¡£timer -> irq0  cmos ->irq8
@@ -897,8 +895,6 @@ int enableLocalApic() {
 
 void DisableInt() {
 	__asm {
-
-
 		mov al, 0xFF
 		out 0xA1, al
 		out 0x21, al
@@ -1035,30 +1031,19 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 int InitApicLVT() {
 
-	return 0;
-
-	unsigned long v = APIC_LVTTIMER_VECTOR | 0x20000;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
-
-	v = 1;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
-
-	v = SYSTEM_TIMER0_FACTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
-
-
+	unsigned long v = 0;
 
 	v = APIC_LVTTEMPERATURE_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x330) = v;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x330) = v | 0x10000;
 
 	v = APIC_LVTPERFORMANCE_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x340) = v;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x340) = v | 0x10000;
 
 	v = APIC_LVTLINT0_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = v;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = v | 0x10000;
 
 	v = APIC_LVTLINT1_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = v;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = v | 0x10000;
 
 	v = APIC_LVTERROR_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x370) = v;
@@ -1066,7 +1051,24 @@ int InitApicLVT() {
 	v = APIC_LVTCMCI_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x2f0) = v;
 
+	v = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = v;
+
+
+	v = 0x10000;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+
+	v = 1;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
+
+	v = APIC_LVTTIMER_VECTOR | 0x20000;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+
+	v = SYSTEM_TIMER0_FACTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
+
 	return 0;
+
 }
 
 
@@ -1127,14 +1129,18 @@ void BPCodeStart() {
 	__printf(szout, "bsp id:%d init:%d ok\r\n", g_bsp_id, g_test_value);
 
 #ifdef APIC_ENABLE
+	__asm {cli}
+#if 0
 		enableRcba();
 		enableIoApic();
 		enableHpet();
-
+#endif
+		
 		DisableInt();
 		InitIoApic();
 			
 		initHpet();
+		__asm {sti}
 #endif
 
 	return;

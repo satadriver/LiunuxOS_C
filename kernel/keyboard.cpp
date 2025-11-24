@@ -557,8 +557,8 @@ __declspec(naked) void KeyboardIntProc() {
 		__kKeyboardProc();
 		outportb(0x20, 0x20);
 #ifdef APIC_ENABLE
-		* (DWORD*)0xFEE000B0 = 0;
-		*(DWORD*)0xFEc00040 = 0;
+		* (DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #endif
 	}
 
