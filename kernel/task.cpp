@@ -325,32 +325,17 @@ void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 	}
 }
 
+#ifdef SINGLE_TASK_TSS
 
-#ifndef SINGLE_TASK_TSS
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
-
-	char szout[1024];
-
-	__int64 timeh1 = __krdtsc();
-
-	__k8254TimerProc();
-
-	__asm {
-		//clts			//before all fpu instructions
-	}
-
-	//__printf(szout, "__kTaskSchedule entry\r\n");
+LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env) {
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+	LPPROCESS_INFO next = prev;
 
-	if (process->tid != prev->tid) {
-		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
-		return 0;
-	}
-
-	V86ProcessCheck(env, prev, process);
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	cpuid = cpuid >> 24;
 
 	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
@@ -390,179 +375,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		return 0;
 	}
 	
-
-	LPPROCESS_INFO next = prev;
-	do {
-		next++;
-		if (next - tss >= TASK_LIMIT_TOTAL) {
-			next = tss;
-		}
-
-		if (next == prev) {
-			return FALSE;
-		}
-
-		if (next->status == TASK_TERMINATE) {
-			next->status = TASK_OVER;
-			if (next->tid == next->pid) {
-				//__kFreeProcess(next->pid);
-			}
-			else {
-				//__kFree(next->espbase);
-			}
-			continue;
-		}
-		else if (next->status == TASK_RUN) {
-			if (next->sleep) {
-				next->sleep--;
-			}
-			else {
-				break;
-			}
-			continue;
-		}
-		else if (next->status == TASK_OVER) {
-			continue;
-		}
-		else if (next->status == TASK_SUSPEND) {
-			continue;
-		}
-	} while (TRUE);
-	
-	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
-	//DescriptTableReg ldtreg;
-	// 	__asm {
-	//		sldt ldtreg;
-	// 	}
-	//process->tss.ldt = ldtreg.addr;
-
-	debugReg(next, prev);
-
-	if (prev->copyMap == 0) {
-		int off = OFFSETOF(TSS, intMap);
-		__memcpy((char*)prev, (char*)process, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev + off, (char*)process + off, lsize);
-	}
-	else {
-		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
-	}
-	if (process->copyMap == 0) {
-		int off = OFFSETOF(TSS, intMap);
-		__memcpy((char*)process, (char*)next, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)process + off, (char*)next + off, lsize);
-	}
-	else {
-		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
-	}
-	
-	//tasktest();
-
- 	char * fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
-	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
-	//The assembler issues two instructions for the FSAVE instruction (an FWAIT instruction followed by an FNSAVE instruction), 
-	//and the processor executes each of these instructions separately.
-	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
-	__asm {	
-		FNCLEX
-		//fwait
-		fninit
-		mov eax, fenvprev
-		FxSAVE[eax]
-		//fsave [fenv]
-	}
-	
-	{
-		char * fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
-		__asm {
-			mov eax, fenvnext
-			//frstor [fenv]
-			fxrstor[eax]
-			FNCLEX
-			fninit
-		}
-	}
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
-		__int64 timeh2 = __krdtsc() - timeh1;
-
-		DWORD cpureq;
-		DWORD maxreq;
-		DWORD busreq;
-		__cpuFreq(&cpureq, &maxreq, &busreq);
-		__int64 cpurate = cpureq;
-
-		__printf(szout,
-			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
-			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
-			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
-	}
-	return TRUE;
-}
-#else
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env) {
-
-	char szout[1024];
-	__int64 timeh1 = __krdtsc();
-	__asm {
-		clts			//before all fpu instructions
-	}
-
-	__k8254TimerProc();
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
-
-	if (process->tid != prev->tid) {
-		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
-		return 0;
-	}
-
-	V86ProcessCheck(env, prev, process);
-
-	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
-		prev->status = TASK_OVER;
-		process->status = TASK_OVER;
-		if (prev->tid == prev->pid) {
-			//__kFreeProcess(prev->pid);
-		}
-		else {
-			//__kFree(prev->espbase);
-		}
-	}
-	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
-		process->status = TASK_OVER;
-		prev->status = TASK_OVER;
-		__printf(szout, "__kTaskSchedule prev status TASK_OVER!\r\n");
-	}
-	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
-	{
-		if (process->sleep) {
-			process->sleep--;
-			prev->sleep = process->sleep;
-		}
-		else if (prev->sleep) {
-			prev->sleep--;
-			process->sleep = prev->sleep;
-		}
-		else {
-			process->counter++;
-		}
-	}
-	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
-		process->status = TASK_SUSPEND;
-		prev->status = TASK_SUSPEND;
-	}
-	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
-		return 0;
-	}
-
-
-	LPPROCESS_INFO next = prev;
 	do {
 		next++;
 		if (next - tss >= TASK_LIMIT_TOTAL) {
@@ -571,9 +383,13 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 
 		if (next == prev) {
 			if (prev->status == TASK_OVER) {
-				__printf(szout,"task switch error!\r\n");
+				__printf(szout, "task switch error!\r\n");
 			}
 			return FALSE;
+		}
+
+		if (cpuid != next->cpuid) {
+			continue;
 		}
 
 		if (next->status == TASK_TERMINATE) {
@@ -623,12 +439,12 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 
 	DWORD dwcr3 = 0;
 	__asm {
-		mov eax,cr3
-		mov dwcr3,eax
+		mov eax, cr3
+		mov dwcr3, eax
 	}
 	process->tss.cr3 = dwcr3;
 
-	if (env->eflags & 0x20000) 
+	if (env->eflags & 0x20000)
 	{
 		//process->tss.gs = KERNEL_MODE_DATA;
 		//process->tss.fs = KERNEL_MODE_DATA;
@@ -650,7 +466,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		__memcpy((char*)prev, (char*)process, off);
 		off = OFFSETOF(TSS, iomapEnd);
 		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev+off, (char*)process+ off, lsize);
+		__memcpy((char*)prev + off, (char*)process + off, lsize);
 	}
 	else {
 		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
@@ -659,7 +475,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)process, (char*)next, off);
 		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO)  - off;
+		int lsize = sizeof(PROCESS_INFO) - off;
 		__memcpy((char*)process + off, (char*)next + off, lsize);
 	}
 	else {
@@ -689,15 +505,13 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 		//fsave [fenv]
 	}
 
-	{
-		char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
-		__asm {
-			mov eax, fenvnext
-			//frstor [fenv]
-			fxrstor[eax]
-			FNCLEX
-			fninit
-		}
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
+	__asm {
+		mov eax, fenvnext
+		//frstor [fenv]
+		fxrstor[eax]
+		FNCLEX
+		fninit
 	}
 
 	env->eax = process->tss.eax;
@@ -714,7 +528,190 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 	env->es = process->tss.es;
 	env->ss = process->tss.ss;
 
-	if ((g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
+	return next;
+}
+#else
+LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env) {
+	char szout[1024];
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+
+	LPPROCESS_INFO next = prev;
+
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	cpuid = cpuid >> 24;
+
+	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		prev->status = TASK_OVER;
+		process->status = TASK_OVER;
+		if (prev->tid == prev->pid) {
+			//__kFreeProcess(prev->pid);
+		}
+		else {
+			//__kFree(prev->espbase);
+		}
+	}
+	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
+		process->status = TASK_OVER;
+		prev->status = TASK_OVER;
+		__printf(szout, "__kTaskSchedule prev status TASK_OVER!\r\n");
+	}
+	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
+	{
+		if (process->sleep) {
+			process->sleep--;
+			prev->sleep = process->sleep;
+		}
+		else if (prev->sleep) {
+			prev->sleep--;
+			process->sleep = prev->sleep;
+		}
+		else {
+			process->counter++;
+		}
+	}
+	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
+		process->status = TASK_SUSPEND;
+		prev->status = TASK_SUSPEND;
+	}
+	else {
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
+		return 0;
+	}
+	
+	do {
+		next++;
+		if (next - tss >= TASK_LIMIT_TOTAL) {
+			next = tss;
+		}
+
+		if (next == prev) {
+			return FALSE;
+		}
+
+		if (cpuid != next->cpuid) {
+			continue;
+		}
+
+		if (next->status == TASK_TERMINATE) {
+			next->status = TASK_OVER;
+			if (next->tid == next->pid) {
+				//__kFreeProcess(next->pid);
+			}
+			else {
+				//__kFree(next->espbase);
+			}
+			continue;
+		}
+		else if (next->status == TASK_RUN) {
+			if (next->sleep) {
+				next->sleep--;
+			}
+			else {
+				break;
+			}
+			continue;
+		}
+		else if (next->status == TASK_OVER) {
+			continue;
+		}
+		else if (next->status == TASK_SUSPEND) {
+			continue;
+		}
+	} while (TRUE);
+
+	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
+	//DescriptTableReg ldtreg;
+	// 	__asm {
+	//		sldt ldtreg;
+	// 	}
+	//process->tss.ldt = ldtreg.addr;
+
+	debugReg(next, prev);
+
+	if (prev->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)prev, (char*)process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)prev + off, (char*)process + off, lsize);
+	}
+	else {
+		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+	}
+	if (process->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)process, (char*)next, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)process + off, (char*)next + off, lsize);
+	}
+	else {
+		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
+	}
+
+	//tasktest();
+
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
+	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
+	//The assembler issues two instructions for the FSAVE instruction 
+	// (an FWAIT instruction followed by an FNSAVE instruction), 
+	//and the processor executes each of these instructions separately.
+	//If an exception is generated for either of these instructions,
+	// the save EIP points to the instruction that caused the exception.
+	__asm {
+		FNCLEX
+		//fwait
+		fninit
+		mov eax, fenvprev
+		FxSAVE[eax]
+		//fsave [fenv]
+	}
+
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
+	__asm {
+		mov eax, fenvnext
+		//frstor [fenv]
+		fxrstor[eax]
+		FNCLEX
+		fninit
+	}
+
+	return next;
+}
+
+#endif
+
+
+#ifdef SINGLE_TASK_TSS
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
+
+	char szout[1024];
+	__int64 timeh1 = __krdtsc();
+	__asm {
+		clts			//before all fpu instructions
+	}
+
+	__k8254TimerProc();
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+
+	if (process->tid != prev->tid) {
+		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
+		return 0;
+	}
+
+	V86ProcessCheck(env, prev, process);
+
+	ActiveApTask(INTR_8259_MASTER + 0);
+
+	LPPROCESS_INFO next = TaskSchedule(env);
+
+	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
 		__int64 timeh2 = __krdtsc() - timeh1;
 
 		DWORD cpureq;
@@ -731,6 +728,55 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT * env)
 
 	return TRUE;
 }
+
+#else
+
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
+
+	char szout[1024];
+
+	__int64 timeh1 = __krdtsc();
+
+	__k8254TimerProc();
+
+	ActiveApTask(INTR_8259_MASTER + 0);
+
+	__asm {
+		//clts			//before all fpu instructions
+	}
+
+	//__printf(szout, "__kTaskSchedule entry\r\n");
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+
+	if (process->tid != prev->tid) {
+		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
+		return 0;
+	}
+
+	V86ProcessCheck(env, prev, process);
+
+	LPPROCESS_INFO next = TaskSchedule(env);
+	
+	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
+		__int64 timeh2 = __krdtsc() - timeh1;
+
+		DWORD cpureq;
+		DWORD maxreq;
+		DWORD busreq;
+		__cpuFreq(&cpureq, &maxreq, &busreq);
+		__int64 cpurate = cpureq;
+
+		__printf(szout,
+			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
+			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
+			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
+	}
+	return TRUE;
+}
+
 #endif
 
 
@@ -802,6 +848,8 @@ void initTaskSwitchTss() {
 	}
 }
 
+
+
 int __initTask0(char * videobase) {
 
 	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -816,8 +864,9 @@ int __initTask0(char * videobase) {
 	__strcpy(process0->filename, (char*)LIUNUX_KERNEL32_DLL);
 	__strcpy(process0->funcname, (char*)"__kKernel");
 	process0->status = TASK_RUN;
-	process0->tid = 0;
-	process0->pid = 0;
+	process0->tid = KERNEL_PROCESS_ID;
+	process0->pid = KERNEL_PROCESS_ID;
+	process0->cpuid = 0;
 	process0->espbase = KERNEL_TASK_STACK_TOP;
 	process0->level = 0;
 	process0->counter = 0;
@@ -849,3 +898,74 @@ int __initTask0(char * videobase) {
 //输入 / 输出指令IN、INS、OUT或OUTS的 敏感条件仅仅是当前V86任务TSS内的I / O许可位图，而忽略EFLAGS中的IOPL。
 //在V86模式下， 当IOPL < 3时，执行指令PUSHF、POPF、INT n及IRET会引起出错码为0的通用保护故障。
 //采取上述措施的目的是使操作系统软件可以支持一个“虚拟EFLAGS”寄存器。
+
+
+
+
+
+extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
+
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+
+		//clts
+		cli
+	}
+
+	{
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		char szout[1024];
+		//__printf(szout,"TimerInterrupt\r\n");
+
+		TaskSchedule((LIGHT_ENVIRONMENT*)stack);
+
+	}
+
+	__asm {
+#ifdef SINGLE_TASK_TSS
+		call GetCurrentTaskTssBase
+		mov edx, eax
+		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		mov cr3, eax
+#endif
+
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+#ifdef SINGLE_TASK_TSS
+		nop
+		mov esp, ss: [esp - 20]
+		nop
+#endif	
+		//clts
+		sti
+
+		iretd
+
+		jmp TimerInterrupt
+	}
+}

@@ -57,6 +57,13 @@ void clearTssBuf(LPPROCESS_INFO tss);
 
 void tasktest();
 
+
+LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env);
+
+int __pausePid(int pid);
+
+int __resumePid(int pid);
+
 //TASK_LIST_ENTRY* addTaskList(int tid);
 
 //TASK_LIST_ENTRY* removeTaskList(int tid);

@@ -32,6 +32,8 @@ typedef struct
 {
 	TSS tss;
 
+	int cpuid;
+
 	DWORD pid;
 
 	DWORD tid;

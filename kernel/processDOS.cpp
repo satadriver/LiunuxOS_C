@@ -286,6 +286,10 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->pid = pid;
 	tss->tid = pid;
 
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	cpuid = cpuid >> 24;
+	tss->cpuid = cpuid;
+
 	tss->vasize = 0;
 	tss->vaddr = addr;
 

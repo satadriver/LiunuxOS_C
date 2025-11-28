@@ -70,7 +70,7 @@ void BPCodeStart();
 extern "C" void __declspec(dllexport) __kApInitProc();
 
 int AllocateApTask(int vn);
-
+int ActiveApTask(int intnum);
 
 extern "C" void __declspec(dllexport) HpetTimer0Handler(LIGHT_ENVIRONMENT* stack);
 

@@ -95,6 +95,11 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->heapsize = process->heapsize;
 	tss->pid = process->pid;
 	tss->ppid = process->pid;
+
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	cpuid = cpuid >> 24;
+	tss->cpuid = cpuid;
+
 	tss->fpu = TRUE;
 	tss->level = process->level;
 	tss->vaddr = process->vaddr;

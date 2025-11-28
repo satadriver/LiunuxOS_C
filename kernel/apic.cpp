@@ -785,19 +785,7 @@ int AllocateApTask(int intnum) {
 	__enterSpinlock(&g_allocate_ap_lock);
 
 	int total = *(int*)(AP_TOTAL_ADDRESS);
-	
 	if (total > 0) {
-
-		while (true)
-		{
-			int value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-			if (value & 0x1000) {
-				__sleep(0);
-			}
-			else {
-				break;
-			}
-		}
 
 		int idx = gAllocateAp;
 		int* ids = (int*)AP_ID_ADDRESS;
@@ -805,26 +793,26 @@ int AllocateApTask(int intnum) {
 		do {
 			cpuId = ids[gAllocateAp];
 			if (id != cpuId) {
-				unsigned int value = cpuId << 24;
-				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
+				unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+				if ( (value & 0x1000) == 0) {
 
-				value = 0x000 | intnum;
-				*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
+					value = cpuId << 24;
+					*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
 
-				res = gAllocateAp;
+					value = 0x000 | intnum;
+					*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
 
-				gAllocateAp++;
-				if (gAllocateAp >= total) {
-					gAllocateAp = 0;
+					res = gAllocateAp;
 				}
-				break;
 			}
 
 			gAllocateAp++;
 			if (gAllocateAp >= total) {
 				gAllocateAp = 0;
 			}
-
+			if (res > 0) {
+				break;
+			}
 		} while (gAllocateAp != idx);
 	}
 
@@ -836,6 +824,47 @@ int AllocateApTask(int intnum) {
 }
 
 
+
+
+
+
+
+int ActiveApTask(int intnum) {
+
+	if (intnum < 0 || intnum > 255) {
+		return -1;
+	}
+
+	__enterSpinlock(&g_allocate_ap_lock);
+
+	int total = *(int*)(AP_TOTAL_ADDRESS);
+	if (total > 0) {
+		
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		int* ids = (int*)AP_ID_ADDRESS;
+		for (int idx = 0; idx < total; idx++) {
+
+			unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+			if ( (value & 0x1000) == 0) {
+				int cpuId = ids[idx];
+				if (id != cpuId) {
+					value = cpuId << 24;
+					*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
+
+					value = 0x000 | intnum;
+					*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
+
+				}
+			}
+		} 
+	}
+
+	__leaveSpinlock(&g_allocate_ap_lock);
+
+	//char szout[256];
+	//__printf(szout, "AllocateApTask index:%x,id:%x\r\n", res, cpuId);
+	return 0;
+}
 
 
 int IsApicSupported() {
@@ -930,12 +959,14 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__enterSpinlock(&g_allocate_ap_lock);
 
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	int id = value >> 24;
+	int cpuid = value >> 24;
 
 	int seq = *(int*)AP_TOTAL_ADDRESS;
 	int* apids = (int*)AP_ID_ADDRESS;
-	apids[seq] = id;
+	apids[seq] = cpuid;
 	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
+
+	int pid = seq + 1;
 
 	__asm {
 		mov eax, KTASK_STACK_SIZE
@@ -948,25 +979,30 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		//mov ebp,eax
 	}
 
-	__printf(szout, "ap origin value:%x,id:%d\r\n", value, id);
+	__printf(szout, "ap origin value:%x,id:%d\r\n", value, cpuid);
+
+	char* stacktop = (char*)(AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY);
+	char* stack0top = (char*)(AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY);
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 	initKernelTss((TSS*)AP_TSS_BASE + tssSize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
 		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
 
-	makeTssDescriptor(AP_TSS_BASE + tssSize * seq, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
+	makeTssDescriptor(AP_TSS_BASE + tssSize * seq, 3, sizeof(TSS) - 1,
+		(TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
 
 	char procname[64];
-	__sprintf(procname, "APID_%d_proc", id);
+	__sprintf(procname, "APID_%d_proc", cpuid);
 
 	PROCESS_INFO* process = (PROCESS_INFO*)(AP_TSS_BASE + tssSize * seq);
 	process->tss.cr3 = PDE_ENTRY_VALUE;
 	__strcpy(process->filename, (char*)procname);
 	__strcpy(process->funcname, (char*)procname);
 	process->status = TASK_RUN;
-	process->tid = 0;
-	process->pid = 0;
-	process->espbase = KERNEL_TASK_STACK_TOP;
+	process->cpuid = cpuid;
+	process->tid = pid;
+	process->pid = pid;
+	process->espbase = (unsigned long)stacktop;
 	process->level = 0;
 	process->counter = 0;
 	process->vaddr = 0;
@@ -974,8 +1010,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	process->moduleaddr = (DWORD)0;
 	process->videoBase = (char*)gGraphBase;
 	process->showX = 0;
-	process->showY = GRAPHCHAR_HEIGHT * seq * 8;
+	process->showY = GRAPHCHAR_HEIGHT * pid * 8;
 	process->window = 0;
+
+	__memcpy( (char*)TASKS_TSS_BASE + sizeof(PROCESS_INFO)*pid, (char*)process, sizeof(PROCESS_INFO));
 
 	DescriptTableReg gdtbase;
 	__asm {
@@ -1031,6 +1069,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 int InitApicLVT() {
 
+	return 0;
+
 	unsigned long v = 0;
 
 	v = APIC_LVTTEMPERATURE_VECTOR;
@@ -1084,14 +1124,12 @@ void BPCodeStart() {
 
 	__asm {cli}
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;	
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
 	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;	
-
-	
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -1121,7 +1159,7 @@ void BPCodeStart() {
 		//int v = 0x81;
 		//*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
-		AllocateApTask(0x81);
+		AllocateApTask(APIC_IPI_VECTOR);
 	}
 
 	ret = InitApicLVT();
@@ -1147,6 +1185,12 @@ void BPCodeStart() {
 }
 
 
+
+
+LPPROCESS_INFO GetTaskTssBase() {
+
+	return 0;
+}
 
 
 LPPROCESS_INFO GetCurrentTaskTssBase(){

@@ -5,7 +5,7 @@
 #include "video.h"
 
 
-
+#define KERNEL_PROCESS_ID		0
 
 
 #ifdef DLL_EXPORT
