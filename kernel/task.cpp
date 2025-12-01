@@ -893,11 +893,17 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		//__printf(szout,"TimerInterrupt\r\n");
 
+		int ret = IsBspProcessor();
+		if (ret) {
 #ifdef SINGLE_TASK_TSS
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+			
 #else
-		LPPROCESS_INFO next = MultipleTssSchedule(stack);
+			LPPROCESS_INFO next = MultipleTssSchedule(stack);
 #endif
+		}
+		else {
+			LPPROCESS_INFO next = SingleTssSchedule(stack);
+		}
 	}
 
 	__asm {

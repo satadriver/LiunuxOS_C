@@ -63,6 +63,7 @@ void setIoRedirect(int id, int idx, int vector, int mode);
 
 void setIoApicID(int id);
 
+int IsBspProcessor();
 
 int GetIdleProcessor();
 

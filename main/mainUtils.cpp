@@ -52,6 +52,10 @@ int getcrs(char * szout) {
 	return len;
 }
 
+int getmemmap(int pid, char* szout) {
+	return getProcMemory(pid, szout);
+}
+
 int getpids(char * szout) {
 	int outlen = 0;
 	int len = 0;
@@ -60,8 +64,8 @@ int getpids(char * szout) {
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN)
 		{
-			len = __sprintf(szout + outlen, "filename:%s funcname:%s address:%x pid:%d,tid:%d,level:%d\r\n",
-				tss[i].filename, tss[i].funcname, tss[i].moduleaddr,tss[i].pid, tss[i].tid, tss[i].level);
+			len = __sprintf(szout + outlen, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
+				tss[i].filename, tss[i].funcname, tss[i].moduleaddr,tss[i].cpuid, tss[i].pid, tss[i].tid, tss[i].level);
 			outlen += len;
 		}
 	}
@@ -70,9 +74,7 @@ int getpids(char * szout) {
 }
 
 
-int getmemmap(int pid,char * szout) {
-	return getProcMemory(pid, szout);
-}
+
 
 
 int getpid(int pid,char * szout) {
@@ -80,8 +82,8 @@ int getpid(int pid,char * szout) {
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN && tss[i].pid == pid)
 		{
-			int len = __sprintf(szout, "filename:%s funcname:%s address:%x pid:%d,tid:%d,level:%d\r\n",
-				tss[i].filename, tss[i].funcname, tss[i].moduleaddr,tss[i].pid, tss[i].tid, tss[i].level);
+			int len = __sprintf(szout, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
+				tss[i].filename, tss[i].funcname, tss[i].moduleaddr,tss[i].cpuid,tss[i].pid, tss[i].tid, tss[i].level);
 			return len;
 		}
 	}
