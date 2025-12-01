@@ -99,6 +99,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	cpuid = cpuid >> 24;
 	tss->cpuid = cpuid;
+	tss->cpuid = GetIdleProcessor();
 
 	tss->fpu = TRUE;
 	tss->level = process->level;

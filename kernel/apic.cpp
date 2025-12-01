@@ -985,11 +985,14 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	char* stack0top = (char*)(AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY);
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+
+	//tssSize = sizeof(PROCESS_INFO);
+
 	initKernelTss((TSS*)AP_TSS_BASE + tssSize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
 		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
 
 	makeTssDescriptor(AP_TSS_BASE + tssSize * seq, 3, sizeof(TSS) - 1,
-		(TssDescriptor*)(GDT_BASE + AP_TSS_DESCRIPTOR + seq * sizeof(TssDescriptor)));
+		(TssDescriptor*)(GDT_BASE + AP_TSS_SELECTOR + seq * sizeof(TssDescriptor)));
 
 	char procname[64];
 	__sprintf(procname, "APID_%d_proc", cpuid);
@@ -1021,9 +1024,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 
 	gdtbase.addr = GDT_BASE;
-	gdtbase.size = AP_TSS_DESCRIPTOR + (seq + 1) * sizeof(TssDescriptor) - 1;
+	gdtbase.size = AP_TSS_SELECTOR + (seq + 1) * sizeof(TssDescriptor) - 1;
 
-	short ltr_offset = AP_TSS_DESCRIPTOR + (seq) * sizeof(TssDescriptor);
+	short ltr_offset = AP_TSS_SELECTOR + (seq) * sizeof(TssDescriptor);
 
 	__leaveSpinlock(&g_allocate_ap_lock);
 
@@ -1041,6 +1044,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		or eax, 0x80000000
 		mov cr0, eax
 	}
+
+	//AdjustApIDT();
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
@@ -1194,7 +1199,7 @@ LPPROCESS_INFO GetTaskTssBase() {
 
 
 LPPROCESS_INFO GetCurrentTaskTssBase(){
-
+	char szout[1024];
 	int cnt = *(int*)AP_TOTAL_ADDRESS;
 	if (cnt == 0) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
@@ -1220,5 +1225,61 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 		}
 	}
 
+	__printf(szout, "%s error\r\n", __FUNCTION__);
 	return 0;
+}
+
+
+
+void BubbleSort(int* arr, int count) {
+	for (int i = 0; i < count - 1; i++) {
+		for (int j = 0; j < count - i - 1; j++) {
+			int low = arr[j] & 0x00ffffff;
+			int high = arr[j + 1] & 0x00ffffff;
+			if (low > high) {
+				int temp = arr[j];
+				arr[j] = arr[j + 1];
+				arr[j + 1] = temp;
+			}
+		}
+	}
+}
+
+
+int GetIdleProcessor() {
+	char szout[1024];
+
+	int cpuStatus[256];
+	__memset((char*)cpuStatus, 0, 256);
+
+	int total = 0;
+
+	int cnt = *(int*)AP_TOTAL_ADDRESS;
+	if (cnt <= 0) {
+		return g_bsp_id;
+	}
+
+	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (p[i].status == TASK_RUN ) {
+			int cpuid = p[i].cpuid;
+			if(cpuid < 0 || cpuid >=256){
+				__printf(szout, "%s cpuid error:%d\r\n",__FUNCTION__, cpuid);
+				break;
+			}
+			unsigned int c = cpuStatus[cpuid] & 0xffffff;
+			unsigned int num = cpuid<<24;
+			c++;
+			cpuStatus[cpuid] = (num) | (c);
+			total++;
+		}
+	}
+
+	if (total) {
+		BubbleSort(cpuStatus, cnt);
+	}
+
+	unsigned int c = cpuStatus[0] & 0xffffff;
+	unsigned int num = ( cpuStatus[0] & 0xff000000) >> 24;
+	return num;
 }

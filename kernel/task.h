@@ -57,12 +57,18 @@ void clearTssBuf(LPPROCESS_INFO tss);
 
 void tasktest();
 
-
-LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env);
+LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
+LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 
 int __pausePid(int pid);
 
 int __resumePid(int pid);
+
+int __resumeTid(int tid);
+
+int __pauseTid(int tid);
+
+
 
 //TASK_LIST_ENTRY* addTaskList(int tid);
 
@@ -71,6 +77,10 @@ int __resumePid(int pid);
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 
 void SetIVTVector();
+
+extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
+
+extern "C" void GiveupLife(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char * videobase);
 

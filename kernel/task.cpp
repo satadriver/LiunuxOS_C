@@ -325,9 +325,10 @@ void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 	}
 }
 
-#ifdef SINGLE_TASK_TSS
 
-LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env) {
+
+LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
+	char szout[1024];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -530,8 +531,8 @@ LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env) {
 
 	return next;
 }
-#else
-LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env) {
+
+LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[1024];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -682,54 +683,9 @@ LPPROCESS_INFO TaskSchedule(LIGHT_ENVIRONMENT* env) {
 	return next;
 }
 
-#endif
 
 
-#ifdef SINGLE_TASK_TSS
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
 
-	char szout[1024];
-	__int64 timeh1 = __krdtsc();
-	__asm {
-		clts			//before all fpu instructions
-	}
-
-	__k8254TimerProc();
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
-
-	if (process->tid != prev->tid) {
-		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
-		return 0;
-	}
-
-	V86ProcessCheck(env, prev, process);
-
-	ActiveApTask(INTR_8259_MASTER + 0);
-
-	LPPROCESS_INFO next = TaskSchedule(env);
-
-	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
-		__int64 timeh2 = __krdtsc() - timeh1;
-
-		DWORD cpureq;
-		DWORD maxreq;
-		DWORD busreq;
-		__cpuFreq(&cpureq, &maxreq, &busreq);
-		__int64 cpurate = cpureq;
-
-		__printf(szout,
-			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
-			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
-			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
-	}
-
-	return TRUE;
-}
-
-#else
 
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
 
@@ -739,7 +695,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	__k8254TimerProc();
 
-	ActiveApTask(INTR_8259_MASTER + 0);
+	ActiveApTask(TASK_SWITCH_VECTOR);
 
 	__asm {
 		//clts			//before all fpu instructions
@@ -757,8 +713,11 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	}
 
 	V86ProcessCheck(env, prev, process);
-
-	LPPROCESS_INFO next = TaskSchedule(env);
+#ifdef SINGLE_TASK_TSS
+	LPPROCESS_INFO next = SingleTssSchedule(env);
+#else
+	LPPROCESS_INFO next = MultipleTssSchedule(env);
+#endif
 	
 	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
 		__int64 timeh2 = __krdtsc() - timeh1;
@@ -777,7 +736,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	return TRUE;
 }
 
-#endif
+
 
 
 void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
@@ -930,12 +889,15 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[1024];
 		//__printf(szout,"TimerInterrupt\r\n");
 
-		TaskSchedule((LIGHT_ENVIRONMENT*)stack);
-
+#ifdef SINGLE_TASK_TSS
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
+#else
+		LPPROCESS_INFO next = MultipleTssSchedule(stack);
+#endif
 	}
 
 	__asm {
@@ -957,15 +919,84 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 		pop ds
 		popad
 #ifdef SINGLE_TASK_TSS
-		nop
+
 		mov esp, ss: [esp - 20]
-		nop
+
 #endif	
 		//clts
 		sti
 
 		iretd
 
-		jmp TimerInterrupt
+		jmp GiveupLife
+	}
+}
+
+
+
+
+extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
+
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+
+		//clts
+		cli
+	}
+
+	{
+		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		char szout[1024];
+		//__printf(szout,"TimerInterrupt\r\n");
+
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
+	}
+
+	__asm {
+#ifdef SINGLE_TASK_TSS
+		call GetCurrentTaskTssBase
+		mov edx, eax
+		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		mov cr3, eax
+#endif
+
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+#if 1
+
+		mov esp, ss: [esp - 20]
+
+#endif	
+		//clts
+		sti
+
+		iretd
+
+		jmp ApTaskSchedule
 	}
 }

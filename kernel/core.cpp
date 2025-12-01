@@ -320,6 +320,9 @@ void initGdt() {
 }
 
 
+
+
+
 void initIDT() {
 
 #ifdef _DEBUG
@@ -404,6 +407,8 @@ void initIDT() {
 	makeTrapGateDescriptor((DWORD)LVTLint1Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT1_VECTOR);
 	makeTrapGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
 	makeTrapGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
+
+	makeIntGateDescriptor((DWORD)ApTaskSchedule, KERNEL_MODE_CODE, 3, descriptor + TASK_SWITCH_VECTOR);
 	
 	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
 	

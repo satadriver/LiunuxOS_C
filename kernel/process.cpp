@@ -341,6 +341,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	cpuid = cpuid >> 24;
 	tss->cpuid = cpuid;
+	tss->cpuid = GetIdleProcessor();
 
 	tss->pid = tid;
 	tss->tid = tid;

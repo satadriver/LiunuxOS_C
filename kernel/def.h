@@ -100,6 +100,8 @@
 #define APIC_LVTCMCI_VECTOR			APIC_IPI_VECTOR+7
 #define APIC_SPURIOUS_VECTOR		0XFF
 
+#define TASK_SWITCH_VECTOR			0XFD
+
 #define STACK_TOP_DUMMY				0x20
 #define TASK_STACK0_SIZE 			1024
 #define V86_STACK_SIZE				0X10000
@@ -130,7 +132,8 @@
 #define rwData16Seg 				0x68
 #define eoCode32Seg					0x70
 #define roData32Seg					0x78
-#define AP_TSS_DESCRIPTOR			0X80
+#define AP_TSS_SELECTOR				0X80
+#define AP_TASK_SELECTOR			0X88
 
 #define RM_EMS_BASE		 			0X100000
 #define PTE_ENTRY_VALUE				0X110000

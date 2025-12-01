@@ -1234,7 +1234,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[1024];
 		//__printf(szout,"TimerInterrupt\r\n");
 
@@ -1270,9 +1270,9 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		pop ds
 		popad
 #ifdef SINGLE_TASK_TSS
-		nop
+
 		mov esp, ss: [esp - 20]
-		nop
+
 #endif	
 		//clts
 		sti
