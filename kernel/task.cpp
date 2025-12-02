@@ -15,7 +15,7 @@
 #include "servicesProc.h"
 #include "apic.h"
 
-/*
+
 TASK_LIST_ENTRY *gTasksListPtr = 0;
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
@@ -67,7 +67,7 @@ TASK_LIST_ENTRY* removeTaskList(int tid) {
 				//gTasksListPtr = (TASK_LIST_ENTRY*)list->list.next;
 			}
 
-			removelist((LIST_ENTRY*)&list->list);
+			removelist(&gTasksListPtr->list,(LIST_ENTRY*)&list->list);
 
 			list->process->status = TASK_OVER;
 			list->process = 0;
@@ -82,7 +82,7 @@ TASK_LIST_ENTRY* removeTaskList(int tid) {
 
 	return 0;
 }
-*/
+
 
 //CF(bit 0) [Carry flag]   
 //若算术操作产生的结果在最高有效位(most-significant bit)发生进位或借位则将其置1，反之清零。
@@ -445,21 +445,13 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 	process->tss.cr3 = dwcr3;
 
-	if (env->eflags & 0x20000)
-	{
-		//process->tss.gs = KERNEL_MODE_DATA;
-		//process->tss.fs = KERNEL_MODE_DATA;
-		//process->tss.ds = KERNEL_MODE_DATA;
-		//process->tss.es = KERNEL_MODE_DATA;
-		//process->tss.ss = KERNEL_MODE_DATA;
-	}
-
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
 	//DescriptTableReg ldtreg;
 	// 	__asm {
 	//		sldt ldtreg;
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
+
 	debugReg(next, prev);
 
 	if (prev->copyMap == 0) {
@@ -483,20 +475,15 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
 	}
 
-	if (process->tss.eflags & 0x20000) {
-	}
-	else if (process->tss.cs & 3) {
-	}
-	else {
-	}
-
 	//tasktest();
 
 	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
-	//The assembler issues two instructions for the FSAVE instruction (an FWAIT instruction followed by an FNSAVE instruction), 
+	//The assembler issues two instructions for the FSAVE instruction 
+	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
-	//If an exception is generated for either of these instructions, the save EIP points to the instruction that caused the exception.
+	//If an exception is generated for either of these instructions,
+	// the save EIP points to the instruction that caused the exception.
 	__asm {
 		FNCLEX
 		fninit
@@ -713,6 +700,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	}
 
 	V86ProcessCheck(env, prev, process);
+
 #ifdef SINGLE_TASK_TSS
 	LPPROCESS_INFO next = SingleTssSchedule(env);
 #else
@@ -739,23 +727,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 
 
-void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
-	static int gTestFlag = 0;
-	if (gTestFlag >= 0 && gTestFlag <= -1)
-	{
-		char szout[1024];
-		__printf(szout,
-			"saved  cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x,\r\n"
-			"loaded cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x.\r\n\r\n",
-			gPrevTasksPtr->tss.cr3, gPrevTasksPtr->pid, gPrevTasksPtr->filename, gPrevTasksPtr->level,
-			gPrevTasksPtr->tss.esp0, gPrevTasksPtr->tss.ss0, gPrevTasksPtr->tss.eip, gPrevTasksPtr->tss.cs,
-			gPrevTasksPtr->tss.esp, gPrevTasksPtr->tss.ss, gPrevTasksPtr->tss.eflags, gPrevTasksPtr->tss.link,
-			gTasksListPtr->tss.cr3, gTasksListPtr->pid, gTasksListPtr->filename, gTasksListPtr->level,
-			gTasksListPtr->tss.esp0, gTasksListPtr->tss.ss0, gTasksListPtr->tss.eip, gTasksListPtr->tss.cs,
-			gTasksListPtr->tss.esp, gTasksListPtr->tss.ss, gTasksListPtr->tss.eflags, gTasksListPtr->tss.link);
-		gTestFlag++;
-	}
-}
+
 
 
 
@@ -778,34 +750,9 @@ void SetIVTVector() {
 	}
 }
 
-void initTaskSwitchTss() {
 
-	DescriptTableReg idtbase;
-	__asm {
-		sidt idtbase
-	}
 
-	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)idtbase.addr;
 
-	initKernelTss((TSS*)GetCurrentTaskTssBase(), TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,
-		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
-#ifdef SINGLE_TASK_TSS
-	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
-#else
-	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTimerSelector));
-	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
-#endif
-
-	__asm
-	{
-		mov eax, kTssTaskSelector
-		ltr ax
-		mov ax, ldtSelector
-		lldt ax
-	}
-}
 
 
 
@@ -896,7 +843,7 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 		int ret = IsBspProcessor();
 		if (ret) {
 #ifdef SINGLE_TASK_TSS
-			
+			LPPROCESS_INFO next = SingleTssSchedule(stack);
 #else
 			LPPROCESS_INFO next = MultipleTssSchedule(stack);
 #endif
@@ -924,10 +871,9 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 		pop es
 		pop ds
 		popad
+
 #ifdef SINGLE_TASK_TSS
-
 		mov esp, ss: [esp - 20]
-
 #endif	
 		//clts
 		sti
@@ -993,16 +939,65 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		pop es
 		pop ds
 		popad
-#if 1
 
 		mov esp, ss: [esp - 20]
 
-#endif	
 		//clts
 		sti
 
 		iretd
 
 		jmp ApTaskSchedule
+	}
+}
+
+
+
+void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
+	static int gTestFlag = 0;
+	if (gTestFlag >= 0 && gTestFlag <= -1)
+	{
+		char szout[1024];
+		__printf(szout,
+			"saved  cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x,\r\n"
+			"loaded cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x.\r\n\r\n",
+			gPrevTasksPtr->tss.cr3, gPrevTasksPtr->pid, gPrevTasksPtr->filename, gPrevTasksPtr->level,
+			gPrevTasksPtr->tss.esp0, gPrevTasksPtr->tss.ss0, gPrevTasksPtr->tss.eip, gPrevTasksPtr->tss.cs,
+			gPrevTasksPtr->tss.esp, gPrevTasksPtr->tss.ss, gPrevTasksPtr->tss.eflags, gPrevTasksPtr->tss.link,
+			gTasksListPtr->tss.cr3, gTasksListPtr->pid, gTasksListPtr->filename, gTasksListPtr->level,
+			gTasksListPtr->tss.esp0, gTasksListPtr->tss.ss0, gTasksListPtr->tss.eip, gTasksListPtr->tss.cs,
+			gTasksListPtr->tss.esp, gTasksListPtr->tss.ss, gTasksListPtr->tss.eflags, gTasksListPtr->tss.link);
+		gTestFlag++;
+	}
+}
+
+
+
+void initTaskSwitchTss() {
+
+	DescriptTableReg idtbase;
+	__asm {
+		sidt idtbase
+	}
+
+	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)idtbase.addr;
+
+	initKernelTss((TSS*)GetCurrentTaskTssBase(), TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,
+		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((DWORD)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
+#ifdef SINGLE_TASK_TSS
+	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
+#else
+	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTimerSelector));
+	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
+#endif
+
+	__asm
+	{
+		mov eax, kTssTaskSelector
+		ltr ax
+		mov ax, ldtSelector
+		lldt ax
 	}
 }

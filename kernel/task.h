@@ -9,13 +9,13 @@ typedef struct {
 	char name[256];
 }DLLMODULEINFO,*LPDLLMODULEINFO;
 
-/*
+
 typedef struct {
 	LIST_ENTRY list;
 	LPPROCESS_INFO process;
 	DWORD valid;
 }TASK_LIST_ENTRY;
-*/
+
 
 typedef struct {
 	DWORD ss;	//0
@@ -68,11 +68,11 @@ int __resumeTid(int tid);
 
 int __pauseTid(int tid);
 
+void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
+TASK_LIST_ENTRY* addTaskList(int tid);
 
-//TASK_LIST_ENTRY* addTaskList(int tid);
-
-//TASK_LIST_ENTRY* removeTaskList(int tid);
+TASK_LIST_ENTRY* removeTaskList(int tid);
 
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 
@@ -98,7 +98,6 @@ extern "C"  __declspec(dllexport) int __terminateByFileName(char * filename);
 
 extern "C"  __declspec(dllexport) int __terminateByFuncName(char * funcname);
 
-
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByTid(int tid);
 
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByPid(int pid);
@@ -106,7 +105,6 @@ extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByPid(int pid);
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFileName(char * filename);
 
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
-
 
 
 #else

@@ -988,16 +988,16 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	//tssSize = sizeof(PROCESS_INFO);
 
-	initKernelTss((TSS*)AP_TSS_BASE + tssSize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
+	initKernelTss((TSS*)AP_TASK_TSS_BASE + tssSize * seq, AP_STACK0_BASE + TASK_STACK0_SIZE * (seq + 1) - STACK_TOP_DUMMY,
 		AP_KSTACK_BASE + KTASK_STACK_SIZE * (seq + 1) - STACK_TOP_DUMMY, 0, PDE_ENTRY_VALUE, 0);
 
-	makeTssDescriptor(AP_TSS_BASE + tssSize * seq, 3, sizeof(TSS) - 1,
+	makeTssDescriptor(AP_TASK_TSS_BASE + tssSize * seq, 3, sizeof(TSS) - 1,
 		(TssDescriptor*)(GDT_BASE + AP_TSS_SELECTOR + seq * sizeof(TssDescriptor)));
 
 	char procname[64];
 	__sprintf(procname, "APID_%d_proc", cpuid);
 
-	PROCESS_INFO* process = (PROCESS_INFO*)(AP_TSS_BASE + tssSize * seq);
+	PROCESS_INFO* process = (PROCESS_INFO*)(AP_TASK_TSS_BASE + tssSize * seq);
 	process->tss.cr3 = PDE_ENTRY_VALUE;
 	__strcpy(process->filename, (char*)procname);
 	__strcpy(process->funcname, (char*)procname);
@@ -1200,17 +1200,14 @@ int IsBspProcessor() {
 }
 
 
-LPPROCESS_INFO GetTaskTssBase() {
 
-	return 0;
-}
 
 
 LPPROCESS_INFO GetCurrentTaskTssBase(){
 	char szout[1024];
 	int cnt = *(int*)AP_TOTAL_ADDRESS;
 	if (cnt == 0) {
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)BSP_TASK_TSS_BASE;
 		return process;
 	}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
@@ -1218,7 +1215,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 	
 	//__enterSpinlock(&g_allocate_ap_lock);
 	if(id == g_bsp_id){
-		LPPROCESS_INFO process = (LPPROCESS_INFO)CURRENT_TASK_TSS_BASE;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)BSP_TASK_TSS_BASE;
 		//__leaveSpinlock(&g_allocate_ap_lock);
 		return process;
 	}
@@ -1228,7 +1225,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 		if(apids[i] == id){
 			//__leaveSpinlock(&g_allocate_ap_lock);
 			int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-			LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TSS_BASE + tsssize * i);
+			LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * i);
 			return process;
 		}
 	}

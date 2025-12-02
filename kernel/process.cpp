@@ -194,8 +194,6 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	mapPhyToLinear(USER_SPACE_START, pemap, alignsize, (unsigned long*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #endif
 
-
-
 	tss->tss.eax = 0;
 	tss->tss.ecx = 0;
 	tss->tss.edx = 0;

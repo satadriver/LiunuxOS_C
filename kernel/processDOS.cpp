@@ -76,7 +76,6 @@ int getVm86ProcAddr(char * fn,int type, DWORD filedata, int size, int pid) {
 		}
 	}
 
-
 	return 0;
 }
 

@@ -2,6 +2,7 @@
 #include "file.h"
 #include "Utils.h"
 #include "ata.h"
+#include "malloc.h"
 #include "NTFS/ntfs.h"
 #include "video.h"
 #include "NTFS/ntfsFile.h"
@@ -24,7 +25,8 @@ int		g_ClusterSize = g_SecsPerCluster * g_bytesPerSec;
 
 
 int readFileTo(char * filename) {
-	char * buf = (char*)FILE_BUFFER_ADDRESS;
+	//char * buf = (char*)FILE_BUFFER_ADDRESS;
+	char* buf = (char*)__kMalloc(MAX_FILE_SIZE);
 	return readFile(filename, &buf);
 }
 

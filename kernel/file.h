@@ -69,7 +69,7 @@ typedef struct
 #define NTFS_HIDDEN					0X17
 
 
-
+#define MAX_FILE_SIZE				0x4000000
 
 
 
