@@ -217,7 +217,9 @@ int initHpet() {
 
 	DWORD tick = hg->tick;
 
-	long long tc = 143182;		// 10ms, 14318179 = 1000ms,0x0429b17f=69841279
+	unsigned long long ns = 1000000000000000;
+
+	long long tc =( ns / hg->tick)/100;		// 10ms, 14318179 = 1000ms,0x0429b17f=69841279
 
 	*(long long*)(APIC_HPET_BASE + 0x10) = 0;
 
@@ -229,13 +231,13 @@ int initHpet() {
 
 	//bit3: writing 1 to this field enables periodic timer and writing 0 enables non - periodic mode.O
 	//bit2:Setting this bit to 1 enables triggering of interrupts. Even if this bit is 0, this timer will still set Tn_INT_STS.
-	regs[0] = 0x40 + 8 + 4;
+	regs[0] = 0x40 + 8 + 4 + 2;
 	//Timer N Comparator Value Register
 	//compare with main counter to check if an interrupt should be generated.
 	regs[1] = tc;
 	//regs[2] = 0;
 
-	regs[4] = 0x4;
+	regs[4] = 4 + 2;
 	regs[5] = tc;
 	//regs[6] = 0;
 
@@ -256,10 +258,11 @@ int initHpet() {
 }
 
 void setIoRedirect(int idx, int id, int vector, int mode) {
-	WriteIoApicReg(idx, vector + (mode << 8));
-	iomfence();
+
 	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
-	iomfence();
+
+	WriteIoApicReg(idx, vector + (mode << 8));
+
 }
 
 void IoApicRedirect(int pin, int cpu, int vector, int mode) {
@@ -285,11 +288,11 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 int InitIoApic() {
 	
-	IoApicRedirect(0x10, 0, 0x81, 0);
-
-	IoApicRedirect(0x14, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+	IoApicRedirect(0x10, 0, APIC_LVTLINT0_VECTOR, 0);
 
 	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
+
+	IoApicRedirect(0x14, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
 
 	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
 	IoApicRedirect(0x18, g_bsp_id, INTR_8259_MASTER + 4, 0);
@@ -699,7 +702,7 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 
 
 
-
+int g_cmos_timer = 0;
 
 
 extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
@@ -721,13 +724,15 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+
+		cli
 	}
 
 	{
 		char szout[256];
-		__printf(szout, "HpetInterrupt\r\n");
+		//__printf(szout, "HpetInterrupt\r\n");
 
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 		int value = *(int*)(APIC_HPET_BASE + 0x20);
 		if (value & 1) {
@@ -736,12 +741,42 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 			*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
 			
 			*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
+
+			g_cmos_timer++;
+			if (g_cmos_timer == 100) {
+				g_cmos_timer = 0;
+				
+				__kPeriodTimer();
+			}
 		}
-		else if (value & 2) {
+
+		if (value & 2) {
 			*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffd;
+			*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
+
+			*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
+
+			g_cmos_timer++;
+			if (g_cmos_timer == 100) {
+				g_cmos_timer = 0;
+
+			}
+
+			
+			long long idc = *(long long*)APIC_HPET_BASE;
+
+			HPET_GCAP_ID_REG* hg = (HPET_GCAP_ID_REG*)&idc;
+			unsigned long long ns = 1000000000000000;
+
+			long long tc = (ns / hg->tick) / 100;	
+			unsigned long long* regs = (unsigned long long*)(APIC_HPET_BASE + 0x100);
+			*(long long*)(APIC_HPET_BASE + 0x10) = 0;
+			regs[4] = 4 + 2;
+			regs[5] = tc;
+			*(long long*)(APIC_HPET_BASE + 0x10) = 3;
 		}
-		*(DWORD*)0xFEE000B0 = 0;
-		*(DWORD*)0xFEc00040 = 0;
+		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 	}
 
 	__asm {
@@ -953,13 +988,15 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
 
 #ifdef APIC_ENABLE
-		//DisableInt();
+
 #endif
 	
 	__enterSpinlock(&g_allocate_ap_lock);
 
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	int cpuid = value >> 24;
+
+	WriteIoApicReg(0, cpuid<<24);
 
 	int seq = *(int*)AP_TOTAL_ADDRESS;
 	int* apids = (int*)AP_ID_ADDRESS;
@@ -1071,6 +1108,11 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 }
 
 
+// Local APIC within processor而 IO APIC within chipset(一般都在南桥里). 
+//LINT0 and LINT1是local APIC的两个 input pins. 一般都和 INTR & NMI shared共享.
+//即 pin name is: LINT0/INTR & LINT1/NMI. 
+//当 IO APIC被设成 "bypass mode"(即不靠IO APIC传递 interrupts),则 8259的 INTR会接到 local APIC的 LINT0；
+//而 chipset内的 NMI logic 也会接到 local APIC的 LINT1.
 
 int InitApicLVT() {
 

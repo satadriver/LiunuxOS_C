@@ -43,7 +43,7 @@
 
 #define LOCAL_APIC_BASE			0xfee00000
 
-//#define APIC_ENABLE
+#define APIC_ENABLE
 
 #define LIUNUXOS_VERSION		"1.0.1"
 
