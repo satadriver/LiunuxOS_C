@@ -809,8 +809,11 @@ int __initTask0(char * videobase) {
 
 
 
-extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 
+
+
+
+extern "C" void __declspec(naked)  BspTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	__asm {
 		pushad
 		push ds
@@ -840,17 +843,12 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		//__printf(szout,"TimerInterrupt\r\n");
 
-		int ret = IsBspProcessor();
-		if (ret) {
 #ifdef SINGLE_TASK_TSS
-			LPPROCESS_INFO next = SingleTssSchedule(stack);
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
 #else
-			LPPROCESS_INFO next = MultipleTssSchedule(stack);
+		LPPROCESS_INFO next = MultipleTssSchedule(stack);
 #endif
-		}
-		else {
-			LPPROCESS_INFO next = SingleTssSchedule(stack);
-		}
+
 	}
 
 	__asm {
@@ -880,11 +878,9 @@ extern "C" void __declspec(naked) GiveupLife(LIGHT_ENVIRONMENT* stack) {
 
 		iretd
 
-		jmp GiveupLife
+		jmp BspTaskSchedule
 	}
 }
-
-
 
 
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
@@ -951,7 +947,15 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
-
+extern "C" void __declspec(dllexport) GiveupLive(LIGHT_ENVIRONMENT* stack) {
+	int ret = IsBspProcessor();
+	if (ret) {
+		BspTaskSchedule(stack);
+	}
+	else {
+		ApTaskSchedule(stack);
+	}
+}
 
 void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 	static int gTestFlag = 0;

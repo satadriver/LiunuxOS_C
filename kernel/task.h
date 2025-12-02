@@ -60,6 +60,8 @@ void tasktest();
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 
+extern "C" void __declspec(dllexport) GiveupLive(LIGHT_ENVIRONMENT* stack);
+
 int __pausePid(int pid);
 
 int __resumePid(int pid);
@@ -79,8 +81,6 @@ TASK_LIST_ENTRY* removeTaskList(int tid);
 void SetIVTVector();
 
 extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
-
-extern "C" void GiveupLife(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char * videobase);
 
