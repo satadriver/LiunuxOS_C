@@ -950,7 +950,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	char szout[1024];
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
 
 #ifdef APIC_ENABLE
 		//DisableInt();
@@ -1129,7 +1129,7 @@ void BPCodeStart() {
 
 	__asm {cli}
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x1ff;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 

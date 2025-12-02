@@ -55,6 +55,10 @@ typedef struct {
 
 void clearTssBuf(LPPROCESS_INFO tss);
 
+void enter_task_lock();
+
+void leave_task_lock();
+
 void tasktest();
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);

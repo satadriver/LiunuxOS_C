@@ -414,7 +414,7 @@ void initIDT() {
 	
 	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
 
-	makeTrapGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + 0xff);
+	makeTrapGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_SPURIOUS_VECTOR);
 
 	
 #ifdef APIC_ENABLE

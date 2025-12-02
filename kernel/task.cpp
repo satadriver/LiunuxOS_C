@@ -16,6 +16,20 @@
 #include "apic.h"
 
 
+unsigned long g_task_lock = 0;
+
+
+void enter_task_lock() {
+
+	__enterSpinlock(&g_task_lock);
+}
+
+
+void leave_task_lock() {
+	__leaveSpinlock(&g_task_lock);
+
+}
+
 TASK_LIST_ENTRY *gTasksListPtr = 0;
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
