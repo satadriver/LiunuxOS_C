@@ -413,9 +413,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == prev) {
-			if (prev->status == TASK_OVER) {
-				__printf(szout, "task switch error!\r\n");
-			}
 			return FALSE;
 		}
 
@@ -948,12 +945,11 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	__asm {
-#ifdef SINGLE_TASK_TSS
+
 		call GetCurrentTaskTssBase
 		mov edx, eax
 		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
 		mov cr3, eax
-#endif
 
 		mov esp, ebp
 		pop ebp

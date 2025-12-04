@@ -1005,9 +1005,6 @@ DWORD __enterSpinlock(DWORD * v) {
 DWORD __leaveSpinlock(DWORD * v) {
 	__asm {
 		lock btr[v], 0
-		jnc __leaveSpinLockError
-		
-		__leaveSpinLockError :
 	}
 	char szout[1024];
 	//__printf(szout,"__leaveSpinLock errpr\r\n");

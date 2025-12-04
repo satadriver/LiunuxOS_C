@@ -619,7 +619,7 @@ int identifyDevice(int port,int cmd,char * buffer) {	// IDENTIFY PACKET DEVICE ¨
 
 		unsigned char szshow[0x1000];
 		__dump((char*)buffer, BYTES_PER_SECTOR, 0, szshow);
-		__printf(szout,( char*)szshow);
+		//__printf(szout,( char*)szshow);
 	}
 	else {
 		__printf(szout, "%s waitComplete result:%d, cmd:%x,port:%x ERROR\r\n", __FUNCTION__,res,cmd, port);
