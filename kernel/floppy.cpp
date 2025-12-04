@@ -196,10 +196,10 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 
 		outportb(0x20, 0x20);
 
-#ifdef APIC_ENABLE
+
 		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#endif
+
 	}
 
 	__asm {

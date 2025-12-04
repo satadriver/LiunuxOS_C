@@ -416,11 +416,6 @@ void initIDT() {
 
 	makeTrapGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_SPURIOUS_VECTOR);
 
-	
-#ifdef APIC_ENABLE
-	
-#endif
-
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;

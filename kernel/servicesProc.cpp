@@ -41,9 +41,9 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 		mov edx,stack
 		mov [edx + LIGHT_ENVIRONMENT.eax],eax		//may be error?  warning: "."应用于非 UDT 类型
 	}
-#ifdef APIC_ENABLE
+
 	* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#endif
+
 
 	__asm {
 		mov esp, ebp
@@ -557,9 +557,9 @@ DWORD __declspec(naked) vm86IntProc(LIGHT_ENVIRONMENT* stack) {
 		mov[edx + LIGHT_ENVIRONMENT.eax], eax		//may be error?  warning: "."应用于非 UDT 类型
 	}
 
-#ifdef APIC_ENABLE
+
 	* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#endif
+
 
 	__asm {
 		mov esp, ebp

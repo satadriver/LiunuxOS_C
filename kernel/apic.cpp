@@ -959,17 +959,15 @@ int enableLocalApic() {
 		mov eax, LOCAL_APIC_BASE
 		wrmsr
 
-		mov edi, eax
-		mov dword ptr ds : [edi + 0xF0] , 0x1FF
-		mov dword ptr  ds : [edi + 0x80] , 0
-		mov dword ptr ds : [edi + 0x350] , 0x10000
-		mov dword ptr  ds : [edi + 0x360] , 0x10000
+		mov edx, APIC_SPURIOUS_VECTOR
+		or edx,0x100
+
+		mov dword ptr ds : [eax + 0xF0] , edx
+		mov dword ptr  ds : [eax + 0x80] , 0
+		mov dword ptr ds : [eax + 0x350] , 0x10000
+		mov dword ptr  ds : [eax + 0x360] , 0x10000
 
 		//mov dword[edi + 0x320], 0x40 | (1 << 17)
-
-		mov al, 0xFF
-		out 0xA1, al
-		out 0x21, al
 
 		mov ecx, 0x1B
 		rdmsr
@@ -977,8 +975,6 @@ int enableLocalApic() {
 		or eax, 0x800
 		wrmsr
 	}
-
-	enableIMCR();
 
 	char szout[256];
 	__printf(szout, "local apic base:%x,origin value:%x\r\n", apic_base, origin);
@@ -1001,141 +997,6 @@ void DisableInt() {
 //https://zhuanlan.zhihu.com/p/406213995
 //https://zhuanlan.zhihu.com/p/678582090
 //https://www.zhihu.com/question/594531181/answer/2982337869
-
-
-
-
-
-extern "C" void __declspec(dllexport) __kApInitProc() {
-
-	__asm {
-		cli
-	}
-
-	char szout[1024];
-
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
-	
-	__enterSpinlock(&g_allocate_ap_lock);
-
-	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	int cpuid = value >> 24;	
-
-	int seq = *(int*)AP_TOTAL_ADDRESS;
-	int* apids = (int*)AP_ID_ADDRESS;
-	apids[seq] = cpuid;
-	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
-
-	__asm {
-		mov eax, KTASK_STACK_SIZE
-		mov ecx, seq
-		inc ecx
-		mul ecx
-		add eax, AP_KSTACK_BASE
-		sub eax, STACK_TOP_DUMMY
-		//mov esp,eax
-		//mov ebp,eax
-	}
-
-	int ioapic_id = ReadIoApicReg(0) >> 24;
-
-	int ioapic_ver = ReadIoApicReg(1) & 0xff;
-
-	//WriteIoApicReg(0, cpuid << 24);
-
-	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
-	unsigned long stack0top = (unsigned long)(AP_STACK0_BASE + TASK_STACK0_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
-
-	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-
-	//tssSize = sizeof(PROCESS_INFO);
-
-	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tssSize * cpuid);
-	initKernelTss((TSS*)&process->tss, stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
-
-	makeTssDescriptor((unsigned long)process, 3, sizeof(TSS) - 1,(TssDescriptor*)(GDT_BASE + AP_TSS_SELECTOR + cpuid * sizeof(TssDescriptor)));
-
-	char procname[64];
-	__sprintf(procname, "apic_process_%d", cpuid);
-
-	TASKRESULT freeTss;
-	__getFreeTask(&freeTss);
-	int tid = freeTss.lptss - (LPPROCESS_INFO)TASKS_TSS_BASE;
-
-	process->tss.cr3 = PDE_ENTRY_VALUE;
-	__strcpy(process->filename, (char*)procname);
-	__strcpy(process->funcname, (char*)procname);	
-	process->cpuid = cpuid;
-	process->tid = tid;
-	process->pid = tid;
-	process->espbase = (unsigned long)stacktop;
-	process->level = 0;
-	process->counter = 0;
-	process->vaddr = 0;
-	process->vasize = 0;
-	process->moduleaddr = (DWORD)0;
-	process->videoBase = (char*)gGraphBase;
-	process->showX = GRAPHCHAR_HEIGHT * cpuid *16+128;
-	process->showY = GRAPHCHAR_HEIGHT * cpuid * 16;
-	process->window = 0;
-	process->status = TASK_RUN;
-
-	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
-	//__memcpy( (char*)TASKS_TSS_BASE + sizeof(PROCESS_INFO)*( seq + 1), (char*)process, sizeof(PROCESS_INFO));
-
-	DescriptTableReg gdtbase;
-	__asm {
-		sgdt gdtbase
-	}
-
-	gdtbase.addr = GDT_BASE;
-	gdtbase.size = AP_TSS_SELECTOR + (cpuid + 1) * sizeof(TssDescriptor) - 1;
-
-	short ltr_offset = AP_TSS_SELECTOR + (cpuid) * sizeof(TssDescriptor);
-
-	__leaveSpinlock(&g_allocate_ap_lock);
-
-	__asm {
-		//do not use lgdt lpgdt,why?
-		lgdt gdtbase
-
-		mov ax, ltr_offset
-		ltr ax
-
-		mov eax, PDE_ENTRY_VALUE
-		mov cr3, eax
-
-		mov eax, cr0
-		or eax, 0x80000000
-		mov cr0, eax
-	}
-
-	//AdjustApIDT();
-
-	DescriptTableReg idtbase;
-	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE;
-	__asm {
-		lidt idtbase
-	}
-
-	initCoprocessor();
-	enableVME();
-	enablePCE();
-	enableMCE();
-	enableTSD();
-
-	__asm {sti}
-
-	__printf(szout, "ap id:%d init complete. io apic id:%x version:%x \r\n", cpuid, ioapic_id, ioapic_ver);
-
-	while (1) {
-		__asm {
-			hlt
-		}
-		//__printf(szout, "ap id:%d wake\r\n", id);
-	}
-}
 
 
 // Local APIC within processor而 IO APIC within chipset(一般都在南桥里). 
@@ -1190,6 +1051,135 @@ int InitApicLVT() {
 }
 
 
+extern "C" void __declspec(dllexport) __kApInitProc() {
+
+	__asm {
+		cli
+	}
+
+	char szout[1024];
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
+	//enableLocalApic();
+	
+	__enterSpinlock(&g_allocate_ap_lock);
+
+	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	int cpuid = value >> 24;	
+
+	int seq = *(int*)AP_TOTAL_ADDRESS;
+	int* apids = (int*)AP_ID_ADDRESS;
+	apids[seq] = cpuid;
+	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
+
+
+	int ioapic_id = ReadIoApicReg(0) >> 24;
+
+	int ioapic_ver = ReadIoApicReg(1) & 0xff;
+
+	//WriteIoApicReg(0, cpuid << 24);
+
+	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
+	unsigned long stack0top = (unsigned long)(AP_STACK0_BASE + TASK_STACK0_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
+
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+
+	//tssSize = sizeof(PROCESS_INFO);
+
+	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tssSize * cpuid);
+	initKernelTss((TSS*)&process->tss, stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
+
+	makeTssDescriptor((unsigned long)process, 3, sizeof(TSS) - 1,(TssDescriptor*)(GDT_BASE + AP_TSS_SELECTOR + cpuid * sizeof(TssDescriptor)));
+
+	char procname[64];
+	__sprintf(procname, "apic_process_%d", cpuid);
+
+	TASKRESULT freeTss;
+	__getFreeTask(&freeTss);
+	int tid = freeTss.lptss - (LPPROCESS_INFO)TASKS_TSS_BASE;
+
+	process->tss.cr3 = PDE_ENTRY_VALUE;
+	__strcpy(process->filename, (char*)procname);
+	__strcpy(process->funcname, (char*)procname);	
+	process->cpuid = cpuid;
+	process->tid = tid;
+	process->pid = tid;
+	process->espbase = (unsigned long)stacktop;
+	process->level = 0;
+	process->counter = 0;
+	process->vaddr = 0;
+	process->vasize = 0;
+	process->moduleaddr = (DWORD)0;
+	process->videoBase = (char*)gGraphBase;
+	process->showX = GRAPHCHAR_HEIGHT * cpuid *16+128;
+	process->showY = GRAPHCHAR_HEIGHT * cpuid * 16;
+	process->window = 0;
+	process->sleep = 0;
+	process->copyMap = 0;
+	process->status = TASK_RUN;
+
+	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
+	//__memcpy( (char*)TASKS_TSS_BASE + sizeof(PROCESS_INFO)*( seq + 1), (char*)process, sizeof(PROCESS_INFO));
+
+	DescriptTableReg gdtbase;
+	__asm {
+		sgdt gdtbase
+	}
+
+	gdtbase.addr = GDT_BASE;
+	gdtbase.size = AP_TSS_SELECTOR + (cpuid + 1) * sizeof(TssDescriptor) - 1;
+
+	short ltr_offset = AP_TSS_SELECTOR + (cpuid) * sizeof(TssDescriptor);
+
+	__leaveSpinlock(&g_allocate_ap_lock);
+
+	__asm {
+		//do not use lgdt lpgdt,why?
+		lgdt gdtbase
+
+		mov ax, ltr_offset
+		ltr ax
+
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+	}
+
+	//AdjustApIDT();
+
+	DescriptTableReg idtbase;
+	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
+	idtbase.addr = IDT_BASE;
+	__asm {
+		lidt idtbase
+	}
+
+	initCoprocessor();
+	enableVME();
+	enablePCE();
+	enableMCE();
+	enableTSD();
+
+	__asm {sti}
+
+	__printf(szout, "ap id:%d init complete.tid:%d io apic id:%x version:%x \r\n", cpuid, tid,ioapic_id, ioapic_ver);
+
+	while (1) {
+		__asm {
+			hlt
+		}
+		//__printf(szout, "ap id:%d wake\r\n", id);
+	}
+}
+
+
+
+
+
 void BPCodeStart() {
 
 	int ret = 0;
@@ -1202,7 +1192,14 @@ void BPCodeStart() {
 
 	__asm {cli}
 
+	//enableRcba();
+	//enableIoApic();
+	//enableHpet();
+	//enableLocalApic();
+
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
 
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
@@ -1230,13 +1227,13 @@ void BPCodeStart() {
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
-	__sleep(100);
+	__sleep(3000);
 
 	int* ids = (int*)AP_ID_ADDRESS;
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 		//__printf(szout, "ap:%d\r\n",  ids[i]);
-#if 0
+#if 1
 		unsigned int id = ids[i] << 24;
 		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
 		int v = APIC_IPI_VECTOR;
@@ -1248,26 +1245,20 @@ void BPCodeStart() {
 
 	ret = InitApicLVT();
 
-	
-
 #ifdef APIC_ENABLE
-	__asm {cli}
-#if 0
-		enableRcba();
-		enableIoApic();
-		enableHpet();
-#endif
+__asm {cli}
 			
-		DisableInt();
-		InitIoApic();
+	DisableInt();
+	InitIoApic();
 			
-		initHpet();
-		__asm {sti}
+	initHpet();
+
+	__asm {sti}
 #endif
 
-		__sleep(100);
+	__sleep(100);
 
-		__printf(szout, "bsp id:%d, lock:%d init complete. io apic id:%x version:%x\r\n", g_bsp_id, g_test_value,ioapic_id, ioapic_ver);
+	__printf(szout, "bsp id:%d, lock:%d init complete. io apic id:%x version:%x\r\n", g_bsp_id, g_test_value,ioapic_id, ioapic_ver);
 
 	return;
 }

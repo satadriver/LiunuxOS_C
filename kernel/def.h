@@ -43,7 +43,7 @@
 
 #define LOCAL_APIC_BASE			0xfee00000
 
-#define APIC_ENABLE
+//#define APIC_ENABLE
 
 #define LIUNUXOS_VERSION		"1.0.1"
 
@@ -63,7 +63,7 @@
 
 #define LIUNUX_CHINESE_CHAR_FILE	"HZK16"
 
-#define SINGLE_TASK_TSS
+//#define SINGLE_TASK_TSS
 
 #define VM86_PROCESS_TASK
 
