@@ -40,7 +40,7 @@ void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) 
 
 TASK_LIST_ENTRY* searchTaskList(int tid) {
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
+	for (int i = 1; i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (list[i].valid  && list[i].process->status == TASK_RUN && list[i].process->tid == tid) {
 			return &list[i];
@@ -49,13 +49,27 @@ TASK_LIST_ENTRY* searchTaskList(int tid) {
 	return 0;
 }
 
+TASK_LIST_ENTRY* getFreeTaskList() {
+
+	TASK_LIST_ENTRY *info = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
+
+	int cnt = TASKS_LIST_BUF_SIZE / sizeof(TASK_LIST_ENTRY);
+	for (int i = 1; i < cnt; i++)
+	{
+		if (info[i].valid == 0 && info[i].process == 0 )
+		{
+			return &info[i];
+		}
+	}
+	return 0;
+}
+
+
 TASK_LIST_ENTRY* addTaskList(int tid) {
 	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
-	//TASK_LIST_ENTRY* tasklist = (TASK_LIST_ENTRY*)gTasksListPtr;
-
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++)
+	for (int i = 1; i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (list[i].valid == 0 ) {
 			list[i].valid = TRUE;
@@ -63,7 +77,7 @@ TASK_LIST_ENTRY* addTaskList(int tid) {
 			list[i].process = base + tid;
 			list[i].process->status = TASK_RUN;
 			
-			addlistTail((LIST_ENTRY*)&gTasksListPtr->list, (LIST_ENTRY*)&list[i].list);
+			InsertListTail((LIST_ENTRY*)&gTasksListPtr->list, (LIST_ENTRY*)&list[i].list);
 			return &list[i];
 		}
 	}
@@ -72,16 +86,18 @@ TASK_LIST_ENTRY* addTaskList(int tid) {
 
 TASK_LIST_ENTRY* removeTaskList(int tid) {
 
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)gTasksListPtr;
+	TASK_LIST_ENTRY * head = (TASK_LIST_ENTRY*)gTasksListPtr;
+	if (head == 0) {
+		return 0;
+	}
+	TASK_LIST_ENTRY* list =(TASK_LIST_ENTRY*) &(head->list);
+	TASK_LIST_ENTRY* base = list;
 	do 
 	{
-		if (list->valid && list->process && list->process->tid == tid)
+		if (list && list->valid && list->process && list->process->tid == tid)
 		{
-			if (gTasksListPtr == list) {
-				//gTasksListPtr = (TASK_LIST_ENTRY*)list->list.next;
-			}
 
-			removelist(&gTasksListPtr->list,(LIST_ENTRY*)&list->list);
+			RemoveList(&gTasksListPtr->list,(LIST_ENTRY*)&list->list);
 
 			list->process->status = TASK_OVER;
 			list->process = 0;
@@ -92,7 +108,7 @@ TASK_LIST_ENTRY* removeTaskList(int tid) {
 		}
 		list = (TASK_LIST_ENTRY *)list->list.next;
 
-	} while (list && list != (TASK_LIST_ENTRY *)gTasksListPtr);
+	} while (list && list->valid && list != (TASK_LIST_ENTRY *)base);
 
 	return 0;
 }

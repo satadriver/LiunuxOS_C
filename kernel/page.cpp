@@ -83,7 +83,7 @@ LPMEMALLOCINFO getFreePageIdx() {
 
 int resetPageIdx(LPMEMALLOCINFO pde) {
 	DWORD size = pde->size;
-	removelist(&gPageAllocList->list,(LPLIST_ENTRY)&pde->list);
+	RemoveList(&gPageAllocList->list,(LPLIST_ENTRY)&pde->list);
 	pde->addr = 0;
 	pde->size = 0;
 	pde->vaddr = 0;
@@ -99,7 +99,7 @@ int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,int pid,DWORD vaddr 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	info->pid = tss->pid;
 
-	addlistTail( &((LPMEMALLOCINFO)PAGE_ALLOC_LIST)->list, (LPLIST_ENTRY)&info->list);
+	InsertListTail( &((LPMEMALLOCINFO)PAGE_ALLOC_LIST)->list, (LPLIST_ENTRY)&info->list);
 	return TRUE;
 }
 
@@ -390,7 +390,7 @@ void initPaging() {
 
 	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-	initListEntry(&pageList->list);
+	InitListEntry(&pageList->list);
 	pageList->addr = 0;
 	pageList->size = 0;
 	pageList->vaddr = 0;

@@ -30,7 +30,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	//__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
 
 	__asm {
-		//cli
+		cli
 	}
 
 	if (current->tid == tid)
@@ -44,7 +44,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	tss[tid].status = TASK_TERMINATE;
 
 	__asm {
-		//sti
+		sti
 	}
 
 	__kFree(tss[tid].espbase);
@@ -98,7 +98,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	cpuid = cpuid >> 24;
-	tss->cpuid = cpuid;
+	//tss->cpuid = cpuid;
 	tss->cpuid = GetIdleProcessor();
 
 	tss->fpu = TRUE;

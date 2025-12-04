@@ -25,10 +25,10 @@ unsigned char readCmosPort(unsigned char port) {
 }
 
 void writeCmosPort(unsigned char port, unsigned char value) {
-	__asm {cli}
+	//__asm {cli}
 	outportb(0x70, port|0x80);
 	outportb(0x71, value);
-	__asm {sti}
+	//__asm {sti}
 	__asm {
 		//in al, 70h
 		//and al, 80h

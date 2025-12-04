@@ -80,9 +80,7 @@ void addAlarmTimer() {
 	}
 	int ret = 0;
 
-	__asm {
-		cli
-	}
+	//__asm {cli}
 
 	int s = (inportb(0x70) & 0x7f) + 0x0b;
 	outportb(0x70, s);
@@ -173,7 +171,7 @@ void addAlarmTimer() {
 	outportb(0x70, 0x0c|0x80);
 	inportb(0x71);
 
-	__asm{sti}
+	//__asm{sti}
 
 	char szout[1024];
 	__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);

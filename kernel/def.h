@@ -63,7 +63,7 @@
 
 #define LIUNUX_CHINESE_CHAR_FILE	"HZK16"
 
-#define SINGLE_TASK_TSS
+//#define SINGLE_TASK_TSS
 
 #define VM86_PROCESS_TASK
 

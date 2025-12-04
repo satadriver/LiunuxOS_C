@@ -84,7 +84,7 @@ DWORD pageAlignSize(DWORD blocksize,int direction)
 int initMemory() {
 	char szout[1024];
 
-	resetAllMemAllocInfo();
+	ClearMemAllocMap();
 	
 	int cnt = *(int*)MEMORYINFO_LOAD_ADDRESS;
 	if (cnt <= 0)
@@ -188,7 +188,7 @@ LPMEMALLOCINFO findAddr(DWORD addr) {
 
 
 
-void resetAllMemAllocInfo() {
+void ClearMemAllocMap() {
 	
 	LPMEMALLOCINFO item = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
 	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO);
@@ -198,14 +198,14 @@ void resetAllMemAllocInfo() {
 	}
 
 	gMemAllocList = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
-	initListEntry(&gMemAllocList->list);
+	InitListEntry(&gMemAllocList->list);
 }
 
 
-int resetMemAllocInfo(LPMEMALLOCINFO item) {
+int ClearMemAllocItem(LPMEMALLOCINFO item) {
 	DWORD size = item->size;
 
-	removelist(&gMemAllocList->list,(LPLIST_ENTRY)&item->list);
+	RemoveList(&gMemAllocList->list,(LPLIST_ENTRY)&item->list);
 	item->addr = 0;
 	item->size = 0;
 	item->vaddr = 0;
@@ -214,10 +214,10 @@ int resetMemAllocInfo(LPMEMALLOCINFO item) {
 	return size;
 }
 
-LPMEMALLOCINFO getMemAllocInfo() {
-	LPMEMALLOCINFO item = (LPMEMALLOCINFO)MEMORY_ALLOC_BUFLIST;
+LPMEMALLOCINFO GetEmptyMemAllocItem() {
+	LPMEMALLOCINFO item = (LPMEMALLOCINFO)(MEMORY_ALLOC_BUFLIST);
 
-	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO);
+	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO) ;
 	for ( int i = 1;i < cnt;i ++)
 	{
 		if ( //item[i].list.next == 0 && item[i].list.prev == 0 &&
@@ -230,7 +230,7 @@ LPMEMALLOCINFO getMemAllocInfo() {
 }
 
 
-int setMemAllocInfo(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid) {
+int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid) {
 	if (vaddr)
 	{
 		item->vaddr = vaddr;
@@ -242,8 +242,7 @@ int setMemAllocInfo(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid)
 	item->size = size;
 	item->addr = addr;
 
-
-	addlistTail(& (gMemAllocList->list), & item->list);
+	InsertListTail(& (gMemAllocList->list), & item->list);
 	return 0;
 }
 
@@ -287,10 +286,10 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 			LPMEMALLOCINFO info = isAddrExist(addr, size);
 			if (info == 0)
 			{
-				info = getMemAllocInfo();
+				info = GetEmptyMemAllocItem();
 				if (info)
 				{
-					setMemAllocInfo(info, addr, vaddr, size, pid);
+					SetMemAllocItem(info, addr, vaddr, size, pid);
 
 					res = addr;
 					break;
@@ -415,7 +414,7 @@ int __kFree(DWORD physicalAddr) {
 	if (info)
 	{
 		//int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr, info->size, info->pid, info->vaddr);
-		DWORD size = resetMemAllocInfo(info);
+		DWORD size = ClearMemAllocItem(info);
 		
 	}
 	else {
@@ -487,7 +486,7 @@ int __free(DWORD linearAddr) {
 		LPMEMALLOCINFO info = findAddr(phyaddr);
 		if (info)
 		{
-			DWORD size = resetMemAllocInfo(info);
+			DWORD size = ClearMemAllocItem(info);
 		}
 		else {
 			char szout[1024];
@@ -517,7 +516,7 @@ void freeProcessMemory(int pid) {
 		}
 		else if (info->pid == pid)
 		{
-			resetMemAllocInfo(info);
+			ClearMemAllocItem(info);
 		}
 
 		info = (LPMEMALLOCINFO)info->list.next;

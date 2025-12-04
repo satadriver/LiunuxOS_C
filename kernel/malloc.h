@@ -42,13 +42,13 @@ typedef struct
 
 DWORD getBorderAddr();
 
-int setMemAllocInfo(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid);
+int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid);
 
-void resetAllMemAllocInfo();
+void ClearMemAllocMap();
 
-int resetMemAllocInfo(LPMEMALLOCINFO item);
+int ClearMemAllocItem(LPMEMALLOCINFO item);
 
-LPMEMALLOCINFO getMemAllocInfo();
+LPMEMALLOCINFO GetEmptyMemAllocItem();
 
 int getAlignSize(int size, int allignsize);
 

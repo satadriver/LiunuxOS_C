@@ -2,12 +2,20 @@
 #include "ListEntry.h"
 #include "utils.h"
 
-void initListEntry(LIST_ENTRY * list) {
+void InitListEntry(LIST_ENTRY * list) {
+	if (list == 0) {
+		return;
+	}
+
 	list->next = 0;
 	list->prev = 0;
 }
 
-int getListSize(LIST_ENTRY* list) {
+int GetListSize(LIST_ENTRY* list) {
+	if (list == 0) {
+		return 0;
+	}
+
 	int size = 0;
 	LIST_ENTRY* n = list->next;
 	LIST_ENTRY* t = n;
@@ -21,90 +29,8 @@ int getListSize(LIST_ENTRY* list) {
 	return size;
 }
 
-//add after head
-void addlistTail(LIST_ENTRY * head, LIST_ENTRY * list) {
-	if (head == 0 || list == 0 || list == head)
-	{
-		return;
-	}
 
-	LIST_ENTRY * next = head->next;
-	LIST_ENTRY* prev = head->prev;
-
-	if (next ) {
-		next->prev = list;
-		if (prev) {
-			prev->next = list;
-		}
-		else {
-			//error
-			char szout[1024];
-			__printf(szout,"addlistTail prev none error!\r\n");
-			return;
-		}
-		list->next = next;
-		list->prev = prev;
-
-		head->prev = list;
-	}
-	else {
-		if (prev) {
-			//error
-			char szout[1024];
-			__printf(szout, "addlistTail prev error!\r\n");
-			return;
-		}
-		head->next = list;
-		head->prev = list;
-
-		list->prev = list;
-		list->next = list;
-	}
-}
-
-//add to head
-void addlistHead(LIST_ENTRY * head, LIST_ENTRY * list) {
-	if (head == 0 || list == 0 || list == head)
-	{
-		return;
-	}
-
-	LIST_ENTRY* next = head->next;
-	LIST_ENTRY* prev = head->prev;
-
-	if (next) {
-
-		next->prev = list;
-		if (prev) {
-			prev->next = list;
-		}
-		else {
-			//error
-			char szout[1024];
-			__printf(szout, "addlistHead prev none error!\r\n");
-			return;
-		}
-		list->next = next;
-		list->prev = prev;
-
-		head->next = list;
-	}
-	else {
-		if (prev) {
-			//error
-			char szout[1024];
-			__printf(szout, "addlistHead prev error!\r\n");
-			return;
-		}
-		head->next = list;
-		head->prev = list;
-
-		list->prev = list;
-		list->next = list;
-	}
-}
-
-LIST_ENTRY * searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
+LIST_ENTRY* SearchList(LIST_ENTRY* head, LPLIST_ENTRY list) {
 	if (head == list || head == 0 || list == 0)
 	{
 		return FALSE;
@@ -118,21 +44,92 @@ LIST_ENTRY * searchList(LIST_ENTRY * head, LPLIST_ENTRY list) {
 		if (n == 0) {
 			break;
 		}
-		else if ( n == list)
+		else if (n == list)
 		{
 			return n;
 		}
 
 		n = n->next;
-		
+
 	} while (n && n != base);
 
 	return FALSE;
 }
 
+//add after head
+void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
+	if (head == 0 || list == 0 || list == head)
+	{
+		return;
+	}
 
-void removelist(LPLIST_ENTRY h,LPLIST_ENTRY list) {
-	LPLIST_ENTRY r = searchList(h, list);
+	char szout[256];
+
+	LIST_ENTRY * next = head->next;
+	LIST_ENTRY* prev = head->prev;
+
+	if ((next == 0 && prev != 0) || (next != 0 && prev == 0)) {
+
+		__printf(szout, "%s node error!\r\n",__FUNCTION__);
+		return ;
+	}
+
+	if (next && prev ) {
+		next->prev = list;
+		prev->next = list;
+
+		list->next = next;
+		list->prev = prev;
+
+		head->prev = list;
+	}
+	else {
+
+		head->next = list;
+		head->prev = list;
+
+		list->prev = list;
+		list->next = list;
+	}
+}
+
+//add to head
+void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list) {
+	if (head == 0 || list == 0 || list == head)
+	{
+		return;
+	}
+
+	LIST_ENTRY* next = head->next;
+	LIST_ENTRY* prev = head->prev;
+	char szout[256];
+	if ((next == 0 && prev != 0) || (next != 0 && prev == 0) ) {
+
+		__printf(szout, "%s node error!\r\n", __FUNCTION__);
+		return;
+	}
+
+	if (next && prev) {
+		next->prev = list;
+		prev->next = list;
+
+		list->next = next;
+		list->prev = prev;
+
+		head->next = list;
+	}
+	else {
+		head->next = list;
+		head->prev = list;
+
+		list->prev = list;
+		list->next = list;
+	}
+}
+
+
+void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
+	LPLIST_ENTRY r = SearchList(h, list);
 	if (r == FALSE) {
 		return ;
 	}
@@ -141,7 +138,7 @@ void removelist(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		h->prev = 0;
 		h->next = 0;
 	}
-	else if (h->next == list ) 
+	else if (h->next == list && h->prev != list) 
 	{
 		LPLIST_ENTRY next = list->next;
 		LPLIST_ENTRY prev = list->prev;
@@ -151,7 +148,7 @@ void removelist(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		//list->prev = 0;	
 		h->next = next;
 	}
-	else if (h->prev == list) 
+	else if (h->prev == list && h->next != list) 
 	{
 		LPLIST_ENTRY next = list->next;
 		LPLIST_ENTRY prev = list->prev;

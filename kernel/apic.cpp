@@ -1016,7 +1016,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	int cpuid = value >> 24;
 
-	//WriteIoApicReg(0, cpuid<<24);
+	WriteIoApicReg(0, cpuid<<24);
 
 	int seq = *(int*)AP_TOTAL_ADDRESS;
 	int* apids = (int*)AP_ID_ADDRESS;
@@ -1052,7 +1052,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		(TssDescriptor*)(GDT_BASE + AP_TSS_SELECTOR + seq * sizeof(TssDescriptor)));
 
 	char procname[64];
-	__sprintf(procname, "APID_%d_proc", cpuid);
+	__sprintf(procname, "process_%d", cpuid);
 
 	PROCESS_INFO* process = (PROCESS_INFO*)(AP_TASK_TSS_BASE + tssSize * seq);
 	process->tss.cr3 = PDE_ENTRY_VALUE;
@@ -1231,6 +1231,8 @@ void BPCodeStart() {
 	}
 
 	ret = InitApicLVT();
+
+	WriteIoApicReg(0, g_bsp_id << 24);
 
 #ifdef APIC_ENABLE
 	__asm {cli}

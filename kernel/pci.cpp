@@ -77,7 +77,7 @@ int SetPciReg(int bus, int dev, int fun, int reg,DWORD v) {
 }
 
 int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd) {
-	__asm{cli}
+	//__asm{cli}
 	int cnt = 0;
 
 	DWORD* lpdst = (DWORD*)baseregs;
@@ -125,7 +125,7 @@ int getPciDevBasePort(DWORD* baseregs, WORD devClsVender, DWORD* dev, DWORD* vd)
 		}
 	}
 
-	__asm{sti}
+	//__asm{sti}
 	return cnt;
 }
 
@@ -137,7 +137,7 @@ int listpci(DWORD* dst) {
 
 	DWORD* lpdst = (DWORD*)dst;
 
-	__asm{cli}
+	//__asm{cli}
 
 	for (int bdf = 0x80000008; bdf <= 0x80fff808; bdf += 0x100)			//offset 8,read class type,vender type
 	{
@@ -183,7 +183,7 @@ int listpci(DWORD* dst) {
 		}
 	}
 
-	__asm{sti}
+	//__asm{sti}
 	return cnt;
 }
 

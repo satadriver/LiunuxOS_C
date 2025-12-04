@@ -23,28 +23,28 @@ void initWindowList() {
 	//gWindowsList = (LPWINDOWSINFO)WINDOW_INFO_BASE;
 	__memset((char*)gWindowsList, 0, WINDOW_LIST_BUF_SIZE);
 
-	initListEntry((LPLIST_ENTRY)&gWindowsList->list);
+	InitListEntry((LPLIST_ENTRY)&gWindowsList->list);
 }
 
 LPWINDOWSINFO __FindWindow(char * wname) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
-	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
-	LPWINDOWSINFO tmp = info;
+	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.next;
+	LPWINDOWSINFO hdr = ptr;
 	do
 	{
-		if (info == 0) {
+		if (ptr == 0) {
 			break;
 		}
-		if (info->valid && info->window->winname[0] && __strcmp(info->window->winname,wname)== 0 )
+		if (ptr->valid && ptr->window->winname[0] && __strcmp(ptr->window->winname,wname)== 0 )
 		{
-			return info;
+			return ptr;
 		}
 		else {
-			info = (LPWINDOWSINFO)(info->list.next);
+			ptr = (LPWINDOWSINFO)(ptr->list.next);
 		}
-	} while (info && info != tmp);
+	} while (ptr && ptr != hdr);
 
 	return 0;
 }
@@ -55,22 +55,22 @@ LPWINDOWSINFO __FindWindowID(DWORD wid) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
-	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
-	LPWINDOWSINFO tmp = info;
+	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.next;
+	LPWINDOWSINFO hdr = ptr;
 	do
 	{
-		if (info == 0)
+		if (ptr == 0)
 		{
 			break;
 		}
-		if (info->valid && info->window->id == wid )
+		if (ptr->valid && ptr->window->id == wid )
 		{
-			return info;
+			return ptr;
 		}
 		else {
-			info = (LPWINDOWSINFO)(info->list.next);
+			ptr = (LPWINDOWSINFO)(ptr->list.next);
 		}
-	} while (info && info != tmp);
+	} while (ptr && ptr != hdr);
 
 	return 0;
 }
@@ -81,22 +81,22 @@ LPWINDOWSINFO __FindProcessWindow(int tid) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
-	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.prev;
-	LPWINDOWSINFO tmp = info;
+	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.prev;
+	LPWINDOWSINFO hdr = ptr;
 	do
 	{
-		if (info == 0)
+		if (ptr == 0)
 		{
 			break;
 		}
-		if (info->valid && info->window->tid == tid )
+		if (ptr->valid && ptr->window->tid == tid )
 		{
-			return info;
+			return ptr;
 		}
 		else {
-			info = (LPWINDOWSINFO)(info->list.prev);
+			ptr = (LPWINDOWSINFO)(ptr->list.prev);
 		}
-	} while (info && info != tmp);
+	} while (ptr && ptr != hdr);
 
 	return 0;
 }
@@ -104,7 +104,7 @@ LPWINDOWSINFO __FindProcessWindow(int tid) {
 int getFreeWindow() {
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList;
 
-	int cnt = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO) - 1;
+	int cnt = WINDOW_LIST_BUF_SIZE / sizeof(WINDOWSINFO) ;
 	for (int i = 1; i < cnt; i++)
 	{
 		if (info[i].valid == 0)
@@ -122,7 +122,7 @@ int traversalWindow(char* outbuf) {
 		return 0;
 	}
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
-	LPWINDOWSINFO tmp = info;
+	LPWINDOWSINFO hdr = info;
 	do
 	{
 		if (info == 0) {
@@ -130,15 +130,13 @@ int traversalWindow(char* outbuf) {
 		}
 		if (info->valid )
 		{
-	
-
 			int len = __printf(buf+size, "%s window id:%d,name:%s\r\n",__FUNCTION__, info->window->id, info->window->winname);
 			size += len;
 		}
 		else {
 			info = (LPWINDOWSINFO)(info->list.next);
 		}
-	} while (info && info != tmp);
+	} while (info && info != hdr);
 
 	return size;
 }
@@ -243,7 +241,7 @@ int addWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 
 	//__strncpy(window->window->winname, wname, WINDOW_NAME_LIMIT - 1);
 
-	addlistTail(&gWindowsList->list, &window->list);
+	InsertListTail(&gWindowsList->list, &window->list);
 
 	__leaveLock(&g_window_lock);
 
@@ -267,7 +265,7 @@ int removeWindow(int id) {
 		window->valid = FALSE;
 		window->window = 0;
 
-		removelist(&gWindowsList->list, &window->list);
+		RemoveList(&gWindowsList->list, &window->list);
 
 		__leaveLock(&g_window_lock);
 	}

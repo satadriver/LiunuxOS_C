@@ -219,6 +219,7 @@
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="heap.cpp" />
+    <ClCompile Include="ListArray.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="parallel.cpp" />
     <ClCompile Include="pcnet.cpp" />
@@ -288,6 +289,7 @@
     <ClInclude Include="descriptor.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="heap.h" />
+    <ClInclude Include="ListArray.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="parallel.h" />
     <ClInclude Include="pcnet.h" />
