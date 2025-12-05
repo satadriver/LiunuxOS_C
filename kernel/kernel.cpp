@@ -107,9 +107,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initWindowList();
 
-	BPCodeStart();
-#ifdef LOCAL_APIC_ENABLE
 	
+#ifdef LOCAL_APIC_ENABLE
+	BPCodeStart();
 #endif
 
 	ret = StartVirtualTechnology();

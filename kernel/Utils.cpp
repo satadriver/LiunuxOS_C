@@ -990,10 +990,12 @@ void __initSpinlock(DWORD * v) {
 格式 ： bts dword ptr [ecx],0
 [ecx] 指向的内存的第0位赋值给 CF 位 ， 并且将[ecx]的第0位置为1
 */
-DWORD __enterSpinlock(DWORD * v) {
+DWORD __enterSpinlock(DWORD * lpv) {
 	__asm {
-		__enterSpinLockLoop:
-		lock bts[v], 0
+
+	__enterSpinLockLoop:
+		mov edx,lpv
+		lock bts [edx], 0
 		jnc __getSpinLock
 		pause
 		jmp __enterSpinLockLoop
@@ -1002,20 +1004,22 @@ DWORD __enterSpinlock(DWORD * v) {
 }
 
 
-DWORD __leaveSpinlock(DWORD * v) {
+DWORD __leaveSpinlock(DWORD * lpv) {
 	__asm {
-		lock btr[v], 0
+		mov edx, lpv
+		lock btr [edx], 0
 	}
 	//char szout[1024];
 	//__printf(szout,"__leaveSpinLock errpr\r\n");
 }
 
 
-extern "C"  __declspec(dllexport) int __spinlockEntry(void* lockv) {
+extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD * lockv) {
 	__asm {
 		__spinlock_xchg:
 		mov eax, 1
-		lock xchg[lockv], eax
+		mov edx,lockv
+		lock xchg [edx], eax
 		cmp eax, 0
 		jz __get_spinlock
 		nop
@@ -1027,12 +1031,13 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(void* lockv) {
 	return TRUE;
 }
 
-
-extern "C"  __declspec(dllexport) int __spinlockLeave(void* lockv) {
+//what is the difference between [lockv] and lockv in visual studio embedded asm?
+extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv) {
 	DWORD result = 0;
 	__asm {
 		mov eax, 0
-		lock xchg[lockv], eax
+		mov edx,lockv
+		lock xchg[edx], eax
 		mov[result], eax
 	}
 	return result;
@@ -1047,11 +1052,12 @@ DWORD __enterLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
-		mov esi, lockvalue
-		__waitZeroValue:
+		
+	__waitZeroValue:
+		mov ecx, lockvalue
 		mov eax, 0
 		mov edx, 1
-		lock cmpxchg ds:[esi], edx
+		lock cmpxchg ds:[ecx], edx
 		jz __entryFree
 		mov result,eax
 		nop
@@ -1068,11 +1074,12 @@ DWORD __leaveLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
-		mov esi, lockvalue
-		__leavelockLoop:
+		
+	__leavelockLoop:
+		mov ecx, lockvalue
 		mov eax, 1
 		mov edx, 0
-		lock cmpxchg ds:[esi], edx
+		lock cmpxchg ds:[ecx], edx
 		jz _over
 		mov result,eax
 		pause	

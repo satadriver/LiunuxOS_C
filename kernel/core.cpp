@@ -401,14 +401,14 @@ void initIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-	makeTrapGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTLint0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT0_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTLint1Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT1_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
-	makeTrapGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
+	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTLint0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT0_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTLint1Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT1_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
+	makeIntGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
 
 	makeIntGateDescriptor((DWORD)ApTaskSchedule, KERNEL_MODE_CODE, 3, descriptor + TASK_SWITCH_VECTOR);
 	
@@ -416,7 +416,7 @@ void initIDT() {
 	
 	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
 
-	makeTrapGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_SPURIOUS_VECTOR);
+	makeIntGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_SPURIOUS_VECTOR);
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
