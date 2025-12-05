@@ -107,6 +107,15 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	initWindowList();
 
+	__asm {
+		sti
+	}
+
+
+	initFileSystem();
+
+	initDll();
+
 	
 #ifdef LOCAL_APIC_ENABLE
 	BPCodeStart();
@@ -122,9 +131,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	//pcnetInit();
 
-	__asm {
-		sti
-	}
 
 #ifdef VM86_PROCESS_TASK
 	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
@@ -132,9 +138,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 #endif
 	
-	initFileSystem();
 
-	initDll();
 
 	EnterLongMode();
 

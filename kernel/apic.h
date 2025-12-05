@@ -74,6 +74,8 @@ extern "C" void __declspec(dllexport) __kApInitProc();
 int AllocateApTask(int vn);
 int ActiveApTask(int intnum);
 
+void WaitIcrFree();
+
 extern "C" void __declspec(dllexport) HpetTimer0Handler(LIGHT_ENVIRONMENT* stack);
 
 extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT* stack);

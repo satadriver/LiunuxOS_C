@@ -288,7 +288,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 int InitIoApic() {
 	
-	IoApicRedirect(0x10, g_bsp_id, APIC_LVTLINT0_VECTOR, 0);
+	IoApicRedirect(0x10, g_bsp_id, APIC_LVTLINT0_VECTOR|0x10000, 0);
 
 	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
 
@@ -343,7 +343,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		__printf(szout, "IPIIntHandler\r\n");
 		
 
-		*(DWORD*)0xFEE000B0 = 0;
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 
 		__enterSpinlock(&g_ap_work_lock);
 		g_test_value++;
@@ -859,18 +859,20 @@ int AllocateApTask(int intnum) {
 		do {
 			cpuId = ids[gAllocateAp];
 			if (id != cpuId) {
-				unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-				//if ( (value & 0x1000) == 0) 
-				{
+				unsigned int value = 0;
+				do {
+					value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+					break;
+				} while ( (value & 0x1000) );
 
-					value = cpuId << 24;
-					*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
+				value = cpuId << 24;
+				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
 
-					value = 0x000 | intnum;
-					*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
+				value = 0x000 | intnum;
+				*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
 
-					res = gAllocateAp;
-				}
+				res = gAllocateAp;
+				
 			}
 
 			gAllocateAp++;
@@ -893,7 +895,12 @@ int AllocateApTask(int intnum) {
 
 
 
-
+void WaitIcrFree() {
+	unsigned int value = 0;
+	do {
+		value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+	} while (value & 0x1000);
+}
 
 
 int ActiveApTask(int intnum) {
@@ -911,20 +918,23 @@ int ActiveApTask(int intnum) {
 		int* ids = (int*)AP_ID_ADDRESS;
 		for (int idx = 0; idx < total; idx++)
 		{
+			int cpuId = ids[idx];
+			if (id != cpuId) {
 
-			unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-			//if ( (value & 0x1000) == 0) 
-			{
-				int cpuId = ids[idx];
-				if (id != cpuId) {
-					value = cpuId << 24;
-					*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
+				unsigned int value = 0;
+				do {
+					value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+					break;
+				} while ((value & 0x1000));
 
-					value = 0x000 | intnum;
-					*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
+				value = cpuId << 24;
+				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
 
-				}
+				value = 0x000 | intnum;
+				*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
+
 			}
+			
 		} 
 	}
 
@@ -1070,6 +1080,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xe0) = 0;
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
@@ -1101,9 +1113,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	unsigned long stack0top = (unsigned long)(AP_STACK0_BASE + TASK_STACK0_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-
 	//tssSize = sizeof(PROCESS_INFO);
-
 	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tssSize * cpuid);
 	initKernelTss((TSS*)&process->tss, stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
 
@@ -1164,12 +1174,12 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		or eax, 0x80000000
 		mov cr0, eax
 
-		mov ax, KERNEL_MODE_CODE
-		mov ds,ax
-		mov es,ax
-		mov fs,ax
-		mov gs,ax
-		mov ss,ax
+		//mov ax, KERNEL_MODE_CODE
+		//mov ds,ax
+		//mov es,ax
+		//mov fs,ax
+		//mov gs,ax
+		//mov ss,ax
 	}
 
 	//AdjustApIDT();
@@ -1238,7 +1248,8 @@ void BPCodeStart() {
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x10000;
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
-
+	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xe0) = 0;
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
@@ -1250,11 +1261,13 @@ void BPCodeStart() {
 
 	//WriteIoApicReg(0, g_bsp_id << 24);
 
+	WaitIcrFree();
 	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
 	DWORD v = 0xc4500;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 	__sleep(100);
 
+	WaitIcrFree();
 	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
@@ -1271,7 +1284,9 @@ void BPCodeStart() {
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 		__printf(szout, "ap:%d\r\n",  ids[i]);
-#if 0
+#if 1
+		WaitIcrFree();
+
 		unsigned int id = ids[i] << 24;
 		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
 		int v = APIC_IPI_VECTOR;
@@ -1282,17 +1297,17 @@ void BPCodeStart() {
 	}
 
 #ifdef IO_APIC_ENABLE
-//__asm {cli}
-			
-	ret = InitApicLVT();
-
+	__asm {cli}
+		
 	DisableInt();
+
+	ret = InitApicLVT();
 
 	initHpet();
 
 	InitIoApic();
 			
-	//__asm {sti}
+	__asm {sti}
 #endif
 
 	//__sleep(100);
