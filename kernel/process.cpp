@@ -112,6 +112,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 #else
 	tss->tss.trap = 0;
 #endif
+	tss->tss.trap = 0;
 	
 	tss->tss.ldt = 0;
 	tss->fpu = TRUE;

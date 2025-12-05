@@ -94,6 +94,8 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #else
 	tss->tss.trap = 0;
 #endif
+	tss->tss.trap = 0;
+
 	tss->tss.cr3 = process->tss.cr3;
 	tss->heapbase = process->heapbase;
 	tss->heapsize = process->heapsize;

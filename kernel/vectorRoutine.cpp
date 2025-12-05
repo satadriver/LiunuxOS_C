@@ -1289,18 +1289,24 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 		
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
+		
 #endif
 
 #ifdef IO_APIC_ENABLE
+#if 0
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
+		DWORD base = APIC_HPET_BASE;
+		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
+		*gintr_sta = 0xff;
+#endif
+		outportb(0x20, 0x20);
 #else
 		outportb(0x20, 0x20);
 #endif
 
-		DWORD base = APIC_HPET_BASE;
-		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
-		*gintr_sta = 0xff;
+
 
 	}
 
@@ -1682,11 +1688,13 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 		}
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 #endif
 
 #ifdef IO_APIC_ENABLE
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
+		//* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
+		outportb(0x20, 0x20);
+		outportb(0xa0, 0x20);
 #else
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);

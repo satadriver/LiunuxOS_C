@@ -158,7 +158,7 @@ int listpci(DWORD* dst) {
 				int baseregidx = (bdf & 0xffffff00) + 0x00;	//0x10
 				int regcnt = 0;
 				DWORD regs[0x40];
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < 8; i++)
 				{
 					outportd(0xcf8, baseregidx);
 					DWORD r = inportd(0xcfc);
@@ -175,7 +175,8 @@ int listpci(DWORD* dst) {
 
 				if (regcnt ) {
 					char szout[1024];
-					__printf(szout, "dev:%x,type:%x, regs:%x,%x,%x,%x\n", bdf, v, regs[0], regs[1], regs[2], regs[3]);
+					__printf(szout, "dev:%x,type:%x, regs:%x,%x,%x,%x,%x,%x,%x,%x\n", 
+						bdf, v, regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7]);
 				}
 			}
 			
