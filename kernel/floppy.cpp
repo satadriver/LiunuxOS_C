@@ -194,11 +194,14 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"FloppyIntProc!\r\n");
 
-		outportb(0x20, 0x20);
+		
 
-
+#ifdef IO_APIC_ENABLE
 		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
+#else
+		outportb(0x20, 0x20);
+#endif
 
 	}
 

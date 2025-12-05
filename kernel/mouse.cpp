@@ -483,11 +483,14 @@ __declspec(naked) void MouseIntProc() {
 	}
 	{
 		__kMouseProc();
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
 
+#ifdef IO_APIC_ENABLE
 		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
+#else
+		outportb(0x20, 0x20);
+		outportb(0xa0, 0x20);
+#endif
 
 	}
 	__asm {

@@ -82,7 +82,8 @@ void addAlarmTimer() {
 
 	//__asm {cli}
 
-	int s = (inportb(0x70) & 0x7f) + 0x0b;
+	//int s = (inportb(0x70) & 0x7f) + 0x0b;
+	int s = 0x0b|0x80;
 	outportb(0x70, s);
 	int v = inportb(0x71)|0x80;
 	//outportb(0x70, s);

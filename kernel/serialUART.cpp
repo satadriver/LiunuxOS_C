@@ -218,11 +218,13 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 				__printf(szout, (char*)"com1 timeout interrupt\r\n");
 			}
 		}
-		outportb(0x20, 0x20);
-
+		
+#ifdef IO_APIC_ENABLE
 		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-
+#else
+		outportb(0x20, 0x20);
+#endif
 	}
 
 	__asm {
@@ -316,10 +318,13 @@ extern "C"  __declspec(naked) void __kCom2Proc(LIGHT_ENVIRONMENT * stack) {
 				//__printf(szout, "com2 timeout interrupt\r\n");
 			}
 		}
-		outportb(0x20, 0x20);
-
+		
+#ifdef IO_APIC_ENABLE
 		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
+#else
+		outportb(0x20, 0x20);
+#endif
 
 	}
 	

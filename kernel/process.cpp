@@ -36,6 +36,8 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	int tid = dwtid & 0x7fffffff;
 
+	__asm {cli}
+
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -84,6 +86,9 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	int retvalue = 0;
 
 	tss[process->pid].retValue = retvalue;
+
+	__asm {sti}
+
 	if (dwtid & 0x80000000) {
 		return;
 	}

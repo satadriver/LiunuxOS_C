@@ -555,11 +555,14 @@ __declspec(naked) void KeyboardIntProc() {
 
 	{
 		__kKeyboardProc();
-		outportb(0x20, 0x20);
 
+
+#ifdef IO_APIC_ENABLE
 		* (DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-
+#else
+		outportb(0x20, 0x20);
+#endif
 	}
 
 	__asm {

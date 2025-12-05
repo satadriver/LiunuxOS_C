@@ -25,6 +25,8 @@
 #include "file.h"
 #include "pe64.h"
 #include "apic.h"
+#include "hardware.h"
+#include "device.h"
 
 
 void makeDataSegDescriptor(DWORD base, int dpl, int bit, int direction, int w, SegDescriptor* descriptor) {
@@ -496,9 +498,8 @@ void InitIdt64() {
 	//makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
 
 	//makeTaskGate64Descriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
-#ifdef APIC_ENABLE
+
 	makeTrapGate64Descriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + 0xff);
-#endif
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
@@ -832,4 +833,31 @@ void initTss64(TSS64_DATA* tss, QWORD rsp) {
 	tss->iomap= sizeof(TSS64_DATA);
 	tss->rsp0 = rsp;
 	tss->ioend = 0xff;
+}
+
+
+void EOIHandler() {
+	
+#ifdef IO_APIC_ENABLE
+	
+	
+	int seq = INTR_8259_MASTER / sizeof(int);
+	int mod = INTR_8259_MASTER % sizeof(int);
+
+	int num = seq * 0x10;
+	unsigned long v = *(DWORD*)(LOCAL_APIC_BASE + 0x100 + num);
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+	*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
+#else
+	int vector = pic_get_isr();
+	if (vector &0xff) {
+		outportb(0x20, 0x20);
+	}
+	
+	if (vector & 0xff00) {
+		outportb(0xa0, 0x20);
+	}
+	
+#endif
 }

@@ -162,6 +162,8 @@ int __getFreeTask(LPTASKRESULT ret) {
 		{
 			clearTssBuf(&tss[i]);
 
+			tss[i].status = TASK_SUSPEND;
+
 			ret->number = i;
 			ret->lptss = &tss[i];
 			return TRUE;
@@ -381,9 +383,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
 		process->status = TASK_OVER;
 		prev->status = TASK_OVER;
-		__printf(szout, "__kTaskSchedule prev status TASK_OVER!\r\n");
+		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
-	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
+	else if (process->status == TASK_RUN && prev->status == TASK_RUN)
 	{
 		if (process->sleep) {
 			process->sleep--;
@@ -398,8 +400,11 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	}
 	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
-		process->status = TASK_SUSPEND;
-		prev->status = TASK_SUSPEND;
+		//process->status = TASK_SUSPEND;
+		//prev->status = TASK_SUSPEND;
+	}
+	else if ( prev->status != process->status) {
+		__printf(szout, "%s prev tss status %d/%d error!\r\n", prev->status,process->status);
 	}
 	else {
 		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
@@ -569,9 +574,9 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	}
 	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
-		process->status = TASK_OVER;
-		prev->status = TASK_OVER;
-		__printf(szout, "__kTaskSchedule prev status TASK_OVER!\r\n");
+		//process->status = TASK_OVER;
+		//prev->status = TASK_OVER;
+		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
 	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
 	{
@@ -588,8 +593,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	}
 	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
-		process->status = TASK_SUSPEND;
-		prev->status = TASK_SUSPEND;
+		//process->status = TASK_SUSPEND;
+		//prev->status = TASK_SUSPEND;
 	}
 	else {
 		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
