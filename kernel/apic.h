@@ -61,6 +61,8 @@ void iomfence();
 
 void setIoRedirect(int id, int idx, int vector, int mode);
 
+unsigned long long GetIoRedirect(int idx);
+
 void setIoApicID(int id);
 
 int IsBspProcessor();
@@ -68,6 +70,10 @@ int IsBspProcessor();
 int GetIdleProcessor();
 
 void BPCodeStart();
+
+int InitLocalApicTimer();
+
+int DisableLocalApicLVT();
 
 extern "C" void __declspec(dllexport) __kApInitProc();
 

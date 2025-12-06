@@ -55,6 +55,7 @@ void EnableInt13() {
 }
 
 unsigned long ReadIoApicReg(int reg) {
+
 	*(DWORD*)(IO_APIC_BASE) = reg ;
 	__asm {
 		mfence
@@ -69,9 +70,7 @@ unsigned long WriteIoApicReg(int reg, unsigned long value) {
 		mfence
 	}
 	*(DWORD*)(IO_APIC_BASE + 0x10) = value;
-	__asm {
-		mfence
-	}
+
 	return 0;
 }
 
@@ -82,6 +81,27 @@ void iomfence() {
 		mfence
 	}
 }
+
+void setIoRedirect(int idx, int id, int vector, int mode) {
+
+	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
+
+	WriteIoApicReg(idx, vector + (mode << 8));
+
+}
+
+
+unsigned long long GetIoRedirect(int idx) {
+
+	DWORD high = ReadIoApicReg(idx + 1);
+
+	DWORD low = ReadIoApicReg(idx);
+
+	unsigned long long v = (high << 32) | low;
+	return v;
+}
+
+
 
 void setIoApicID(int id) {
 
@@ -257,13 +277,7 @@ int initHpet() {
 	return FALSE;
 }
 
-void setIoRedirect(int idx, int id, int vector, int mode) {
 
-	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
-
-	WriteIoApicReg(idx, vector + (mode << 8));
-
-}
 
 void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
@@ -283,10 +297,15 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 		cpuid = cpu;
 	}
 
+	unsigned long long oldValue = GetIoRedirect(pin);
+
+	char szout[1024];
+	__printf(szout, "io apic %d value I64x\r\n ",pin, oldValue);
+
 	setIoRedirect(pin, cpuid, vector, mode);
 }
 
-int InitIoApic() {
+int InitIoApicRte() {
 	
 	IoApicRedirect(0x10, g_bsp_id, APIC_LVTLINT0_VECTOR|0x10000, 0);
 
@@ -859,13 +878,9 @@ int AllocateApTask(int intnum) {
 		do {
 			cpuId = ids[gAllocateAp];
 			if (id != cpuId) {
-				unsigned int value = 0;
-				do {
-					value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-					break;
-				} while ( (value & 0x1000) );
 
-				value = cpuId << 24;
+				WaitIcrFree();
+				unsigned int value = cpuId << 24;
 				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
 
 				value = 0x000 | intnum;
@@ -921,13 +936,9 @@ int ActiveApTask(int intnum) {
 			int cpuId = ids[idx];
 			if (id != cpuId) {
 
-				unsigned int value = 0;
-				do {
-					value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-					break;
-				} while ((value & 0x1000));
+				WaitIcrFree();
 
-				value = cpuId << 24;
+				unsigned int value = cpuId << 24;
 				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
 
 				value = 0x000 | intnum;
@@ -1021,12 +1032,9 @@ void DisableInt() {
 //而 chipset内的 NMI logic 也会接到 local APIC的 LINT1.
 //ExtInt代表接受cpu直接接受8259中断信号，而不是io apic
 
-int InitApicLVT() {
-
-	//return 0;
+int DisableLocalApicLVT() {
 
 	unsigned long v = 0;
-#if 1
 	v = APIC_LVTTEMPERATURE_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x330) = v | 0x10000;
 
@@ -1044,12 +1052,18 @@ int InitApicLVT() {
 
 	v = APIC_LVTCMCI_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x2f0) = v | 0x10000;
-#endif
 
-	//return 0;
+	return 0;
 
-	v = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = v;
+}
+
+
+
+int InitLocalApicTimer() {
+
+	return 0;
+
+	int v = 0;
 
 	v = 0x10000;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
@@ -1057,20 +1071,20 @@ int InitApicLVT() {
 	v = 0x0b;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
 
-	v = APIC_LVTTIMER_VECTOR | 0x20000;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
-
 	v = 1000000 / (1000 / TASK_TIME_SLICE);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
 
-	return 0;
+	v = APIC_LVTTIMER_VECTOR | 0x20000;
 
+	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+
+	return 0;
 }
 
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	char* reg_esp = 0;
-
+	int ret = 0;
 	__asm {
 		//cli
 		mov ds:[reg_esp],esp
@@ -1089,6 +1103,16 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
 	//enableLocalApic();
+
+#ifdef IO_APIC_ENABLE
+	__asm {cli}
+
+	ret = DisableLocalApicLVT();
+
+	ret = InitLocalApicTimer();
+
+	__asm {sti}
+#endif
 
 	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	int cpuid = value >> 24;
@@ -1210,7 +1234,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		__asm {
 			hlt
 		}
-		__printf(szout, "ap id:%d wake\r\n", cpuid);
+		//__printf(szout, "ap id:%d wake\r\n", cpuid);
 	}
 }
 
@@ -1233,7 +1257,6 @@ void BPCodeStart() {
 #if 0
 	enableRcba();
 	enableIoApic();
-	enableHpet();
 	enableLocalApic();
 #endif
 	//__asm {sti}
@@ -1242,10 +1265,6 @@ void BPCodeStart() {
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
-
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x10000;
-
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x10000;
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
 	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
@@ -1283,8 +1302,8 @@ void BPCodeStart() {
 	int* ids = (int*)AP_ID_ADDRESS;
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
-		__printf(szout, "ap:%d\r\n",  ids[i]);
-#if 1
+		//__printf(szout, "ap:%d\r\n",  ids[i]);
+#if 0
 		WaitIcrFree();
 
 		unsigned int id = ids[i] << 24;
@@ -1298,19 +1317,21 @@ void BPCodeStart() {
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
-		
-	DisableInt();
 
-	ret = InitApicLVT();
+	DisableInt();
+		
+	ret = DisableLocalApicLVT();
 
 	initHpet();
 
-	InitIoApic();
-			
+	ret = InitLocalApicTimer();
+
+	InitIoApicRte();
+
+	
+		
 	__asm {sti}
 #endif
-
-	//__sleep(100);
 
 	__printf(szout, "bsp id:%d, lock:%d init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
 		g_bsp_id, g_test_value,lint0,lint1, ioapic_id, ioapic_ver);

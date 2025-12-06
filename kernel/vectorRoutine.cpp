@@ -819,7 +819,7 @@ void __declspec(naked) FloatPointError(LIGHT_ENVIRONMENT* stack) {
 	__kCoprocessor();
 
 	{
-		//__kException((const char*)"FloatPointError", 16, stack);
+		__kException((const char*)"FloatPointError", 16, stack);
 #ifdef LOCAL_APIC_ENABLE
 		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 #else
@@ -1289,19 +1289,18 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 		
 #ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 
-		
 #endif
 
 #ifdef IO_APIC_ENABLE
-#if 0
+
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 		DWORD base = APIC_HPET_BASE;
 		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
 		*gintr_sta = 0xff;
-#endif
-		outportb(0x20, 0x20);
+
+		
 #else
 		outportb(0x20, 0x20);
 #endif
@@ -1380,10 +1379,11 @@ void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 	{
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1440,10 +1440,11 @@ void __declspec(naked) Com1IntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, (char*)"Com1IntProc!\r\n");
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1500,10 +1501,11 @@ void __declspec(naked) Parallel2IntProc(LIGHT_ENVIRONMENT* stack) {
 
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1556,10 +1558,11 @@ void __declspec(naked) FloppyDiskIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"FloppyDiskIntProc!\r\n");
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1617,10 +1620,10 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1688,11 +1691,12 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 		}
 
 #ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
-		//* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 		outportb(0x20, 0x20);
 		outportb(0xa0, 0x20);
 #else
@@ -1747,10 +1751,11 @@ void __declspec(naked) SlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, (char*)"SlaveIntProc!\r\n");
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1806,10 +1811,11 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, (char*)"Slave1IntProc!\r\n");
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1864,10 +1870,11 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, (char*)"NetcardIntProc!\r\n");
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1921,10 +1928,11 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"USBIntProc!\r\n");
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -1987,10 +1995,11 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -2067,10 +2076,11 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 		//__printf(szout, "IDEMasterIntProc size:%x tid:%d port:%x status:%x\r\n", size,proc->tid,gAtaBasePort+7,status);
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);
@@ -2140,10 +2150,11 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, (char*)"IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
 
 #ifdef LOCAL_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
 #endif
 
 #ifdef IO_APIC_ENABLE
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
 #else
 		outportb(0x20, 0x20);

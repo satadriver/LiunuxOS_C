@@ -39,13 +39,13 @@
 
 #define APIC_HPET_BASE			0XFED00000
 
-#define IO_APIC_BASE			0xFEC00000
+#define IO_APIC_BASE		   	0xFEC00000
 
 #define LOCAL_APIC_BASE			0xfee00000
 
 #define LOCAL_APIC_ENABLE
 
-#define IO_APIC_ENABLE
+//#define IO_APIC_ENABLE
 
 #define LIUNUXOS_VERSION		"1.0.1"
 
@@ -91,7 +91,6 @@
 
 #define INTR_8259_MASTER			0x40
 #define INTR_8259_SLAVE				(INTR_8259_MASTER + 8)
-
 
 #define APIC_HPETTIMER_VECTOR		0x20
 #define SYSTEM_INT_VECTOR			0x80

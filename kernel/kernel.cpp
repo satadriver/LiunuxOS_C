@@ -140,7 +140,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 
 
-	EnterLongMode();
+	//EnterLongMode();
 
 	int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
