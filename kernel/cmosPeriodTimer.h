@@ -34,6 +34,9 @@ extern "C"  __declspec(dllimport) int __getDateTimeStr(void* str);
 
 void initTimer();
 
+void EnableCmos();
+
+void DisableCmos();
 
 unsigned char readCmosPort(unsigned char port);
 

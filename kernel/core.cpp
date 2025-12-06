@@ -401,7 +401,7 @@ void initIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
+	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 0, descriptor + APIC_IPI_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);

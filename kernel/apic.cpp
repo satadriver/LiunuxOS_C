@@ -28,7 +28,7 @@ DWORD* gHpetBase = 0;
 
 int g_bsp_id = 0;
 
-int g_test_value = 0;
+int g_test_value = 1000;
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -93,9 +93,9 @@ void setIoRedirect(int idx, int id, int vector, int mode) {
 
 unsigned long long GetIoRedirect(int idx) {
 
-	DWORD high = ReadIoApicReg(idx + 1);
+	unsigned long long high = ReadIoApicReg(idx + 1);
 
-	DWORD low = ReadIoApicReg(idx);
+	unsigned long long low = ReadIoApicReg(idx);
 
 	unsigned long long v = (high << 32) | low;
 	return v;
@@ -368,7 +368,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		g_test_value++;
 		__leaveSpinlock(&g_ap_work_lock);
 
-		__printf(szout, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA!function:%s value:%d\r\n",__FUNCTION__, g_test_value);
+		__printf(szout, "function:%s value:%d\r\n",__FUNCTION__, g_test_value);
 	}
 
 	__asm {
@@ -902,8 +902,9 @@ int AllocateApTask(int intnum) {
 
 	__leaveSpinlock(&g_allocate_ap_lock);
 
-	//char szout[256];
-	//__printf(szout, "AllocateApTask index:%x,id:%x\r\n", res, cpuId);
+	char szout[256];
+	unsigned long v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+	__printf(szout, "%s index:%x,id:%x result:%x\r\n",__FUNCTION__, res, cpuId,v);
 	return res;
 }
 
@@ -987,13 +988,8 @@ int enableLocalApic() {
 
 		mov edx, APIC_SPURIOUS_VECTOR
 		or edx,0x100
-
+		mov eax, LOCAL_APIC_BASE
 		mov dword ptr ds : [eax + 0xF0] , edx
-		mov dword ptr  ds : [eax + 0x80] , 0
-		mov dword ptr ds : [eax + 0x350] , 0x10000
-		mov dword ptr  ds : [eax + 0x360] , 0x10000
-
-		//mov dword[edi + 0x320], 0x40 | (1 << 17)
 
 		mov ecx, 0x1B
 		rdmsr
@@ -1091,7 +1087,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 
 	char szout[1024];
-
+	enableLocalApic();
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
 	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
@@ -1099,6 +1095,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
+
+	int localapic_ver = *(DWORD*)(LOCAL_APIC_BASE + 0x30);
 
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
@@ -1172,8 +1170,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
 
-	//__memcpy( (char*)TASKS_TSS_BASE + sizeof(PROCESS_INFO)*( seq + 1), (char*)process, sizeof(PROCESS_INFO));
-
 	DescriptTableReg gdtbase;
 	__asm {
 		sgdt gdtbase
@@ -1223,16 +1219,24 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__asm {sti}
 
-	__printf(szout, "ap id:%d init complete.esp:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x \r\n", 
-		cpuid, reg_esp,lint0,lint1,tid,ioapic_id, ioapic_ver);
+	__printf(szout, "ap id:%d version:%x init complete.esp:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n", 
+		cpuid, localapic_ver, reg_esp,lint0,lint1,tid,ioapic_id, ioapic_ver);
 
 	//__printf(szout, "cpu:%d leave lock\r\n", cpuid);
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
+
+	//__asm{int APIC_IPI_VECTOR}
+
 	while (1) {
 		__asm {
-			hlt
+			//hlt
+		}
+
+		uint32_t irr4 = *(DWORD*)(LOCAL_APIC_BASE+0x140);
+		if (irr4 & (1 << 1)) {
+			__printf(szout,"GOT IPI in IRR! 0x%x\n", irr4);
 		}
 		//__printf(szout, "ap id:%d wake\r\n", cpuid);
 	}
@@ -1253,7 +1257,7 @@ void BPCodeStart() {
 	}
 
 	//__asm {cli}
-
+	enableLocalApic();
 #if 0
 	enableRcba();
 	enableIoApic();
@@ -1277,6 +1281,8 @@ void BPCodeStart() {
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
 	int ioapic_ver = ReadIoApicReg(1) & 0xff;
+
+	int localapic_ver = *(DWORD*)(LOCAL_APIC_BASE+0x30);
 
 	//WriteIoApicReg(0, g_bsp_id << 24);
 
@@ -1303,13 +1309,16 @@ void BPCodeStart() {
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 		//__printf(szout, "ap:%d\r\n",  ids[i]);
-#if 0
+#if 1
 		WaitIcrFree();
 
 		unsigned int id = ids[i] << 24;
 		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
 		int v = APIC_IPI_VECTOR;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+		*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v | 0x4000;
+
+		v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, id, v);
 #else
 		AllocateApTask(APIC_IPI_VECTOR);
 #endif
@@ -1328,13 +1337,15 @@ void BPCodeStart() {
 
 	InitIoApicRte();
 
-	
-		
 	__asm {sti}
 #endif
 
-	__printf(szout, "bsp id:%d, lock:%d init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		g_bsp_id, g_test_value,lint0,lint1, ioapic_id, ioapic_ver);
+
+	//AllocateApTask(2);
+
+	__sleep(100);
+	__printf(szout, "bsp id:%d version:%x lock:%d init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
+		g_bsp_id, localapic_ver, g_test_value,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }

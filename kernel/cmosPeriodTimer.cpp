@@ -10,12 +10,32 @@
 #include "timer8254.h"
 #include "apic.h"
 
+void EnableCmos() {
+	__asm {cli}
+	outportb(0x70, 0x0b | 0x80);
+	int v = inportb(0x71) & 0x7f;
+	outportb(0x71, v);
+
+	//outportb(0x70, 0x0c | 0x80);
+	//inportb(0x71);
+	__asm {sti}
+}
+
+void DisableCmos() {
+	__asm {cli}
+	int s = 0x0b | 0x80;
+	outportb(0x70, s);
+	int v = inportb(0x71) | 0x80;
+	outportb(0x71, v);
+	__asm {sti}
+}
+
 unsigned char readCmosPort(unsigned char port) {
 
-	//__asm{cli}
+	__asm{cli}
 	outportb(0x70, port|0x80);
 	unsigned char c= inportb(0x71);
-	//__asm{sti}
+	__asm{sti}
 	return c;
 	__asm {
 		//in al,70h
@@ -25,10 +45,10 @@ unsigned char readCmosPort(unsigned char port) {
 }
 
 void writeCmosPort(unsigned char port, unsigned char value) {
-	//__asm {cli}
+	__asm {cli}
 	outportb(0x70, port|0x80);	//bit7 =1,disable NMI,bit7=0,enable NMI
 	outportb(0x71, value);
-	//__asm {sti}
+	__asm {sti}
 	__asm {
 		//in al, 70h
 		//and al, 80h

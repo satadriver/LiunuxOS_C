@@ -82,12 +82,7 @@ void addAlarmTimer() {
 
 	//__asm {cli}
 
-	//int s = (inportb(0x70) & 0x7f) + 0x0b;
-	int s = 0x0b|0x80;
-	outportb(0x70, s);
-	int v = inportb(0x71)|0x80;
-	//outportb(0x70, s);
-	outportb(0x71, v);
+	DisableCmos();
 	
 	unsigned char bcentury = readCmosPort(0x32);
 	unsigned char byear = readCmosPort(9);
@@ -164,13 +159,7 @@ void addAlarmTimer() {
 	writeCmosPort(0x03, b2bcd(dstmin));
 	writeCmosPort(0x01, b2bcd(dstsecond));
 
-	outportb(0x70, 0x0b | 0x80);
-	v = inportb(0x71) & 0x7f;
-	outportb(0x70, 0x0b | 0x80);
-	outportb(0x71, v);
-
-	outportb(0x70, 0x0c|0x80);
-	inportb(0x71);
+	EnableCmos();
 
 	//__asm{sti}
 
