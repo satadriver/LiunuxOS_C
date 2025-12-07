@@ -51,6 +51,8 @@ char* getRcbaBase();
 
 int initHpet();
 
+void SetIcr(int cpu, int vector,int mode,int destType);
+
 void enableRcba();
 
 void EnableInt13();

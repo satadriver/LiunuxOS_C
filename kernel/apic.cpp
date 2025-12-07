@@ -28,7 +28,7 @@ DWORD* gHpetBase = 0;
 
 int g_bsp_id = 0;
 
-int g_test_value = 1000;
+int g_test_value = 0;
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -303,6 +303,39 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 	__printf(szout, "io apic %d value I64x\r\n ",pin, oldValue);
 
 	setIoRedirect(pin, cpuid, vector, mode);
+}
+
+
+void SetIcr(int cpu,int vector,int mode,int destType) {
+
+	WaitIcrFree();
+
+	if (destType == 0) {
+		unsigned int id = cpu << 24;
+		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;	
+	}
+
+	iomfence();
+
+	unsigned int v = vector;
+	if (mode == 0) {
+		v = v | 0x4000;
+	}
+	else {
+		v = ((mode & 7) << 8) | v;
+	}
+	if (destType) {
+		v = v | ((destType & 3) << 18);
+	}
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+
+	v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+	char szout[256];
+	//__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
+
+	return;
+
 }
 
 int InitIoApicRte() {
@@ -879,15 +912,9 @@ int AllocateApTask(int intnum) {
 			cpuId = ids[gAllocateAp];
 			if (id != cpuId) {
 
-				WaitIcrFree();
-				unsigned int value = cpuId << 24;
-				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
+				SetIcr(cpuId, intnum,0,0);
 
-				value = 0x000 | intnum;
-				*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
-
-				res = gAllocateAp;
-				
+				res = gAllocateAp;		
 			}
 
 			gAllocateAp++;
@@ -921,6 +948,8 @@ void WaitIcrFree() {
 
 int ActiveApTask(int intnum) {
 
+	//return 0;
+
 	if (intnum < 0 || intnum > 255) {
 		return -1;
 	}
@@ -937,16 +966,8 @@ int ActiveApTask(int intnum) {
 			int cpuId = ids[idx];
 			if (id != cpuId) {
 
-				WaitIcrFree();
-
-				unsigned int value = cpuId << 24;
-				*(DWORD*)(LOCAL_APIC_BASE + 0x310) = value;
-
-				value = 0x000 | intnum;
-				*(DWORD*)(LOCAL_APIC_BASE + 0x300) = value;
-
-			}
-			
+				SetIcr(cpuId, intnum,0,0);
+			}	
 		} 
 	}
 
@@ -976,30 +997,22 @@ int IsApicSupported() {
 
 int enableLocalApic() {
 
-	char* apic_base = 0;
 	unsigned long origin = 0;
 
-	__asm {
-		mov ecx, 0x1B
-		rdmsr
-		mov[origin], eax
-		mov eax, LOCAL_APIC_BASE
-		wrmsr
+	DWORD low = 0;
+	DWORD high = 0;
+	readmsr(0x1b,&low,&high);
+	origin = low;
 
-		mov edx, APIC_SPURIOUS_VECTOR
-		or edx,0x100
-		mov eax, LOCAL_APIC_BASE
-		mov dword ptr ds : [eax + 0xF0] , edx
+	high = 0;
+	low = LOCAL_APIC_BASE|0x800;
+	writemsr(0x1b, low, high);
 
-		mov ecx, 0x1B
-		rdmsr
-		mov[apic_base], eax
-		or eax, 0x800
-		wrmsr
-	}
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100 | APIC_SPURIOUS_VECTOR;
 
+	readmsr(0x1b, &low, &high);
 	char szout[256];
-	__printf(szout, "local apic base:%x,origin value:%x\r\n", apic_base, origin);
+	__printf(szout, "local apic value:%x,origin value:%x\r\n", low, origin);
 	return 0;
 }
 
@@ -1057,8 +1070,6 @@ int DisableLocalApicLVT() {
 
 int InitLocalApicTimer() {
 
-	return 0;
-
 	int v = 0;
 
 	v = 0x10000;
@@ -1100,7 +1111,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
-	//enableLocalApic();
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
@@ -1112,8 +1122,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__asm {sti}
 #endif
 
-	unsigned int value = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	int cpuid = value >> 24;
+	unsigned int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
+
 	//__enterLock(&g_allocate_ap_lock);
 	__enterSpinlock(&g_allocate_ap_lock);
 
@@ -1123,7 +1133,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	int* apids = (int*)AP_ID_ADDRESS;
 	apids[seq] = cpuid;
 	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
-
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -1222,22 +1231,22 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n", 
 		cpuid, localapic_ver, reg_esp,lint0,lint1,tid,ioapic_id, ioapic_ver);
 
-	//__printf(szout, "cpu:%d leave lock\r\n", cpuid);
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
-
 
 	//__asm{int APIC_IPI_VECTOR}
 
 	while (1) {
 		__asm {
-			//hlt
+			hlt
 		}
-
+#if 0
 		uint32_t irr4 = *(DWORD*)(LOCAL_APIC_BASE+0x140);
 		if (irr4 & (1 << 1)) {
 			__printf(szout,"GOT IPI in IRR! 0x%x\n", irr4);
 		}
+#endif
+		//unsigned int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		//__printf(szout, "ap id:%d wake\r\n", cpuid);
 	}
 }
@@ -1287,38 +1296,33 @@ void BPCodeStart() {
 	//WriteIoApicReg(0, g_bsp_id << 24);
 
 	WaitIcrFree();
-	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
 	DWORD v = 0xc4500;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(100);
+	__sleep(10);
 
 	WaitIcrFree();
-	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(100);
+	__sleep(10);
 
 #if 0
-	*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
+	WaitIcrFree();
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(100);
+	__sleep(10);
 #endif
 
 	int* ids = (int*)AP_ID_ADDRESS;
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
-		//__printf(szout, "ap:%d\r\n",  ids[i]);
 #if 1
-		WaitIcrFree();
-
-		unsigned int id = ids[i] << 24;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;
-		int v = APIC_IPI_VECTOR;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v | 0x4000;
+		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
 
 		v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, id, v);
+		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
 		AllocateApTask(APIC_IPI_VECTOR);
 #endif
@@ -1326,12 +1330,10 @@ void BPCodeStart() {
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
-
+	initHpet();
 	DisableInt();
 		
 	ret = DisableLocalApicLVT();
-
-	initHpet();
 
 	ret = InitLocalApicTimer();
 
@@ -1340,10 +1342,9 @@ void BPCodeStart() {
 	__asm {sti}
 #endif
 
-
+	__sleep(1000);
 	//AllocateApTask(2);
 
-	__sleep(100);
 	__printf(szout, "bsp id:%d version:%x lock:%d init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
 		g_bsp_id, localapic_ver, g_test_value,lint0,lint1, ioapic_id, ioapic_ver);
 
@@ -1442,7 +1443,7 @@ int GetIdleProcessor() {
 	}
 
 	if (total) {
-		BubbleSort(cpuStatus, cnt);
+		BubbleSort(cpuStatus, cnt+1);
 	}
 
 	unsigned int c = cpuStatus[0] & 0xffffff;

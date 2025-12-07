@@ -881,6 +881,8 @@ extern "C" void __declspec(naked)  BspTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO next = MultipleTssSchedule(stack);
 #endif
 
+		* (DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
 	}
 
 	__asm {
@@ -947,6 +949,8 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		//__printf(szout,"TimerInterrupt\r\n");
 
 		LPPROCESS_INFO next = SingleTssSchedule(stack);
+
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
 
 	__asm {
