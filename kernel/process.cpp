@@ -53,7 +53,6 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		return;
 	}
 
-	
 	//__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
 
 	LPPROCESS_INFO process = 0;
@@ -107,7 +106,31 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	RemoveTaskList(tid);
 
+	__kFree(tss[tid].espbase);
+
 	int pid = tss[tid].pid;
+
+	enter_task_lock();
+	TASK_LIST_ENTRY* result = 0;
+
+	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)GetTaskListHeader();
+	if (head) {
+		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
+		TASK_LIST_ENTRY* node = first;
+		do
+		{
+			if (node && node->valid && node->process && node->process->pid == pid)
+			{
+				RemoveList(&(head->list), (LIST_ENTRY*)&(node->list));
+				__kFree(node->process->espbase);
+			}
+			node = (TASK_LIST_ENTRY*)node->list.next;
+
+		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
+	}
+
+	leave_task_lock();
+
 	__kFreeProcess(pid);
 	__asm {sti}
 

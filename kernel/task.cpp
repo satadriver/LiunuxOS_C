@@ -36,7 +36,9 @@ TASK_LIST_ENTRY *gTasksListPtr = 0;
 TASK_LIST_ENTRY* gTasksListPos = 0;
 
 
-
+TASK_LIST_ENTRY* GetTaskListHeader() {
+	return gTasksListPtr;
+}
 
 
 void InitTaskList() {
@@ -44,8 +46,8 @@ void InitTaskList() {
 
 	gTasksListPtr = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 	gTasksListPos = gTasksListPtr;
-	gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	gTasksListPtr->valid = 1;
+	//gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	//gTasksListPtr->valid = 1;
 	InitListEntry(& gTasksListPtr->list);
 
 	InsertTaskList(0);
@@ -59,7 +61,7 @@ void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) 
 	__sleep(-1);
 }
 
-TASK_LIST_ENTRY* SearchTaskList(int tid) {
+TASK_LIST_ENTRY* SearchTaskListTid(int tid) {
 	__enterSpinlock(&g_task_lock);
 	TASK_LIST_ENTRY* result = 0;
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
@@ -70,6 +72,32 @@ TASK_LIST_ENTRY* SearchTaskList(int tid) {
 			break;
 		}
 	}
+	__leaveSpinlock(&g_task_lock);
+	return result;
+}
+
+
+TASK_LIST_ENTRY* SearchTaskListPid(int pid) {
+	__enterSpinlock(&g_task_lock);
+
+	TASK_LIST_ENTRY* result = 0;
+
+	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)gTasksListPtr;
+	if (head) {
+		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
+		TASK_LIST_ENTRY* node = first;
+		do
+		{
+			if (node && node->valid && node->process && node->process->pid == pid)
+			{
+				result = node;
+				break;
+			}
+			node = (TASK_LIST_ENTRY*)node->list.next;
+
+		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
+	}
+
 	__leaveSpinlock(&g_task_lock);
 	return result;
 }
@@ -124,23 +152,21 @@ TASK_LIST_ENTRY* RemoveTaskList(int tid) {
 	TASK_LIST_ENTRY * head = (TASK_LIST_ENTRY*)gTasksListPtr;
 	if (head) {
 		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
-		TASK_LIST_ENTRY* list = first;
+		TASK_LIST_ENTRY* node = first;
 		do
 		{
-			if (list && list->valid && list->process && list->process->tid == tid)
+			if (node && node->valid && node->process && node->process->tid == tid)
 			{
+				RemoveList(&(gTasksListPtr->list), (LIST_ENTRY*)&(node->list) );
 
-				RemoveList(&(gTasksListPtr->list), (LIST_ENTRY*)&(list->list) );
+				node->process->status = TASK_OVER;
+				node->process = 0;
 
-				list->process->status = TASK_OVER;
-				list->process = 0;
+				node->valid = FALSE;
 
-				list->valid = FALSE;
-
-				result = list;
-
-				
-				if (list == gTasksListPos) {
+				result = node;
+	
+				if (node == gTasksListPos) {
 					gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
 					if (gTasksListPos == 0) {
 						//error
@@ -153,11 +179,12 @@ TASK_LIST_ENTRY* RemoveTaskList(int tid) {
 				
 				break;
 			}
-			list = (TASK_LIST_ENTRY*)list->list.next;
+			node = (TASK_LIST_ENTRY*)node->list.next;
 
-		} while (list && list->valid && list != (TASK_LIST_ENTRY*)first);
+		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
 	__leaveSpinlock(&g_task_lock);
+
 	return result;
 }
 
@@ -603,47 +630,49 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	__enterSpinlock(&g_task_lock);
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)gTasksListPos->process;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
-	//TASK_LIST_ENTRY* prev = (TASK_LIST_ENTRY*)(gTasksListPos->list.prev);
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + process->tid);
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos->list.next;
 
 	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
-	if (proc->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
-		proc->status = TASK_OVER;
+	if (proc->status == TASK_TERMINATE  ) {
+		proc->status = TASK_OVER;	
+	}
+
+	if (process->status == TASK_TERMINATE) {
 		process->status = TASK_OVER;
 	}
-	else if (proc->status == TASK_OVER || process->status == TASK_OVER) {
-		process->status = TASK_OVER;
-		proc->status = TASK_OVER;
+
+	if (proc->status == TASK_OVER || process->status == TASK_OVER) {
 		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
-	else if (process->status == TASK_RUN && proc->status == TASK_RUN)
+
+	if (process->status == TASK_RUN )
 	{
 		if (process->sleep) {
 			process->sleep--;
-			proc->sleep = process->sleep;
-		}
-		else if (proc->sleep) {
-			proc->sleep--;
-			process->sleep = proc->sleep;
 		}
 		else {
 			process->counter++;
 		}
 	}
-	else if (process->status == TASK_SUSPEND || proc->status == TASK_SUSPEND) {
-		process->status = TASK_SUSPEND;
-		proc->status = TASK_SUSPEND;
+
+	if ( proc->status == TASK_RUN)
+	{
+		if (proc->sleep) {
+			proc->sleep--;
+		}
+		else {
+			proc->counter++;
+		}
 	}
-	else if (proc->status != process->status) {
-		__printf(szout, "%s prev tss status %d/%d error!\r\n", proc->status, process->status);
+
+	if (process->status == TASK_SUSPEND) {
 	}
-	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, proc->status);
-		goto  __SingleTssSchedule_end;
+
+	if (proc->status == TASK_SUSPEND) {
 	}
 
 	do {
@@ -652,7 +681,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next->process->status == TASK_TERMINATE) {
-
 			next->process->status == TASK_OVER;
 		}
 
@@ -935,44 +963,50 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	__enterSpinlock(&g_task_lock);
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)gTasksListPos->process;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + process->tid);
 
-	//TASK_LIST_ENTRY* prev = (TASK_LIST_ENTRY*)(gTasksListPos->list.prev);
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos->list.next;
 
 	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	if (proc->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+	if (proc->status == TASK_TERMINATE) {
 		proc->status = TASK_OVER;
+	}
+
+	if (process->status == TASK_TERMINATE) {
 		process->status = TASK_OVER;
 	}
-	else if (proc->status == TASK_OVER || process->status == TASK_OVER) {
-		//process->status = TASK_OVER;
-		//prev->status = TASK_OVER;
+
+	if (proc->status == TASK_OVER || process->status == TASK_OVER) {
 		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
-	else if (process->status == TASK_RUN || proc->status == TASK_RUN)
+
+	if (process->status == TASK_RUN)
 	{
 		if (process->sleep) {
 			process->sleep--;
-			proc->sleep = process->sleep;
-		}
-		else if (proc->sleep) {
-			proc->sleep--;
-			process->sleep = proc->sleep;
 		}
 		else {
 			process->counter++;
 		}
 	}
-	else if (process->status == TASK_SUSPEND || proc->status == TASK_SUSPEND) {
-		//process->status = TASK_SUSPEND;
-		//prev->status = TASK_SUSPEND;
+
+	if (proc->status == TASK_RUN)
+	{
+		if (proc->sleep) {
+			proc->sleep--;
+		}
+		else {
+			proc->counter++;
+		}
 	}
-	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, proc->status);
-		goto  __MultipleTssSchedule_end;
+
+	if (process->status == TASK_SUSPEND) {
+	}
+
+	if (proc->status == TASK_SUSPEND) {
 	}
 
 	do {

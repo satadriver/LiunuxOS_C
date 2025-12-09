@@ -12,6 +12,7 @@
 #include "core.h"
 #include "device.h"
 #include "coprocessor.h"
+#include "debugger.h"
 
 
 int gAllocateAp = 0;
@@ -1246,6 +1247,12 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enablePCE();
 	enableMCE();
 	enableTSD();
+
+	initDebugger();
+
+	EnableSyscall();
+
+	sysEntryInit((DWORD)sysEntry);
 
 	__asm {sti}
 
