@@ -32,6 +32,7 @@ void __kFreeProcess(int pid) {
 //3 any thread of process can call this to terminate process resident in
 // any process can call this to terminate self to other process with dwtid
 //above so,the most import element is dwtid
+#ifdef TASK_SWITCH_ARRAY
 extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 
 	int tid = dwtid & 0x7fffffff;
@@ -96,6 +97,28 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		__sleep(-1);
 	}
 }
+#else
+extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+	
+	__asm {cli}
+	int tid = dwtid & 0x7fffffff;
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+
+	RemoveTaskList(tid);
+
+	int pid = tss[tid].pid;
+	__kFreeProcess(pid);
+	__asm {sti}
+
+	if (dwtid & 0x80000000) {
+		return;
+	}
+	else {
+		__sleep(-1);
+	}
+}
+#endif
 
 
 
@@ -363,8 +386,13 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
 
-	//addTaskList(tss->tid);
 	tss->status = TASK_RUN;
+
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+	InsertTaskList(tss->tid);
+#endif
 
 	return TRUE;
 }

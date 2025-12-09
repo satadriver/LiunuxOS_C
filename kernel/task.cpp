@@ -16,11 +16,13 @@
 #include "apic.h"
 
 
+
+
+
 unsigned long g_task_lock = 0;
 
 
 void enter_task_lock() {
-
 	__enterSpinlock(&g_task_lock);
 }
 
@@ -31,26 +33,47 @@ void leave_task_lock() {
 }
 
 TASK_LIST_ENTRY *gTasksListPtr = 0;
+TASK_LIST_ENTRY* gTasksListPos = 0;
+
+
+
+
+
+void InitTaskList() {
+	__memset((char*)TASKS_LIST_BASE, 0, TASK_LIMIT_TOTAL * sizeof(TASK_LIST_ENTRY));
+
+	gTasksListPtr = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
+	gTasksListPos = gTasksListPtr;
+	gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	gTasksListPtr->valid = 1;
+	InitListEntry(& gTasksListPtr->list);
+
+}
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
 
-	removeTaskList(tid);
+	RemoveTaskList(tid);
 	__sleep(-1);
 }
 
-TASK_LIST_ENTRY* searchTaskList(int tid) {
+TASK_LIST_ENTRY* SearchTaskList(int tid) {
+	__enterSpinlock(&g_task_lock);
+	TASK_LIST_ENTRY* result = 0;
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 	for (int i = 1; i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (list[i].valid  && list[i].process->status == TASK_RUN && list[i].process->tid == tid) {
-			return &list[i];
+			result = &list[i];
+			break;
 		}
 	}
-	return 0;
+	__leaveSpinlock(&g_task_lock);
+	return result;
 }
 
-TASK_LIST_ENTRY* getFreeTaskList() {
-
+TASK_LIST_ENTRY* GetFreeTaskList() {
+	__enterSpinlock(&g_task_lock);
+	TASK_LIST_ENTRY* result = 0;
 	TASK_LIST_ENTRY *info = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 
 	int cnt = TASKS_LIST_BUF_SIZE / sizeof(TASK_LIST_ENTRY);
@@ -58,14 +81,18 @@ TASK_LIST_ENTRY* getFreeTaskList() {
 	{
 		if (info[i].valid == 0 && info[i].process == 0 )
 		{
-			return &info[i];
+			result = &info[i];
+			break;
 		}
 	}
-	return 0;
+	__leaveSpinlock(&g_task_lock);
+	return result;
 }
 
 
-TASK_LIST_ENTRY* addTaskList(int tid) {
+TASK_LIST_ENTRY* InsertTaskList(int tid) {
+	__enterSpinlock(&g_task_lock);
+	TASK_LIST_ENTRY* result = 0;
 	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
@@ -77,40 +104,51 @@ TASK_LIST_ENTRY* addTaskList(int tid) {
 			list[i].process = base + tid;
 			list[i].process->status = TASK_RUN;
 			
-			InsertListTail((LIST_ENTRY*)&gTasksListPtr->list, (LIST_ENTRY*)&list[i].list);
-			return &list[i];
+			InsertListTail((LIST_ENTRY*)&(gTasksListPtr->list), (LIST_ENTRY*)&(list[i].list) );
+			result = &list[i];
+			break;
 		}
 	}
-	return 0;
+	__leaveSpinlock(&g_task_lock);
+	return result;
 }
 
-TASK_LIST_ENTRY* removeTaskList(int tid) {
+TASK_LIST_ENTRY* RemoveTaskList(int tid) {
+	__enterSpinlock(&g_task_lock);
+	TASK_LIST_ENTRY* result = 0;
 
 	TASK_LIST_ENTRY * head = (TASK_LIST_ENTRY*)gTasksListPtr;
-	if (head == 0) {
-		return 0;
-	}
-	TASK_LIST_ENTRY* list =(TASK_LIST_ENTRY*) &(head->list);
-	TASK_LIST_ENTRY* base = list;
-	do 
-	{
-		if (list && list->valid && list->process && list->process->tid == tid)
+	if (head) {
+		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
+		TASK_LIST_ENTRY* list = first;
+		do
 		{
+			if (list && list->valid && list->process && list->process->tid == tid)
+			{
 
-			RemoveList(&gTasksListPtr->list,(LIST_ENTRY*)&list->list);
+				RemoveList(&(gTasksListPtr->list), (LIST_ENTRY*)&(list->list) );
 
-			list->process->status = TASK_OVER;
-			list->process = 0;
+				list->process->status = TASK_OVER;
+				list->process = 0;
 
-			list->valid = FALSE;
+				list->valid = FALSE;
 
-			return list;
-		}
-		list = (TASK_LIST_ENTRY *)list->list.next;
+				result = list;
 
-	} while (list && list->valid && list != (TASK_LIST_ENTRY *)base);
+				if (list == gTasksListPos) {
+					gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+					if (gTasksListPos == 0) {
+						gTasksListPos = gTasksListPtr;
+					}
+				}
+				break;
+			}
+			list = (TASK_LIST_ENTRY*)list->list.next;
 
-	return 0;
+		} while (list && list->valid && list != (TASK_LIST_ENTRY*)first);
+	}
+	__leaveSpinlock(&g_task_lock);
+	return result;
 }
 
 
@@ -358,56 +396,55 @@ void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 }
 
 
-
+#ifdef TASK_SWITCH_ARRAY
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[1024];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
-	LPPROCESS_INFO next = prev;
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+	LPPROCESS_INFO next = current;
 
-	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	cpuid = cpuid >> 24;
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
-	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
-		prev->status = TASK_OVER;
+	if (current->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		current->status = TASK_OVER;
 		process->status = TASK_OVER;
-		if (prev->tid == prev->pid) {
+		if (current->tid == current->pid) {
 			//__kFreeProcess(prev->pid);
 		}
 		else {
 			//__kFree(prev->espbase);
 		}
 	}
-	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
+	else if (current->status == TASK_OVER || process->status == TASK_OVER) {
 		process->status = TASK_OVER;
-		prev->status = TASK_OVER;
+		current->status = TASK_OVER;
 		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
-	else if (process->status == TASK_RUN && prev->status == TASK_RUN)
+	else if (process->status == TASK_RUN && current->status == TASK_RUN)
 	{
 		if (process->sleep) {
 			process->sleep--;
-			prev->sleep = process->sleep;
+			current->sleep = process->sleep;
 		}
-		else if (prev->sleep) {
-			prev->sleep--;
-			process->sleep = prev->sleep;
+		else if (current->sleep) {
+			current->sleep--;
+			process->sleep = current->sleep;
 		}
 		else {
 			process->counter++;
 		}
 	}
-	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
+	else if (process->status == TASK_SUSPEND || current->status == TASK_SUSPEND) {
 		//process->status = TASK_SUSPEND;
 		//prev->status = TASK_SUSPEND;
 	}
-	else if ( prev->status != process->status) {
-		__printf(szout, "%s prev tss status %d/%d error!\r\n", prev->status,process->status);
+	else if (current->status != process->status) {
+		__printf(szout, "%s prev tss status %d/%d error!\r\n", current->status,process->status);
 	}
 	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, current->status);
 		return 0;
 	}
 	
@@ -417,7 +454,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			next = tss;
 		}
 
-		if (next == prev) {
+		if (next == current) {
 			return FALSE;
 		}
 
@@ -484,19 +521,19 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
 
-	debugReg(next, prev);
+	debugReg(next, current);
 
-	if (prev->copyMap == 0) {
+	if (current->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
-		__memcpy((char*)prev, (char*)process, off);
+		__memcpy((char*)current, (char*)process, off);
 		off = OFFSETOF(TSS, iomapEnd);
 		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev + off, (char*)process + off, lsize);
+		__memcpy((char*)current + off, (char*)process + off, lsize);
 	}
 	else {
-		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+		__memcpy((char*)current, (char*)process, sizeof(PROCESS_INFO));
 	}
-	if (process->copyMap == 0) {
+	if (next->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)process, (char*)next, off);
 		off = OFFSETOF(TSS, iomapEnd);
@@ -509,7 +546,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	//tasktest();
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
@@ -550,54 +587,233 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	return next;
 }
+#else
+LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
+	char szout[1024];
 
+	__enterSpinlock(&g_task_lock);
+
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)gTasksListPos->process;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+	//TASK_LIST_ENTRY* prev = (TASK_LIST_ENTRY*)(gTasksListPos->list.prev);
+	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos->list.next;
+
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
+
+	if (proc->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		proc->status = TASK_OVER;
+		process->status = TASK_OVER;
+	}
+	else if (proc->status == TASK_OVER || process->status == TASK_OVER) {
+		process->status = TASK_OVER;
+		proc->status = TASK_OVER;
+		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
+	}
+	else if (process->status == TASK_RUN && proc->status == TASK_RUN)
+	{
+		if (process->sleep) {
+			process->sleep--;
+			proc->sleep = process->sleep;
+		}
+		else if (proc->sleep) {
+			proc->sleep--;
+			process->sleep = proc->sleep;
+		}
+		else {
+			process->counter++;
+		}
+	}
+	else if (process->status == TASK_SUSPEND || proc->status == TASK_SUSPEND) {
+		process->status = TASK_SUSPEND;
+		proc->status = TASK_SUSPEND;
+	}
+	else if (proc->status != process->status) {
+		__printf(szout, "%s prev tss status %d/%d error!\r\n", proc->status, process->status);
+	}
+	else {
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, proc->status);
+		goto  __SingleTssSchedule_end;
+	}
+	do {
+		if (next->process == proc) {
+			goto  __SingleTssSchedule_end;
+		}
+
+		if (next->process->status == TASK_TERMINATE) {
+
+			next->process->status == TASK_OVER;
+		}
+
+		if (next->process->status == TASK_RUN) {
+			if (next->process->sleep) {
+				next->process->sleep--;
+			}
+			else {
+				if (next->process->cpuid == cpuid) {
+					break;
+				}
+			}
+		}
+
+		next = (TASK_LIST_ENTRY * )(next->list.next);
+	} while (next && (next->process != proc) );
+
+	gTasksListPos = next;
+
+	process->tss.eax = env->eax;
+	process->tss.ecx = env->ecx;
+	process->tss.edx = env->edx;
+	process->tss.ebx = env->ebx;
+	process->tss.esp = env->esp;
+	process->tss.ebp = env->ebp;
+	process->tss.esi = env->esi;
+	process->tss.edi = env->edi;
+	process->tss.ss = env->ss;
+	process->tss.gs = env->gs;
+	process->tss.fs = env->fs;
+	process->tss.ds = env->ds;
+	process->tss.es = env->es;
+
+	process->tss.eip = env->eip;
+	process->tss.cs = env->cs;
+	process->tss.eflags = env->eflags;
+
+	DWORD dwcr3 = 0;
+	__asm {
+		mov eax, cr3
+		mov dwcr3, eax
+	}
+	process->tss.cr3 = dwcr3;
+
+	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
+	//DescriptTableReg ldtreg;
+	// 	__asm {
+	//		sldt ldtreg;
+	// 	}
+	//process->tss.ldt = ldtreg.addr;
+
+	debugReg(next->process, proc);
+
+	if (proc->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)proc, (char*)process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)proc + off, (char*)process + off, lsize);
+	}
+	else {
+		__memcpy((char*)proc, (char*)process, sizeof(PROCESS_INFO));
+	}
+	if (process->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)process, (char*)next->process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)process + off, (char*)next->process + off, lsize);
+	}
+	else {
+		__memcpy((char*)process, (char*)next->process, sizeof(PROCESS_INFO));
+	}
+
+	//tasktest();
+
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (process->tid << 9);
+	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
+	//The assembler issues two instructions for the FSAVE instruction 
+	// (an FWAIT instruction followed by an FNSAVE instruction), 
+	//and the processor executes each of these instructions separately.
+	//If an exception is generated for either of these instructions,
+	// the save EIP points to the instruction that caused the exception.
+	__asm {
+		FNCLEX
+		fninit
+		//fwait
+		mov eax, fenvprev
+		FxSAVE[eax]
+		//fsave [fenv]
+	}
+
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->process->tid << 9);
+	__asm {
+		mov eax, fenvnext
+		//frstor [fenv]
+		fxrstor[eax]
+		FNCLEX
+		fninit
+	}
+
+	env->eax = process->tss.eax;
+	env->ecx = process->tss.ecx;
+	env->edx = process->tss.edx;
+	env->ebx = process->tss.ebx;
+	env->esp = process->tss.esp;
+	env->ebp = process->tss.ebp;
+	env->esi = process->tss.esi;
+	env->edi = process->tss.edi;
+	env->gs = process->tss.gs;
+	env->fs = process->tss.fs;
+	env->ds = process->tss.ds;
+	env->es = process->tss.es;
+	env->ss = process->tss.ss;
+
+__SingleTssSchedule_end:
+	__leaveSpinlock(&g_task_lock);
+
+	return next->process;
+}
+#endif
+
+
+
+#ifdef TASK_SWITCH_ARRAY
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[1024];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
 
-	LPPROCESS_INFO next = prev;
+	LPPROCESS_INFO next = current;
 
 	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
 	cpuid = cpuid >> 24;
 
-	if (prev->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
-		prev->status = TASK_OVER;
+	if (current->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		current->status = TASK_OVER;
 		process->status = TASK_OVER;
-		if (prev->tid == prev->pid) {
+		if (current->tid == current->pid) {
 			//__kFreeProcess(prev->pid);
 		}
 		else {
 			//__kFree(prev->espbase);
 		}
 	}
-	else if (prev->status == TASK_OVER || process->status == TASK_OVER) {
+	else if (current->status == TASK_OVER || process->status == TASK_OVER) {
 		//process->status = TASK_OVER;
 		//prev->status = TASK_OVER;
 		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
-	else if (process->status == TASK_RUN || prev->status == TASK_RUN)
+	else if (process->status == TASK_RUN || current->status == TASK_RUN)
 	{
 		if (process->sleep) {
 			process->sleep--;
-			prev->sleep = process->sleep;
+			current->sleep = process->sleep;
 		}
-		else if (prev->sleep) {
-			prev->sleep--;
-			process->sleep = prev->sleep;
+		else if (current->sleep) {
+			current->sleep--;
+			process->sleep = current->sleep;
 		}
 		else {
 			process->counter++;
 		}
 	}
-	else if (process->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
+	else if (process->status == TASK_SUSPEND || current->status == TASK_SUSPEND) {
 		//process->status = TASK_SUSPEND;
 		//prev->status = TASK_SUSPEND;
 	}
 	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, prev->status);
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, current->status);
 		return 0;
 	}
 	
@@ -607,7 +823,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			next = tss;
 		}
 
-		if (next == prev) {
+		if (next == current) {
 			return FALSE;
 		}
 
@@ -649,19 +865,19 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
 
-	debugReg(next, prev);
+	debugReg(next, current);
 
-	if (prev->copyMap == 0) {
+	if (current->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
-		__memcpy((char*)prev, (char*)process, off);
+		__memcpy((char*)current, (char*)process, off);
 		off = OFFSETOF(TSS, iomapEnd);
 		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev + off, (char*)process + off, lsize);
+		__memcpy((char*)current + off, (char*)process + off, lsize);
 	}
 	else {
-		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
+		__memcpy((char*)current, (char*)process, sizeof(PROCESS_INFO));
 	}
-	if (process->copyMap == 0) {
+	if (next->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)process, (char*)next, off);
 		off = OFFSETOF(TSS, iomapEnd);
@@ -674,7 +890,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	//tasktest();
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
@@ -701,7 +917,141 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	return next;
 }
+#else
+LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
+	char szout[1024];
+
+	__enterSpinlock(&g_task_lock);
+
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)gTasksListPos->process;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+	//TASK_LIST_ENTRY* prev = (TASK_LIST_ENTRY*)(gTasksListPos->list.prev);
+	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos->list.next;
+
+	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	if (proc->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
+		proc->status = TASK_OVER;
+		process->status = TASK_OVER;
+	}
+	else if (proc->status == TASK_OVER || process->status == TASK_OVER) {
+		//process->status = TASK_OVER;
+		//prev->status = TASK_OVER;
+		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
+	}
+	else if (process->status == TASK_RUN || proc->status == TASK_RUN)
+	{
+		if (process->sleep) {
+			process->sleep--;
+			proc->sleep = process->sleep;
+		}
+		else if (proc->sleep) {
+			proc->sleep--;
+			process->sleep = proc->sleep;
+		}
+		else {
+			process->counter++;
+		}
+	}
+	else if (process->status == TASK_SUSPEND || proc->status == TASK_SUSPEND) {
+		//process->status = TASK_SUSPEND;
+		//prev->status = TASK_SUSPEND;
+	}
+	else {
+		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, proc->status);
+		goto  __MultipleTssSchedule_end;
+	}
+
+	do {
+		if (next->process == proc) {
+			goto  __MultipleTssSchedule_end;
+		}
+
+		if (next->process->status == TASK_TERMINATE) {
+			next->process->status == TASK_OVER;
+		}
+
+		if (next->process->status == TASK_RUN) {
+			if (next->process->sleep) {
+				next->process->sleep--;
+			}
+			else {
+				if (next->process->cpuid == cpuid) {
+					break;
+				}
+			}
+		}
+
+		next = (TASK_LIST_ENTRY*)(next->list.next);
+	} while (next && (next->process != proc));
+
+	gTasksListPos = next;
+
+	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
+	//DescriptTableReg ldtreg;
+	// 	__asm {
+	//		sldt ldtreg;
+	// 	}
+	//process->tss.ldt = ldtreg.addr;
+
+	debugReg(next->process, proc);
+
+	if (proc->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)proc, (char*)process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)proc + off, (char*)process + off, lsize);
+	}
+	else {
+		__memcpy((char*)proc, (char*)process, sizeof(PROCESS_INFO));
+	}
+	if (process->copyMap == 0) {
+		int off = OFFSETOF(TSS, intMap);
+		__memcpy((char*)process, (char*)next->process, off);
+		off = OFFSETOF(TSS, iomapEnd);
+		int lsize = sizeof(PROCESS_INFO) - off;
+		__memcpy((char*)process + off, (char*)next->process + off, lsize);
+	}
+	else {
+		__memcpy((char*)process, (char*)next->process, sizeof(PROCESS_INFO));
+	}
+
+	//tasktest();
+
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + (proc->tid << 9);
+	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
+	//The assembler issues two instructions for the FSAVE instruction 
+	// (an FWAIT instruction followed by an FNSAVE instruction), 
+	//and the processor executes each of these instructions separately.
+	//If an exception is generated for either of these instructions,
+	// the save EIP points to the instruction that caused the exception.
+	__asm {
+		FNCLEX
+		//fwait
+		fninit
+		mov eax, fenvprev
+		FxSAVE[eax]
+		//fsave [fenv]
+	}
+
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->process->tid << 9);
+	__asm {
+		mov eax, fenvnext
+		//frstor [fenv]
+		fxrstor[eax]
+		FNCLEX
+		fninit
+	}
+__MultipleTssSchedule_end:
+
+	__leaveSpinlock(&g_task_lock);
+	return next->process;
+}
+
+#endif
 
 
 
@@ -724,14 +1074,14 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
 
-	if (process->tid != prev->tid) {
-		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, prev->tid);
+	if (process->tid != current->tid) {
+		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, current->tid);
 		return 0;
 	}
 
-	V86ProcessCheck(env, prev, process);
+	V86ProcessCheck(env, current, process);
 
 #ifdef SINGLE_TASK_TSS
 	LPPROCESS_INFO next = SingleTssSchedule(env);
@@ -750,8 +1100,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
-			process->tss.link, prev->tss.link, next->tss.link, env->eflags, process->tss.eflags, prev->tss.eflags, next->tss.eflags,
-			prev->pid, prev->tid, next->pid, next->tid, timeh2, cpurate);
+			process->tss.link, current->tss.link, next->tss.link, env->eflags, process->tss.eflags, current->tss.eflags, next->tss.eflags,
+			current->pid, current->tid, next->pid, next->tid, timeh2, cpurate);
 	}
 	return TRUE;
 }
@@ -817,13 +1167,13 @@ int __initTask0(char * videobase) {
 	process0->window = 0;
 	__memcpy((char*)TASKS_TSS_BASE, (char*)GetCurrentTaskTssBase(), sizeof(PROCESS_INFO));
 
-	/*
-	__memset((char*)TASKS_LIST_BASE, 0, TASK_LIMIT_TOTAL * sizeof(TASK_LIST_ENTRY));
-	gTasksListPtr = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	initListEntry(&gTasksListPtr->list);
-	gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	gTasksListPtr->valid = TRUE;
-	*/
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+	InitTaskList();
+
+	InsertTaskList(KERNEL_PROCESS_ID);
+#endif
 
 	//__memset((char*)V86_TASKCONTROL_ADDRESS, 0, LIMIT_V86_PROC_COUNT*12);
 

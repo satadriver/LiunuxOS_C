@@ -110,6 +110,12 @@ void setIoApicID(int id) {
 }
 
 
+void WaitIcrFree() {
+	unsigned int value = 0;
+	do {
+		value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+	} while (value & 0x1000);
+}
 
 
 void enableIoApic() {
@@ -180,7 +186,7 @@ void enableIMCR() {
 
 
 int getLVTCount(int n) {
-	int cnt = *(long long*)(LOCAL_APIC_BASE + 0x30) >>16;
+	int cnt =(int) *(long long*)(LOCAL_APIC_BASE + 0x30) >>16;
 	return cnt;
 }
 
@@ -313,17 +319,21 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 	if (destType == 0) {
 		unsigned int id = cpu << 24;
 		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;	
+		
 	}
 
 	iomfence();
 
 	unsigned int v = vector;
+	v = v | 0x4000;
+
 	if (mode == 0) {
-		v = v | 0x4000;
+		
 	}
 	else {
 		v = ((mode & 7) << 8) | v;
 	}
+
 	if (destType) {
 		v = v | ((destType & 3) << 18);
 	}
@@ -331,7 +341,7 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
 	v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-	char szout[256];
+	//char szout[256];
 	//__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
 
 	return;
@@ -449,6 +459,9 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, "%s\r\n", __FUNCTION__);
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
+		*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
+
 		int intInSec = (1000 / TASK_TIME_SLICE);
 
 		/*
@@ -563,8 +576,11 @@ extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 	{
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 
+		*(DWORD*)(LOCAL_APIC_BASE + 0x370) = 0;
+		DWORD error = *(DWORD*)(LOCAL_APIC_BASE + 0x370);
+
 		char szout[256];
-		__printf(szout, "%s\r\n", __FUNCTION__);
+		__printf(szout, "%s error:%x\r\n", __FUNCTION__,error);
 	}
 
 	__asm {
@@ -938,12 +954,6 @@ int AllocateApTask(int intnum) {
 
 
 
-void WaitIcrFree() {
-	unsigned int value = 0;
-	do {
-		value = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-	} while (value & 0x1000);
-}
 
 
 int ActiveApTask(int intnum) {
@@ -1067,6 +1077,18 @@ int DisableLocalApicLVT() {
 }
 
 
+int InitLocalApicCmci() {
+	int v = APIC_LVTCMCI_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x2f0) = v;
+	return 0;
+}
+
+
+int InitLocalApicErr() {
+	int v = APIC_LVTERROR_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x370) = v;
+	return 0;
+}
 
 int InitLocalApicTimer() {
 
@@ -1075,15 +1097,14 @@ int InitLocalApicTimer() {
 	v = 0x10000;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
 
-	v = 0x0b;
+	v = 0x03;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
 
-	v = 1000000 / (1000 / TASK_TIME_SLICE);
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
-
 	v = APIC_LVTTIMER_VECTOR | 0x20000;
-
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+
+	v = 1000000 *16/ (1000 / TASK_TIME_SLICE);
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
 
 	return 0;
 }
@@ -1170,7 +1191,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	process->vasize = 0;
 	process->moduleaddr = (DWORD)0;
 	process->videoBase = (char*)gGraphBase;
-	process->showX = GRAPHCHAR_HEIGHT * cpuid *16+256;
+	process->showX = 0;
 	process->showY = GRAPHCHAR_HEIGHT * cpuid * 16+256;
 	process->window = 0;
 	process->sleep = 0;
@@ -1267,10 +1288,11 @@ void BPCodeStart() {
 
 	//__asm {cli}
 	enableLocalApic();
+
+	enableIoApic();
+
 #if 0
 	enableRcba();
-	enableIoApic();
-	enableLocalApic();
 #endif
 	//__asm {sti}
 
@@ -1295,38 +1317,53 @@ void BPCodeStart() {
 
 	//WriteIoApicReg(0, g_bsp_id << 24);
 
-	WaitIcrFree();
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
-	DWORD v = 0xc4500;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(10);
-
-	WaitIcrFree();
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
-	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
-	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(10);
+	DWORD v = 0;
 
 #if 0
 	WaitIcrFree();
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x310) = 0;
+	v = 0xc4500;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+#else
+	SetIcr(0, 0, 5, 3);
+#endif
+	__sleep(0);
+
+#if 0
+	WaitIcrFree();
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(10);
+#else
+	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
+	__sleep(0);
+
+#if 0
+	WaitIcrFree();
+	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
+	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
+	__sleep(0);
+#else
+	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
+#endif
+	__sleep(0);
 
 	int* ids = (int*)AP_ID_ADDRESS;
 	int cnt = *(int*)(AP_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
-#if 1
+#if 0
 		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
-
 		v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
 		AllocateApTask(APIC_IPI_VECTOR);
 #endif
 	}
+
+	//InitLocalApicErr();
+
+	//InitLocalApicCmci();
+
+	//ret = InitLocalApicTimer();
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
@@ -1335,14 +1372,12 @@ void BPCodeStart() {
 		
 	ret = DisableLocalApicLVT();
 
-	ret = InitLocalApicTimer();
-
 	InitIoApicRte();
 
 	__asm {sti}
 #endif
 
-	__sleep(1000);
+	__sleep(0);
 	//AllocateApTask(2);
 
 	__printf(szout, "bsp id:%d version:%x lock:%d init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 

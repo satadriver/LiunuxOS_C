@@ -118,7 +118,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	
 #ifdef LOCAL_APIC_ENABLE
-	BPCodeStart();
+	//BPCodeStart();
 #endif
 
 	ret = StartVirtualTechnology();
@@ -138,8 +138,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 #endif
 	
-
-
 	//EnterLongMode();
 
 	int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);

@@ -76,9 +76,10 @@ int __pauseTid(int tid);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
-TASK_LIST_ENTRY* addTaskList(int tid);
+void InitTaskList();
+TASK_LIST_ENTRY* InsertTaskList(int tid);
 
-TASK_LIST_ENTRY* removeTaskList(int tid);
+TASK_LIST_ENTRY* RemoveTaskList(int tid);
 
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 

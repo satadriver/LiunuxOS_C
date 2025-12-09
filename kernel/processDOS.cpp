@@ -22,11 +22,11 @@
 DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 
-void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO proc) {
+void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO proc) {
 	char szout[1024];
-	if ((env->eflags & 0x20000) && prev->level == 3 && proc->level == 3) {
-		DWORD reip = (WORD)prev->tss.eip;
-		DWORD rcs = (WORD)prev->tss.cs;
+	if ((env->eflags & 0x20000) && current->level == 3 && proc->level == 3) {
+		DWORD reip = (WORD)current->tss.eip;
+		DWORD rcs = (WORD)current->tss.cs;
 		WORD code = *(WORD*)((rcs << 4) + reip + 2);
 		WORD code2 = *(WORD*)((rcs << 4) + reip );
 		if (code == 0xfeeb || code2 == 0xfeeb) {
@@ -34,10 +34,10 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO prev, LPPROCESS_INFO
 			LPDOS_PE_CONTROL info = (LPDOS_PE_CONTROL)g_v86ControlBloack;
 			for (int i = 0; i < LIMIT_V86_PROC_COUNT; i++)
 			{
-				if (info[i].pid == prev->pid)
+				if (info[i].pid == current->pid)
 				{
 					proc->status = TASK_OVER;
-					prev->status = TASK_OVER;
+					current->status = TASK_OVER;
 					info[i].status = TASK_OVER;
 					__printf(szout,"kill dos program:%s,pid:%d\r\n",info[i].name, info[i].pid);
 					break;
@@ -309,7 +309,12 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	__strcpy(tss->funcname, funcname);
 
-	//addTaskList(tss->tid);
 	tss->status = TASK_RUN;
+
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+	InsertTaskList(tss->tid);
+#endif
 	return TRUE;
 }

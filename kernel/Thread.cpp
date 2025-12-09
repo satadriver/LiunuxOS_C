@@ -10,6 +10,8 @@
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
 //above so,the most import element is dwtid
+
+#ifdef TASK_SWITCH_ARRAY
 extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 
 	int tid = dwtid & 0x7fffffff;
@@ -66,6 +68,26 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	return 0;
 }
+#else
+extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+	__asm {cli}
+	int tid = dwtid & 0x7fffffff;
+
+	RemoveTaskList(tid);
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	__kFree(tss[tid].espbase);
+
+	__asm {sti}
+
+	if (dwtid & 0x80000000) {
+		return;
+	}
+	else {
+		__sleep(-1);
+	}
+}
+#endif
 
 DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) {
 
@@ -256,8 +278,12 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->window = 0;
 	tss->videoBase = (char*)gGraphBase;
 
-	//addTaskList(tss->tid);
 	tss->status = TASK_RUN;
 
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+	InsertTaskList(tss->tid);
+#endif
 	return TRUE;
 }
