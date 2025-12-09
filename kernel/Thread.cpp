@@ -35,8 +35,6 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	//__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
 
-
-
 	if (current->tid == tid)
 	{
 		current->status = TASK_TERMINATE;
@@ -46,8 +44,6 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	}
 
 	tss[tid].status = TASK_TERMINATE;
-
-
 
 	__kFree(tss[tid].espbase);
 

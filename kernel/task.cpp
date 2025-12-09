@@ -48,6 +48,9 @@ void InitTaskList() {
 	gTasksListPtr->valid = 1;
 	InitListEntry(& gTasksListPtr->list);
 
+	InsertTaskList(0);
+
+	gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
 }
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
@@ -105,6 +108,7 @@ TASK_LIST_ENTRY* InsertTaskList(int tid) {
 			list[i].process->status = TASK_RUN;
 			
 			InsertListTail((LIST_ENTRY*)&(gTasksListPtr->list), (LIST_ENTRY*)&(list[i].list) );
+			//gTasksListPos = &list[i];
 			result = &list[i];
 			break;
 		}
@@ -135,12 +139,18 @@ TASK_LIST_ENTRY* RemoveTaskList(int tid) {
 
 				result = list;
 
+				
 				if (list == gTasksListPos) {
 					gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
 					if (gTasksListPos == 0) {
-						gTasksListPos = gTasksListPtr;
+						//error
+						//gTasksListPos = gTasksListPtr;
+						char szout[256];
+						__printf(szout, "%s error!\r\n", __FUNCTION__);
+						
 					}
 				}
+				
 				break;
 			}
 			list = (TASK_LIST_ENTRY*)list->list.next;
@@ -635,6 +645,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, proc->status);
 		goto  __SingleTssSchedule_end;
 	}
+
 	do {
 		if (next->process == proc) {
 			goto  __SingleTssSchedule_end;
@@ -1172,7 +1183,7 @@ int __initTask0(char * videobase) {
 #else
 	InitTaskList();
 
-	InsertTaskList(KERNEL_PROCESS_ID);
+	//InsertTaskList(KERNEL_PROCESS_ID);
 #endif
 
 	//__memset((char*)V86_TASKCONTROL_ADDRESS, 0, LIMIT_V86_PROC_COUNT*12);

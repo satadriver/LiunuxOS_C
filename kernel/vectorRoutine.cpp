@@ -1305,8 +1305,6 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		outportb(0x20, 0x20);
 #endif
 
-
-
 	}
 
 	__asm {

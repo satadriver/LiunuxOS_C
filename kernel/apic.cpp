@@ -1256,6 +1256,11 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//__leaveLock(&g_allocate_ap_lock);
 
 	//__asm{int APIC_IPI_VECTOR}
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+	InsertTaskList(tid);
+#endif
 
 	while (1) {
 		__asm {

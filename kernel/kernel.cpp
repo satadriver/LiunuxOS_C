@@ -118,7 +118,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	
 #ifdef LOCAL_APIC_ENABLE
-	//BPCodeStart();
+	BPCodeStart();
 #endif
 
 	ret = StartVirtualTechnology();
@@ -162,13 +162,14 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	while (1)
 	{
-		//break;
+		break;
 
 		int ck = __kGetKbd(window.id)&0xff;
 		if (ck==0x1b ) {
 			break;
 		}
 		__sleep(0);
+		
 	}
 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
