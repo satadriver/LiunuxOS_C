@@ -1004,6 +1004,30 @@ DWORD __enterSpinlock(DWORD * lpv) {
 }
 
 
+DWORD __enterSpinlockTry(DWORD* lpv,int * cnt) {
+	int result = 0;
+	__asm {
+		mov ecx,cnt
+		__enterSpinLockLoop:
+		mov eax, lpv
+		lock bts ds:[eax], 0
+		jnc __getSpinLock
+		pause
+		cmp [ecx],0
+		jz __notGetLock
+		dec dword ptr ds:[ecx]
+		jmp __enterSpinLockLoop
+		__notGetLock:
+		mov [result],0
+		jmp __enterSpinlockTry_end
+		__getSpinLock :
+		mov[result] , 1
+		__enterSpinlockTry_end:
+	}
+	return result;
+}
+
+
 DWORD __leaveSpinlock(DWORD * lpv) {
 	__asm {
 		mov edx, lpv
@@ -1024,7 +1048,6 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD * lockv) {
 		jz __get_spinlock
 		nop
 		pause
-		nop
 		jmp __spinlock_xchg
 		__get_spinlock:
 	}
@@ -1046,24 +1069,24 @@ extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv) {
 //cmpxchg oprd1,oprd2  oprd1:mem or reg,oprd2:reg
 //CMPXCHG r/m,r
 //CMPXCHG r/m, r 
-// 将累加器AL/AX/EAX/RAX中的值与首操作数（目的操作数）比较
-// 如果相等，第2操作数（源操作数）的值装载到首操作数，zf置1。如果不等， 首操作数的值装载到AL/AX/EAX/RAX并将zf清0
+// 将AL/AX/EAX/RAX中的值与目的操作数比较:
+// 如果相等,将源操作数的值装载到目的操作数,zf置1;如果不等,将目的操作数的值装载到AL/AX/EAX/RAX,将zf清0
 DWORD __enterLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
 		
-	__waitZeroValue:
+	__waitLock:
 		mov ecx, lockvalue
 		mov eax, 0
 		mov edx, 1
 		lock cmpxchg ds:[ecx], edx
-		jz __entryFree
+		jz __entryLock
 		mov result,eax
 		nop
 		pause
-		jmp __waitZeroValue
-		__entryFree :
+		jmp __waitLock
+		__entryLock :
 	}
 	
 	return result;

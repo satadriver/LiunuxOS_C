@@ -343,7 +343,6 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
-
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
 	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,tid);

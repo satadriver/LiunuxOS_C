@@ -1473,10 +1473,10 @@ int GetIdleProcessor() {
 		return g_bsp_id;
 	}
 
-	LPPROCESS_INFO p = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (p[i].status == TASK_RUN ) {
-			int cpuid = p[i].cpuid;
+		if (proc[i].status == TASK_RUN ) {
+			int cpuid = proc[i].cpuid;
 			if(cpuid < 0 || cpuid >=256){
 				__printf(szout, "%s cpuid error:%d\r\n",__FUNCTION__, cpuid);
 				break;

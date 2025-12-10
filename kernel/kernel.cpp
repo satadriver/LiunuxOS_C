@@ -162,7 +162,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	while (1)
 	{
-		break;
+		//break;
 
 		int ck = __kGetKbd(window.id)&0xff;
 		if (ck==0x1b ) {

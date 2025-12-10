@@ -223,12 +223,15 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 
 
 int __getFreeTask(LPTASKRESULT ret) {
+	int result = 0;
 	if (ret == 0)
 	{
 		return FALSE;
 	}
 	ret->lptss = 0;
 	ret->number = 0;
+
+	__enterSpinlock(&g_task_lock);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -241,11 +244,12 @@ int __getFreeTask(LPTASKRESULT ret) {
 
 			ret->number = i;
 			ret->lptss = &tss[i];
-			return TRUE;
+			result = 1;
+			break;
 		}
 	}
-
-	return FALSE;
+	__leaveSpinlock(&g_task_lock);
+	return result;
 }
 
 
@@ -296,98 +300,97 @@ LPPROCESS_INFO __findProcessByTid(int tid) {
 
 
 int __terminateByFileName(char * filename) {
-
+	__enterSpinlock(&g_task_lock);
 	LPPROCESS_INFO p = __findProcessFileName(filename);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return FALSE;
 }
 
 int __terminateByFuncName(char * funcname) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO * p = __findProcessFuncName(funcname);
 	if (p)
 	{
 		p->status = TASK_OVER;
 
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return FALSE;
 }
 
 int __terminatePid(int pid) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_OVER;
-
 	}
+	__leaveSpinlock(&g_task_lock);
 	return 0;
 }
 
 
 int __terminateTid(int tid) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_OVER;
-
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return 0;
 }
 
 
 
 int __pauseTid(int tid) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return 0;
 }
 
 
 int __resumeTid(int tid) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return 0;
 }
 
 
 int __pausePid(int pid) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return 0;
 }
 
 
 int __resumePid(int pid) {
-
+	__enterSpinlock(&g_task_lock);
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-
+	__leaveSpinlock(&g_task_lock);
 	return 0;
 }
 
@@ -627,8 +630,11 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 #else
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[1024];
-
-	__enterSpinlock(&g_task_lock);
+	//int trycnt = 256;
+	//int ret = __enterSpinlockTry(&g_task_lock,&trycnt);
+	//if (ret == 0 || trycnt == 0) {
+	//	return 0;
+	//}
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -797,7 +803,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->ss = process->tss.ss;
 
 __SingleTssSchedule_end:
-	__leaveSpinlock(&g_task_lock);
+	//__leaveSpinlock(&g_task_lock);
 
 	return next->process;
 }
@@ -961,7 +967,11 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	char szout[1024];
 
-	__enterSpinlock(&g_task_lock);
+	//int trycnt = 256;
+	//int ret = __enterSpinlockTry(&g_task_lock, &trycnt);
+	//if (ret == 0 || trycnt == 0) {
+	//	return 0;
+	//}
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -1092,7 +1102,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 __MultipleTssSchedule_end:
 
-	__leaveSpinlock(&g_task_lock);
+	//__leaveSpinlock(&g_task_lock);
 	return next->process;
 }
 

@@ -106,7 +106,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	RemoveTaskList(tid);
 
-	__kFree(tss[tid].espbase);
+	//__kFree(tss[tid].espbase);
 
 	int pid = tss[tid].pid;
 
@@ -122,7 +122,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 			if (node && node->valid && node->process && node->process->pid == pid)
 			{
 				RemoveList(&(head->list), (LIST_ENTRY*)&(node->list));
-				__kFree(node->process->espbase);
+				//__kFree(node->process->espbase);
 			}
 			node = (TASK_LIST_ENTRY*)node->list.next;
 

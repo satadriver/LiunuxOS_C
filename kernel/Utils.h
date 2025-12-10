@@ -124,6 +124,8 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD* lockv);
 
 extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv);
 
+extern "C"  __declspec(dllexport) DWORD __enterSpinlockTry(DWORD * lpv, int* cnt);
+
 extern "C" __declspec(dllexport) int asc2unicode(char * asc, int asclen, short * unicode);
 
 extern "C" __declspec(dllexport) int unicode2asc(short * unicode, int unicodelen, char * asc);
@@ -193,17 +195,17 @@ extern "C" __declspec(dllimport) int lower2upper(char *data, int len);
 
 extern "C" __declspec(dllimport) int upper2lower(char *data, int len);
 
-
-
 extern "C" __declspec(dllimport)WORD __ntohs(WORD v);
 extern "C" __declspec(dllimport)DWORD __ntohl(DWORD v);
 extern "C" __declspec(dllimport)DWORD __lockInc(DWORD *v);
 extern "C" __declspec(dllimport)void __initSpinlock(DWORD * v);
 extern "C" __declspec(dllimport)DWORD __enterSpinlock(DWORD * v);
 extern "C" __declspec(dllimport)DWORD __leaveSpinlock(DWORD * v);
-extern "C"  __declspec(dllexport) int __spinlockEntry(int* lockv);
+extern "C"  __declspec(dllimport) int __spinlockEntry(DWORD* lockv);
 
-extern "C"  __declspec(dllexport) int __spinlockLeave(int* lockv);
+extern "C"  __declspec(dllimport) int __spinlockLeave(DWORD* lockv);
+
+extern "C"  __declspec(dllimport) DWORD __enterSpinlockTry(DWORD * lpv, int* cnt);
 
 extern "C" __declspec(dllimport) int asc2unicode(char * asc, int asclen, short * unicode);
 
