@@ -21,6 +21,9 @@
 
 unsigned long g_task_lock = 0;
 
+int peek_task_lock() {
+	return g_task_lock;
+}
 
 void enter_task_lock() {
 	__enterSpinlock(&g_task_lock);
@@ -57,11 +60,12 @@ void InitTaskList() {
 
 void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) {
 
-	RemoveTaskList(tid);
+	RemoveTaskListTid(tid);
 	__sleep(-1);
 }
 
 TASK_LIST_ENTRY* SearchTaskListTid(int tid) {
+	
 	__enterSpinlock(&g_task_lock);
 	TASK_LIST_ENTRY* result = 0;
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
@@ -73,6 +77,7 @@ TASK_LIST_ENTRY* SearchTaskListTid(int tid) {
 		}
 	}
 	__leaveSpinlock(&g_task_lock);
+	
 	return result;
 }
 
@@ -122,6 +127,7 @@ TASK_LIST_ENTRY* GetFreeTaskList() {
 
 
 TASK_LIST_ENTRY* InsertTaskList(int tid) {
+	__asm {cli}
 	__enterSpinlock(&g_task_lock);
 	TASK_LIST_ENTRY* result = 0;
 	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -142,10 +148,12 @@ TASK_LIST_ENTRY* InsertTaskList(int tid) {
 		}
 	}
 	__leaveSpinlock(&g_task_lock);
+	__asm {sti}
 	return result;
 }
 
-TASK_LIST_ENTRY* RemoveTaskList(int tid) {
+TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
+	__asm {cli}
 	__enterSpinlock(&g_task_lock);
 	TASK_LIST_ENTRY* result = 0;
 
@@ -184,10 +192,56 @@ TASK_LIST_ENTRY* RemoveTaskList(int tid) {
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
 	__leaveSpinlock(&g_task_lock);
-
+	__asm {sti}
 	return result;
 }
 
+TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
+	__asm {cli}
+	__enterSpinlock(&g_task_lock);
+	TASK_LIST_ENTRY* result = 0;
+
+	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)gTasksListPtr;
+	if (head) {
+		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
+		TASK_LIST_ENTRY* node = first;
+		do
+		{
+			if (node && node->valid && node->process && node->process->pid == pid)
+			{
+				RemoveList(&(gTasksListPtr->list), (LIST_ENTRY*)&(node->list));
+
+				node->process->status = TASK_OVER;
+				node->process = 0;
+
+				node->valid = FALSE;
+
+				result = node;
+
+				if (node == gTasksListPos) {
+					gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+					if (gTasksListPos == 0) {
+						//error
+						//gTasksListPos = gTasksListPtr;
+						char szout[256];
+						__printf(szout, "%s error!\r\n", __FUNCTION__);
+
+					}
+				}
+
+				if (first == node) {
+					first = (TASK_LIST_ENTRY*)node->list.next;
+					node = first;
+				}
+			}
+			node = (TASK_LIST_ENTRY*)node->list.next;
+
+		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
+	}
+	__leaveSpinlock(&g_task_lock);
+	__asm {sti}
+	return result;
+}
 
 //CF(bit 0) [Carry flag]   
 //若算术操作产生的结果在最高有效位(most-significant bit)发生进位或借位则将其置1，反之清零。
@@ -630,11 +684,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 #else
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[1024];
-	//int trycnt = 256;
-	//int ret = __enterSpinlockTry(&g_task_lock,&trycnt);
-	//if (ret == 0 || trycnt == 0) {
-	//	return 0;
-	//}
+	
+	int ret = 0;
+	ret = __enterSpinlock(&g_task_lock);
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -685,17 +737,16 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		if (next->process == proc) {
 			goto  __SingleTssSchedule_end;
 		}
-
-		if (next->process->status == TASK_TERMINATE) {
-			next->process->status == TASK_OVER;
-		}
-
-		if (next->process->status == TASK_RUN) {
-			if (next->process->sleep) {
-				next->process->sleep--;
+		if (next->process->cpuid == cpuid) {
+			if (next->process->status == TASK_TERMINATE) {
+				next->process->status == TASK_OVER;
 			}
-			else {
-				if (next->process->cpuid == cpuid) {
+
+			if (next->process->status == TASK_RUN) {
+				if (next->process->sleep) {
+					next->process->sleep--;
+				}
+				else {
 					break;
 				}
 			}
@@ -803,7 +854,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->ss = process->tss.ss;
 
 __SingleTssSchedule_end:
-	//__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_lock);
 
 	return next->process;
 }
@@ -966,12 +1017,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	char szout[1024];
-
-	//int trycnt = 256;
-	//int ret = __enterSpinlockTry(&g_task_lock, &trycnt);
-	//if (ret == 0 || trycnt == 0) {
-	//	return 0;
-	//}
+	int ret = 0;
+	ret = __enterSpinlock(&g_task_lock);
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -1024,16 +1071,16 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			goto  __MultipleTssSchedule_end;
 		}
 
-		if (next->process->status == TASK_TERMINATE) {
-			next->process->status == TASK_OVER;
-		}
-
-		if (next->process->status == TASK_RUN) {
-			if (next->process->sleep) {
-				next->process->sleep--;
+		if (next->process->cpuid == cpuid) {
+			if (next->process->status == TASK_TERMINATE) {
+				next->process->status == TASK_OVER;
 			}
-			else {
-				if (next->process->cpuid == cpuid) {
+
+			if (next->process->status == TASK_RUN) {
+				if (next->process->sleep) {
+					next->process->sleep--;
+				}
+				else {
 					break;
 				}
 			}
@@ -1102,7 +1149,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 __MultipleTssSchedule_end:
 
-	//__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_lock);
 	return next->process;
 }
 

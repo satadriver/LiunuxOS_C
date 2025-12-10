@@ -59,6 +59,8 @@ void enter_task_lock();
 
 void leave_task_lock();
 
+int peek_task_lock();
+
 void tasktest();
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
@@ -81,7 +83,9 @@ TASK_LIST_ENTRY* GetTaskListHeader();
 void InitTaskList();
 TASK_LIST_ENTRY* InsertTaskList(int tid);
 
-TASK_LIST_ENTRY* RemoveTaskList(int tid);
+TASK_LIST_ENTRY* RemoveTaskListTid(int tid);
+
+TASK_LIST_ENTRY* RemoveTaskListPid(int pid);
 
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 

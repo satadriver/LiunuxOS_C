@@ -1144,6 +1144,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__asm {sti}
 #endif
 
+	//ret = InitLocalApicTimer();
+
 	unsigned int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
 	//__enterLock(&g_allocate_ap_lock);

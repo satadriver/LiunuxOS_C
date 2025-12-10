@@ -38,6 +38,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	int tid = dwtid & 0x7fffffff;
 
 	__asm {cli}
+	
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
@@ -54,7 +55,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	}
 
 	//__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
-
+	enter_task_lock();
 	LPPROCESS_INFO process = 0;
 
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
@@ -63,15 +64,16 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		{
 			if (tss[i].pid != tss[i].tid) {
 				tss[i].status = TASK_TERMINATE;
-
 			}
 			else {
 				process = &tss[i];
 			}
 		}
 	}
-
+	
 	tss[process->pid].status = TASK_TERMINATE;
+
+	leave_task_lock();
 
 	__kFreeProcess(pid);
 
@@ -104,15 +106,17 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
-	RemoveTaskList(tid);
+	//RemoveTaskList(tid);
 
 	//__kFree(tss[tid].espbase);
 
 	int pid = tss[tid].pid;
 
+	RemoveTaskListPid(pid);
+
+	/*
 	enter_task_lock();
 	TASK_LIST_ENTRY* result = 0;
-
 	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)GetTaskListHeader();
 	if (head) {
 		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
@@ -121,15 +125,25 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		{
 			if (node && node->valid && node->process && node->process->pid == pid)
 			{
+				
 				RemoveList(&(head->list), (LIST_ENTRY*)&(node->list));
 				//__kFree(node->process->espbase);
+				node->process->status = TASK_OVER;
+				node->process = 0;
+				node->valid = FALSE;
+
+				if (first == node) {
+					first =(TASK_LIST_ENTRY *) node->list.next;
+					node = first;
+				}
 			}
+
 			node = (TASK_LIST_ENTRY*)node->list.next;
 
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
-
 	leave_task_lock();
+	*/
 
 	__kFreeProcess(pid);
 	__asm {sti}

@@ -323,7 +323,9 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__kRefreshMouseBackup();
 	__kDrawMouse();
 
+	enter_task_lock();
 	proc->videoBase = (char*)gGraphBase;
+	leave_task_lock();
 
 	deletePopupItem(window);
 
