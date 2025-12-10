@@ -126,7 +126,8 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD* lockv);
 
 extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv);
 
-extern "C"  __declspec(dllexport) DWORD __enterSpinlockTry(DWORD * lpv, int* cnt);
+extern "C"  __declspec(dllexport) DWORD __enterSpinlock_no_cli(DWORD * lpv);
+extern "C"  __declspec(dllexport) DWORD __leaveSpinlock_no_sti(DWORD * lpv);
 
 extern "C" __declspec(dllexport) int asc2unicode(char * asc, int asclen, short * unicode);
 
@@ -210,7 +211,8 @@ extern "C"  __declspec(dllimport) int __spinlockEntry(DWORD* lockv);
 
 extern "C"  __declspec(dllimport) int __spinlockLeave(DWORD* lockv);
 
-extern "C"  __declspec(dllimport) DWORD __enterSpinlockTry(DWORD * lpv, int* cnt);
+extern "C"  __declspec(dllimport) DWORD __enterSpinlock_no_cli(DWORD * lpv);
+extern "C"  __declspec(dllimport) DWORD __leaveSpinlock_no_sti(DWORD * lpv);
 
 extern "C" __declspec(dllimport) int asc2unicode(char * asc, int asclen, short * unicode);
 

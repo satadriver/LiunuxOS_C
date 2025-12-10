@@ -68,22 +68,18 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 }
 #else
 extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
-	__asm {cli}
+
 	int tid = dwtid & 0x7fffffff;
 
 	RemoveTaskListTid(tid);
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	__kFree(tss[tid].espbase);
-
-	__asm {sti}
-
 	if (dwtid & 0x80000000) {
-		return;
+		return 0;
 	}
 	else {
 		__sleep(-1);
 	}
+	return 0;
 }
 #endif
 

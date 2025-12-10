@@ -37,9 +37,6 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	int tid = dwtid & 0x7fffffff;
 
-	__asm {cli}
-	
-
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -73,10 +70,6 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	
 	tss[process->pid].status = TASK_TERMINATE;
 
-	leave_task_array_lock();
-
-	__kFreeProcess(pid);
-
 	if (current->tid == tid)
 	{
 		current->status = TASK_TERMINATE;
@@ -88,6 +81,10 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	int retvalue = 0;
 
 	tss[process->pid].retValue = retvalue;
+
+	leave_task_array_lock();
+
+	__kFreeProcess(pid);
 
 	__asm {sti}
 
@@ -101,51 +98,14 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 #else
 extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
 	
-	__asm {cli}
 	int tid = dwtid & 0x7fffffff;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-
-	//RemoveTaskList(tid);
-
-	//__kFree(tss[tid].espbase);
 
 	int pid = tss[tid].pid;
 
 	RemoveTaskListPid(pid);
 
-	/*
-	enter_task_lock();
-	TASK_LIST_ENTRY* result = 0;
-	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)GetTaskListHeader();
-	if (head) {
-		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
-		TASK_LIST_ENTRY* node = first;
-		do
-		{
-			if (node && node->valid && node->process && node->process->pid == pid)
-			{
-				
-				RemoveList(&(head->list), (LIST_ENTRY*)&(node->list));
-				//__kFree(node->process->espbase);
-				node->process->status = TASK_OVER;
-				node->process = 0;
-				node->valid = FALSE;
-
-				if (first == node) {
-					first =(TASK_LIST_ENTRY *) node->list.next;
-					node = first;
-				}
-			}
-
-			node = (TASK_LIST_ENTRY*)node->list.next;
-
-		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
-	}
-	leave_task_lock();
-	*/
-
-	__kFreeProcess(pid);
 	__asm {sti}
 
 	if (dwtid & 0x80000000) {

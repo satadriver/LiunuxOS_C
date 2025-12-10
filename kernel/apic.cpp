@@ -1256,8 +1256,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	sysEntryInit((DWORD)sysEntry);
 
-	__asm {sti}
-
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n", 
 		cpuid, localapic_ver, reg_esp,lint0,lint1,tid,ioapic_id, ioapic_ver);
 
@@ -1270,6 +1268,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #else
 	InsertTaskList(tid);
 #endif
+
+	__asm {sti}
 
 	while (1) {
 		__asm {
@@ -1369,9 +1369,10 @@ void BPCodeStart() {
 		v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
-		AllocateApTask(APIC_IPI_VECTOR);
+		//AllocateApTask(APIC_IPI_VECTOR);	
 #endif
 	}
+	SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 
 	//InitLocalApicErr();
 
@@ -1447,13 +1448,13 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 
 
 
-void BubbleSort(int* arr, int count) {
+void BubbleSort(unsigned int* arr, int count) {
 	for (int i = 0; i < count - 1; i++) {
 		for (int j = 0; j < count - i - 1; j++) {
-			int low = arr[j] & 0x00ffffff;
-			int high = arr[j + 1] & 0x00ffffff;
+			unsigned int low = arr[j] & 0x00ffffff;
+			unsigned int high = arr[j + 1] & 0x00ffffff;
 			if (low > high) {
-				int temp = arr[j];
+				unsigned int temp = arr[j];
 				arr[j] = arr[j + 1];
 				arr[j + 1] = temp;
 			}
@@ -1465,7 +1466,7 @@ void BubbleSort(int* arr, int count) {
 int GetIdleProcessor() {
 	char szout[1024];
 
-	int cpuStatus[256];
+	unsigned int cpuStatus[256];
 	__memset((char*)cpuStatus, 0, 256);
 
 	int total = 0;
@@ -1495,7 +1496,28 @@ int GetIdleProcessor() {
 		BubbleSort(cpuStatus, cnt+1);
 	}
 
-	unsigned int c = cpuStatus[0] & 0xffffff;
-	unsigned int num = ( cpuStatus[0] & 0xff000000) >> 24;
-	return num;
+	for (int i = 0; i < cnt+1; i++) {
+		unsigned int c = cpuStatus[i] & 0xffffff;
+		unsigned int num = (cpuStatus[i] & 0xff000000) >> 24;
+		if (num == g_bsp_id) {
+			if (i < (cnt + 1) / 2) {
+				int n1 = cpuStatus[i] & 0xffffff;
+				int n2 = cpuStatus[i+1] & 0xffffff;
+				if ( n2 > 2*n1) {
+					return num;
+				}
+				else {
+
+				}
+			}
+			else {
+				return num;
+			}
+		}
+		else {
+			return num;
+		}
+	}
+
+	return g_bsp_id;
 }

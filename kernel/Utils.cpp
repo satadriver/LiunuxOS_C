@@ -993,54 +993,31 @@ void __initSpinlock(DWORD * v) {
 */
 DWORD __enterSpinlock(DWORD * lpv) {
 	__asm {
-
 	__enterSpinLockLoop:
-		mov edx,lpv
-		lock bts [edx], 0
-		jnc __getSpinLock
-		pause
-		jmp __enterSpinLockLoop
-		__getSpinLock :
-	}
-}
-
-
-DWORD __enterSpinlockTry(DWORD* lpv,int * cnt) {
-	int result = 0;
-	__asm {
-		mov ecx,cnt
-		__enterSpinLockLoop:
-		mov eax, lpv
+		mov eax,lpv
 		lock bts ds:[eax], 0
 		jnc __getSpinLock
 		pause
-		cmp [ecx],0
-		jz __notGetLock
-		dec dword ptr ds:[ecx]
 		jmp __enterSpinLockLoop
-		__notGetLock:
-		mov [result],0
-		jmp __enterSpinlockTry_end
 		__getSpinLock :
-		mov[result] , 1
-		__enterSpinlockTry_end:
+
 	}
-	return result;
 }
+
 
 
 DWORD __leaveSpinlock(DWORD * lpv) {
 	__asm {
-		mov edx, lpv
-		lock btr [edx], 0
+		mov eax, lpv
+
+		lock btr ds : [eax] , 0
 	}
-	//char szout[1024];
-	//__printf(szout,"__leaveSpinLock errpr\r\n");
 }
 
 
 extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD * lockv) {
 	__asm {
+
 		__spinlock_xchg:
 		mov eax, 1
 		mov edx,lockv
@@ -1063,6 +1040,7 @@ extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv) {
 		mov edx,lockv
 		lock xchg[edx], eax
 		mov[result], eax
+
 	}
 	return result;
 }
@@ -1076,18 +1054,27 @@ DWORD __enterLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
-		
+
 	__waitLock:
+		pushfd
+		pop edx
+		and edx,0x200
+		or edx,1
 		mov ecx, lockvalue
 		mov eax, 0
-		mov edx, 1
 		lock cmpxchg ds:[ecx], edx
 		jz __entryLock
 		mov result,eax
 		nop
 		pause
 		jmp __waitLock
-		__entryLock :
+			__entryLock :
+		test edx,0x200
+		jz _no_if
+			cli
+			_no_if :
+
+		
 	}
 	
 	return result;
@@ -1098,17 +1085,29 @@ DWORD __leaveLock(DWORD * lockvalue) {
 	DWORD result = 0;
 
 	__asm {
-		
-	__leavelockLoop:
-		mov ecx, lockvalue
-		mov eax, 1
 		mov edx, 0
+		mov ecx, lockvalue
+	__leavelockLoop:
+		
+		mov eax, 1
+		
 		lock cmpxchg ds:[ecx], edx
-		jz _over
-		mov result,eax
-		pause	
+		jz _no_if
+
+		mov eax,1
+		or eax,0x200
+		
+		lock cmpxchg ds : [ecx] , edx
+		jz _if_flag
+
+		pause
 		jmp __leavelockLoop
-		_over :
+
+		_if_flag:
+		sti
+
+		_no_if :
+
 	}
 	
 	return result;
