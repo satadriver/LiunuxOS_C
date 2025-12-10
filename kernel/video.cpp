@@ -1533,8 +1533,6 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 
 	window->tid = tid;
 
-	enter_task_array_lock();
-
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
@@ -1562,6 +1560,8 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->next = 0;
 
 	proc->window = window->id;
+
+	enter_task_array_lock();
 	tss[tid].window = window->id;
 
 	leave_task_array_lock();

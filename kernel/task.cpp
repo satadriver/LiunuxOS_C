@@ -57,7 +57,7 @@ void InitTaskList() {
 	__memset((char*)TASKS_LIST_BASE, 0, TASK_LIMIT_TOTAL * sizeof(TASK_LIST_ENTRY));
 
 	gTasksListPtr = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
-	gTasksListPos = gTasksListPtr;
+	//gTasksListPos = gTasksListPtr;
 	//gTasksListPtr->process = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	//gTasksListPtr->valid = 1;
 	InitListEntry(& gTasksListPtr->list);
@@ -212,7 +212,7 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 				result = node;
 	
 				if (node == gTasksListPos) {
-					gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+					gTasksListPos = (TASK_LIST_ENTRY*)node->list.next;
 					if (gTasksListPos == 0) {
 						//error
 						//gTasksListPos = gTasksListPtr;
@@ -256,7 +256,7 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 				result = node;
 
 				if (node == gTasksListPos) {
-					gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
+					gTasksListPos = (TASK_LIST_ENTRY*)node->list.next;
 					if (gTasksListPos == 0) {
 						//error
 						//gTasksListPos = gTasksListPtr;
