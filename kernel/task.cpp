@@ -17,22 +17,31 @@
 
 
 
+unsigned long g_task_array_lock = 0;
 
+unsigned long g_task_list_lock = 0;
 
-unsigned long g_task_lock = 0;
-
-int peek_task_lock() {
-	return g_task_lock;
-}
-
-void enter_task_lock() {
-	__enterSpinlock(&g_task_lock);
+void enter_task_array_lock() {
+	//__enterSpinlock(&g_task_array_lock);
 }
 
 
-void leave_task_lock() {
-	__leaveSpinlock(&g_task_lock);
+void leave_task_array_lock() {
+	//__leaveSpinlock(&g_task_array_lock);
 
+}
+
+int peek_task_list_lock() {
+	return g_task_list_lock;
+}
+
+void enter_task_list_lock() {
+	//__enterSpinlock(&g_task_list_lock);
+}
+
+
+void leave_task_list_lock() {
+	//__leaveSpinlock(&g_task_list_lock);
 }
 
 TASK_LIST_ENTRY *gTasksListPtr = 0;
@@ -53,7 +62,7 @@ void InitTaskList() {
 	//gTasksListPtr->valid = 1;
 	InitListEntry(& gTasksListPtr->list);
 
-	InsertTaskList(0);
+	InsertTaskList_No_cli(0);
 
 	gTasksListPos = (TASK_LIST_ENTRY*)gTasksListPtr->list.next;
 }
@@ -66,7 +75,7 @@ void __terminateTask(int tid, char * filename, char * funcname, DWORD lpparams) 
 
 TASK_LIST_ENTRY* SearchTaskListTid(int tid) {
 	
-	__enterSpinlock(&g_task_lock);
+
 	TASK_LIST_ENTRY* result = 0;
 	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 	for (int i = 1; i < TASK_LIMIT_TOTAL; i++)
@@ -76,14 +85,14 @@ TASK_LIST_ENTRY* SearchTaskListTid(int tid) {
 			break;
 		}
 	}
-	__leaveSpinlock(&g_task_lock);
+
 	
 	return result;
 }
 
 
 TASK_LIST_ENTRY* SearchTaskListPid(int pid) {
-	__enterSpinlock(&g_task_lock);
+
 
 	TASK_LIST_ENTRY* result = 0;
 
@@ -103,12 +112,12 @@ TASK_LIST_ENTRY* SearchTaskListPid(int pid) {
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
 
-	__leaveSpinlock(&g_task_lock);
+
 	return result;
 }
 
 TASK_LIST_ENTRY* GetFreeTaskList() {
-	__enterSpinlock(&g_task_lock);
+
 	TASK_LIST_ENTRY* result = 0;
 	TASK_LIST_ENTRY *info = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
 
@@ -121,14 +130,42 @@ TASK_LIST_ENTRY* GetFreeTaskList() {
 			break;
 		}
 	}
-	__leaveSpinlock(&g_task_lock);
+
+	return result;
+}
+
+
+
+TASK_LIST_ENTRY* InsertTaskList_No_cli(int tid) {
+
+	__enterSpinlock(&g_task_list_lock);
+	TASK_LIST_ENTRY* result = 0;
+	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
+
+	TASK_LIST_ENTRY* list = (TASK_LIST_ENTRY*)TASKS_LIST_BASE;
+	for (int i = 1; i < TASK_LIMIT_TOTAL; i++)
+	{
+		if (list[i].valid == 0) {
+			list[i].valid = TRUE;
+
+			list[i].process = base + tid;
+			list[i].process->status = TASK_RUN;
+
+			InsertListTail((LIST_ENTRY*)&(gTasksListPtr->list), (LIST_ENTRY*)&(list[i].list));
+			//gTasksListPos = &list[i];
+			result = &list[i];
+			break;
+		}
+	}
+	__leaveSpinlock(&g_task_list_lock);
+
 	return result;
 }
 
 
 TASK_LIST_ENTRY* InsertTaskList(int tid) {
 	__asm {cli}
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_list_lock);
 	TASK_LIST_ENTRY* result = 0;
 	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
@@ -147,14 +184,14 @@ TASK_LIST_ENTRY* InsertTaskList(int tid) {
 			break;
 		}
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_list_lock);
 	__asm {sti}
 	return result;
 }
 
 TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 	__asm {cli}
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_list_lock);
 	TASK_LIST_ENTRY* result = 0;
 
 	TASK_LIST_ENTRY * head = (TASK_LIST_ENTRY*)gTasksListPtr;
@@ -191,14 +228,14 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_list_lock);
 	__asm {sti}
 	return result;
 }
 
 TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 	__asm {cli}
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_list_lock);
 	TASK_LIST_ENTRY* result = 0;
 
 	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)gTasksListPtr;
@@ -238,7 +275,7 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_list_lock);
 	__asm {sti}
 	return result;
 }
@@ -285,7 +322,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 	ret->lptss = 0;
 	ret->number = 0;
 
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -302,7 +339,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 			break;
 		}
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return result;
 }
 
@@ -354,97 +391,97 @@ LPPROCESS_INFO __findProcessByTid(int tid) {
 
 
 int __terminateByFileName(char * filename) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	LPPROCESS_INFO p = __findProcessFileName(filename);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return FALSE;
 }
 
 int __terminateByFuncName(char * funcname) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO * p = __findProcessFuncName(funcname);
 	if (p)
 	{
 		p->status = TASK_OVER;
 
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return FALSE;
 }
 
 int __terminatePid(int pid) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return 0;
 }
 
 
 int __terminateTid(int tid) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return 0;
 }
 
 
 
 int __pauseTid(int tid) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return 0;
 }
 
 
 int __resumeTid(int tid) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return 0;
 }
 
 
 int __pausePid(int pid) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return 0;
 }
 
 
 int __resumePid(int pid) {
-	__enterSpinlock(&g_task_lock);
+	__enterSpinlock(&g_task_array_lock);
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_array_lock);
 	return 0;
 }
 
@@ -686,7 +723,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[1024];
 	
 	int ret = 0;
-	ret = __enterSpinlock(&g_task_lock);
+	ret = __enterSpinlock(&g_task_list_lock);
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -854,7 +891,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->ss = process->tss.ss;
 
 __SingleTssSchedule_end:
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_list_lock);
 
 	return next->process;
 }
@@ -1018,7 +1055,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	char szout[1024];
 	int ret = 0;
-	ret = __enterSpinlock(&g_task_lock);
+	ret = __enterSpinlock(&g_task_list_lock);
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -1149,7 +1186,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 __MultipleTssSchedule_end:
 
-	__leaveSpinlock(&g_task_lock);
+	__leaveSpinlock(&g_task_list_lock);
 	return next->process;
 }
 
@@ -1333,7 +1370,7 @@ extern "C" void __declspec(naked)  BspTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO next = MultipleTssSchedule(stack);
 #endif
 
-		* (DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		//* (DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 
 	}
 
@@ -1402,11 +1439,10 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 		LPPROCESS_INFO next = SingleTssSchedule(stack);
 
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		//*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
 
 	__asm {
-
 		call GetCurrentTaskTssBase
 		mov edx, eax
 		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
@@ -1434,14 +1470,74 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
-extern "C" void __declspec(dllexport) GiveupLive(LIGHT_ENVIRONMENT* stack) {
+extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
+	
+	__asm{cli}
 	int ret = IsBspProcessor();
 	if (ret) {
-		BspTaskSchedule(stack);
+#ifdef SINGLE_TASK_TSS
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
+#else
+		LPPROCESS_INFO next = MultipleTssSchedule(stack);
+
+		__asm {
+			mov eax, stack
+			mov esp, eax
+			mov ebp, eax
+
+			//mov esp, ebp
+			//pop ebp
+			//add esp, 4
+			//pop esp
+
+			pop ss
+			pop gs
+			pop fs
+			pop es
+			pop ds
+			popad
+
+			//clts
+			sti
+
+			iretd
+		}
+#endif
 	}
 	else {
-		ApTaskSchedule(stack);
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
 	}
+	
+	__asm {
+		mov eax, stack
+		mov esp,eax
+		mov ebp,eax
+
+		call GetCurrentTaskTssBase
+		mov edx, eax
+		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		mov cr3, eax
+
+		//mov esp, ebp
+		//pop ebp
+		//add esp, 4
+		//pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		mov esp, ss: [esp - 20]
+
+		//clts
+		sti
+
+		iretd
+	}
+
 }
 
 void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {

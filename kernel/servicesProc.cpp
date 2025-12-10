@@ -26,6 +26,8 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	__asm {
+
+		push dword ptr ss:[esp + 8]
 		push edi
 		push eax
 
@@ -36,7 +38,7 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 		MOV GS, AX
 		mov ss,ax
 		call __kServicesProc
-		add esp, 8
+		add esp, 12
 
 		mov edx,stack
 		mov [edx + LIGHT_ENVIRONMENT.eax],eax		//may be error?  warning: "."应用于非 UDT 类型
@@ -64,7 +66,7 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
-DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
+DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENVIRONMENT* stack) {
 
 	DWORD r = 0;
 	switch (num)
@@ -147,13 +149,19 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params) {
 		{
 			break;
 		}
-
+		case GIVEUP_LIFE:
+		{
+			GiveupLive(stack);
+			break;
+		}
 		default: {
 			break;
 		}
 	}
 	return r;
 }
+
+ 
 
 
 void sleep(DWORD * params) {
@@ -170,7 +178,7 @@ void sleep(DWORD * params) {
 		times = 1;
 	}
 
-	enter_task_lock();
+	enter_task_array_lock();
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
@@ -180,7 +188,7 @@ void sleep(DWORD * params) {
 	cur_tss->sleep += times ;
 	proc->sleep = cur_tss->sleep;
 
-	leave_task_lock();
+	leave_task_array_lock();
 
 	while(1)
 	{

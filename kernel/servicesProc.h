@@ -17,6 +17,7 @@
 #define DRAW_MOUSE			13
 #define RESTORE_MOUSE		14
 #define SET_VIDEOMODE		15
+#define GIVEUP_LIFE			16
 
 
 
@@ -57,7 +58,7 @@ extern "C" __declspec(dllexport) DWORD __cpuinfo(unsigned long* params);
 
 extern "C" __declspec(dllexport) DWORD __timestamp(unsigned long* params);
 
-extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no, DWORD * params);
+extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no, DWORD * params, LIGHT_ENVIRONMENT * stack);
 
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllexport) unsigned __int64 __cpuFreq(DWORD* cpu, DWORD* max, DWORD* bus);
@@ -90,7 +91,7 @@ extern "C" __declspec(dllimport) DWORD __cpuinfo(unsigned long* params);
 
 extern "C" __declspec(dllimport) DWORD __timestamp(unsigned long* params);
 
-extern "C"  __declspec(dllimport) DWORD __kServicesProc(DWORD no, DWORD * params);
+extern "C"  __declspec(dllimport) DWORD __kServicesProc(DWORD no, DWORD * params, LIGHT_ENVIRONMENT * stack);
 
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllimport) unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);

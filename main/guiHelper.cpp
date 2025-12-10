@@ -163,7 +163,9 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->next = 0;
 
 	proc->window = window->id;
+	enter_task_array_lock();
 	tss[tid].window = window->id;
+	leave_task_array_lock();
 }
 
 
@@ -215,7 +217,9 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 	__drawWindow(window);
 
 	proc->window = window->id;
+	enter_task_array_lock();
 	tss[tid].window = window->id;
+	leave_task_array_lock();
 }
 
 
@@ -261,7 +265,9 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	__drawWindow(window);
 
 	proc->window = window->id;
+	enter_task_array_lock();
 	tss[tid].window = window->id;
+	leave_task_array_lock();
 }
 
 

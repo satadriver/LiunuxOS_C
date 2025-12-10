@@ -55,18 +55,16 @@ typedef struct {
 
 void clearTssBuf(LPPROCESS_INFO tss);
 
-void enter_task_lock();
 
-void leave_task_lock();
 
-int peek_task_lock();
+int peek_task_list_lock();
 
 void tasktest();
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 
-extern "C" void __declspec(dllexport) GiveupLive(LIGHT_ENVIRONMENT* stack);
+extern "C" void __declspec(dllexport) GiveupLive(LIGHT_ENVIRONMENT * stack);
 
 int __pausePid(int pid);
 
@@ -78,6 +76,7 @@ int __pauseTid(int tid);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
+TASK_LIST_ENTRY* InsertTaskList_No_cli(int tid);
 
 TASK_LIST_ENTRY* GetTaskListHeader();
 void InitTaskList();
@@ -117,6 +116,13 @@ extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFileName(char * f
 
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
+extern "C"  __declspec(dllexport) void enter_task_array_lock();
+
+extern "C"  __declspec(dllexport) void leave_task_array_lock();
+
+extern "C"  __declspec(dllexport) void enter_task_list_lock();
+
+extern "C"  __declspec(dllexport) void leave_task_list_lock();
 
 #else
 
@@ -138,7 +144,13 @@ extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFileName(char * f
 
 extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
+extern "C"  __declspec(dllimport) void enter_task_array_lock();
 
+extern "C"  __declspec(dllimport) void leave_task_array_lock();
+
+extern "C"  __declspec(dllimport) void enter_task_list_lock();
+
+extern "C"  __declspec(dllimport) void leave_task_list_lock();
 #endif
 
 

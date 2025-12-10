@@ -55,7 +55,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	}
 
 	//__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
-	enter_task_lock();
+	enter_task_array_lock();
 	LPPROCESS_INFO process = 0;
 
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
@@ -73,7 +73,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	
 	tss[process->pid].status = TASK_TERMINATE;
 
-	leave_task_lock();
+	leave_task_array_lock();
 
 	__kFreeProcess(pid);
 

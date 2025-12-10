@@ -8,6 +8,7 @@
 #include "process.h"
 #include "window.h"
 #include "apic.h"
+#include "servicesProc.h"
 
 int unicode2asc(short* unicode, int unicodelen, char* asc) {
 	int i = 0;
@@ -1201,12 +1202,20 @@ int __GetCurrentPid() {
 
 int __sleep(int millisecs) {
 	__asm {
-		mov eax, 6
+		mov eax, SLEEP
 		lea edi, millisecs
 		int 80h
 	}
 }
 
+
+int __giveup() {
+	__asm {
+		mov eax, GIVEUP_LIFE
+		mov edi,0
+		int 80h
+	}
+}
 
 char* gLogDataPtr = (char*)LOG_BUFFER_BASE;
 
