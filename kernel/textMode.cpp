@@ -34,7 +34,7 @@ DWORD gFont = 0;
 
 int runcmd(char * cmd) {
 	int res = 0;
-
+	char buf[1024];
 	if (__strcmp(cmd, "windows") == 0) {
 
 		char szout[1024];
@@ -103,14 +103,22 @@ int runcmd(char * cmd) {
 	else if (__strcmp(cmd, "timestamp") == 0) {
 
 	}
+	else if (__strcmp(cmd, "version") == 0) {
+		
+		__sprintf(buf, "%s\r\n", LIUNUXOS_VERSION);
+		outputStr(buf, OUTPUT_TEXTMODE_COLOR);
+	}
+	else if (__strcmp(cmd, "os") == 0) {
+
+		__sprintf(buf, "%s\r\n", "LIUNUXOS");
+		outputStr(buf, OUTPUT_TEXTMODE_COLOR);
+	}
 	else if (__strcmp(cmd, "date") == 0) {
 
 		DATETIME dt;
 		__getDateTime(&dt);
-		char datetime[1024];
-		__sprintf(datetime, "year:%d,month:%d,day:%d,hour:%d,minute:%d,second:%d\r\n",
-			dt.year, dt.month, dt.dayInMonth, dt.hour, dt.minute, dt.second);
-		outputStr(datetime, OUTPUT_TEXTMODE_COLOR);
+		__sprintf(buf, "%d/%d/%d %d:%d:%d\r\n",dt.year, dt.month, dt.dayInMonth, dt.hour, dt.minute, dt.second);
+		outputStr(buf, OUTPUT_TEXTMODE_COLOR);
 	}
 	else {
 		outputStr((char*)"Unrecognized command!\r\n", OUTPUT_TEXTMODE_COLOR);
