@@ -88,10 +88,11 @@ void iomfence() {
 }
 
 void setIoRedirect(int idx, int id, int vector, int mode) {
-
-	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
-
 	WriteIoApicReg(idx, vector + (mode << 8));
+	iomfence();
+	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
+	
+
 
 }
 
@@ -311,7 +312,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 	unsigned long long oldValue = GetIoRedirect(pin);
 
 	char szout[1024];
-	__printf(szout, "io apic %d value I64x\r\n ",pin, oldValue);
+	__printf(szout, "io apic %d value %I64x\r\n ",pin, oldValue);
 
 	setIoRedirect(pin, cpuid, vector, mode);
 }
@@ -835,13 +836,13 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 		int value = *(int*)(APIC_HPET_BASE + 0x20);
-		if (value & 1)
+		//if (value & 1)
 		{
 			__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-			*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffe;
-			*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
+			//*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffe;
+			//*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
 			
-			*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
+			//*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
 
 			g_cmos_timer++;
 			if (g_cmos_timer == (1000 / TASK_TIME_SLICE)) {
@@ -851,6 +852,7 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 			}
 		}
 
+		/*
 		if (value & 2) {
 			*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffd;
 			*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
@@ -876,7 +878,7 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 			regs[5] = tc;
 			*(long long*)(APIC_HPET_BASE + 0x10) = 3;
 		}
-
+		*/
 		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 
@@ -907,7 +909,7 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
 		sti
-		clts
+		//clts
 		iretd
 
 		jmp HpetTimer0Handler
@@ -1255,20 +1257,20 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x10000;
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x10000;
 
+	//ret = InitLocalApicTimer();
+	InitLocalApicErr();
+
+	InitLocalApicCmci();
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
-
+	initHpet();
 	ret = DisableLocalApicLVT();
-
-	ret = InitLocalApicTimer();
 
 	__asm {sti}
 #endif
 
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
-	//ret = InitLocalApicTimer();
-	//initHpet();
-
+	
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n", 
 		cpuid, localapic_ver, reg_esp,lint0,lint1,tid,ioapic_id, ioapic_ver);
 
@@ -1387,22 +1389,20 @@ void BPCodeStart() {
 	}
 	SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 
-	//InitLocalApicErr();
+	InitLocalApicErr();
 
-	//InitLocalApicCmci();
-	__asm{cli}
+	InitLocalApicCmci();
 	//ret = InitLocalApicTimer();
-	__asm {sti}
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
+	
 	initHpet();
-	DisableInt();
-
-	ret = DisableLocalApicLVT();
-
 	InitIoApicRte();
-
+	DisableInt();
+	ret = DisableLocalApicLVT();
+	
+	g_apic_int_tag = 1;
 	__asm {sti}
 #endif
 
@@ -1549,8 +1549,7 @@ void EOICommand(int pin) {
 		if ((pin >= INTR_8259_MASTER) && (pin < INTR_8259_MASTER + 8)) {
 			outportb(0x20, 0x20);
 		}
-
-		if ((pin >= INTR_8259_SLAVE) && (pin < INTR_8259_SLAVE + 8)) {
+		else if ((pin >= INTR_8259_SLAVE) && (pin < INTR_8259_SLAVE + 8)) {
 			outportb(0x20, 0x20);
 			outportb(0xa0, 0x20);
 		}

@@ -42,11 +42,6 @@ __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"DivideError", 0, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
-
-#endif
 
 	}
 
@@ -154,11 +149,6 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
 		//__kException((const char*)"NmiInterrupt", 2, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
-
-#endif
 
 	}
 	__asm {
@@ -209,11 +199,7 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 
 		char szout[1024];
 		__printf(szout, (char*)"OverflowException eip:%x,cs:%x,pid:%d,tid:%d\r\n", stack->eip,stack->cs, current->pid, current->tid);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -258,11 +244,7 @@ void __declspec(naked) BoundRangeExceed(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"BoundRangeExceed", 5, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -309,11 +291,7 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 	{
 		__kCoprocessor();
 		//__kException((const char*)"UndefinedOpcode", 6, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -362,11 +340,7 @@ void __declspec(naked) DeviceUnavailable(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		//__kException((const char*)"DeviceUnavailable", 7, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -413,11 +387,7 @@ void __declspec(naked) DoubleFault(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"DoubleFault", 8, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -466,11 +436,7 @@ void __declspec(naked) CoprocSegOverrun(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		__kException((const char*)"CoprocSegOverrun", 9, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -513,11 +479,7 @@ void __declspec(naked) InvalidTss(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"InvalidTss", 10, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -565,11 +527,7 @@ void __declspec(naked) SegmentUnpresent(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"SegmentUnpresent", 11, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -614,11 +572,7 @@ void __declspec(naked) StackSegFault(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"StackSegFault", 12, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -662,11 +616,7 @@ void __declspec(naked) GeneralProtection(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"GeneralProtection", 13, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -718,11 +668,7 @@ void __declspec(naked) PageFault(LIGHT_ENVIRONMENT* stack) {
 		}
 
 		__kException((const char*)"PageFault", 14, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -769,11 +715,7 @@ void __declspec(naked) AnonymousException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"AnonymousException", 15, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -820,11 +762,7 @@ void __declspec(naked) FloatPointError(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		__kException((const char*)"FloatPointError", 16, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -871,11 +809,7 @@ void __declspec(naked) AlignmentCheck(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"AlignmentCheck", 17, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -920,11 +854,7 @@ void __declspec(naked) MachineCheck(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"MachineCheck", 18, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -970,11 +900,7 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"SIMDException", 19, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -1017,11 +943,7 @@ __declspec(naked) void VirtualizationException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"VirtualizationException", 20, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -1066,11 +988,7 @@ __declspec(naked) void CtrlProtectException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"CtrlProtectException", 21, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -1117,11 +1035,7 @@ __declspec(naked) void HypervisorInjectException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"HypervisorInjectException", 28, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -1166,11 +1080,7 @@ __declspec(naked) void VMMCommException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"VMMCommException", 29, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -1215,11 +1125,7 @@ __declspec(naked) void SecurityException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"SecurityException", 30, stack);
-#ifdef LOCAL_APIC_ENABLE
-		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-#else
 
-#endif
 	}
 
 	__asm {
@@ -1287,12 +1193,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
-		
-#ifdef LOCAL_APIC_ENABLE
-
-#endif
-
-#ifdef IO_APIC_ENABLE
+		EOICommand(INTR_8259_MASTER + 0);
 #if 0
 		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
@@ -1301,9 +1202,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		*gintr_sta = 0xff;
 
 #endif	
-#else
-		outportb(0x20, 0x20);
-#endif
+
 
 	}
 
@@ -1331,7 +1230,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 #endif	
 		//clts
-		sti
+		//sti
 
 		iretd
 
@@ -1376,16 +1275,7 @@ void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 
 	{
 
-#ifdef LOCAL_APIC_ENABLE
-		
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 2);
 
 		char szout[1024];
 		__printf(szout, (char*)"Com2IntProc!\r\n");
@@ -1437,16 +1327,8 @@ void __declspec(naked) Com1IntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"Com1IntProc!\r\n");
 
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 3);
 
 	}
 
@@ -1498,17 +1380,7 @@ void __declspec(naked) Parallel2IntProc(LIGHT_ENVIRONMENT* stack) {
 		int v = inportb(0x278 + 1);
 
 
-#ifdef LOCAL_APIC_ENABLE
-
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
-
+		EOICommand(INTR_8259_MASTER + 4);
 	}
 
 	__asm {
@@ -1555,16 +1427,8 @@ void __declspec(naked) FloppyDiskIntProc(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[1024];
 		__printf(szout, (char*)"FloppyDiskIntProc!\r\n");
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 6);
 
 	}
 
@@ -1615,17 +1479,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"Parallel1IntProc!\r\n");
 
-
-
-#ifdef LOCAL_APIC_ENABLE
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 7);
 		int v = inportb(0x378 + 1);
 
 	}
@@ -1671,6 +1525,7 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 		MOV FS, ax
 		MOV GS, AX
 		mov ss, ax
+		cli
 	}
 
 	{
@@ -1688,19 +1543,7 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 			__kPeriodTimer();
 		}
 
-#ifdef LOCAL_APIC_ENABLE
-
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 0);
 	}
 
 	__asm {
@@ -1748,17 +1591,8 @@ void __declspec(naked) SlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"SlaveIntProc!\r\n");
 
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 0);
 
 	}
 
@@ -1808,17 +1642,8 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"Slave1IntProc!\r\n");
 
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 1);
 
 	}
 
@@ -1867,17 +1692,8 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[1024];
 		__printf(szout, (char*)"NetcardIntProc!\r\n");
 
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 2);
 
 	}
 
@@ -1925,17 +1741,9 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[1024];
 		__printf(szout, (char*)"USBIntProc!\r\n");
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
 
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 3);
 
 	}
 
@@ -1992,17 +1800,7 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 		outportb(0xf0, 0xf0);
 
 
-#ifdef LOCAL_APIC_ENABLE
-
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 5);
 
 	}
 
@@ -2073,17 +1871,8 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		//__printf(szout, "IDEMasterIntProc size:%x tid:%d port:%x status:%x\r\n", size,proc->tid,gAtaBasePort+7,status);
 
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
-
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 6);
 
 	}
 
@@ -2147,17 +1936,9 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		__printf(szout, (char*)"IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
 
-#ifdef LOCAL_APIC_ENABLE
 
-#endif
 
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 7);
 
 	}
 
@@ -2210,7 +1991,6 @@ void __declspec(naked) ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack) {
 
 		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 
-		
 	}
 
 	__asm {

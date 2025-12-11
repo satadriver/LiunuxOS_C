@@ -3,8 +3,8 @@
 #include "video.h"
 #include "serialUART.h"
 #include "Utils.h"
-
-
+#include "apic.h"
+#include "apic.h"
 
 //https://wiki.osdev.org/Serial_Ports
 
@@ -219,12 +219,7 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 			}
 		}
 		
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 2);
 	}
 
 	__asm {
@@ -319,12 +314,7 @@ extern "C"  __declspec(naked) void __kCom2Proc(LIGHT_ENVIRONMENT * stack) {
 			}
 		}
 		
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 3);
 
 	}
 	

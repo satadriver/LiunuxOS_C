@@ -3,6 +3,7 @@
 #include "../Utils.h"
 #include "../file.h"
 #include "../hardware.h"
+#include "../apic.h"
 
 //https://blog.csdn.net/weixin_33755847/article/details/93795780
 //http://homepages.cae.wisc.edu/~brodskye/sb16doc/sb16doc.html#ResetDSP
@@ -532,12 +533,7 @@ void __declspec(naked) SoundInterruptProc(LIGHT_ENVIRONMENT* stack) {
 		__kSoundInterruptionProc();
 
 		
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 5);
 
 	}
 

@@ -40,7 +40,9 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	tss[tid].status = TASK_TERMINATE;
 	
-	__kFree(tss[tid].espbase);
+	if (tss[tid].level >= 3 && (tss[tid].tss.eflags & 0x20000) && tss[tid].espbase) {
+		__kFree(tss[tid].espbase);
+	}
 
 	int retvalue = 0;
 

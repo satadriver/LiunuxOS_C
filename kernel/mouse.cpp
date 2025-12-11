@@ -10,7 +10,7 @@
 #include "servicesProc.h"
 #include "screenProtect.h"
 #include "device.h"
-
+#include "apic.h"
 
  DWORD gMouseTest = 1;
 
@@ -75,6 +75,7 @@ void invalidMouse() {
 }
 
 
+int g_mouse_error_cnt = 0;
 
 void __kMouseProc() {
 	char szout[256];
@@ -89,9 +90,14 @@ void __kMouseProc() {
 			break;
 		}
 
-		if ((status & 0xe0) ) {
-			//__printf(szout, (char*)"mouse data error\r\n");
+		if ((status & 0xa0) ) {
+			g_mouse_error_cnt++;
+			if (g_mouse_error_cnt <= 16) {
+				__printf(szout, (char*)"mouse status %x error\r\n", status);
+			}
+			
 			//return;
+			//break;
 		}
 
 		int md = inportb(0x60);
@@ -144,7 +150,7 @@ void __kMouseProc() {
 		}
 	}
 	if (counter < 3) {
-		//return;
+		return;
 	}
 	
 	//https://wiki.osdev.org/PS/2_Mouse
@@ -487,13 +493,7 @@ __declspec(naked) void MouseIntProc() {
 	{
 		__kMouseProc();
 
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-		outportb(0xa0, 0x20);
-#endif
+		EOICommand(INTR_8259_SLAVE + 6);
 
 	}
 	__asm {

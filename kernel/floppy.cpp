@@ -4,6 +4,7 @@
 #include "Utils.h"
 #include "task.h"
 #include "device.h"
+#include "apic.h"
 
 floppy_struct floppy_type ={ 2880,18,2,80,0,0x1B,0x00,0xCF }; /* 1.44MB diskette */
 
@@ -196,12 +197,7 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 
 		
 
-#ifdef IO_APIC_ENABLE
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-#else
-		outportb(0x20, 0x20);
-#endif
+		EOICommand(INTR_8259_MASTER + 5);
 
 	}
 

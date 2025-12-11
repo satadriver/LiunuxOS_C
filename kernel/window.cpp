@@ -260,8 +260,9 @@ int removeWindow(int id) {
 	LPWINDOWSINFO window = & gWindowsList [ id];
 	if (window->valid) {
 
-		__enterSpinlock(&g_window_lock);
 		__printf(szout, "%s id:%x,name:%s\r\n", __FUNCTION__, window->window->id, window->window->winname);
+		__enterSpinlock(&g_window_lock);
+		
 		window->valid = FALSE;
 		window->window = 0;
 
@@ -278,6 +279,8 @@ int removeWindow(int id) {
 int MaximizeWindow(LPWINDOWCLASS window) {
 	char szout[1024];
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
+
+	enter_task_array_lock_cli();
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -301,7 +304,9 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 		}
 	}
 
-	__asm {cli}
+
+	
+	__enterSpinlock(&g_window_lock);
 	//char* videoBase = GetVideoBase();
 	__kRestoreMouse();
 
@@ -323,16 +328,17 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__kRefreshMouseBackup();
 	__kDrawMouse();
 
-	enter_task_array_lock_cli();
+	
 	proc->videoBase = (char*)gGraphBase;
-	leave_task_array_lock_sti();
+	
 
 	deletePopupItem(window);
+	__leaveSpinlock(&g_window_lock);
 
 	//make to be top window
 	window->id = addWindow((WINDOWCLASS*)window, window->winname);
 
-	__asm{sti}
+	leave_task_array_lock_sti();
 
 	return 0;
 }
@@ -345,6 +351,8 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
+	enter_task_array_lock_cli();
+
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
 	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,tid);
@@ -353,7 +361,7 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 		window->minBuf = (char*)__kMalloc(gVideoHeight * gVideoWidth * gBytesPerPixel);
 	}
 
-	__asm {cli}
+	__enterSpinlock(&g_window_lock);
 
 	__kRestoreMouse();
 	//int size = (window->height + window->frameSize + window->capHeight) * (window->width + window->frameSize) * gBytesPerPixel;
@@ -380,15 +388,23 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	insertPopupItem(window);
 
+	__leaveSpinlock(&g_window_lock);
+
 	removeWindow(window->id);
 
-	__asm {sti}
+	leave_task_array_lock_sti();
 
 	return 0;
 }
 
 
+
+unsigned long g_popupmenu_lock = 0;
+
+
 int insertPopupItem(LPWINDOWCLASS window) {
+
+	__enterSpinlock(&g_popupmenu_lock);
 	int n = 0;
 	int cnt = LEFTCLICK_MENU_HEIGHT / 2 / GRAPHCHAR_HEIGHT;
 	for (int i = 0; i < cnt; i++) {
@@ -404,11 +420,14 @@ int insertPopupItem(LPWINDOWCLASS window) {
 		}
 	}
 
+	__leaveSpinlock(&g_popupmenu_lock);
 	return n;
 }
 
 
 int deletePopupItem(LPWINDOWCLASS window) {
+
+	__enterSpinlock(&g_popupmenu_lock);
 	int n = 0;
 	int cnt = LEFTCLICK_MENU_HEIGHT / 2 / GRAPHCHAR_HEIGHT;
 	for (int i = 0; i < cnt; i++) {
@@ -421,6 +440,8 @@ int deletePopupItem(LPWINDOWCLASS window) {
 			break;
 		}
 	}
+
+	__leaveSpinlock(&g_popupmenu_lock);
 	return n;
 }
 

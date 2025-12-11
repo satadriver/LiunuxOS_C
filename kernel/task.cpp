@@ -252,7 +252,9 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	__kFree(tss[tid].espbase);
+	if (tss[tid].level >= 3 && (tss[tid].tss.eflags& 0x20000) && tss[tid].espbase) {
+		__kFree(tss[tid].espbase);
+	}
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	current->status = TASK_OVER;
@@ -1461,7 +1463,7 @@ extern "C" void __declspec(naked)  BspTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov esp, ss: [esp - 20]
 #endif	
 		//clts
-		sti
+		//sti
 
 		iretd
 
@@ -1493,7 +1495,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 
 		//clts
-		cli
+		//cli
 	}
 
 	{
@@ -1525,8 +1527,8 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 		mov esp, ss: [esp - 20]
 
-		//clts
-		sti
+		clts
+		//sti
 
 		iretd
 
@@ -1562,7 +1564,7 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 			popad
 
 			//clts
-			sti
+			//sti
 
 			iretd
 		}
@@ -1597,7 +1599,7 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 		mov esp, ss: [esp - 20]
 
 		//clts
-		sti
+		//sti
 
 		iretd
 	}

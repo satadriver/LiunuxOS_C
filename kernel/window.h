@@ -104,7 +104,7 @@ extern "C" __declspec(dllimport) int removeWindow(int id);
 
 extern "C" __declspec(dllimport) int addWindow(WINDOWCLASS*,char * name);
 
-extern "C" __declspec(dllimport) int MaximizeWindow(WINDOWCLASS *window);
+extern "C" __declspec(dllimport) int MaximizeWindow(LPWINDOWCLASS window);
 
 extern "C" __declspec(dllimport) int MinimizeWindow(WINDOWCLASS * cwin);
 
