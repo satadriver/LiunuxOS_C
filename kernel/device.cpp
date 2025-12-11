@@ -377,9 +377,22 @@ void enableSpeaker() {
 //d0 bcd or binary, 0 = binary, 1 = bcd
 void init8254() {
 
+	unsigned long freq = OSCILLATE_FREQUENCY;
+	unsigned long slice = TASK_TIME_SLICE;
+	unsigned circle = 1000 / slice;
+	unsigned long v = freq / circle;
+	if (v >= 0x10000) {
+		v = 0;
+	}
+	char szout[256];
+	__printf(szout,"8254 tick %d per second\r\n", v);
+
 	outportb(TIMER_COMMAND_REG, 0X36);	//36 or 34 is periodic
-	outportb(0x40, SYSTEM_TIMER0_FACTOR & 0xff);
-	outportb(0x40, (SYSTEM_TIMER0_FACTOR >> 8)&0xff);
+	//outportb(0x40, SYSTEM_TIMER0_FACTOR & 0xff);
+	//outportb(0x40, (SYSTEM_TIMER0_FACTOR >> 8)&0xff);
+
+	outportb(0x40, v & 0xff);
+	outportb(0x40, (v >> 8) & 0xff);
 
 	outportb(TIMER_COMMAND_REG, 0X76);
 	outportb(0x41, TIMER1_DIVIDE_FREQ & 0xff);

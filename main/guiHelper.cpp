@@ -90,7 +90,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	window->tid = tid;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	//LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
@@ -163,9 +163,9 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->next = 0;
 
 	proc->window = window->id;
-	enter_task_array_lock();
+	enter_task_array_lock_cli();
 	tss[tid].window = window->id;
-	leave_task_array_lock();
+	leave_task_array_lock_sti();
 }
 
 
@@ -217,9 +217,9 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 	__drawWindow(window);
 
 	proc->window = window->id;
-	enter_task_array_lock();
+	enter_task_array_lock_cli();
 	tss[tid].window = window->id;
-	leave_task_array_lock();
+	leave_task_array_lock_sti();
 }
 
 
@@ -265,9 +265,9 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	__drawWindow(window);
 
 	proc->window = window->id;
-	enter_task_array_lock();
+	enter_task_array_lock_cli();
 	tss[tid].window = window->id;
-	leave_task_array_lock();
+	leave_task_array_lock_sti();
 }
 
 

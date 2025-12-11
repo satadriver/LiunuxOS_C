@@ -89,9 +89,9 @@ void __kMouseProc() {
 			break;
 		}
 
-		if ((status & 0x20) == 0) {
-			__printf(szout, (char*)"mouse data null\r\n");
-			return;
+		if ((status & 0xe0) ) {
+			//__printf(szout, (char*)"mouse data error\r\n");
+			//return;
 		}
 
 		int md = inportb(0x60);
@@ -142,6 +142,9 @@ void __kMouseProc() {
 		{
 			//return;
 		}
+	}
+	if (counter < 3) {
+		//return;
 	}
 	
 	//https://wiki.osdev.org/PS/2_Mouse

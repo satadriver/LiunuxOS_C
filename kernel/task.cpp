@@ -25,32 +25,35 @@ void enter_task_array_lock() {
 	__enterSpinlock(&g_task_array_lock);
 }
 
-
 void leave_task_array_lock() {
 	__leaveSpinlock(&g_task_array_lock);
 }
 
-
-
-void enter_task_array_lock_no_cli() {
-	__enterSpinlock_no_cli(&g_task_array_lock);
+void enter_task_array_lock_cli() {
+	__asm {cli}
+	__enterSpinlock(&g_task_array_lock);
 }
 
-
-void leave_task_array_lock_no_sti() {
-	__leaveSpinlock_no_sti(&g_task_array_lock);
-}
-
-int peek_task_list_lock() {
-	return g_task_list_lock;
+void leave_task_array_lock_sti() {
+	__asm {sti}
+	__leaveSpinlock(&g_task_array_lock);
 }
 
 void enter_task_list_lock() {
 	__enterSpinlock(&g_task_list_lock);
 }
 
-
 void leave_task_list_lock() {
+	__leaveSpinlock(&g_task_list_lock);
+}
+
+void enter_task_list_lock_cli() {
+	__asm {cli}
+	__enterSpinlock(&g_task_list_lock);
+}
+
+void leave_task_list_lock_sti() {
+	__asm {sti}
 	__leaveSpinlock(&g_task_list_lock);
 }
 
@@ -175,7 +178,8 @@ TASK_LIST_ENTRY* InsertTaskList_No_cli(int tid) {
 
 TASK_LIST_ENTRY* InsertTaskList(int tid) {
 
-	__enterSpinlock(&g_task_list_lock);
+	enter_task_list_lock_cli();
+
 	TASK_LIST_ENTRY* result = 0;
 	LPPROCESS_INFO base = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
@@ -194,16 +198,16 @@ TASK_LIST_ENTRY* InsertTaskList(int tid) {
 			break;
 		}
 	}
-	__leaveSpinlock(&g_task_list_lock);
+	leave_task_list_lock_sti();
 
 	return result;
 }
 
 TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 
-	__enterSpinlock(&g_task_list_lock);
+	enter_task_list_lock_cli();
 	TASK_LIST_ENTRY* result = 0;
-
+	int cnt = 0;
 	TASK_LIST_ENTRY * head = (TASK_LIST_ENTRY*)gTasksListPtr;
 	if (head) {
 		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
@@ -225,37 +229,48 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 					gTasksListPos = (TASK_LIST_ENTRY*)node->list.next;
 					if (gTasksListPos == 0) {
 						//error
-						//gTasksListPos = gTasksListPtr;
 						char szout[256];
 						__printf(szout, "%s error!\r\n", __FUNCTION__);
 						
 					}
 				}
+
+				//__printf(szout, "%s tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",__FUNCTION__,tid, pid, current->pid, current->tid, filename, funcname);
 				
 				break;
 			}
 			node = (TASK_LIST_ENTRY*)node->list.next;
 
+			cnt++;
+			if (cnt >= TASK_LIMIT_TOTAL) {
+				char szout[256];
+				__printf(szout, "%s max count:%d\r\n", __FUNCTION__, cnt);
+				break;
+			}
+
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
 
-	__leaveSpinlock(&g_task_list_lock);
-
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	__kFree(tss[tid].espbase);
+
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	current->status = TASK_OVER;
+
+	leave_task_list_lock_sti();
 
 	return result;
 }
 
 TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 
-	__enterSpinlock(&g_task_list_lock);
+	enter_task_list_lock_cli();
 	TASK_LIST_ENTRY* result = 0;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
+	int cnt = 0;
 	TASK_LIST_ENTRY* head = (TASK_LIST_ENTRY*)gTasksListPtr;
 	if (head) {
 		TASK_LIST_ENTRY* first = (TASK_LIST_ENTRY*)&(head->list.next);
@@ -266,7 +281,7 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 			{
 				RemoveList(&(gTasksListPtr->list), (LIST_ENTRY*)&(node->list));
 
-				node->process->status = TASK_TERMINATE;
+				node->process->status = TASK_OVER;
 				node->process = 0;
 
 				node->valid = FALSE;
@@ -277,7 +292,6 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 					gTasksListPos = (TASK_LIST_ENTRY*)node->list.next;
 					if (gTasksListPos == 0) {
 						//error
-						//gTasksListPos = gTasksListPtr;
 						char szout[256];
 						__printf(szout, "%s error!\r\n", __FUNCTION__);
 
@@ -291,14 +305,21 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 			}
 			node = (TASK_LIST_ENTRY*)node->list.next;
 
+			cnt++;
+			if (cnt >= TASK_LIMIT_TOTAL) {
+				char szout[256];
+				__printf(szout, "%s max count:%d\r\n", __FUNCTION__, cnt);
+				break;
+			}
+
 		} while (node && node->valid && node != (TASK_LIST_ENTRY*)first);
 	}
 
-	current->status = TASK_TERMINATE;
-
-	__leaveSpinlock(&g_task_list_lock);
+	current->status = TASK_OVER;
 
 	__kFreeProcess(pid);
+
+	leave_task_list_lock_sti();
 
 	return result;
 }
@@ -345,7 +366,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 	ret->lptss = 0;
 	ret->number = 0;
 
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -414,97 +435,97 @@ LPPROCESS_INFO __findProcessByTid(int tid) {
 
 
 int __terminateByFileName(char * filename) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();;
 	LPPROCESS_INFO p = __findProcessFileName(filename);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return FALSE;
 }
 
 int __terminateByFuncName(char * funcname) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO * p = __findProcessFuncName(funcname);
 	if (p)
 	{
 		p->status = TASK_OVER;
 
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return FALSE;
 }
 
 int __terminatePid(int pid) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return 0;
 }
 
 
 int __terminateTid(int tid) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return 0;
 }
 
 
 
 int __pauseTid(int tid) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return 0;
 }
 
 
 int __resumeTid(int tid) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return 0;
 }
 
 
 int __pausePid(int pid) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return 0;
 }
 
 
 int __resumePid(int pid) {
-	__enterSpinlock(&g_task_array_lock);
+	enter_task_array_lock_cli();
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	leave_task_array_lock_sti();
 	return 0;
 }
 
@@ -750,7 +771,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	
 	int ret = 0;
 	ret = __enterSpinlock(&g_task_list_lock);
-
+	ret = __enterSpinlock(&g_task_array_lock);
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + process->tid);
@@ -917,6 +938,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->ss = process->tss.ss;
 
 __SingleTssSchedule_end:
+	ret = __leaveSpinlock(&g_task_array_lock);
 	__leaveSpinlock(&g_task_list_lock);
 
 	return next->process;
@@ -1086,6 +1108,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	int ret = 0;
 	ret = __enterSpinlock(&g_task_list_lock);
 
+	ret = __enterSpinlock(&g_task_array_lock);
+
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + process->tid);
@@ -1214,7 +1238,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		fninit
 	}
 __MultipleTssSchedule_end:
-
+	ret = __leaveSpinlock(&g_task_array_lock);
 	__leaveSpinlock(&g_task_list_lock);
 	return next->process;
 }
@@ -1233,7 +1257,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	__k8254TimerProc();
 
 	ActiveApTask(TASK_SWITCH_VECTOR);
-
+	
 	__asm {
 		//clts			//before all fpu instructions
 	}

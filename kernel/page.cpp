@@ -345,13 +345,13 @@ void linearMapping() {
 	return;
 #endif
 
-	int start = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
-	int highaddr = (getBorderAddr() ) & (~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
-	int stop = highaddr / (PAGE_SIZE * ITEM_IN_PAGE);
+	unsigned long start = MEMMORY_ALLOC_BASE / (PAGE_SIZE * ITEM_IN_PAGE);
+	unsigned long highaddr = (getBorderAddr() ) & (~((PAGE_SIZE * ITEM_IN_PAGE) - 1));
+	unsigned long stop = highaddr / (PAGE_SIZE * ITEM_IN_PAGE);
 
-	for (int i = 0; i < ITEM_IN_PAGE; i++) {
+	for (unsigned long i = 0; i < ITEM_IN_PAGE; i++) {
 		entry[i] = (DWORD)idx | (PAGE_PRESENT | PAGE_READWRITE | PAGE_USERPRIVILEGE);
-		for (int j = 0; j < ITEM_IN_PAGE; j++) {
+		for (unsigned long j = 0; j < ITEM_IN_PAGE; j++) {
 			if (i >= start && i < stop) {
 				idx[j] = 0;
 				idx[j] = buf;
@@ -367,7 +367,7 @@ void linearMapping() {
 	}
 
 
-	for (int i = start; i < stop; i++)
+	for (unsigned long i = start; i < stop; i++)
 	{
 		char* pageidx = (char*)(entry[i] & 0xfffff000);
 		//__memset(pageidx, 0, PAGE_SIZE);

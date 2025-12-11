@@ -998,9 +998,10 @@ DWORD __enterSpinlock(DWORD * lpv) {
 		lock bts ds:[eax], 0
 		jnc __getSpinLock
 		pause
+		pause
+		pause
 		jmp __enterSpinLockLoop
 		__getSpinLock :
-
 	}
 }
 
@@ -1021,10 +1022,12 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD * lockv) {
 		__spinlock_xchg:
 		mov eax, 1
 		mov edx,lockv
-		lock xchg [edx], eax
+		lock xchg ds:[edx], eax
 		cmp eax, 0
 		jz __get_spinlock
 		nop
+		pause
+		pause
 		pause
 		jmp __spinlock_xchg
 		__get_spinlock:
@@ -1038,7 +1041,7 @@ extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv) {
 	__asm {
 		mov eax, 0
 		mov edx,lockv
-		lock xchg[edx], eax
+		lock xchg ds:[edx], eax
 		mov[result], eax
 
 	}
@@ -1056,25 +1059,18 @@ DWORD __enterLock(DWORD * lockvalue) {
 	__asm {
 
 	__waitLock:
-		pushfd
-		pop edx
-		and edx,0x200
-		or edx,1
+		mov edx,1
 		mov ecx, lockvalue
 		mov eax, 0
 		lock cmpxchg ds:[ecx], edx
 		jz __entryLock
 		mov result,eax
-		nop
-		pause
+			nop
+			pause
+			pause
+			pause
 		jmp __waitLock
-			__entryLock :
-		test edx,0x200
-		jz _no_if
-			cli
-			_no_if :
-
-		
+		__entryLock :	
 	}
 	
 	return result;
@@ -1092,22 +1088,14 @@ DWORD __leaveLock(DWORD * lockvalue) {
 		mov eax, 1
 		
 		lock cmpxchg ds:[ecx], edx
-		jz _no_if
-
-		mov eax,1
-		or eax,0x200
-		
-		lock cmpxchg ds : [ecx] , edx
-		jz _if_flag
-
-		pause
+		jz _toLockLeave
+			nop
+			pause
+			pause
+			pause
 		jmp __leavelockLoop
 
-		_if_flag:
-		sti
-
-		_no_if :
-
+		_toLockLeave :
 	}
 	
 	return result;

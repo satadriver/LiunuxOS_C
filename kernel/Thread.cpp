@@ -18,10 +18,6 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	char szout[1024];
 
-	__asm {
-		cli
-	}
-
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
@@ -33,9 +29,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		return 0;
 	}
 
-	//__printf(szout, "__kTerminateThread tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
-
-	enter_task_array_lock();
+	enter_task_array_lock_cli();
 	if (current->tid == tid)
 	{
 		current->status = TASK_TERMINATE;
@@ -45,17 +39,14 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	}
 
 	tss[tid].status = TASK_TERMINATE;
-	leave_task_array_lock();
-
+	
 	__kFree(tss[tid].espbase);
 
 	int retvalue = 0;
 
 	tss[tid].retValue = retvalue;
 
-	__asm {
-		sti
-	}
+	leave_task_array_lock_sti();
 
 	if (dwtid & 0x80000000) {
 		return 0;

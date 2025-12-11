@@ -57,7 +57,6 @@ void clearTssBuf(LPPROCESS_INFO tss);
 
 
 
-int peek_task_list_lock();
 
 void tasktest();
 
@@ -117,12 +116,14 @@ extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFileName(char * f
 extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock();
-
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
-
 extern "C"  __declspec(dllexport) void enter_task_list_lock();
-
 extern "C"  __declspec(dllexport) void leave_task_list_lock();
+
+extern "C"  __declspec(dllexport) void enter_task_array_lock_cli();
+extern "C"  __declspec(dllexport) void leave_task_array_lock_sti();
+extern "C"  __declspec(dllexport) void enter_task_list_lock_cli();
+extern "C"  __declspec(dllexport) void leave_task_list_lock_sti();
 
 #else
 
@@ -145,12 +146,14 @@ extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFileName(char * f
 extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
 extern "C"  __declspec(dllimport) void enter_task_array_lock();
-
 extern "C"  __declspec(dllimport) void leave_task_array_lock();
-
 extern "C"  __declspec(dllimport) void enter_task_list_lock();
-
 extern "C"  __declspec(dllimport) void leave_task_list_lock();
+
+extern "C"  __declspec(dllimport) void enter_task_array_lock_cli();
+extern "C"  __declspec(dllimport) void leave_task_array_lock_sti();
+extern "C"  __declspec(dllimport) void enter_task_list_lock_cli();
+extern "C"  __declspec(dllimport) void leave_task_list_lock_sti();
 #endif
 
 

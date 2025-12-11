@@ -178,7 +178,7 @@ void sleep(DWORD * params) {
 		times = 1;
 	}
 
-	enter_task_array_lock();
+	enter_task_array_lock_cli();
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
@@ -188,7 +188,7 @@ void sleep(DWORD * params) {
 	cur_tss->sleep += times ;
 	proc->sleep = cur_tss->sleep;
 
-	leave_task_array_lock();
+	leave_task_array_lock_sti();
 
 	while(1)
 	{

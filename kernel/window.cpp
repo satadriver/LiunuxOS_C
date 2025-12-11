@@ -231,7 +231,7 @@ int addWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 
 	window = (LPWINDOWSINFO)&gWindowsList [seq];
 
-	__enterLock(&g_window_lock);
+	__enterSpinlock(&g_window_lock);
 
 	window->window =(WINDOWCLASS*)lpwindow;
 
@@ -243,7 +243,7 @@ int addWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 
 	InsertListTail(&gWindowsList->list, &window->list);
 
-	__leaveLock(&g_window_lock);
+	__leaveSpinlock(&g_window_lock);
 
  	__printf(szout, "%s id:%x,name:%s\r\n",__FUNCTION__, seq, window->window->winname );
 
@@ -260,14 +260,14 @@ int removeWindow(int id) {
 	LPWINDOWSINFO window = & gWindowsList [ id];
 	if (window->valid) {
 
-		__enterLock(&g_window_lock);
+		__enterSpinlock(&g_window_lock);
 		__printf(szout, "%s id:%x,name:%s\r\n", __FUNCTION__, window->window->id, window->window->winname);
 		window->valid = FALSE;
 		window->window = 0;
 
 		RemoveList(&gWindowsList->list, &window->list);
 
-		__leaveLock(&g_window_lock);
+		__leaveSpinlock(&g_window_lock);
 	}
 
 	return TRUE;
@@ -323,9 +323,9 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__kRefreshMouseBackup();
 	__kDrawMouse();
 
-	enter_task_array_lock();
+	enter_task_array_lock_cli();
 	proc->videoBase = (char*)gGraphBase;
-	leave_task_array_lock();
+	leave_task_array_lock_sti();
 
 	deletePopupItem(window);
 

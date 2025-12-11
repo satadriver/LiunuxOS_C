@@ -290,7 +290,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 	int cpuid = 0;
 	if (cpu == -1) {
-		__enterSpinlock(&g_allocate_ap_lock);
+		//__enterSpinlock(&g_allocate_ap_lock);
 		int total = *(int*)(AP_TOTAL_ADDRESS);
 		int* ids = (int*)AP_ID_ADDRESS;
 		cpuid = ids[gAllocateAp];
@@ -298,7 +298,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 		if (gAllocateAp >= total) {
 			gAllocateAp = 0;
 		}
-		__leaveSpinlock(&g_allocate_ap_lock);
+		//__leaveSpinlock(&g_allocate_ap_lock);
 	}
 	else {
 		cpuid = cpu;
@@ -916,7 +916,7 @@ int AllocateApTask(int intnum) {
 	int res = -1;
 	int cpuId = 0;
 
-	__enterSpinlock(&g_allocate_ap_lock);
+	//__enterSpinlock(&g_allocate_ap_lock);
 
 	int total = *(int*)(AP_TOTAL_ADDRESS);
 	if (total > 0) {
@@ -944,7 +944,7 @@ int AllocateApTask(int intnum) {
 		} while (gAllocateAp != idx);
 	}
 
-	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveSpinlock(&g_allocate_ap_lock);
 
 	char szout[256];
 	unsigned long v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
@@ -959,17 +959,17 @@ int AllocateApTask(int intnum) {
 
 int ActiveApTask(int intnum) {
 
-	//return 0;
-
 	if (intnum < 0 || intnum > 255) {
 		return -1;
 	}
 
-	__enterSpinlock(&g_allocate_ap_lock);
+	//__enterSpinlock(&g_allocate_ap_lock);
 
 	int total = *(int*)(AP_TOTAL_ADDRESS);
 	if (total > 0) {
 		
+		SetIcr(0, intnum, 0, 3);
+		/*
 		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		int* ids = (int*)AP_ID_ADDRESS;
 		for (int idx = 0; idx < total; idx++)
@@ -979,10 +979,11 @@ int ActiveApTask(int intnum) {
 
 				SetIcr(cpuId, intnum,0,0);
 			}	
-		} 
+		}
+		*/
 	}
 
-	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveSpinlock(&g_allocate_ap_lock);
 
 	//char szout[256];
 	//__printf(szout, "AllocateApTask index:%x,id:%x\r\n", res, cpuId);
