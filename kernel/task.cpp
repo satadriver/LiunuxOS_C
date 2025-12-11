@@ -357,7 +357,7 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 }
 
 
-int __getFreeTask(LPTASKRESULT ret) {
+int __getFreeTask(LPTASKRESULT ret,int clear) {
 	int result = 0;
 	if (ret == 0)
 	{
@@ -365,8 +365,12 @@ int __getFreeTask(LPTASKRESULT ret) {
 	}
 	ret->lptss = 0;
 	ret->number = 0;
-
-	enter_task_array_lock_cli();
+	if (clear) {
+		enter_task_array_lock_cli();
+	}
+	else {
+		enter_task_array_lock();
+	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -383,7 +387,14 @@ int __getFreeTask(LPTASKRESULT ret) {
 			break;
 		}
 	}
-	__leaveSpinlock(&g_task_array_lock);
+	if (clear) {
+
+		leave_task_array_lock_sti();
+	}
+	else {
+		leave_task_array_lock();
+	}
+
 	return result;
 }
 

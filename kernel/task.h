@@ -93,7 +93,7 @@ extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char * videobase);
 
-int __getFreeTask(LPTASKRESULT);
+int __getFreeTask(LPTASKRESULT,int tag);
 
 #ifdef DLL_EXPORT
 

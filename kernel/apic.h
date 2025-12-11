@@ -71,6 +71,8 @@ int IsBspProcessor();
 
 int GetIdleProcessor();
 
+void EOICommand(int pin);
+
 void BPCodeStart();
 
 int InitLocalApicTimer();

@@ -31,6 +31,10 @@ int g_bsp_id = 0;
 
 int g_test_value = 0;
 
+int g_apic_int_tag = 0;
+
+
+
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
 
@@ -236,7 +240,7 @@ int initHpet() {
 	long long idc = *(long long*)APIC_HPET_BASE;
 
 	HPET_GCAP_ID_REG * hg = (HPET_GCAP_ID_REG*)&idc;
-	//the default value is 0x0429b17f=69841279 about 14.318179MHz	
+	//the default value is 0x0429b17f=69841279 about 14.318179MHz
 	__printf(szout, "hpet version:%d,count:%d,width:%d,compatable:%d,vender:%x,tick:%x\r\n ", 
 		hg->version, hg->count, hg->width, hg->compatable,hg->venderid,hg->tick);
 	
@@ -453,6 +457,8 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+
+		cli
 	}
 
 	{
@@ -461,7 +467,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 
-		*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
+		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		int intInSec = (1000 / TASK_TIME_SLICE);
 
@@ -483,7 +489,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		g_lvt_timer++;
 		if (g_lvt_timer >= intInSec) {
 			g_lvt_timer = 0;
-			__kPeriodTimer();
+			//__kPeriodTimer();
 		}
 	}
 
@@ -499,7 +505,8 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		pop ds
 		popad
 
-		clts
+		sti
+
 		iretd
 	}
 }
@@ -1097,14 +1104,14 @@ int InitLocalApicTimer() {
 	int v = 0;
 
 	v = 0x10000;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
-
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+	iomfence();
 	v = 0x03;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
-
-	v = APIC_LVTTIMER_VECTOR | 0x20000;
+	iomfence();
+	v = APIC_LVTTIMER_VECTOR | 0x20000 ;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
-
+	iomfence();
 	v = 1000000 *16/ (1000 / TASK_TIME_SLICE);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
 
@@ -1121,31 +1128,11 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	}
 
 	char szout[1024];
-	enableLocalApic();
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0xe0) = 0;
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
 
 	int localapic_ver = *(DWORD*)(LOCAL_APIC_BASE + 0x30);
-
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
-
-#ifdef IO_APIC_ENABLE
-	__asm {cli}
-
-	ret = DisableLocalApicLVT();
-
-	ret = InitLocalApicTimer();
-
-	__asm {sti}
-#endif
-
-	//ret = InitLocalApicTimer();
 
 	unsigned int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
@@ -1169,7 +1156,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	unsigned long stack0top = (unsigned long)(AP_STACK0_BASE + TASK_STACK0_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	//tssSize = sizeof(PROCESS_INFO);
+
 	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tssSize * cpuid);
 	initKernelTss((TSS*)&process->tss, stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
 
@@ -1179,7 +1166,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__sprintf(procname, "apic_process_%d", cpuid);
 
 	TASKRESULT freeTss;
-	__getFreeTask(&freeTss);
+	__getFreeTask(&freeTss,0);
+
 	int tid =freeTss.number;
 
 	process->tss.cr3 = PDE_ENTRY_VALUE;
@@ -1256,6 +1244,30 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	EnableSyscall();
 
 	sysEntryInit((DWORD)sysEntry);
+
+	enableLocalApic();
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100 | APIC_SPURIOUS_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0xe0) = 0;
+
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x10000;
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x10000;
+
+#ifdef IO_APIC_ENABLE
+	__asm {cli}
+
+	ret = DisableLocalApicLVT();
+
+	ret = InitLocalApicTimer();
+
+	__asm {sti}
+#endif
+
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
+	//ret = InitLocalApicTimer();
+	//initHpet();
 
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n", 
 		cpuid, localapic_ver, reg_esp,lint0,lint1,tid,ioapic_id, ioapic_ver);
@@ -1378,14 +1390,15 @@ void BPCodeStart() {
 	//InitLocalApicErr();
 
 	//InitLocalApicCmci();
-
+	__asm{cli}
 	//ret = InitLocalApicTimer();
+	__asm {sti}
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
 	initHpet();
 	DisableInt();
-		
+
 	ret = DisableLocalApicLVT();
 
 	InitIoApicRte();
@@ -1521,4 +1534,26 @@ int GetIdleProcessor() {
 	}
 
 	return g_bsp_id;
+}
+
+
+
+
+
+void EOICommand(int pin) {
+	if (g_apic_int_tag) {
+		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
+	}
+	else {
+		if ((pin >= INTR_8259_MASTER) && (pin < INTR_8259_MASTER + 8)) {
+			outportb(0x20, 0x20);
+		}
+
+		if ((pin >= INTR_8259_SLAVE) && (pin < INTR_8259_SLAVE + 8)) {
+			outportb(0x20, 0x20);
+			outportb(0xa0, 0x20);
+		}
+	}
+
 }

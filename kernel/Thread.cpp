@@ -81,7 +81,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	char szout[1024];
 
 	TASKRESULT freetask;
-	ret = __getFreeTask(&freetask);
+	ret = __getFreeTask(&freetask,1);
 	if (ret == FALSE)
 	{
 		return FALSE;

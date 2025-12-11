@@ -451,7 +451,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	DWORD level = syslevel & 3;
 
 	TASKRESULT result;
-	ret = __getFreeTask(&result);
+	ret = __getFreeTask(&result,1);
 	if (ret == FALSE)
 	{
 		__printf(szout, "__kCreateProcess filename:%s function:%s __getFreeTask error\n", filename, funcname);
