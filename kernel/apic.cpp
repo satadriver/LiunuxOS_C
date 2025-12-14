@@ -1027,6 +1027,9 @@ int enableLocalApic() {
 
 	high = 0;
 	low = LOCAL_APIC_BASE|0x800;
+	if (origin & 0x100) {
+		low |= 0x100;
+	}
 	writemsr(0x1b, low, high);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100 | APIC_SPURIOUS_VECTOR;
@@ -1133,6 +1136,12 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
+
+	enableLocalApic();
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x10000;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x10000;
 
 	int localapic_ver = *(DWORD*)(LOCAL_APIC_BASE + 0x30);
 
@@ -1247,20 +1256,12 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	sysEntryInit((DWORD)sysEntry);
 
-	enableLocalApic();
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100 | APIC_SPURIOUS_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0xe0) = 0;
-
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x10000;
-	//*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x10000;
 
 	//ret = InitLocalApicTimer();
-	InitLocalApicErr();
+	//InitLocalApicErr();
 
-	InitLocalApicCmci();
+	//InitLocalApicCmci();
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
 	initHpet();
@@ -1315,24 +1316,26 @@ void BPCodeStart() {
 		return;
 	}
 
-	//__asm {cli}
+	__asm {cli}
 	enableLocalApic();
 
-	enableIoApic();
+	//enableIoApic();
 
 #if 0
 	enableRcba();
 #endif
-	//__asm {sti}
+	
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0xf0) = 0x100| APIC_SPURIOUS_VECTOR;
-
 	*(DWORD*)(LOCAL_APIC_BASE + 0x80) = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0xd0) = 0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0xe0) = 0;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
+
+	__asm {sti}
+
 	*(int*)(AP_TOTAL_ADDRESS) = 0;
 
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
@@ -1389,9 +1392,9 @@ void BPCodeStart() {
 	}
 	SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 
-	InitLocalApicErr();
+	//InitLocalApicErr();
 
-	InitLocalApicCmci();
+	//InitLocalApicCmci();
 	//ret = InitLocalApicTimer();
 
 #ifdef IO_APIC_ENABLE

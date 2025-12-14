@@ -82,7 +82,7 @@ void addAlarmTimer() {
 
 	//__asm {cli}
 
-	DisableCmos();
+	//DisableCmos();
 	
 	unsigned char bcentury = readCmosPort(0x32);
 	unsigned char byear = readCmosPort(9);
@@ -159,7 +159,7 @@ void addAlarmTimer() {
 	writeCmosPort(0x03, b2bcd(dstmin));
 	writeCmosPort(0x01, b2bcd(dstsecond));
 
-	EnableCmos();
+	//EnableCmos();
 
 	//__asm{sti}
 
