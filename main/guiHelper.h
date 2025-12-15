@@ -19,7 +19,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid);
 
 void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid);
 
-void initDesktopWindow(WINDOWCLASS* window, char* filename, int tid,int show);
+//void initDesktopWindow(WINDOWCLASS* window, char* filename, int tid,int show);
 
 void initIcon(FILEICON* clickitem, char* name, int tid, int id, int x, int y);
 

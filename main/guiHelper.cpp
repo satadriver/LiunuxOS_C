@@ -110,7 +110,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->next = 0;
 }
 
-
+/*
 void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	int ret = 0;
 	__memset((char*)window, 0, sizeof(WINDOWCLASS));
@@ -167,7 +167,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	tss[tid].window = window->id;
 	leave_task_array_lock_sti();
 }
-
+*/
 
 void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 

@@ -408,16 +408,15 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	{
 		char szout[256];
 		
-		__printf(szout, "IPIIntHandler\r\n");
-		
-
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		__printf(szout, "IPI Interruption Handler\r\n");
 
 		__enterSpinlock(&g_ap_work_lock);
 		g_test_value++;
 		__leaveSpinlock(&g_ap_work_lock);
 
 		__printf(szout, "function:%s value:%d\r\n",__FUNCTION__, g_test_value);
+
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
 
 	__asm {

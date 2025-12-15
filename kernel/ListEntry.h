@@ -18,21 +18,21 @@ int GetListSize(LIST_ENTRY* list);
 
 extern "C"  __declspec(dllexport) void InitListEntry(LIST_ENTRY * list);
 
-extern "C"  __declspec(dllexport) void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list);
+extern "C"  __declspec(dllexport) int InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list);
 
-extern "C"  __declspec(dllexport) void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list);
+extern "C"  __declspec(dllexport) int InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list);
 
 extern "C"  __declspec(dllexport) LIST_ENTRY * SearchList(LIST_ENTRY * head, LPLIST_ENTRY list);
 
-extern "C"  __declspec(dllexport) void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list);
+extern "C"  __declspec(dllexport) int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list);
 #else
 extern "C"  __declspec(dllimport) void InitListEntry(LIST_ENTRY * head);
 
-extern "C"  __declspec(dllimport) void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list);
+extern "C"  __declspec(dllimport) int InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list);
 
-extern "C"  __declspec(dllimport) void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list);
+extern "C"  __declspec(dllimport) int InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list);
 
 extern "C"  __declspec(dllimport) LIST_ENTRY * SearchList(LIST_ENTRY * head, LPLIST_ENTRY list);
 
-extern "C"  __declspec(dllimport) void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list);
+extern "C"  __declspec(dllimport) int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list);
 #endif

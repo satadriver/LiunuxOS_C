@@ -345,7 +345,7 @@ typedef struct {
 
 #pragma pack()
 
-void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show);
+
 
 unsigned short* getGBKCCIdx(unsigned short gbk);
 
@@ -419,6 +419,9 @@ extern "C"  __declspec(dllexport) int __diamond(int startx, int starty, int radu
 extern "C"  __declspec(dllexport) int __clearWindowChar(WINDOWCLASS* window);
 
 extern "C"  __declspec(dllexport) int __drawWindowChars( char* font, int color, WINDOWCLASS* window);
+
+
+extern "C"  __declspec(dllexport) void initDesktopWindow(WINDOWCLASS* window, char* name, int tid, int show);
 #else
 extern "C"  __declspec(dllimport)int __drawCC(unsigned char* str, int color, DWORD pos, DWORD bgcolor, WINDOWCLASS*);
 extern "C" __declspec(dllimport)  int __initVideo(LPVESAINFORMATION vesa, DWORD fontbase);
@@ -485,7 +488,7 @@ extern "C"  __declspec(dllimport) int __clearWindowChar(WINDOWCLASS * window);
 
 extern "C"  __declspec(dllimport) int __drawWindowChars( char* font, int color, WINDOWCLASS * window);
 
-
+extern "C"  __declspec(dllimport) void initDesktopWindow(WINDOWCLASS* window, char* name, int tid, int show);
 #endif
 
 #endif

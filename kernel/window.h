@@ -17,7 +17,6 @@ typedef struct  _WINDOWSINFO
 	LIST_ENTRY list;
 	WINDOWCLASS * window;
 	DWORD valid;
-
 }WINDOWSINFO,*LPWINDOWSINFO;
 
 
@@ -51,7 +50,7 @@ int insertPopupItem(LPWINDOWCLASS window);
 
 int deletePopupItem(LPWINDOWCLASS window);
 
-int getFreeWindow();
+int GetFreeWindow();
 
 
 #ifdef DLL_EXPORT
@@ -63,17 +62,15 @@ extern "C"  __declspec(dllexport) LPWINDOWSINFO GetProcessTextPos(int** x, int**
 extern "C" __declspec(dllexport) LPWINDOWSINFO __FindWindow(char* wname);
 extern "C" __declspec(dllexport) LPWINDOWSINFO __FindWindowID(DWORD wid);
 
-
 extern "C" __declspec(dllexport) LPWINDOWSINFO __FindProcessWindow(int tid);
 
 extern "C" __declspec(dllexport) LPWINDOWSINFO getTopWindow();
 extern "C" __declspec(dllexport) void initWindowList();
 extern "C" __declspec(dllexport) DWORD isTopWindow(int wid);
 
-extern "C" __declspec(dllexport) int removeWindow(int id);
+extern "C" __declspec(dllexport) int RemoveWindow(int id);
 
-extern "C" __declspec(dllexport) int addWindow(WINDOWCLASS* lpwindow,char * name);
-
+extern "C" __declspec(dllexport) int InsertWindow(WINDOWCLASS* lpwindow,char * name);
 
 extern "C" __declspec(dllexport) int traversalWindow(char*);
 
@@ -100,14 +97,13 @@ extern "C" __declspec(dllimport) LPWINDOWSINFO getTopWindow();
 extern "C" __declspec(dllimport) void initWindowList();
 extern "C" __declspec(dllimport) DWORD isTopWindow(int wid);
 
-extern "C" __declspec(dllimport) int removeWindow(int id);
+extern "C" __declspec(dllimport) int RemoveWindow(int id);
 
-extern "C" __declspec(dllimport) int addWindow(WINDOWCLASS*,char * name);
+extern "C" __declspec(dllimport) int InsertWindow(WINDOWCLASS*,char * name);
 
 extern "C" __declspec(dllimport) int MaximizeWindow(LPWINDOWCLASS window);
 
 extern "C" __declspec(dllimport) int MinimizeWindow(WINDOWCLASS * cwin);
-
 
 extern "C" __declspec(dllimport) int traversalWindow(char*);
 

@@ -57,10 +57,11 @@ LIST_ENTRY* SearchList(LIST_ENTRY* head, LPLIST_ENTRY list) {
 }
 
 //add after head
-void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
+int InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
+	int result = 0;
 	if (head == 0 || list == 0 || list == head)
 	{
-		return;
+		return result;
 	}
 
 	char szout[256];
@@ -71,7 +72,7 @@ void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 	if ((next == 0 && prev != 0) || (next != 0 && prev == 0)) {
 
 		__printf(szout, "%s node error!\r\n",__FUNCTION__);
-		return ;
+		return result;
 	}
 
 	if (next && prev ) {
@@ -82,6 +83,7 @@ void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 		list->prev = prev;
 
 		head->prev = list;
+		result = 1;
 	}
 	else {
 
@@ -90,14 +92,17 @@ void InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 
 		list->prev = list;
 		list->next = list;
+		result = 2;
 	}
+	return result;
 }
 
 //add to head
-void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list) {
+int InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list) {
+	int result = 0;
 	if (head == 0 || list == 0 || list == head)
 	{
-		return;
+		return result;
 	}
 
 	LIST_ENTRY* next = head->next;
@@ -106,7 +111,7 @@ void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 	if ((next == 0 && prev != 0) || (next != 0 && prev == 0) ) {
 
 		__printf(szout, "%s node error!\r\n", __FUNCTION__);
-		return;
+		return result;
 	}
 
 	if (next && prev) {
@@ -117,6 +122,7 @@ void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 		list->prev = prev;
 
 		head->next = list;
+		result = 1;
 	}
 	else {
 		head->next = list;
@@ -124,19 +130,23 @@ void InsertListHead(LIST_ENTRY * head, LIST_ENTRY * list) {
 
 		list->prev = list;
 		list->next = list;
+		result = 2;
 	}
+	return result;
 }
 
 
-void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
+int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
+	int result = 0;
 	LPLIST_ENTRY r = SearchList(h, list);
 	if (r == FALSE) {
-		return ;
+		return result;
 	}
 
 	if (h->next == list && h->prev == list) {
 		h->prev = 0;
 		h->next = 0;
+		result = 1;
 	}
 	else if (h->next == list && h->prev != list) 
 	{
@@ -147,6 +157,7 @@ void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		//list->next = 0;
 		//list->prev = 0;	
 		h->next = next;
+		result = 2;
 	}
 	else if (h->prev == list && h->next != list) 
 	{
@@ -156,6 +167,7 @@ void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		next->prev = prev;
 
 		h->prev = prev;
+		result = 3;
 	}
 	else {
 		LPLIST_ENTRY next = list->next;
@@ -164,7 +176,9 @@ void RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		next->prev = prev;
 		//list->next = 0;
 		//list->prev = 0;
+		result = 4;
 	}
+	return result;
 }
 
 

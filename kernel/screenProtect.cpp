@@ -79,7 +79,7 @@ int initScreenProtect() {
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
 		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 
-	gScreenProtectWindowID = addWindow(0, (char*) __FUNCTION__);
+	gScreenProtectWindowID = InsertWindow(0, (char*) __FUNCTION__);
 
 	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -93,7 +93,7 @@ int stopScreenProtect() {
 
 	__kRemoveExactTimer(gTimerID);
 
-	removeWindow(gScreenProtectWindowID);
+	RemoveWindow(gScreenProtectWindowID);
 
 	gScreenProtectWindowID = 0;
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
@@ -198,7 +198,7 @@ void stopSquareVideo() {
 
 	__kRemoveExactTimer(gVectorGraphTid);
 
-	removeWindow(gVectorGraphWid);
+	RemoveWindow(gVectorGraphWid);
 
 	//DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 	//__memcpy((char*)gGraphBase,(char*) gVectorGraphBuf, backsize);
@@ -277,7 +277,7 @@ void initSquareVideo() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)gVectorGraphBuf);
 
-	gVectorGraphWid = addWindow(FALSE, (char*) __FUNCTION__);
+	gVectorGraphWid = InsertWindow(FALSE, (char*) __FUNCTION__);
 
 	gVectorGraphTid = __kAddExactTimer((DWORD)SquareVideo, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
@@ -301,7 +301,7 @@ void EllipseVideo() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
+	DWORD windowid = InsertWindow(FALSE, (char*)__FUNCTION__);
 
 	int A = 13;
 	int B = 7;
@@ -314,7 +314,7 @@ void EllipseVideo() {
 		if (asc == 0x1b)
 		{
 			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
-			removeWindow(windowid);
+			RemoveWindow(windowid);
 
 			__kFree(backGround);
 
@@ -383,7 +383,7 @@ void SpiralBallVideo() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0xffffff, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
+	DWORD windowid = InsertWindow(FALSE, (char*)__FUNCTION__);
 	
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
@@ -484,7 +484,7 @@ void SpiralBallVideo() {
 		if (asc == 0x1b)
 		{
 			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
-			removeWindow(windowid);
+			RemoveWindow(windowid);
 
 			__kFree(backGround);
 
@@ -608,7 +608,7 @@ void CubeVideo() {
 
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
+	DWORD windowid = InsertWindow(FALSE, (char*)__FUNCTION__);
 
 	while (1)
 	{
@@ -618,7 +618,7 @@ void CubeVideo() {
 		if (asc == 0x1b)
 		{
 			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
-			removeWindow(windowid);
+			RemoveWindow(windowid);
 
 			__kFree(backGround);
 
@@ -678,7 +678,7 @@ void DiamondVideo() {
 	int color = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, color, (unsigned char*)backGround);
 
-	DWORD windowid = addWindow(FALSE, (char*)__FUNCTION__);
+	DWORD windowid = InsertWindow(FALSE, (char*)__FUNCTION__);
 
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
@@ -690,7 +690,7 @@ void DiamondVideo() {
 		if (asc == 0x1b)
 		{
 			__DestroyRectWindow(&p, gVideoWidth, gVideoHeight, (unsigned char*)backGround);
-			removeWindow(windowid);
+			RemoveWindow(windowid);
 
 			__kFree(backGround);
 
@@ -814,7 +814,7 @@ void stopTrajectory() {
 	__kRemove8254Timer(gTrajectTid);
 #endif
 
-	removeWindow(gTrajectWid);
+	RemoveWindow(gTrajectWid);
 
 	POINT p;
 	p.x = 0;
@@ -1073,7 +1073,7 @@ void initTrajectory() {
 
 	g_circle_buf = (char*)__kMalloc((int)(g_radius + 4) * 2 * 2 * (int)(g_radius + 4) * gBytesPerPixel);
 
-	gTrajectWid = addWindow(FALSE, (char*)__FUNCTION__);
+	gTrajectWid = InsertWindow(FALSE, (char*)__FUNCTION__);
 
 	POINT p;
 	p.x = 0;

@@ -356,7 +356,7 @@ int __DestroyWindow(LPWINDOWCLASS window) {
 
 	int size = __restoreWindow(window);
 
-	removeWindow(window->id);
+	RemoveWindow(window->id);
 
 	if (window->backBuf)
 	{
@@ -382,7 +382,7 @@ int __drawWindow(LPWINDOWCLASS window) {
 	ret = __drawRectangleFrameCaption(&window->pos, window->width, window->height, window->color, window->frameSize, window->frameColor,
 		window->capHeight, window->capColor, window->caption, (char*)window->backBuf);
 
-	window->id = addWindow((WINDOWCLASS*)window, window->winname);
+	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
 
 	ret = __drawShutdown(window);
 	__drawMinimize(window);
@@ -1550,7 +1550,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 
 	window->minBuf = 0;
 
-	window->id = addWindow((WINDOWCLASS*)window, window->winname);
+	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
 
 	if (show) {
 		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
