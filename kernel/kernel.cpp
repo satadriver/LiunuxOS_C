@@ -259,6 +259,11 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
+	PROCESS_INFO pin[0x10];
+
+	int size = sizeof(pin[2]);
+	char* ptr = (char*)&pin[1];
+
 	char mydata[1024];
 	int len = 1024;
 	base64_encode("hello", 5, mydata, &len);

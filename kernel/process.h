@@ -28,7 +28,7 @@ typedef struct
 #pragma pack(pop)
 
 #pragma pack(1)
-typedef struct  
+typedef struct  alignas(16)
 {
 	TSS tss;
 

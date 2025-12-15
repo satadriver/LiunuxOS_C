@@ -10,10 +10,10 @@
 #include "apic.h"
 
 
-extern "C" __declspec(dllexport)LPWINDOWSINFO gWindowsList = 0;
+LPWINDOWSINFO gWindowsList = 0;
 
 
-extern "C" __declspec(dllexport) POPUPMENU gPopupMenu = { 0 };
+POPUPMENU gPopupMenu ;
 
 unsigned long g_window_lock = 0;
 
@@ -23,6 +23,12 @@ void initWindowList() {
 	__memset((char*)gWindowsList, 0, WINDOW_LIST_BUF_SIZE);
 
 	InitListEntry((LPLIST_ENTRY)&gWindowsList->list);
+
+	int cnt = sizeof(gPopupMenu.item) / sizeof(gPopupMenu.item[0]);
+	for (int i = 0; i < cnt; i++) {
+		gPopupMenu.item[i].valid = 0;
+
+	}
 }
 
 LPWINDOWSINFO __FindWindow(char * wname) {

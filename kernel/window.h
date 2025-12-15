@@ -54,8 +54,8 @@ int GetFreeWindow();
 
 
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport)LPWINDOWSINFO gWindowsList;
-extern "C" __declspec(dllexport) POPUPMENU gPopupMenu;
+extern __declspec(dllexport)LPWINDOWSINFO gWindowsList;
+extern __declspec(dllexport) POPUPMENU gPopupMenu;
 extern "C"  __declspec(dllexport) char* GetVideoBase();
 
 extern "C"  __declspec(dllexport) LPWINDOWSINFO GetProcessTextPos(int** x, int** y);
@@ -85,8 +85,8 @@ extern "C" __declspec(dllexport) int destroyWindows();
 
 extern "C" __declspec(dllexport) LPWINDOWCLASS getWindowFromName(char * winname);
 #else
-extern "C" __declspec(dllimport)LPWINDOWSINFO gWindowsList;
-extern "C" __declspec(dllimport) POPUPMENU gPopupMenu;
+extern __declspec(dllimport)LPWINDOWSINFO gWindowsList;
+extern __declspec(dllimport) POPUPMENU gPopupMenu;
 extern "C"  __declspec(dllimport) char* GetVideoBase();
 extern "C"  __declspec(dllimport) LPWINDOWSINFO GetProcessTextPos(int** x, int** y);
 extern "C" __declspec(dllimport) LPWINDOWSINFO __FindProcessWindow(int tid);
