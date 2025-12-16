@@ -374,7 +374,7 @@ int __getFreeTask(LPTASKRESULT ret,int clear) {
 		enter_task_array_lock();
 	}
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (tss[i].status == TASK_OVER)

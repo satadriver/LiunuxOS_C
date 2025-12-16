@@ -33,6 +33,8 @@ int g_test_value = 0;
 
 int g_apic_int_tag = 0;
 
+LPPROCESS_INFO g_ap_tss_base[256];
+
 
 
 void enableRcba() {
@@ -360,7 +362,9 @@ int InitIoApicRte() {
 
 	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
 
-	IoApicRedirect(0x14, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+	//IoApicRedirect(0x14, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+
+	IoApicRedirect(0x14, g_bsp_id, APIC_LVTTIMER_VECTOR, 0);
 
 	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
 	IoApicRedirect(0x18, g_bsp_id, INTR_8259_MASTER + 4, 0);
@@ -368,7 +372,7 @@ int InitIoApicRte() {
 	IoApicRedirect(0x1c, g_bsp_id, INTR_8259_MASTER + 6, 0);
 	IoApicRedirect(0x1e, g_bsp_id, INTR_8259_MASTER + 7, 0);
 
-	IoApicRedirect(0x20, g_bsp_id, APIC_LVTTIMER_VECTOR, 0);
+	//IoApicRedirect(0x20, g_bsp_id, APIC_LVTTIMER_VECTOR, 0);
 	//IoApicRedirect(0x20, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
 
 	IoApicRedirect(0x22, g_bsp_id, INTR_8259_SLAVE + 1, 0);
@@ -463,37 +467,30 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		__printf(szout, "%s\r\n", __FUNCTION__);
-
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		//__printf(szout, "LVTTimerIntHandlers\r\n");
+		//__printf(szout, "entry %s\r\n", __FUNCTION__);
+		
+		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
-		int intInSec = (1000 / TASK_TIME_SLICE);
+		//__enterSpinlock(&g_ap_work_lock);
+	
+		//__leaveSpinlock(&g_ap_work_lock);
 
-		/*
-		int v = 0x10000;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
-
-		v = 0x0d;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
-
-		
-		v = 1000000 / intInSec;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
-
-		v = APIC_LVTTIMER_VECTOR | 0x20000;
-		*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
-		*/
-
-		g_lvt_timer++;
-		if (g_lvt_timer >= intInSec) {
-			g_lvt_timer = 0;
-			//__kPeriodTimer();
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		if (g_apic_int_tag) {
+			*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 		}
 	}
 
 	__asm {
+#ifdef SINGLE_TASK_TSS
+		call GetCurrentTaskTssBase
+		mov edx, eax
+		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		mov cr3, eax
+#endif
 		mov esp, ebp
 		pop ebp
 		add esp, 4
@@ -505,6 +502,9 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		pop ds
 		popad
 
+#ifdef SINGLE_TASK_TSS
+		mov esp, dword ptr ss : [esp - 20]
+#endif	
 		sti
 
 		iretd
@@ -966,6 +966,7 @@ int AllocateApTask(int intnum) {
 
 
 int ActiveApTask(int intnum) {
+	return 0;
 
 	if (intnum < 0 || intnum > 255) {
 		return -1;
@@ -1116,8 +1117,20 @@ int InitLocalApicTimer() {
 	v = APIC_LVTTIMER_VECTOR | 0x20000 ;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
 	iomfence();
-	v = 1000000 *16/ (1000 / TASK_TIME_SLICE);
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = v;
+	unsigned long long lv = 100000000;
+	
+	lv = lv /16 / (1000 / TASK_TIME_SLICE);
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)lv;
+
+	DWORD cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	for (int i = 0; i < 0x1000000; i++) {
+
+	}
+
+	DWORD cnt2 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+
+	char szout[256];
+	__printf(szout, "cnt1:%x cnt2:%x\r\n", cnt1,cnt2);
 
 	return 0;
 }
@@ -1175,6 +1188,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	char procname[64];
 	__sprintf(procname, "apic_process_%d", cpuid);
 
+	SetTaskTssBase();
 	TASKRESULT freeTss;
 	__getFreeTask(&freeTss,0);
 
@@ -1257,14 +1271,14 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 
 
-	//ret = InitLocalApicTimer();
+	
 	//InitLocalApicErr();
 
 	//InitLocalApicCmci();
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
-	initHpet();
-	ret = DisableLocalApicLVT();
+
+	//ret = DisableLocalApicLVT();
 
 	__asm {sti}
 #endif
@@ -1285,6 +1299,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #endif
 
 	__asm {sti}
+
+	ret = InitLocalApicTimer();
 
 	while (1) {
 		__asm {
@@ -1394,25 +1410,36 @@ void BPCodeStart() {
 	//InitLocalApicErr();
 
 	//InitLocalApicCmci();
-	//ret = InitLocalApicTimer();
+	
 
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
 	
-	initHpet();
-	InitIoApicRte();
-	DisableInt();
-	ret = DisableLocalApicLVT();
 	
+	//initHpet();
+	//InitIoApicRte();
+	//DisableInt();
+	//ret = DisableLocalApicLVT();
+	
+
 	g_apic_int_tag = 1;
 	__asm {sti}
 #endif
-
-	__sleep(0);
+	/*
+	__asm {
+		mov al,0
+		out 0x43,al
+		mov al,0
+		out 0x40,al
+		out 0x40,al
+	}
+	*/
+	//ret = InitLocalApicTimer();
+	__sleep(1000);
 	//AllocateApTask(2);
 
-	__printf(szout, "bsp id:%d version:%x lock:%d init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		g_bsp_id, localapic_ver, g_test_value,lint0,lint1, ioapic_id, ioapic_ver);
+	__printf(szout, "bsp id:%d version:%x lock:%d timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
+		g_bsp_id, localapic_ver, g_test_value, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1428,7 +1455,42 @@ int IsBspProcessor() {
 }
 
 
+LPPROCESS_INFO GetTaskTssBase() {
+	char szout[1024];
+	int cnt = *(int*)AP_TOTAL_ADDRESS;
+	if (cnt == 0) {
+		LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+		return process;
+	}
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (id == g_bsp_id) {
+		LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+		return process;
+	}
 
+	return (LPPROCESS_INFO)g_ap_tss_base[id];
+}
+
+
+
+LPPROCESS_INFO SetTaskTssBase() {
+	char szout[1024];
+	int cnt = *(int*)AP_TOTAL_ADDRESS;
+	if (cnt == 0) {
+		LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+		return process;
+	}
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (id == g_bsp_id) {
+		LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE;
+		return process;
+	}
+
+	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	LPPROCESS_INFO info = (LPPROCESS_INFO)__kMalloc(tsssize * TASK_LIMIT_TOTAL);
+	g_ap_tss_base[id] = info;
+	return (LPPROCESS_INFO)g_ap_tss_base[id];
+}
 
 
 LPPROCESS_INFO GetCurrentTaskTssBase(){
@@ -1438,20 +1500,16 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 		LPPROCESS_INFO process = (LPPROCESS_INFO)BSP_TASK_TSS_BASE;
 		return process;
 	}
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	id = id >> 24;
-	
-	//__enterSpinlock(&g_allocate_ap_lock);
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if(id == g_bsp_id){
 		LPPROCESS_INFO process = (LPPROCESS_INFO)BSP_TASK_TSS_BASE;
-		//__leaveSpinlock(&g_allocate_ap_lock);
 		return process;
 	}
 
 	int* apids = (int*)AP_ID_ADDRESS;
 	for(int i = 0;i< cnt;i ++){
 		if(apids[i] == id){
-			//__leaveSpinlock(&g_allocate_ap_lock);
 			int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 			LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * id);
 			return process;
@@ -1477,6 +1535,9 @@ void BubbleSort(unsigned int* arr, int count) {
 		}
 	}
 }
+
+
+
 
 
 int GetIdleProcessor() {

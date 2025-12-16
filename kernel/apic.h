@@ -86,6 +86,8 @@ int ActiveApTask(int intnum);
 
 void WaitIcrFree();
 
+
+
 extern "C" void __declspec(dllexport) HpetTimer0Handler(LIGHT_ENVIRONMENT* stack);
 
 extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT* stack);
@@ -101,6 +103,11 @@ extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 #ifdef DLL_EXPORT
 
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetCurrentTaskTssBase();
+extern "C" __declspec(dllexport)  LPPROCESS_INFO GetTaskTssBase();
+extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
 #else
 extern "C"  __declspec(dllimport)  LPPROCESS_INFO GetCurrentTaskTssBase();
+
+extern "C" __declspec(dllimport)  LPPROCESS_INFO GetTaskTssBase();
+extern "C" __declspec(dllimport)  LPPROCESS_INFO SetTaskTssBase();
 #endif
