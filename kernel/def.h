@@ -43,7 +43,7 @@
 
 #define LOCAL_APIC_BASE			0xfee00000
 
-#define LOCAL_APIC_ENABLE
+//#define LOCAL_APIC_ENABLE
 
 //#define IO_APIC_ENABLE
 

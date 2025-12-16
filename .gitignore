@@ -3,6 +3,7 @@
 *.VC.db
 *.ipch
 *.pdb
+*.vsidx
 ipch/
 *.ipch
 *.opendb

@@ -17,7 +17,7 @@ QWORD gAvailableBase = 0;
 
 QWORD gAllocLimitSize = 0;
 
-DWORD gAllocLock = FALSE;
+DWORD gMemAllocLock = FALSE;
 
 LPMEMALLOCINFO gMemAllocList = 0;
 
@@ -220,8 +220,7 @@ LPMEMALLOCINFO GetEmptyMemAllocItem() {
 	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO) ;
 	for ( int i = 1;i < cnt;i ++)
 	{
-		if ( //item[i].list.next == 0 && item[i].list.prev == 0 &&
-			item[i].size == 0 && item[i].addr == 0 && item[i].vaddr == 0 && item[i].pid == 0)
+		if ( item[i].size == 0 && item[i].addr == 0 && item[i].vaddr == 0 && item[i].pid == 0)
 		{
 			return &item[i];
 		}
@@ -247,7 +246,7 @@ int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid)
 }
 
 
-DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
+DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,DWORD vaddr,int tag) {
 
 	DWORD res = 0;
 
@@ -264,9 +263,9 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 		size = PAGE_SIZE;
 	}
 
-	*retsize = size;
+	*outSize = size;
 
-	__enterSpinlock(&gAllocLock);
+	__enterSpinlock(&gMemAllocLock);
 
 	int factor = 1;
 
@@ -275,7 +274,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 		for (int n = factor/2 ; n && n < factor; )
 		{
 			DWORD addr = MEMMORY_ALLOC_BASE + size * n;
-			if ( (addr + size > gAvailableBase + gAvailableSize) )
+			if ( addr + size > gAvailableBase + gAvailableSize)
 			{
 				res = -1;
 				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%x,size:%x\r\n", 
@@ -302,19 +301,23 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 			}
 			else {
 				if (info->size > size) {
+					int t = info->size / size;
+
 					if (info->size % size) {
 						__printf(szout, "isAddrExist size:%x size:%x error\r\n",info->size,size);
+						t++;
 					}
 
-					int t = info->size / size;
 					n += t;
-					if (n >= factor) {
-						while (n >= factor) {
-							factor = factor << 1;
-						}
+
+					while (n >= factor) {
+						factor = factor << 1;
 					}
 
 					continue;
+				}
+				else {
+					//
 				}
 			}
 
@@ -378,7 +381,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *retsize, int pid,DWORD vaddr,int tag) {
 	}
 #endif
 
-	__leaveSpinlock(&gAllocLock);
+	__leaveSpinlock(&gMemAllocLock);
 
 	return res;
 }
@@ -412,7 +415,7 @@ DWORD __kMalloc(DWORD s) {
 int __kFree(DWORD physicalAddr) {
 
 	char szout[1024];
-	__enterSpinlock(&gAllocLock);
+	__enterSpinlock(&gMemAllocLock);
 
 	LPMEMALLOCINFO info = findAddr(physicalAddr);
 	if (info)
@@ -426,7 +429,7 @@ int __kFree(DWORD physicalAddr) {
 		int len = __printf(szout, "__kFree not found address:%x\n", physicalAddr);
 	}
 
-	__leaveSpinlock(&gAllocLock);
+	__leaveSpinlock(&gMemAllocLock);
 
 	return FALSE;
 }
@@ -482,7 +485,7 @@ int __free(DWORD linearAddr) {
 		return __heapFree(linearAddr);
 	}
 
-	__enterSpinlock(&gAllocLock);
+	__enterSpinlock(&gMemAllocLock);
 
 	DWORD phyaddr = linear2phy(linearAddr);
 	if (phyaddr)
@@ -498,7 +501,7 @@ int __free(DWORD linearAddr) {
 		}
 	}
 
-	__leaveSpinlock(&gAllocLock);
+	__leaveSpinlock(&gMemAllocLock);
 
 	return FALSE;
 }
@@ -508,7 +511,7 @@ int __free(DWORD linearAddr) {
 //make sure the first in the list is not to be deleted,or else will be locked
 void freeProcessMemory(int pid) {
 
-	__enterSpinlock(&gAllocLock);
+	__enterSpinlock(&gMemAllocLock);
 
 	LPMEMALLOCINFO base = (LPMEMALLOCINFO)gMemAllocList->list.next;
 	LPMEMALLOCINFO info =(LPMEMALLOCINFO) base;
@@ -527,7 +530,7 @@ void freeProcessMemory(int pid) {
 
 	} while (info != (LPMEMALLOCINFO)base);
 
-	__leaveSpinlock(&gAllocLock);
+	__leaveSpinlock(&gMemAllocLock);
 }
 
 

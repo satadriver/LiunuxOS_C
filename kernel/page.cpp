@@ -13,6 +13,44 @@ DWORD gPageAllocLock = FALSE;
 
 LPMEMALLOCINFO gPageAllocList = 0;
 
+
+
+void initPaging() {
+
+	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	InitListEntry(&pageList->list);
+	pageList->addr = 0;
+	pageList->size = 0;
+	pageList->vaddr = 0;
+	pageList->pid = 0;
+
+	linearMapping();
+
+	__asm {
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
+
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
+	}
+}
+
+LPMEMALLOCINFO getFreePageIdx() {
+
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	int cnt = PAGE_ALLOC_LIST_SIZE / sizeof(MEMALLOCINFO);
+	for (int i = 1; i < cnt; i++)
+	{
+		if (info[i].size == 0 && info[i].addr == 0 && info[i].pid == 0 && info[i].vaddr == 0)
+		{
+			return &info[i];
+		}
+	}
+	return 0;
+}
+
 LPMEMALLOCINFO findPageIdx(DWORD addr) {
 
 	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
@@ -29,9 +67,9 @@ LPMEMALLOCINFO findPageIdx(DWORD addr) {
 		{
 			return info;
 		}
-		else {
-			info = (LPMEMALLOCINFO)info->list.next;
-		}
+
+		info = (LPMEMALLOCINFO)info->list.next;
+		
 	} while (info && (info != hdr));
 
 	return 0;
@@ -49,36 +87,19 @@ LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 			break;
 		}
 
-		if (info->addr == addr)
+		if ( (info->addr <= addr) && (info->addr + info->size > addr) ) 
 		{
 			return info;
 		}
-		else if ( (info->addr < addr) && (info->addr + info->size > addr) ) 
-		{
-			return info;
-		}
-		else {
-			info = (LPMEMALLOCINFO)info->list.next;
-		}
+
+		info = (LPMEMALLOCINFO)info->list.next;
+		
 	} while (info && (info != hdr));
 
 	return 0;
 }
 
-LPMEMALLOCINFO getFreePageIdx() {
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-
-	int cnt = PAGE_ALLOC_LIST_SIZE / sizeof(MEMALLOCINFO);
-	for (int i = 1; i < cnt; i++)
-	{
-		if (info[i].size == 0 && info[i].addr == 0 && info[i].pid == 0 && info[i].vaddr == 0)
-		{
-			return &info[i];
-		}
-	}
-	return 0;
-}
 
 
 int resetPageIdx(LPMEMALLOCINFO pde) {
@@ -96,9 +117,8 @@ int resetPageIdx(LPMEMALLOCINFO pde) {
 int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,int pid,DWORD vaddr ) {
 	info->size = size;
 	info->addr = addr;
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	info->pid = tss->pid;
-
+	info->pid = pid;
+	info->vaddr = vaddr;
 	InsertListTail( &((LPMEMALLOCINFO)PAGE_ALLOC_LIST)->list, (LPLIST_ENTRY)&info->list);
 	return TRUE;
 }
@@ -118,7 +138,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 	__enterSpinlock(&gPageAllocLock);
 
 	int factor = 1;
-	while (1)
+	while (res == 0)
 	{
 		for (int n = factor / 2; n && n < factor; )
 		{
@@ -146,26 +166,30 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 			else {
 				if (info->size > (DWORD)size) {
 					int t = info->size / size;
-					n += t;
-					if (n >= factor) {
-						while (n >= factor) {
-							factor = factor << 1;
-						}
+					int m = info->size % size;
+					if(m){
+						t++;
 					}
-
+					n += t;
+					while (n >= factor) {
+						factor = factor << 1;
+					}
+					
 					continue;
+				}
+				else {
+					//
 				}
 			}
 
 			n++;
 		}
 
-		if (res == 0) {
-			factor = (factor << 1);
-		}
-		else {
+		if(res) {
 			break;
 		}
+
+		factor = (factor << 1);
 	}
 	
 	__leaveSpinlock(&gPageAllocLock);
@@ -386,24 +410,3 @@ void linearMapping() {
  invlpg是特权指令，必须要在CPL为特权0级执行，该指令不影响任何标志位。
 */
 
-void initPaging() {
-
-	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-	InitListEntry(&pageList->list);
-	pageList->addr = 0;
-	pageList->size = 0;
-	pageList->vaddr = 0;
-	pageList->pid = 0;
-
-	linearMapping();
-
-	__asm {
-		mov eax, PDE_ENTRY_VALUE
-		mov cr3, eax
-
-		mov eax, cr0
-		or eax, 0x80000000
-		mov cr0, eax
-	}
-}
