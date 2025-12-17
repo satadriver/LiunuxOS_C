@@ -18,7 +18,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	char szout[1024];
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	int pid = tss[tid].pid;
@@ -82,8 +82,10 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	char szout[1024];
 
+	int cpu = GetIdleProcessor();
+
 	TASKRESULT freetask;
-	ret = __getFreeTask(&freetask,1);
+	ret = __getFreeTask(&freetask, cpu);
 	if (ret == FALSE)
 	{
 		return FALSE;
@@ -111,10 +113,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->pid = process->pid;
 	tss->ppid = process->pid;
 
-	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	cpuid = cpuid >> 24;
-	//tss->cpuid = cpuid;
-	tss->cpuid = GetIdleProcessor();
+	//int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
+
+	tss->cpuid = cpu;
 
 	tss->fpu = TRUE;
 	tss->level = process->level;

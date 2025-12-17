@@ -75,10 +75,11 @@ int __pauseTid(int tid);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
-TASK_LIST_ENTRY* InsertTaskList_No_cli(int tid);
+TASK_LIST_ENTRY* InsertTaskList_First(int tid);
 
 TASK_LIST_ENTRY* GetTaskListHeader();
 void InitTaskList();
+void InitTaskArray();
 TASK_LIST_ENTRY* InsertTaskList(int tid);
 
 TASK_LIST_ENTRY* RemoveTaskListTid(int tid);
@@ -94,6 +95,10 @@ extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
 int __initTask0(char * videobase);
 
 int __getFreeTask(LPTASKRESULT,int tag);
+
+void enter_task_array_lock_other(int id);
+
+void leave_task_array_lock_other(int id);
 
 #ifdef DLL_EXPORT
 

@@ -287,9 +287,9 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 	enter_task_array_lock_cli();
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE + proc->tid;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)tss + proc->tid;
 	LPWINDOWSINFO topwinfo = getTopWindow();
 	if (topwinfo == 0) {
 		//error
@@ -353,7 +353,7 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE + tid;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetTaskTssBase() + tid;
 
 	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,tid);
 	if (window->minBuf == 0) {

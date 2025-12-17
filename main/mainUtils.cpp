@@ -60,7 +60,7 @@ int getpids(char * szout) {
 	int outlen = 0;
 	int len = 0;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN)
 		{
@@ -78,7 +78,7 @@ int getpids(char * szout) {
 
 
 int getpid(int pid,char * szout) {
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN && tss[i].pid == pid)
 		{

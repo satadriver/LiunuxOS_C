@@ -361,7 +361,8 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,DWORD vaddr,int tag) {
 		else {
 			enter_task_array_lock_cli();
 
-			LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE + pid;
+			LPPROCESS_INFO lptss = GetTaskTssBase();
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
 				tss->vasize += size;
@@ -544,7 +545,7 @@ unsigned char* __slab_malloc(int size) {
 int getProcMemory(int pid, char* szout) {
 	int offset = 0;
 
-	LPPROCESS_INFO processes = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO processes = (LPPROCESS_INFO) GetTaskTssBase();
 	LPPROCESS_INFO tss = processes + pid;
 	if (tss->status != TASK_RUN)
 	{

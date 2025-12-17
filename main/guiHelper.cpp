@@ -196,7 +196,7 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 
 	window->tid = tid;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
@@ -250,7 +250,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	window->zoomin = 1;
 	window->tid = tid;
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 

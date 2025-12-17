@@ -47,7 +47,7 @@
 #include "TrajectoryBall.h"
 #include "CubeVector.h"
 
-
+#include "apic.h"
 
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
@@ -378,7 +378,7 @@ int TaskbarOnClick(WINDOWCLASS *window) {
 DWORD isDesktop(WINDOWCLASS * window) {
 	int pid = window->pid;
 
-	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tssbase = (LPPROCESS_INFO)GetTaskTssBase();
 	
 	if (__strcmp(tssbase[pid].funcname, EXPLORER_TASKNAME) == 0)
 	{

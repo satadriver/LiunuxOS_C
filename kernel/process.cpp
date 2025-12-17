@@ -37,7 +37,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	int tid = dwtid & 0x7fffffff;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
@@ -101,7 +101,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	
 	int tid = dwtid & 0x7fffffff;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 
 	int pid = tss[tid].pid;
 
@@ -361,11 +361,6 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->counter = 0;
 	tss->errorno = 0;
 
-	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
-	cpuid = cpuid >> 24;
-	tss->cpuid = cpuid;
-	tss->cpuid = GetIdleProcessor();
-
 	tss->pid = tid;
 	tss->tid = tid;
 	__strcpy(tss->filename, filename);
@@ -450,8 +445,10 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
+	int cpu = GetIdleProcessor();
+
 	TASKRESULT result;
-	ret = __getFreeTask(&result,1);
+	ret = __getFreeTask(&result,cpu);
 	if (ret == FALSE)
 	{
 		__printf(szout, "__kCreateProcess filename:%s function:%s __getFreeTask error\n", filename, funcname);
