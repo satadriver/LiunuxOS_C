@@ -1163,6 +1163,7 @@ mov esp, ss: [esp - 20]这一行汇编将esp0替换为新任务的tss中保存的esp0值
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -1183,7 +1184,6 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		mov ss, ax
 
 		//clts
-		cli
 	}
 
 	{

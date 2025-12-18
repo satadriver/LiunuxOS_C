@@ -94,7 +94,7 @@ extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char * videobase);
 
-int __getFreeTask(LPTASKRESULT,int tag);
+int __getFreeTask(LPTASKRESULT ret,int id,int tag);
 
 void enter_task_array_lock_other(int id);
 

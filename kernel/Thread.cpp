@@ -32,13 +32,13 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	enter_task_array_lock_cli();
 	if (current->tid == tid)
 	{
-		current->status = TASK_TERMINATE;
+		current->status = TASK_OVER;
 	}
 	else {
 		//do nothing
 	}
 
-	tss[tid].status = TASK_TERMINATE;
+	tss[tid].status = TASK_OVER;
 	
 	if (tss[tid].level >= 3 && (tss[tid].tss.eflags & 0x20000) && tss[tid].espbase) {
 		__kFree(tss[tid].espbase);
@@ -85,7 +85,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int cpu = GetIdleProcessor();
 
 	TASKRESULT freetask;
-	ret = __getFreeTask(&freetask, cpu);
+	ret = __getFreeTask(&freetask, cpu,1);
 	if (ret == FALSE)
 	{
 		return FALSE;

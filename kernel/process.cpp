@@ -61,7 +61,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		if ((tss[i].status == TASK_RUN) && (tss[i].pid == pid))
 		{
 			if (tss[i].pid != tss[i].tid) {
-				tss[i].status = TASK_TERMINATE;
+				tss[i].status = TASK_OVER;
 			}
 			else {
 				process = &tss[i];
@@ -69,16 +69,16 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		}
 	}
 	
-	tss[process->pid].status = TASK_TERMINATE;
+	tss[process->pid].status = TASK_OVER;
 
 	if (current->tid == tid)
 	{
-		current->status = TASK_TERMINATE;
+		current->status = TASK_OVER;
 	}
 
 	if (current->pid == pid)
 	{
-		current->status = TASK_TERMINATE;
+		current->status = TASK_OVER;
 	}
 
 	int retvalue = 0;
@@ -448,7 +448,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	int cpu = GetIdleProcessor();
 
 	TASKRESULT result;
-	ret = __getFreeTask(&result,cpu);
+	ret = __getFreeTask(&result,cpu,1);
 	if (ret == FALSE)
 	{
 		__printf(szout, "__kCreateProcess filename:%s function:%s __getFreeTask error\n", filename, funcname);

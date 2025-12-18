@@ -407,6 +407,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		cli
 	}
 
 	{
@@ -435,6 +436,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		pop ds
 		popad
 
+		sti
 		iretd
 	}
 }
@@ -444,6 +446,8 @@ int g_lvt_timer = 0;
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
+		cli
+
 		pushad
 		push ds
 		push es
@@ -462,7 +466,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		MOV FS, ax
 		MOV GS, AX
 
-		cli
+		
 	}
 
 	{
@@ -507,7 +511,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
-		sti
+		//sti
 
 		iretd
 	}
@@ -968,7 +972,7 @@ int AllocateApTask(int intnum) {
 
 
 int ActiveApTask(int intnum) {
-	return 0;
+	//return 0;
 
 	if (intnum < 0 || intnum > 255) {
 		return -1;
@@ -1194,7 +1198,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	SetTaskTssBase();
 	InitTaskArray();
 	TASKRESULT freeTss;
-	__getFreeTask(&freeTss,cpuid);
+	__getFreeTask(&freeTss,cpuid,0);
 	//__printf(szout, "pid:%d cpu:%s\r\n", freeTss.number, procname);
 
 	int tid = freeTss.number;
@@ -1253,8 +1257,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		//mov ss,ax
 	}
 
-	//AdjustApIDT();
-
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
@@ -1301,7 +1303,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	InsertTaskList_First(0);
 #endif
 
-	ret = InitLocalApicTimer();
+	//ret = InitLocalApicTimer();
 
 	__asm {sti}
 
@@ -1426,7 +1428,7 @@ void BPCodeStart() {
 #endif
 
 	//ret = InitLocalApicTimer();
-	__sleep(1000);
+	__sleep(100);
 	//AllocateApTask(2);
 
 	__printf(szout, "bsp id:%d version:%x lock:%d timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
@@ -1533,8 +1535,8 @@ void BubbleSort(unsigned int* arr, int count) {
 
 
 int GetIdleProcessor() {
-	
-	return 1;
+
+	//return 0;
 
 	int counter = *(int*)(AP_TOTAL_ADDRESS);
 	int* ids = (int*)AP_ID_ADDRESS;

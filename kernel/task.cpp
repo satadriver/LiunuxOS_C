@@ -403,7 +403,7 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 }
 
 
-int __getFreeTask(LPTASKRESULT ret,int id) {
+int __getFreeTask(LPTASKRESULT ret,int id,int tag) {
 	int result = 0;
 	if (ret == 0)
 	{
@@ -412,6 +412,9 @@ int __getFreeTask(LPTASKRESULT ret,int id) {
 	ret->lptss = 0;
 	ret->number = 0;
 
+	if (tag) {
+		__asm {cli}
+	}
 	enter_task_array_lock_other(id);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseSelected(id);
@@ -434,6 +437,9 @@ int __getFreeTask(LPTASKRESULT ret,int id) {
 
 	leave_task_array_lock_other(id);
 
+	if (tag) {
+		__asm {sti}
+	}
 	return result;
 }
 
@@ -1509,6 +1515,7 @@ extern "C" void __declspec(naked)  BspTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -1529,7 +1536,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 
 		//clts
-		//cli
+		
 	}
 
 	{
