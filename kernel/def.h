@@ -68,6 +68,8 @@
 #define TASK_SWITCH_ARRAY
 #define SINGLE_TASK_TSS
 
+//#define IPI_TASK_SWITCH
+
 #define VM86_PROCESS_TASK
 
 //#define DISABLE_PAGE_MAPPING

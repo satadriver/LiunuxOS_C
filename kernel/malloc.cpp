@@ -229,7 +229,7 @@ LPMEMALLOCINFO GetEmptyMemAllocItem() {
 }
 
 
-int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid) {
+int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid,int cpu) {
 	if (vaddr)
 	{
 		item->vaddr = vaddr;
@@ -240,13 +240,14 @@ int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid)
 	item->pid = pid;
 	item->size = size;
 	item->addr = addr;
+	item->cpu = cpu;
 
 	InsertListTail(& (gMemAllocList->list), & item->list);
 	return 0;
 }
 
 
-DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,DWORD vaddr,int tag) {
+DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int tag) {
 
 	DWORD res = 0;
 
@@ -288,7 +289,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,DWORD vaddr,int tag) {
 				info = GetEmptyMemAllocItem();
 				if (info)
 				{
-					SetMemAllocItem(info, addr, vaddr, size, pid);
+					SetMemAllocItem(info, addr, vaddr, size, pid,cpu);
 
 					res = addr;
 					break;
@@ -359,9 +360,9 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,DWORD vaddr,int tag) {
 			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
 		}
 		else {
-			enter_task_array_lock_cli();
+			enter_task_array_lock_other_cli(cpu);
 
-			LPPROCESS_INFO lptss = GetTaskTssBase();
+			LPPROCESS_INFO lptss = GetTaskTssBaseSelected(cpu);
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
@@ -377,7 +378,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,DWORD vaddr,int tag) {
 			cr3 = (DWORD*)process->tss.cr3;
 			pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
 
-			leave_task_array_lock_sti();
+			leave_task_array_lock_other_sti(cpu);
 		}
 	}
 #endif
@@ -400,7 +401,7 @@ DWORD __kMalloc(DWORD s) {
 	int len = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	//DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
-	DWORD ret = __kProcessMalloc(s, &size, 0, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	DWORD ret = __kProcessMalloc(s, &size, 0, process->cpuid, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (ret == 0) {
 		
 		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
@@ -454,7 +455,7 @@ DWORD __malloc(DWORD s) {
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD vaddr = process->vaddr + process->vasize;
-	res = __kProcessMalloc(s,&size, process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	res = __kProcessMalloc(s,&size, process->pid,process->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
 	{
 		if (vaddr >= USER_SPACE_END)
@@ -510,7 +511,7 @@ int __free(DWORD linearAddr) {
 
 
 //make sure the first in the list is not to be deleted,or else will be locked
-void freeProcessMemory(int pid) {
+void freeProcessMemory(int pid,int cpu) {
 
 	__enterSpinlock(&gMemAllocLock);
 
@@ -522,7 +523,7 @@ void freeProcessMemory(int pid) {
 		{
 			break;
 		}
-		else if (info->pid == pid)
+		else if (info->pid == pid && info->cpu == cpu)
 		{
 			ClearMemAllocItem(info);
 		}
@@ -542,7 +543,7 @@ unsigned char* __slab_malloc(int size) {
 }
 
 
-int getProcMemory(int pid, char* szout) {
+int getProcMemory(int pid,int cpu, char* szout) {
 	int offset = 0;
 
 	LPPROCESS_INFO processes = (LPPROCESS_INFO) GetTaskTssBase();

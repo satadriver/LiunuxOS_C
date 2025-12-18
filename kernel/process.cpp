@@ -19,7 +19,8 @@
 
 void __kFreeProcess(int pid) {
 
-	freeProcessMemory(pid);
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	freeProcessMemory(pid,cpu);
 
 	freeProcessPages(pid);
 
@@ -158,7 +159,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	DWORD vaddr = tss->vaddr + tss->vasize;
 	DWORD imagesize = getSizeOfImage((char*)filedata);
 	DWORD alignsize = 0;
-	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
 		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
@@ -242,7 +243,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -286,7 +287,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->tss.cs = USER_MODE_CODE | syslevel ;
 		tss->tss.ss = USER_MODE_STACK | syslevel ;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			__kFreeProcess(tss->pid);
@@ -332,7 +333,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	}
 	
 	vaddr = tss->vaddr + tss->vasize;
-	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #ifndef DISABLE_PAGE_MAPPING
 	result = mapPhyToLinear(vaddr, heapbase, heapsize, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	tss->heapbase = vaddr;
@@ -375,7 +376,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 
-	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
+	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
 
 	tss->status = TASK_RUN;
 

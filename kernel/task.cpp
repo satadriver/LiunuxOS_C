@@ -68,6 +68,17 @@ void leave_task_list_lock_sti() {
 
 
 
+void enter_task_array_lock_other_cli(int id) {
+	__asm {cli}
+	__enterSpinlock(&g_task_array_lock[id]);
+}
+
+void leave_task_array_lock_other_sti(int id) {
+	__asm {sti}
+	__leaveSpinlock(&g_task_array_lock[id]);
+}
+
+
 void enter_task_array_lock_other(int id) {
 	__enterSpinlock(&g_task_array_lock[id]);
 }
@@ -75,7 +86,6 @@ void enter_task_array_lock_other(int id) {
 void leave_task_array_lock_other(int id) {
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
-
 
 
 TASK_LIST_ENTRY *gTasksListPtr[256] ;

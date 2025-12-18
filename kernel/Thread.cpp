@@ -160,7 +160,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,tss->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
@@ -202,7 +202,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = USER_MODE_CODE | tss->level;
 		tss->tss.ss = USER_MODE_STACK | tss->level;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,tss->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;

@@ -53,7 +53,8 @@ int getcrs(char * szout) {
 }
 
 int getmemmap(int pid, char* szout) {
-	return getProcMemory(pid, szout);
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	return getProcMemory(pid,cpu, szout);
 }
 
 int getpids(char * szout) {

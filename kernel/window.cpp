@@ -244,6 +244,9 @@ int InsertWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 }
 
 
+
+
+
 int RemoveWindow(int id) {
 	if (gWindowsList == 0) {
 		return 0;
@@ -268,6 +271,31 @@ int RemoveWindow(int id) {
 	return TRUE;
 }
 
+
+int RemoveProcessWindow(int pid,int cpu) {
+	int v = (cpu << 8) | pid;
+	if (gWindowsList == 0) {
+		return 0;
+	}
+	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.prev;
+	LPWINDOWSINFO hdr = ptr;
+	do
+	{
+		if (ptr == 0)
+		{
+			break;
+		}
+		if (ptr->valid && ptr->window->pid == v)
+		{
+			
+		}
+		else {
+			ptr = (LPWINDOWSINFO)(ptr->list.prev);
+		}
+	} while (ptr && ptr != hdr);
+
+	return 0;
+}
 
 char* GetVideoBase() {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();

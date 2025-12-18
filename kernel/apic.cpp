@@ -972,8 +972,9 @@ int AllocateApTask(int intnum) {
 
 
 int ActiveApTask(int intnum) {
-	//return 0;
-
+#ifndef IPI_TASK_SWITCH
+	return 0;
+#endif
 	if (intnum < 0 || intnum > 255) {
 		return -1;
 	}
@@ -1303,7 +1304,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	InsertTaskList_First(0);
 #endif
 
-	//ret = InitLocalApicTimer();
+#ifndef IPI_TASK_SWITCH
+	ret = InitLocalApicTimer();
+#endif
 
 	__asm {sti}
 
@@ -1428,6 +1431,7 @@ void BPCodeStart() {
 #endif
 
 	//ret = InitLocalApicTimer();
+
 	__sleep(100);
 	//AllocateApTask(2);
 
@@ -1544,6 +1548,7 @@ int GetIdleProcessor() {
 	gAllocateAp++;
 	if (gAllocateAp >= counter) {
 		gAllocateAp = 0;
+		cpuid = g_bsp_id;
 	}
 	return cpuid;
 

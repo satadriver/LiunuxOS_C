@@ -16,6 +16,7 @@ typedef struct
 	DWORD addr;
 	DWORD size;
 	DWORD pid;
+	int cpu;
 	DWORD vaddr;
 }MEMALLOCINFO,*LPMEMALLOCINFO;
 
@@ -42,7 +43,7 @@ typedef struct
 
 DWORD getBorderAddr();
 
-int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid);
+int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid,int cpu);
 
 void ClearMemAllocMap();
 
@@ -60,13 +61,13 @@ int initMemory();
 
 DWORD pageAlignSize(DWORD size,int max);
 
-DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid, DWORD vaddr,int tag);
+DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid,int cpu, DWORD vaddr,int tag);
 
-void freeProcessMemory(int pid);
+void freeProcessMemory(int pid,int cpu);
 
 #ifdef DLL_EXPORT
 
-extern "C"  __declspec(dllexport) int getProcMemory(int pid, char * szout);
+extern "C"  __declspec(dllexport) int getProcMemory(int pid,int cpu, char * szout);
 extern "C"  __declspec(dllexport) int __free(DWORD addr);
 extern "C"  __declspec(dllexport) DWORD __malloc(DWORD s);
 
@@ -74,7 +75,7 @@ extern "C"  __declspec(dllexport) DWORD __kMalloc(DWORD size);
 
 extern "C"  __declspec(dllexport) int __kFree(DWORD buf);
 #else
-extern "C"  __declspec(dllimport) int getProcMemory(int pid, char * szout);
+extern "C"  __declspec(dllimport) int getProcMemory(int pid,int cpu, char * szout);
 extern "C"  __declspec(dllimport) int __free(DWORD addr);
 extern "C"  __declspec(dllimport) DWORD __malloc(DWORD s);
 extern "C"  __declspec(dllimport) DWORD __kMalloc(DWORD size);
