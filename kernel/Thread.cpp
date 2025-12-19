@@ -82,7 +82,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	char szout[1024];
 
-	int cpu = GetIdleProcessor();
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE+0x20)>>24;
 
 	TASKRESULT freetask;
 	ret = __getFreeTask(&freetask, cpu,1);

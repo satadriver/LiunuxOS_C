@@ -82,10 +82,11 @@ LPWINDOWSINFO __FindWindowID(DWORD wid) {
 
 
 //must search in reverse oder
-LPWINDOWSINFO __FindProcessWindow(int tid) {
+LPWINDOWSINFO __FindProcessWindow(int tid,int cpu) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
+
 	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.prev;
 	LPWINDOWSINFO hdr = ptr;
 	do
@@ -94,7 +95,7 @@ LPWINDOWSINFO __FindProcessWindow(int tid) {
 		{
 			break;
 		}
-		if (ptr->valid && ptr->window->tid == tid )
+		if (ptr->valid && ptr->window->tid == tid && ptr->window->cpu == cpu)
 		{
 			return ptr;
 		}
@@ -156,7 +157,8 @@ int traversalWindow(char* outbuf) {
 
 LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 	int tid = __GetCurrentTid();
-	LPWINDOWSINFO winfo = __FindProcessWindow(tid);
+	int cpu = __GetCurrentCpu();
+	LPWINDOWSINFO winfo = __FindProcessWindow(tid,cpu);
 	if (winfo)
 	{
 		WINDOWCLASS* window = winfo->window;
@@ -351,8 +353,9 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__memcpy((char*)gGraphBase, window->minBuf, size);
 	__kRefreshMouseBackup();
 	__kDrawMouse();
+	DWORD cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	if (proc->tid == window->tid) {
+	if (proc->tid == window->tid ) {
 		proc->videoBase = (char*)gGraphBase;
 		process->videoBase = (char*)gGraphBase;
 	}

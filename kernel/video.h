@@ -289,6 +289,7 @@ typedef struct __WINDOWCLASS {
 	int id;		//window id
 	int tid;
 	int pid;
+	int cpu;
 
 	char cursorBuf[GRAPHCHAR_HEIGHT * GRAPHCHAR_HEIGHT * 4];
 	int cursorID;

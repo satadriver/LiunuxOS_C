@@ -267,6 +267,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	FMWINDOW window;
 	window.window.tid = tid;
+	window.window.cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	LPPROCESS_INFO p = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window.window.pid = p->pid;
 	__strcpy(window.window.caption, cmd->filename);

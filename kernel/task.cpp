@@ -288,7 +288,7 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 			cnt++;
 			if (cnt >= TASK_LIMIT_TOTAL) {
 				char szout[256];
-				__printf(szout, "%s max count:%d\r\n", __FUNCTION__, cnt);
+				__printf(szout, "%s tid:%d max count:%d\r\n", __FUNCTION__,tid, cnt);
 				break;
 			}
 

@@ -22,6 +22,8 @@ int __GetCurrentTid();
 
 int __GetCurrentPid();
 
+int __GetCurrentCpu();
+
 char* getMainboardDate();
 
 char* getComports();

@@ -842,7 +842,8 @@ int __printf(char* buf,const char* format, ...) {
 	if (g_ScreenMode) {
 		
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		LPWINDOWSINFO winfo = __FindProcessWindow(proc->tid);
+		int cpu = __GetCurrentCpu();
+		LPWINDOWSINFO winfo = __FindProcessWindow(proc->tid,cpu);
 		if (winfo) {
 			LPWINDOWCLASS window = winfo->window;
 			if (window) {
@@ -1175,6 +1176,11 @@ int __reset() {
 		mov al, 1
 		out 92h, al
 	}
+}
+
+int __GetCurrentCpu() {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	return proc->cpuid;
 }
 
 int __GetCurrentTid() {

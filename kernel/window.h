@@ -62,7 +62,7 @@ extern "C"  __declspec(dllexport) LPWINDOWSINFO GetProcessTextPos(int** x, int**
 extern "C" __declspec(dllexport) LPWINDOWSINFO __FindWindow(char* wname);
 extern "C" __declspec(dllexport) LPWINDOWSINFO __FindWindowID(DWORD wid);
 
-extern "C" __declspec(dllexport) LPWINDOWSINFO __FindProcessWindow(int tid);
+extern "C" __declspec(dllexport) LPWINDOWSINFO __FindProcessWindow(int tid,int cpu);
 
 extern "C" __declspec(dllexport) LPWINDOWSINFO getTopWindow();
 extern "C" __declspec(dllexport) void initWindowList();
@@ -89,7 +89,7 @@ extern __declspec(dllimport)LPWINDOWSINFO gWindowsList;
 extern __declspec(dllimport) POPUPMENU gPopupMenu;
 extern "C"  __declspec(dllimport) char* GetVideoBase();
 extern "C"  __declspec(dllimport) LPWINDOWSINFO GetProcessTextPos(int** x, int** y);
-extern "C" __declspec(dllimport) LPWINDOWSINFO __FindProcessWindow(int tid);
+extern "C" __declspec(dllimport) LPWINDOWSINFO __FindProcessWindow(int tid,int cpu);
 
 extern "C" __declspec(dllimport) LPWINDOWSINFO __FindWindow(char* wname);
 extern "C" __declspec(dllimport) LPWINDOWSINFO __FindWindowID(DWORD wid);

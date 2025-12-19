@@ -522,7 +522,8 @@ void clsClientRect(WINDOWCLASS * window) {
 
 int __backspaceChar() {
 	int tid = __GetCurrentTid();
-	WINDOWSINFO* winfo = __FindProcessWindow(tid);
+	int cpu = __GetCurrentCpu();
+	WINDOWSINFO* winfo = __FindProcessWindow(tid,cpu);
 	if (winfo == 0) {
 		return 0;
 	}
@@ -1532,7 +1533,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->zoomin = 1;
 
 	window->tid = tid;
-
+	window->cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;

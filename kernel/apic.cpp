@@ -1443,7 +1443,7 @@ void BPCodeStart() {
 
 
 int IsBspProcessor() {
-	unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20);
+	unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 	id = id >> 24;
 	if (id == g_bsp_id) {
 		return 1;
