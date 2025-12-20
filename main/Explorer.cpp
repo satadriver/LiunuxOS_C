@@ -11,7 +11,7 @@
 #include "floppy.h"
 #include "Utils.h"
 #include "menu.h"
-
+#include "memory.h"
 #include "Pe.h"
 #include "window.h"
 #include "ProcessDos.h"
@@ -46,7 +46,7 @@
 #include "SquareVector.h"
 #include "TrajectoryBall.h"
 #include "CubeVector.h"
-
+#include "servicesproc.h"
 #include "apic.h"
 
 
@@ -91,10 +91,16 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	while (1)
 	{
+		//__printf(szout, "test start\r\n");
+
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
 
 		unsigned int ck = __kGetKbd(window.id) & 0xff;
+		if (ck) {
+			__printf(szout, "click key:%x\r\n", ck);
+		}
+
 		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d||ck == 0x0a) {
 			if (ck == VK_RIGHT) {
 				mouseinfo.status = 0;
@@ -135,9 +141,14 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		}
 		else if (ck == VK_F1)
 		{
+
+			
 			if (__findProcessFileName("__kConsole") == FALSE)
 			{			
+				unsigned long module = linear2phy((unsigned long)"main.dll");
+				unsigned long func = linear2phy((unsigned long)"__kConsole");
 				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
+				//__ipiCreaetProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)module, (char*)func, 3, 0);
 			}
 			continue;
 		}
@@ -363,7 +374,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 // 			menu.pos.y = mouseinfo.y;
 // 			menu.action = mouseinfo.status;
 		}
-
+		//__giveup();
 		__sleep(0);
 	}
 	return 0;

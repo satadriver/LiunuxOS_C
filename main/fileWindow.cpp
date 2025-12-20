@@ -18,7 +18,7 @@
 
 
 int __kShowWindow(unsigned int retaddr, int tid, char * filename, char * funcname,DWORD runparam) {
- 	char szout[1024];
+ 	char szout[256];
 //  	__printf(szout, "__kShowWindow task tid:%x,filename:%s,funcname:%s,param:%x\n", tid, filename,funcname,runparam);
 
 	int retvalue = 0;

@@ -273,7 +273,7 @@ void SpiralAnimation(WINDOWCLASS * window) {
 
 extern "C" __declspec(dllexport)int SpiralBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
-	char szout[1024];
+	char szout[256];
 
 	int retvalue = 0;
 

@@ -22,7 +22,7 @@ int		gMaxDirsInPath		= 256;
 
 int fat32Init() {
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 	readFile = readFat32File;
 	writeFile = writeFat32File;
 

@@ -26,7 +26,7 @@ DWORD gMouseColor =	MOUSE_SHOW_COLOR;
 
 void mousetest() {
 
-	char szout[1024];
+	char szout[256];
 	MOUSEINFO mouseinfo;
 	__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
 	unsigned int ret = GetMousePacket(&mouseinfo);
@@ -386,7 +386,7 @@ void __initMouse(int x,int y) {
 	//enableMouseZAxis();
 
 	gMouseID = getMouseID();
-	char szout[1024];
+	char szout[256];
 	__printf(szout, (char*)"keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
 	//gMouseID = 0;
 

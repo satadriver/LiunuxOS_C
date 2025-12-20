@@ -72,7 +72,7 @@ int getFat32NextDirs(DWORD clusterno, LPFILEBROWSER files) {
 
 int fat32FileReader(DWORD clusterno, int filesize,char * lpdata, int readsize) {
 
-	char szout[1024];
+	char szout[256];
 	int ret = 0;
 	if (readsize > filesize)
 	{

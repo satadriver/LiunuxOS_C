@@ -165,7 +165,7 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		unsigned char status = inportb(COM1PORT + 2);
 		//__printf(szout, "com1 IRR:%x\r\n", status);
 		if (status & 1)
@@ -263,7 +263,7 @@ extern "C"  __declspec(naked) void __kCom2Proc(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 
 		unsigned char status = inportb(COM2PORT + 2);
 		//__printf(szout, "com2 IRR:%x\r\n",status);

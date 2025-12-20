@@ -100,9 +100,7 @@ void enter_task_array_lock_other(int id);
 
 void leave_task_array_lock_other(int id);
 
-void enter_task_array_lock_other_cli(int id);
 
-void leave_task_array_lock_other_sti(int id);
 
 #ifdef DLL_EXPORT
 

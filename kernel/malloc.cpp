@@ -82,7 +82,7 @@ DWORD pageAlignSize(DWORD blocksize,int direction)
 
 
 int initMemory() {
-	char szout[1024];
+	char szout[256];
 
 	ClearMemAllocMap();
 	
@@ -251,7 +251,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 
 	DWORD res = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	DWORD size = pageAlignSize(s, 1);
 	if ( size > gAllocLimitSize)
@@ -360,7 +360,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
 		}
 		else {
-			enter_task_array_lock_other_cli(cpu);
+			enter_task_array_lock_other(cpu);
 
 			LPPROCESS_INFO lptss = GetTaskTssBaseSelected(cpu);
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
@@ -378,7 +378,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			cr3 = (DWORD*)process->tss.cr3;
 			pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
 
-			leave_task_array_lock_other_sti(cpu);
+			leave_task_array_lock_other(cpu);
 		}
 	}
 #endif
@@ -396,7 +396,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 //return phisical address
 DWORD __kMalloc(DWORD s) {
 
-	char szout[1024];
+	char szout[256];
 	DWORD size = 0;
 	int len = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -416,7 +416,7 @@ DWORD __kMalloc(DWORD s) {
 
 int __kFree(DWORD physicalAddr) {
 
-	char szout[1024];
+	char szout[256];
 	__enterSpinlock(&gMemAllocLock);
 
 	LPMEMALLOCINFO info = findAddr(physicalAddr);
@@ -450,7 +450,7 @@ DWORD __malloc(DWORD s) {
 		}
 	}
 
-	char szout[1024];
+	char szout[256];
 
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -498,7 +498,7 @@ int __free(DWORD linearAddr) {
 			DWORD size = ClearMemAllocItem(info);
 		}
 		else {
-			char szout[1024];
+			char szout[256];
 			int len = __printf(szout, "__free not found linear address:%x,physical address:%x\n", linearAddr, phyaddr);
 		}
 	}

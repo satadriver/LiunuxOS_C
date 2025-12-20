@@ -31,7 +31,7 @@ int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
 	int cnt = 0;
 	int iret = 0;
 	char buf[ATAPI_SECTOR_SIZE * 2];
-	char szout[1024];
+	char szout[256];
 
 #ifdef APAPI_INT13_READWRITE
 	iret = v86Int13Read(secno, 0, 1, buf, gAtapiDev, ATAPI_SECTOR_SIZE);	
@@ -99,7 +99,7 @@ int readIso9660Dirs(DWORD secno, LPFILEBROWSER files) {
 
 int browseISO9660File(LPFILEBROWSER files) {
 	int iret = 0;
-	char szout[1024];
+	char szout[256];
 #ifdef APAPI_INT13_READWRITE
 	if (gAtapiDev == -1)
 	{

@@ -18,7 +18,7 @@ static const ACPIHeader *acpiDsdt = 0;
 
 static int parseApic(ACPIHeaderApic *apic)
 {
-	char szout[1024];
+	char szout[256];
 	char temp[20];
 	temp[0] = '0'; 
 	temp[1] = 'x';
@@ -154,7 +154,7 @@ int parseRSDP(XSDP_HEADER* xsdp)
 {
 	int res = 0;
 
-	char szout[1024];
+	char szout[256];
 	u8 sum = 0;
 	char * ptr = (char*)xsdp;
 	for (int i = 0; i < 20; ++i)

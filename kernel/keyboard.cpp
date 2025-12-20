@@ -248,7 +248,7 @@ void __kKeyboardProc() {
 
 	unsigned int c = inportb(0x60);
 
-	char szout[1024];
+	char szout[256];
 
 	unsigned int result = 0;
 
@@ -469,7 +469,7 @@ void __kKeyboardProc() {
 	}
 
 
-// 	char szout[1024];
+// 	char szout[256];
 // 	__printf(szout, "input key:%x,status:%x\n", c, data->kbdStatus);
 
 	data->kbdBuf[data->kbdBufHdr] = c;
@@ -512,7 +512,7 @@ void __kKbdLed(unsigned char cmd) {
 
 void kbdtest() {
 	
-	char szout[1024];
+	char szout[256];
 
 	DWORD status = 0;
 	unsigned int key = __kGetKbdAndStatus(gKbdTest,&status);

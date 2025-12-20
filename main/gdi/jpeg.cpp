@@ -240,7 +240,7 @@ BOOL LoadJpegFile(char * hJpegBuf, int JpegBufSize, char * bmpfiledata, int * bm
 /////////////////////////////////////////////////
 void showerror(int funcret)
 {
-	char szout[1024];
+	char szout[256];
 	switch (funcret)
 	{
 	case FUNC_MEMORY_ERROR:

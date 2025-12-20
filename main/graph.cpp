@@ -46,7 +46,7 @@ int playWavFile(char *filename) {
 
 
 int showBmp(char * filename, unsigned char * data, int filesize,int x,int y) {
-	char szout[1024];
+	char szout[256];
 
 	//__printf(szout, "show bmp file:%s\n", filename);
 

@@ -527,7 +527,7 @@ void __declspec(naked) SoundInterruptProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, "SoundInterruptProc!\r\n");
 
 		__kSoundInterruptionProc();

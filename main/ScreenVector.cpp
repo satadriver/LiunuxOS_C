@@ -160,7 +160,7 @@ int initScreenVector() {
 
 extern "C" __declspec(dllexport)int ScreenVector(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
 
-	char szout[1024];
+	char szout[256];
 	int ret = 0;
 
 	initFullWindow(&g_sv_window, funcname, tid,1);

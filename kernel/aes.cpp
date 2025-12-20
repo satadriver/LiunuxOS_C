@@ -96,7 +96,7 @@ int storeStateArray(uint8_t(*state)[4], uint8_t* out) {
 }
 
 int keyExpansion(const uint8_t* key, uint32_t keyLen, AesKey* aesKey) {
-    char szout[1024];
+    char szout[256];
     if (NULL == key || NULL == aesKey) {
         __printf(szout,"keyExpansion param is NULL\n");
         return -1;
@@ -271,7 +271,7 @@ int invMixColumns(uint8_t(*state)[4]) {
 }
 
 int aesEncrypt(const uint8_t* key, uint32_t keyLen, const uint8_t* pt, uint8_t* ct, uint32_t len) {
-    char szout[1024];
+    char szout[256];
     AesKey aesKey;
     uint8_t* pos = ct;
     const uint32_t* rk = aesKey.eK;
@@ -325,7 +325,7 @@ int aesEncrypt(const uint8_t* key, uint32_t keyLen, const uint8_t* pt, uint8_t* 
 
 int aesDecrypt(const uint8_t* key, uint32_t keyLen, const uint8_t* ct, uint8_t* pt, uint32_t len) {
     AesKey aesKey;
-    char szout[1024];
+    char szout[256];
     uint8_t* pos = pt;
     const uint32_t* rk = aesKey.dK;
     uint8_t out[BLOCKSIZE] = { 0 };
@@ -382,7 +382,7 @@ int aesDecrypt(const uint8_t* key, uint32_t keyLen, const uint8_t* ct, uint8_t* 
 
 
 void printHex(const uint8_t* ptr, int len, char* tag) {
-    char szout[1024];
+    char szout[256];
     __printf(szout,"%s\ndata[%d]: ", tag, len);
     for (int i = 0; i < len; ++i) {
         __printf(szout,"%.2X ", *ptr++);
@@ -391,7 +391,7 @@ void printHex(const uint8_t* ptr, int len, char* tag) {
 }
 
 void printState(uint8_t(*state)[4], char* tag) {
-    char szout[1024];
+    char szout[256];
     __printf(szout,"%s\n", tag);
     for (int i = 0; i < 4; ++i) {
         __printf(szout,"%.2X %.2X %.2X %.2X\n", state[i][0], state[i][1], state[i][2], state[i][3]);
@@ -415,7 +415,7 @@ int aesTest() {
     const uint8_t pt[16] = { 0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34 };
     uint8_t ct[16] = { 0 };
     uint8_t plain[16] = { 0 };
-    char szout[1024];
+    char szout[256];
 
     aesEncrypt(key, 16, pt, ct, 16);
     printHex(pt, 16, "plain data:");

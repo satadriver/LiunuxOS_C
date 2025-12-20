@@ -44,7 +44,7 @@ int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files) {
 	int iret = 0;
 
 	char * fattmpbuf = (char*)FLOPPY_DMA_BUFFER;
-	char szout[1024];
+	char szout[256];
 #ifdef FLOPPY_INT13_READWRITE
 	iret = vm86ReadFloppy(getCylinder(secno), getHeader(secno), getSector(secno), 1, (char*)fattmpbuf, gFloppyDev);
 #else
@@ -98,7 +98,7 @@ int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files) {
 int browseFat12File(LPFILEBROWSER files) {
 	gFat12Dbr = (FAT12DBR*)FLOPPY_DBR_BUFFER;
 	int iret = 0;
-	char szout[1024];
+	char szout[256];
 
 #ifdef FLOPPY_INT13_READWRITE
 	//扩展int13h无法读取软盘，为什么？
@@ -252,7 +252,7 @@ int browseFat12File(LPFILEBROWSER files) {
 
 
 int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
-	char szout[1024];
+	char szout[256];
 	int readoksize = 0;
 
 	int ret = 0;

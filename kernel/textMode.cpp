@@ -37,7 +37,7 @@ int runcmd(char * cmd) {
 	char buf[1024];
 	if (__strcmp(cmd, "windows") == 0) {
 
-		char szout[1024];
+		char szout[256];
 
 		res = v86Process(0x4f02, 0, 0, 0x4112, 0, 0, 0, 0, 0x10);
 

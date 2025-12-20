@@ -114,7 +114,7 @@ int resetPageIdx(LPMEMALLOCINFO pde) {
 
 
 
-int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,int pid,DWORD vaddr ) {
+int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,int pid,int cpu,DWORD vaddr ) {
 	info->size = size;
 	info->addr = addr;
 	info->pid = pid;
@@ -134,6 +134,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	DWORD cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	__enterSpinlock(&gPageAllocLock);
 
@@ -155,7 +156,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 				info = getFreePageIdx();
 				if (info)
 				{
-					insertPageIdx(info, addr, size, tss->pid, addr);
+					insertPageIdx(info, addr, size, tss->pid,cpu, addr);
 					res = addr;
 				}
 				else {
@@ -216,7 +217,7 @@ extern "C"  __declspec(dllexport) int __kFreePage(DWORD addr) {
 		DWORD size = resetPageIdx(info);
 	}
 	else {
-		char szout[1024];
+		char szout[256];
 		int len = __printf(szout, "__kFreePage not found address:%x\n", addr);
 	}
 	__leaveSpinlock(&gPageAllocLock);
@@ -227,7 +228,7 @@ extern "C"  __declspec(dllexport) int __kFreePage(DWORD addr) {
 
 
 //make sure the first in the list is not to be deleted,or else will be locked
-void freeProcessPages(int pid) {
+void freeProcessPages(int pid,int cpu) {
 
 	__enterSpinlock(&gPageAllocLock);
 	

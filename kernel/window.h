@@ -44,7 +44,9 @@ typedef struct
 
 int getOverlapRect(LPRECT r1, LPRECT r2, LPRECT res);
 
+LPWINDOWSINFO DestroyProcessWindow(int pid, int cpu);
 
+LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu);
 
 int insertPopupItem(LPWINDOWCLASS window);
 

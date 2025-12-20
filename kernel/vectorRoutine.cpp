@@ -146,7 +146,7 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 		//LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
 		//__kException((const char*)"NmiInterrupt", 2, stack);
 
@@ -197,7 +197,7 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 		//LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"OverflowException eip:%x,cs:%x,pid:%d,tid:%d\r\n", stack->eip,stack->cs, current->pid, current->tid);
 
 	}
@@ -1188,7 +1188,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	{
 		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		char szout[1024];
+		char szout[256];
 		//__printf(szout,"TimerInterrupt\r\n");
 
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
@@ -1200,10 +1200,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		DWORD base = APIC_HPET_BASE;
 		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
 		*gintr_sta = 0xff;
-
 #endif	
-
-
 	}
 
 	__asm {
@@ -1230,7 +1227,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 #endif	
 		//clts
-		//sti
+		sti
 
 		iretd
 
@@ -1277,7 +1274,7 @@ void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 
 		EOICommand(INTR_8259_MASTER + 2);
 
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"Com2IntProc!\r\n");
 
 	}
@@ -1324,7 +1321,7 @@ void __declspec(naked) Com1IntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"Com1IntProc!\r\n");
 
 
@@ -1374,7 +1371,7 @@ void __declspec(naked) Parallel2IntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"Parallel2IntProc!\r\n");
 
 		int v = inportb(0x278 + 1);
@@ -1425,7 +1422,7 @@ void __declspec(naked) FloppyDiskIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"FloppyDiskIntProc!\r\n");
 
 		EOICommand(INTR_8259_MASTER + 6);
@@ -1476,7 +1473,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"Parallel1IntProc!\r\n");
 
 		EOICommand(INTR_8259_MASTER + 7);
@@ -1588,7 +1585,7 @@ void __declspec(naked) SlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"SlaveIntProc!\r\n");
 
 
@@ -1639,7 +1636,7 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"Slave1IntProc!\r\n");
 
 
@@ -1689,7 +1686,7 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"NetcardIntProc!\r\n");
 
 
@@ -1739,7 +1736,7 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"USBIntProc!\r\n");
 
 
@@ -1793,7 +1790,7 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, (char*)"CoprocessorIntProc!\r\n");
 
 
@@ -1855,7 +1852,7 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 
 		outportb(0x376, 0);	//IRQ14
 		
@@ -1921,7 +1918,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 
 		int sta = inportb(0x3f6); //IRQ15
 		

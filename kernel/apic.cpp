@@ -27,7 +27,7 @@ char * gRcbaBase = 0;
 
 DWORD* gHpetBase = 0;
 
-int g_bsp_id = 0;
+
 
 int g_test_value = 0;
 
@@ -140,7 +140,7 @@ void enableIoApic() {
 
 	*gOicBase = v;
 
-	char szout[1024];
+	char szout[256];
 
 	__printf(szout,"oic base:%x,value:%x,rcba base:%x\r\n", gOicBase, v,gRcbaBase);
 }
@@ -180,7 +180,7 @@ int enableHpet() {
 
 	*gHpetBase = v;
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "hpet base:%x,value:%x\r\n", gHpetBase, v);
 
 	return 0;
@@ -298,8 +298,8 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 	int cpuid = 0;
 	if (cpu == -1) {
 		//__enterSpinlock(&g_allocate_ap_lock);
-		int total = *(int*)(AP_TOTAL_ADDRESS);
-		int* ids = (int*)AP_ID_ADDRESS;
+		int total = *(int*)(CPU_TOTAL_ADDRESS);
+		int* ids = (int*)CPU_ID_ADDRESS;
 		cpuid = ids[gAllocateAp];
 		gAllocateAp++;
 		if (gAllocateAp >= total) {
@@ -313,7 +313,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 	unsigned long long oldValue = GetIoRedirect(pin);
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "io apic %d value %I64x\r\n ",pin, oldValue);
 
 	setIoRedirect(pin, cpuid, vector, mode);
@@ -358,35 +358,57 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 
 int InitIoApicRte() {
 	
-	IoApicRedirect(0x10, g_bsp_id, APIC_LVTLINT0_VECTOR|0x10000, 0);
+	int bsp_id = *(int*)(CPU_ID_ADDRESS);
 
-	IoApicRedirect(0x12, g_bsp_id, INTR_8259_MASTER + 1, 0);
+	IoApicRedirect(0x10, bsp_id, 0x10000, 0);
 
-	//IoApicRedirect(0x14, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+	IoApicRedirect(0x12, bsp_id, INTR_8259_MASTER + 1, 0);
 
-	IoApicRedirect(0x14, g_bsp_id, APIC_LVTTIMER_VECTOR, 0);
+	//IoApicRedirect(0x14, bsp_id, APIC_HPETTIMER_VECTOR, 0);
 
-	IoApicRedirect(0x16, g_bsp_id, INTR_8259_MASTER + 3, 0);
-	IoApicRedirect(0x18, g_bsp_id, INTR_8259_MASTER + 4, 0);
-	IoApicRedirect(0x1a, g_bsp_id, INTR_8259_MASTER + 5, 0);
-	IoApicRedirect(0x1c, g_bsp_id, INTR_8259_MASTER + 6, 0);
-	IoApicRedirect(0x1e, g_bsp_id, INTR_8259_MASTER + 7, 0);
+	IoApicRedirect(0x14, bsp_id, APIC_LVTTIMER_VECTOR, 0);
 
-	//IoApicRedirect(0x20, g_bsp_id, APIC_LVTTIMER_VECTOR, 0);
-	//IoApicRedirect(0x20, g_bsp_id, APIC_HPETTIMER_VECTOR, 0);
+	IoApicRedirect(0x16, bsp_id, INTR_8259_MASTER + 3, 0);
+	IoApicRedirect(0x18, bsp_id, INTR_8259_MASTER + 4, 0);
+	IoApicRedirect(0x1a, bsp_id, INTR_8259_MASTER + 5, 0);
+	IoApicRedirect(0x1c, bsp_id, INTR_8259_MASTER + 6, 0);
+	IoApicRedirect(0x1e, bsp_id, INTR_8259_MASTER + 7, 0);
 
-	IoApicRedirect(0x22, g_bsp_id, INTR_8259_SLAVE + 1, 0);
-	IoApicRedirect(0x24, g_bsp_id, INTR_8259_SLAVE + 2, 0);
-	IoApicRedirect(0x26, g_bsp_id, INTR_8259_SLAVE + 3, 0);
-	IoApicRedirect(0x28, g_bsp_id, INTR_8259_SLAVE + 4, 0);
-	IoApicRedirect(0x2a, g_bsp_id, INTR_8259_SLAVE + 5, 0);
-	IoApicRedirect(0x2c, g_bsp_id, INTR_8259_SLAVE + 6, 0);
-	IoApicRedirect(0x2e, g_bsp_id, INTR_8259_SLAVE + 7, 0);
+	//IoApicRedirect(0x20, bsp_id, APIC_LVTTIMER_VECTOR, 0);
+	//IoApicRedirect(0x20, bsp_id, APIC_HPETTIMER_VECTOR, 0);
+
+	IoApicRedirect(0x22, bsp_id, INTR_8259_SLAVE + 1, 0);
+	IoApicRedirect(0x24, bsp_id, INTR_8259_SLAVE + 2, 0);
+	IoApicRedirect(0x26, bsp_id, INTR_8259_SLAVE + 3, 0);
+	IoApicRedirect(0x28, bsp_id, INTR_8259_SLAVE + 4, 0);
+	IoApicRedirect(0x2a, bsp_id, INTR_8259_SLAVE + 5, 0);
+	IoApicRedirect(0x2c, bsp_id, INTR_8259_SLAVE + 6, 0);
+	IoApicRedirect(0x2e, bsp_id, INTR_8259_SLAVE + 7, 0);
 
 	return 0;
 }
 
+int IpiCreateProcess(DWORD base,int size,char * module,char *func,int level,unsigned long p)
+{
+	int ret = 0;
+	int id = GetIdleProcessor();
+	IPI_MSG_PARAM* param = (IPI_MSG_PARAM*)IPI_MSG_BASE;
+	//int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	param[id].cmd = IPI_CREATEPROCESS;
 
+	param[id].pc = 6;
+	DWORD* params = (DWORD * )param[id].params;
+	params[0] = base;
+	params[1] = size;
+	params[2] = (DWORD)module;
+	params[3] = (DWORD)func;
+	params[4] = level;
+	params[5] = p;
+	
+	
+	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+	return 0;
+}
 
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
@@ -411,15 +433,31 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-		char szout[256];
-		
-		__printf(szout, "IPI Interruption Handler\r\n");
 
-		__enterSpinlock(&g_ap_work_lock);
-		g_test_value++;
-		__leaveSpinlock(&g_ap_work_lock);
 
-		__printf(szout, "function:%s value:%d\r\n",__FUNCTION__, g_test_value);
+		IPI_MSG_PARAM* param =(IPI_MSG_PARAM * )IPI_MSG_BASE;
+		int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		int cmd = param[cpu].cmd;
+		if (cmd == IPI_CREATEPROCESS) {
+			DWORD* params = (DWORD *) param[cpu].params;
+			DWORD base = params[0];
+			DWORD size = params[1];
+			char *  module =(char*) params[2];
+			char* funcname = (char*)params[3];
+			int level = params[4];
+			char* p = (char*)params[5];
+
+			module = "main.dll";
+			funcname = "__kConsole";
+			//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
+			if (__findProcessFileName(funcname) == FALSE)
+			{
+				__kCreateProcess(base, size, module, funcname, level, (unsigned long)p);
+			}
+		}
+		else {
+
+		}
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
@@ -464,9 +502,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		mov ds, ax
 		mov es, ax
 		MOV FS, ax
-		MOV GS, AX
-
-		
+		MOV GS, AX	
 	}
 
 	{
@@ -476,8 +512,8 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 		g_lvt_timer++;
 		
-		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-
+		//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		//__enterSpinlock(&g_ap_work_lock);
@@ -511,7 +547,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
-		//sti
+		sti
 
 		iretd
 	}
@@ -660,96 +696,7 @@ extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* st
 	}
 }
 
-extern "C" void __declspec(naked) LVTLint1Handler(LIGHT_ENVIRONMENT* stack) {
-	__asm {
-		pushad
-		push ds
-		push es
-		push fs
-		push gs
-		push ss
 
-		push esp
-		sub esp, 4
-		push ebp
-		mov ebp, esp
-
-		mov eax, KERNEL_MODE_DATA
-		mov ds, ax
-		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-	}
-
-	{
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
-
-		char szout[256];
-		__printf(szout, "%s\r\n", __FUNCTION__);
-	}
-
-	__asm {
-		mov esp, ebp
-		pop ebp
-		add esp, 4
-		pop esp
-		pop ss
-		pop gs
-		pop fs
-		pop es
-		pop ds
-		popad
-
-		clts
-		iretd
-	}
-}
-
-
-extern "C" void __declspec(naked) LVTLint0Handler(LIGHT_ENVIRONMENT* stack) {
-	__asm {
-		pushad
-		push ds
-		push es
-		push fs
-		push gs
-		push ss
-
-		push esp
-		sub esp, 4
-		push ebp
-		mov ebp, esp
-
-		mov eax, KERNEL_MODE_DATA
-		mov ds, ax
-		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-	}
-
-	{
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
-
-		char szout[256];
-		__printf(szout, "%s\r\n", __FUNCTION__);
-	}
-
-	__asm {
-		mov esp, ebp
-		pop ebp
-		add esp, 4
-		pop esp
-		pop ss
-		pop gs
-		pop fs
-		pop es
-		pop ds
-		popad
-
-		clts
-		iretd
-	}
-}
 
 extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
@@ -932,11 +879,11 @@ int AllocateApTask(int intnum) {
 
 	//__enterSpinlock(&g_allocate_ap_lock);
 
-	int total = *(int*)(AP_TOTAL_ADDRESS);
+	int total = *(int*)(CPU_TOTAL_ADDRESS);
 	if (total > 0) {
 
 		int idx = gAllocateAp;
-		int* ids = (int*)AP_ID_ADDRESS;
+		int* ids = (int*)CPU_ID_ADDRESS;
 		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		
 		do {
@@ -981,7 +928,7 @@ int ActiveApTask(int intnum) {
 
 	//__enterSpinlock(&g_allocate_ap_lock);
 
-	int total = *(int*)(AP_TOTAL_ADDRESS);
+	int total = *(int*)(CPU_TOTAL_ADDRESS);
 	if (total > 0) {
 		
 		SetIcr(0, intnum, 0, 3);
@@ -1081,12 +1028,6 @@ int DisableLocalApicLVT() {
 	v = APIC_LVTPERFORMANCE_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x340) = v | 0x10000;
 
-	v = APIC_LVTLINT0_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = v | 0x10000;
-
-	v = APIC_LVTLINT1_VECTOR;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = v | 0x10000;
-
 	v = APIC_LVTERROR_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x370) = v | 0x10000;
 
@@ -1153,7 +1094,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		mov ds:[reg_esp],esp
 	}
 
-	char szout[1024];
+	char szout[256];
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
@@ -1173,10 +1114,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	//__printf(szout, "cpu:%d enter lock\r\n", cpuid);
 
-	int seq = *(int*)AP_TOTAL_ADDRESS;
-	int* apids = (int*)AP_ID_ADDRESS;
+	int seq = *(int*)CPU_TOTAL_ADDRESS;
+	int* apids = (int*)CPU_ID_ADDRESS;
 	apids[seq] = cpuid;
-	*(int*)(AP_TOTAL_ADDRESS) = seq + 1;
+	*(int*)(CPU_TOTAL_ADDRESS) = seq + 1;
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -1358,10 +1299,12 @@ void BPCodeStart() {
 
 	__asm {sti}
 
-	*(int*)(AP_TOTAL_ADDRESS) = 0;
-
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
-	g_bsp_id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;	
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	*(DWORD*)CPU_ID_ADDRESS = cpu;
+
+	*(int*)(CPU_TOTAL_ADDRESS) = 1;
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -1397,12 +1340,12 @@ void BPCodeStart() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 	__sleep(0);
 #else
-	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
+	//SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
 	__sleep(0);
 
-	int* ids = (int*)AP_ID_ADDRESS;
-	int cnt = *(int*)(AP_TOTAL_ADDRESS);
+	int* ids = (int*)CPU_ID_ADDRESS;
+	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 #if 0
 		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
@@ -1432,11 +1375,11 @@ void BPCodeStart() {
 
 	//ret = InitLocalApicTimer();
 
-	__sleep(100);
+	__sleep(0);
 	//AllocateApTask(2);
 
 	__printf(szout, "bsp id:%d version:%x lock:%d timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		g_bsp_id, localapic_ver, g_test_value, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
+		cpu, localapic_ver, g_test_value, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1445,7 +1388,8 @@ void BPCodeStart() {
 int IsBspProcessor() {
 	unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 	id = id >> 24;
-	if (id == g_bsp_id) {
+	int bspid = *(int*)CPU_ID_ADDRESS;
+	if (id == bspid) {
 		return 1;
 	}
 	return 0;
@@ -1459,9 +1403,9 @@ LPPROCESS_INFO GetTaskTssBaseSelected(int id) {
 
 
 LPPROCESS_INFO GetTaskTssBase() {
-
+	int bspid = *(int*)CPU_ID_ADDRESS;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (id == g_bsp_id) {
+	if (id == bspid) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		return process;
 	}
@@ -1470,19 +1414,27 @@ LPPROCESS_INFO GetTaskTssBase() {
 }
 
 
+int GetCpu(int * out,int size) {
+	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
+	if (cnt > size) {
+		return 0;
+	}
+	int* cpus = (int*)CPU_ID_ADDRESS;
+	for (int i = 0; i < cnt; i++) {
+		out[i] = cpus[i];
+	}
+	return cnt;
+}
+
 
 LPPROCESS_INFO SetTaskTssBase() {
-	char szout[1024];
-
+	char szout[256];
+	int bspid = *(int*)CPU_ID_ADDRESS;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (id == g_bsp_id) {
+	if (id == bspid) {
 		g_ap_tss_base[id] = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		return g_ap_tss_base[id];
 	}
-
-	//int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	//LPPROCESS_INFO info = (LPPROCESS_INFO)__kMalloc(tsssize * TASK_LIMIT_TOTAL);
-	//g_ap_tss_base[id] = (LPPROCESS_INFO)AP_TASK_TSS_ARRAY+id*TASK_LIMIT_TOTAL*sizeof(PROCESS_INFO);
 
 	g_ap_tss_base[id] = (LPPROCESS_INFO)(AP_TASK_TSS_ARRAY + id * 0x400000);
 
@@ -1492,9 +1444,9 @@ LPPROCESS_INFO SetTaskTssBase() {
 
 LPPROCESS_INFO GetCurrentTaskTssBase(){
 	char szout[256];
-
+	int bspid = *(int*)CPU_ID_ADDRESS;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if(id == g_bsp_id){
+	if(id == bspid){
 		LPPROCESS_INFO process = (LPPROCESS_INFO)BSP_TASK_TSS_BASE;
 		return process;
 	}
@@ -1503,10 +1455,10 @@ LPPROCESS_INFO GetCurrentTaskTssBase(){
 	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * id);
 	return process;
 
-	int cnt = *(int*)AP_TOTAL_ADDRESS;
+	int cnt = *(int*)CPU_TOTAL_ADDRESS;
 	if (cnt) 
 	{
-		int* apids = (int*)AP_ID_ADDRESS;
+		int* apids = (int*)CPU_ID_ADDRESS;
 		for (int i = 0; i < cnt; i++) {
 			if (apids[i] == id) 
 			{
@@ -1538,33 +1490,37 @@ void BubbleSort(unsigned int* arr, int count) {
 }
 
 
+
+
+
 int GetIdleProcessor() {
 
-	//return 0;
+	//return 1;
 
-	int counter = *(int*)(AP_TOTAL_ADDRESS);
-	int* ids = (int*)AP_ID_ADDRESS;
-	int cpuid = ids[gAllocateAp];
+	int counter = *(int*)(CPU_TOTAL_ADDRESS);
+	int* ids = (int*)CPU_ID_ADDRESS;
+	
 	gAllocateAp++;
 	if (gAllocateAp >= counter) {
 		gAllocateAp = 0;
-		cpuid = g_bsp_id;
+
 	}
+	int cpuid = ids[gAllocateAp];
 	return cpuid;
 
-	char szout[1024];
+	char szout[256];
 
 	unsigned int cpuStatus[256];
 	__memset((char*)cpuStatus, 0, 256);
 
 	int total = 0;
-
-	int cnt = *(int*)AP_TOTAL_ADDRESS;
+	int bspid = *(int*)CPU_ID_ADDRESS;
+	int cnt = *(int*)CPU_TOTAL_ADDRESS;
 	if (cnt <= 0) {
-		return g_bsp_id;
+		return bspid;
 	}
 	
-	int* apids = (int*)AP_ID_ADDRESS;
+	int* apids = (int*)CPU_ID_ADDRESS;
 
 	for (int num = 0; num < cnt; num++) {
 		
@@ -1591,10 +1547,10 @@ int GetIdleProcessor() {
 		BubbleSort(cpuStatus, cnt );
 	}
 
-	for (int i = 0; i < cnt + 1; i++) {
+	for (int i = 0; i < cnt ; i++) {
 		unsigned int c = cpuStatus[i] & 0xffffff;
 		unsigned int num = (cpuStatus[i] & 0xff000000) >> 24;
-		if (num == g_bsp_id) {
+		if (num == bspid) {
 			if (i < (cnt + 1) / 2) {
 				int n1 = cpuStatus[i] & 0xffffff;
 				int n2 = cpuStatus[i + 1] & 0xffffff;
@@ -1614,21 +1570,21 @@ int GetIdleProcessor() {
 		}
 	}
 
-	return g_bsp_id;
+	return bspid;
 }
 
 
 int GetIdleProcessor_old() {
-	char szout[1024];
+	char szout[256];
 
 	unsigned int cpuStatus[256];
 	__memset((char*)cpuStatus, 0, 256);
 
 	int total = 0;
-
-	int cnt = *(int*)AP_TOTAL_ADDRESS;
+	int bspid = *(int*)CPU_ID_ADDRESS;
+	int cnt = *(int*)CPU_TOTAL_ADDRESS;
 	if (cnt <= 0) {
-		return g_bsp_id;
+		return bspid;
 	}
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)TASKS_TSS_BASE;
@@ -1648,13 +1604,13 @@ int GetIdleProcessor_old() {
 	}
 
 	if (total) {
-		BubbleSort(cpuStatus, cnt+1);
+		BubbleSort(cpuStatus, cnt);
 	}
 
 	for (int i = 0; i < cnt+1; i++) {
 		unsigned int c = cpuStatus[i] & 0xffffff;
 		unsigned int num = (cpuStatus[i] & 0xff000000) >> 24;
-		if (num == g_bsp_id) {
+		if (num == bspid) {
 			if (i < (cnt + 1) / 2) {
 				int n1 = cpuStatus[i] & 0xffffff;
 				int n2 = cpuStatus[i+1] & 0xffffff;
@@ -1674,7 +1630,7 @@ int GetIdleProcessor_old() {
 		}
 	}
 
-	return g_bsp_id;
+	return bspid;
 }
 
 

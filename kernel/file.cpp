@@ -54,13 +54,13 @@ int initFileSystem() {
 		return 0;
 	}
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "initFileSystem ok\r\n");
 	return TRUE;
 }
 
 int getMBR() {
-	char szout[1024];
+	char szout[256];
 	int ret = readSector(0, 0, 1, (char*)&gMBR);
 
 	if (*(WORD*)gMBR.systemFlag != 0xaa55)

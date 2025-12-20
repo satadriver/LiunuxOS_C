@@ -9,7 +9,7 @@
 #include "VM86.h"
 #include "apic.h"
 
-DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
+DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
 		pushad
@@ -37,6 +37,7 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 		MOV FS, ax
 		MOV GS, AX
 		mov ss,ax
+
 		call __kServicesProc
 		add esp, 12
 
@@ -60,6 +61,9 @@ DWORD __declspec(naked) servicesProc(LIGHT_ENVIRONMENT* stack) {
 		iretd
 	}
 }
+
+
+
 
 DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENVIRONMENT* stack) {
 
@@ -149,6 +153,11 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			GiveupLive(stack);
 			break;
 		}
+		case IPI_CREATEPROC:
+		{
+			IpiCreateProcess(params[0], params[1], (char*)params[2], (char*)params[3], params[4], params[5]);
+			break;
+		}
 		default: {
 			break;
 		}
@@ -156,7 +165,17 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	return r;
 }
 
- 
+
+
+
+extern "C"  __declspec(dllexport)void __ipiCreaetProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
+
+	__asm {
+		mov eax, IPI_CREATEPROC
+		lea edi,base
+		int 0x80
+	}
+}
 
 
 void sleep(DWORD * params) {
@@ -493,7 +512,7 @@ int __readTemperature(DWORD* tjunction) {
 
 	*tjunction = Tjunction;
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, (char*)"tjmax:%x,temprature:%x\r\n", Tjunction, temp);
 
 

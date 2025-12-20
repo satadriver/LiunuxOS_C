@@ -18,7 +18,7 @@
 int v86Int13Read(unsigned int secno, DWORD secnohigh, unsigned short seccnt, char* buf, int disk, int sectorsize) {
 
 	unsigned int counter = 0;
-	char szout[1024];
+	char szout[256];
 	LPV86VMIPARAMS params = (LPV86VMIPARAMS)V86VMIPARAMS_ADDRESS;
 	while (params->bwork == 1)
 	{
@@ -227,7 +227,7 @@ int v86Int255Read(unsigned int secnum, DWORD secnumHigh,unsigned int seccnt,char
 
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
 
-	char szout[1024];
+	char szout[256];
 	if (params->result)
 	{
 		__printf(szout, (char*)"vm read sector ok\n");
@@ -322,7 +322,7 @@ int getVideoMode(VesaSimpleInfo vsi[64] ) {
 	int res = 0;
 	int idx = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	res = v86Process(0x4f00, 0, 0, 0, 0, VESA_STATE_OFFSET, 0, VESA_STATE_SEG ,0x10 );
 	if ((res & 0xffff) == 0x4f) {

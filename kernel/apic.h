@@ -86,8 +86,6 @@ int ActiveApTask(int intnum);
 
 void WaitIcrFree();
 
-LPPROCESS_INFO GetTaskTssBaseSelected(int id);
-
 extern "C" void __declspec(dllexport) HpetTimer0Handler(LIGHT_ENVIRONMENT* stack);
 
 extern "C" void __declspec(dllexport) IPIIntHandler(LIGHT_ENVIRONMENT* stack);
@@ -95,18 +93,21 @@ extern "C" void __declspec(dllexport) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stac
 extern "C" void __declspec(dllexport) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* stack);
 extern "C" void __declspec(dllexport) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack);
 extern "C" void __declspec(dllexport) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* stack);
-extern "C" void __declspec(dllexport) LVTLint1Handler(LIGHT_ENVIRONMENT* stack);
 
-extern "C" void __declspec(dllexport) LVTLint0Handler(LIGHT_ENVIRONMENT* stack);
 extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 
 
 #ifdef DLL_EXPORT
-
+extern "C"  __declspec(dllexport) int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
+extern "C" __declspec(dllexport) LPPROCESS_INFO GetTaskTssBaseSelected(int id);
+extern "C" __declspec(dllexport) int GetCpu(int* out, int size);
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetCurrentTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
 #else
+extern "C"  __declspec(dllimport) int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
+extern "C" __declspec(dllimport) LPPROCESS_INFO GetTaskTssBaseSelected(int id);
+extern "C" __declspec(dllimport) int GetCpu(int* out, int size);
 extern "C"  __declspec(dllimport)  LPPROCESS_INFO GetCurrentTaskTssBase();
 
 extern "C" __declspec(dllimport)  LPPROCESS_INFO GetTaskTssBase();

@@ -18,6 +18,7 @@
 #define RESTORE_MOUSE		14
 #define SET_VIDEOMODE		15
 #define GIVEUP_LIFE			16
+#define IPI_CREATEPROC		17
 
 
 
@@ -40,7 +41,7 @@ extern "C" __declspec(dllexport) int __kVm86IntProc();
 extern "C"  __declspec(dllexport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllexport) DWORD vm86IntProc(LIGHT_ENVIRONMENT* stack);
 
-extern "C" __declspec(dllexport) DWORD servicesProc(LIGHT_ENVIRONMENT* stack);
+extern "C" __declspec(dllexport) DWORD ServiceEntry(LIGHT_ENVIRONMENT* stack);
 
 extern "C" __declspec(dllexport) void sleep(DWORD* params);
 
@@ -60,12 +61,16 @@ extern "C" __declspec(dllexport) DWORD __timestamp(unsigned long* params);
 
 extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no, DWORD * params, LIGHT_ENVIRONMENT * stack);
 
+
+
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllexport) unsigned __int64 __cpuFreq(DWORD* cpu, DWORD* max, DWORD* bus);
 
 extern "C" __declspec(dllexport) unsigned int getcpuFreq();
 
 extern "C" __declspec(dllexport) unsigned __int64 getCpuFreq();
+
+extern "C"  __declspec(dllexport) void __ipiCreaetProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 #else
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) int __readTemperature(DWORD * temp);
@@ -73,7 +78,7 @@ extern "C" __declspec(dllimport) int __kVm86IntProc();
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) DWORD vm86IntProc(LIGHT_ENVIRONMENT * stack);
 
-extern "C" __declspec(dllimport) DWORD servicesProc(LIGHT_ENVIRONMENT * stack);
+extern "C" __declspec(dllimport) DWORD ServiceEntry(LIGHT_ENVIRONMENT * stack);
 
 extern "C" __declspec(dllimport) void sleep(DWORD * params);
 
@@ -99,4 +104,6 @@ extern "C" __declspec(dllimport) unsigned __int64 __cpuFreq(DWORD * cpu, DWORD *
 extern "C" __declspec(dllimport) unsigned int getcpuFreq();
 
 extern "C" __declspec(dllimport) unsigned __int64 getCpuFreq();
+
+extern "C"  __declspec(dllimport) int __ipiCreaetProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 #endif

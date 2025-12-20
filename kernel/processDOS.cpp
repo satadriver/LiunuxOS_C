@@ -23,7 +23,7 @@ DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 
 void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO proc) {
-	char szout[1024];
+	char szout[256];
 	if ((env->eflags & 0x20000) && current->level == 3 && proc->level == 3) {
 		DWORD reip = (WORD)current->tss.eip;
 		DWORD rcs = (WORD)current->tss.cs;
@@ -145,7 +145,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	int ret = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	if ((level & 3) == 0)
 	{
@@ -307,7 +307,11 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	__strcpy(tss->funcname, funcname);
 
+	enter_task_array_lock_other(tss->cpuid);
+
 	tss->status = TASK_RUN;
+
+	leave_task_array_lock_other(tss->cpuid);
 
 #ifdef TASK_SWITCH_ARRAY
 

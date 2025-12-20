@@ -28,7 +28,7 @@ int initNTFS() {
 	ret = readMSFRoot();
 
 #ifdef LIUNUX_DEBUG_FLAG
-	unsigned char szout[4096];
+	unsigned char szout[256];
 	__printf((char*)szout, "ntfs bytes per sector:%x,cluster size:%x,sector per cluster:%x\n",
 		g_bytesPerSec, g_ClusterSize, g_SecsPerCluster);
 	__drawGraphChars((unsigned char*)szout, 0);

@@ -61,7 +61,7 @@ int(__cdecl* writeSector)(unsigned int secnolow, DWORD secnohigh, unsigned int s
 //而一个扇区共有512Byte，这样使用CHS寻址一块硬盘最大容量为256 * 1024 * 63 * 512B = 8064 MB
 int checkIDEPort(unsigned short port) {
 
-	char szout[1024];
+	char szout[256];
 
 	int r = inportb(port + 7);
 
@@ -301,7 +301,7 @@ int writePortSector(unsigned int secno, DWORD secnohigh, unsigned int seccnt, ch
 
 int waitComplete(WORD port) {
 
-	char szout[1024];
+	char szout[256];
 
 	//waitInterval(0);
 	//delay();
@@ -352,7 +352,7 @@ void waitFree(WORD port) {
 	{
 		int r = inportb(port);
 		if (r & 0x80) {
-			char szout[1024];
+			char szout[256];
 			//__printf(szout, "waitFree:%x\r\n",r);
 			__sleep(0);
 			//waitInterval0(1);
@@ -374,7 +374,7 @@ void waitReady(WORD port) {
 			break;
 		}
 		else {
-			char szout[1024];
+			char szout[256];
 			//__printf(szout, "waitReady:%x\r\n", r);
 			__sleep(0);
 			//waitInterval0(1);

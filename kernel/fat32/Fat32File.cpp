@@ -12,7 +12,7 @@ DWORD gFat32BusyFlag = 0;
 
 DWORD openFile(const char* fn, int writemode, LPFAT32DIRECTORY outdir,int *dirinsec) {
 	int ret = 0;
-	unsigned char szout[1024];
+	unsigned char szout[256];
 
 	char subpath[MAX_PATH_SIZE];
 	ret = removeDriver((char*)fn,subpath);
@@ -257,7 +257,7 @@ int readFat32File(const char * filename, char ** buf) {
 		}
 		ret = clusterReader(&dir, *buf, dir.size);
 
-// 		unsigned char szout[1024];
+// 		unsigned char szout[256];
 // 		__printf((char*)szout, "find file:%s in dir:%x,sector no:%x,dir in sector:%x", filename, dir, secno, dirinsec);
 // 		__drawGraphChars(szout, 0);
 		*(*buf + dir.size) = 0;
@@ -292,7 +292,7 @@ int writeFat32File(const char * filename, char * buf,int size, int writemode) {
 	{
 		ret = clusterWriter(&dir, buf, size, secno, writemode, dirinsec);
 
-// 		unsigned char szout[1024];
+// 		unsigned char szout[256];
 // 		__printf((char*)szout, "find file:%s in dir:%x,sector no:%x,dir in sector:%x", filename, dir, secno, dirinsec);
 // 		__drawGraphChars(szout, 0);
 	}

@@ -207,7 +207,7 @@ LPFAT32DIRECTORY getDirFromFileName(char * filename, LPFAT32DIRECTORY  lpdir) {
 
 	for (int i = 0; i < gMaxDirsInPath; i++)
 	{
-// 		unsigned char szout[1024];
+// 		unsigned char szout[256];
 // 		__printf((char*)szout, "search file:%s in dir:%s", fatname, lpdir[i].mainName);
 // 		__drawGraphChars(szout, 0);
 

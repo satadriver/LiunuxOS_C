@@ -163,7 +163,7 @@ void addAlarmTimer() {
 
 	//__asm{sti}
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);
 
 }
@@ -175,7 +175,7 @@ void addAlarmTimer() {
 //from assembly code
 void __kAlarmTimerProc() {
 
-	char szout[1024];
+	char szout[256];
 	//__printf(szout, "__kCmosAlarmProc entry from assemble code\n");
 
 	//can only exist one alarm
@@ -226,7 +226,7 @@ void __kRemoveAlarmTimer() {
 //void __doAlarmTask(DWORD retaddr,DWORD pid,char * filename,char * funcname,DWORD param) {
 void __doAlarmTask(DWORD  param) {
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "__doAlarmTask running\n");
 
 	//SnowScreenShow();

@@ -174,7 +174,7 @@ int listpci(DWORD* dst) {
 				}
 
 				if (regcnt ) {
-					char szout[1024];
+					char szout[256];
 					__printf(szout, "dev:%x,type:%x, regs:%x,%x,%x,%x,%x,%x,%x,%x\n", 
 						bdf, v, regs[0], regs[1], regs[2], regs[3], regs[4], regs[5], regs[6], regs[7]);
 				}
@@ -202,7 +202,7 @@ void showAllPciDevs() {
 	{
 		for (int i = 0; i < cnt; )
 		{
-			char szout[1024];
+			char szout[256];
 			__printf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
 
 			i += 2;
@@ -216,7 +216,7 @@ void showAllPciDevs() {
 
 int showPciDevs() {
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, ( char*)"\n\npci devices:\n");
 
 	int ret = 0;

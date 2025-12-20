@@ -25,7 +25,7 @@ int getDataRuns(char* data) {
 unsigned long long getIdxNextDir(char* filename, char* buf) {
 	int ret = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	if (__memcmp(buf, "INDX", 4))
 	{
@@ -75,7 +75,7 @@ unsigned long long getIdxNextDir(char* filename, char* buf) {
 
 unsigned long long getRootNextDir(LPCommonAttributeHeader hdr, char* filename) {
 	int ret = 0;
-	//char szout[1024];
+	//char szout[256];
 
 	LPResidentAttributeHeader rhdr = (LPResidentAttributeHeader)hdr;
 
@@ -125,7 +125,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 {
 	int ret = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	char msfinfo[MFTEntrySize * 2];
 
@@ -294,7 +294,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 
 unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 
 	char msfinfo[MFTEntrySize];
 
@@ -449,7 +449,7 @@ int readNtfsFile(const char* filename, char** buf) {
 	}
 
 	int ret = 0;
-	unsigned char szout[1024];
+	unsigned char szout[256];
 
 	char subpath[MAX_PATH_SIZE];
 	int result = removeDriver((char*)filename, subpath);

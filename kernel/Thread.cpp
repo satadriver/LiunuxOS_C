@@ -6,6 +6,7 @@
 #include "peVirtual.h"
 #include "memory.h"
 #include "apic.h"
+#include "window.h"
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -16,7 +17,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	int tid = dwtid & 0x7fffffff;
 
-	char szout[1024];
+	char szout[256];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -47,6 +48,9 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	int retvalue = 0;
 
 	tss[tid].retValue = retvalue;
+
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DestroyThreadWindow(tid, cpu);
 
 	leave_task_array_lock_sti();
 
@@ -80,9 +84,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	int ret = 0;
 
-	char szout[1024];
+	char szout[256];
 
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE+0x20)>>24;
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
 	TASKRESULT freetask;
 	ret = __getFreeTask(&freetask, cpu,1);
@@ -266,7 +270,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->window = 0;
 	tss->videoBase = (char*)gGraphBase;
 
+	enter_task_array_lock_cli();
 	tss->status = TASK_RUN;
+	leave_task_array_lock_sti();
 
 #ifdef TASK_SWITCH_ARRAY
 

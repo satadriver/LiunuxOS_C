@@ -75,7 +75,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
 
-	char szout[1024];
+	char szout[256];
 
 	initGdt();
 	initIDT();
@@ -198,7 +198,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 	int ret = 0;
 
- 	char szout[1024];
+ 	char szout[256];
 	__printf(szout, "__kKernelMain task pid:%x,filename:%s,function name:%s\n", pid, filename,funcname);
 
 	char* str = "Hi,how are you?Fine,thank you, and you ? I'm fine too!";

@@ -14,15 +14,16 @@
 #include "vectorRoutine.h"
 #include "servicesProc.h"
 #include "apic.h"
+#include "apic.h"
+#include "window.h"
 
 #define TASKS_LIST_BUF_SIZE 0x1000
 
 unsigned long g_task_array_lock[256] ;
-
 unsigned long g_task_list_lock [256];
 
 void enter_task_array_lock() {
-	int id = *(DWORD*)(LOCAL_APIC_BASE+0x20) >> 24;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_task_array_lock[id]);
 }
 
@@ -68,15 +69,7 @@ void leave_task_list_lock_sti() {
 
 
 
-void enter_task_array_lock_other_cli(int id) {
-	__asm {cli}
-	__enterSpinlock(&g_task_array_lock[id]);
-}
 
-void leave_task_array_lock_other_sti(int id) {
-	__asm {sti}
-	__leaveSpinlock(&g_task_array_lock[id]);
-}
 
 
 void enter_task_array_lock_other(int id) {
@@ -302,6 +295,9 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	current->status = TASK_OVER;
+
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DestroyThreadWindow(tid, cpu);
 
 	leave_task_list_lock_sti();
 
@@ -639,7 +635,7 @@ void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 
 #ifdef TASK_SWITCH_ARRAY
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
-	char szout[1024];
+	char szout[256];
 	int ret = 0;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	ret = __enterSpinlock(&g_task_array_lock[id]);
@@ -832,10 +828,10 @@ __SingleTssSchedule_end:
 }
 #else
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
-	char szout[1024];
+	char szout[256];
 	
 	int ret = 0;
-	int id = *(DWORD*)(LOCAL_APIC_BASE+0x20) >> 24;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	ret = __enterSpinlock(&g_task_list_lock[id]);
 	ret = __enterSpinlock(&g_task_array_lock[id]);
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -1013,7 +1009,7 @@ __SingleTssSchedule_end:
 
 #ifdef TASK_SWITCH_ARRAY
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
-	char szout[1024];
+	char szout[256];
 	int ret = 0;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	ret = __enterSpinlock(&g_task_array_lock[id]);
@@ -1166,7 +1162,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 #else
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
-	char szout[1024];
+	char szout[256];
 	int ret = 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -1314,7 +1310,7 @@ __MultipleTssSchedule_end:
 
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
 
-	char szout[1024];
+	char szout[256];
 
 	__int64 timeh1 = __krdtsc();
 
@@ -1444,84 +1440,6 @@ int __initTask0(char * videobase) {
 
 
 
-
-
-
-
-
-
-extern "C" void __declspec(naked)  BspTaskSchedule(LIGHT_ENVIRONMENT* stack) {
-	__asm {
-		pushad
-		push ds
-		push es
-		push fs
-		push gs
-		push ss
-
-		push esp
-		sub esp, 4
-		push ebp
-		mov ebp, esp
-
-		mov eax, KERNEL_MODE_DATA
-		mov ds, ax
-		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-		mov ss, ax
-
-		//clts
-		cli
-	}
-
-	{
-		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		char szout[1024];
-		//__printf(szout,"TimerInterrupt\r\n");
-
-#ifdef SINGLE_TASK_TSS
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
-#else
-		LPPROCESS_INFO next = MultipleTssSchedule(stack);
-#endif
-
-		* (DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
-
-	}
-
-	__asm {
-#ifdef SINGLE_TASK_TSS
-		call GetCurrentTaskTssBase
-		mov edx, eax
-		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
-#endif
-
-		mov esp, ebp
-		pop ebp
-		add esp, 4
-		pop esp
-		pop ss
-		pop gs
-		pop fs
-		pop es
-		pop ds
-		popad
-
-#ifdef SINGLE_TASK_TSS
-		mov esp, ss: [esp - 20]
-#endif	
-		//clts
-		//sti
-
-		iretd
-
-		jmp BspTaskSchedule
-	}
-}
-
-
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
@@ -1551,7 +1469,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		char szout[1024];
+		char szout[256];
 		//__printf(szout,"TimerInterrupt\r\n");
 
 		LPPROCESS_INFO next = SingleTssSchedule(stack);
@@ -1579,7 +1497,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov esp, ss: [esp - 20]
 
 		clts
-		//sti
+		sti
 
 		iretd
 
@@ -1615,7 +1533,7 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 			popad
 
 			//clts
-			//sti
+			sti
 
 			iretd
 		}
@@ -1650,7 +1568,7 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 		mov esp, ss: [esp - 20]
 
 		//clts
-		//sti
+		sti
 
 		iretd
 	}
@@ -1661,7 +1579,7 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 	static int gTestFlag = 0;
 	if (gTestFlag >= 0 && gTestFlag <= -1)
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout,
 			"saved  cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x,\r\n"
 			"loaded cr3:%x,pid:%x,name:%s,level:%u,esp0:%x,ss0:%x,eip:%x,cs:%x,esp3:%x,ss3:%x,eflags:%x,link:%x.\r\n\r\n",
@@ -1676,32 +1594,3 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 }
 
 
-
-void initTaskSwitchTss() {
-
-	DescriptTableReg idtbase;
-	__asm {
-		sidt idtbase
-	}
-
-	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)idtbase.addr;
-
-	initKernelTss((TSS*)GetCurrentTaskTssBase(), TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,
-		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
-#ifdef SINGLE_TASK_TSS
-	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
-#else
-	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTimerSelector));
-	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
-#endif
-
-	__asm
-	{
-		mov eax, kTssTaskSelector
-		ltr ax
-		mov ax, ldtSelector
-		lldt ax
-	}
-}

@@ -7,7 +7,7 @@
 
 int osWriter() {
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 
 	char mbr[1024] = { 0 };
 	LPMBR lpmbr = (LPMBR)mbr;

@@ -272,7 +272,7 @@ void initGdt() {
 		sgdt gdtbase;
 	}
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "gdt base:%x,size:%x\r\n", gdtbase.addr, gdtbase.size);
 
 	__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
@@ -309,6 +309,7 @@ void initGdt() {
 	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssV86Selector));
 
 	gdtbase.addr = GDT_BASE;
+	gdtbase.size = AP_TSS_SELECTOR + sizeof(TssDescriptor) * 256 -1;
 	__asm {
 		//do not use lgdt lpgdt,why?
 		lgdt gdtbase
@@ -397,7 +398,7 @@ void initIDT() {
 	makeIntGateDescriptor((DWORD)IDEMasterIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 6);
 	makeIntGateDescriptor((DWORD)IDESlaveIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 7);
 
-	makeTrapGateDescriptor((DWORD)servicesProc, KERNEL_MODE_CODE, 3, descriptor + 0x80);
+	makeTrapGateDescriptor((DWORD)ServiceEntry, KERNEL_MODE_CODE, 3, descriptor + 0x80);
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
@@ -407,8 +408,7 @@ void initIDT() {
 	
 	makeIntGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);
-	makeIntGateDescriptor((DWORD)LVTLint0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT0_VECTOR);
-	makeIntGateDescriptor((DWORD)LVTLint1Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTLINT1_VECTOR);
+
 	makeIntGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
 
@@ -423,7 +423,7 @@ void initIDT() {
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
 	__asm {
 		//不要使用 lidt lpidt,why?
@@ -495,7 +495,7 @@ void InitIdt64() {
 
 	//makeIntGate64Descriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 8);
 
-	makeTrapGate64Descriptor((DWORD)servicesProc, KERNEL_MODE_CODE, 3, descriptor + 0x80);
+	makeTrapGate64Descriptor((DWORD)ServiceEntry, KERNEL_MODE_CODE, 3, descriptor + 0x80);
 
 	//makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
 
@@ -506,7 +506,7 @@ void InitIdt64() {
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
-	char szout[1024];
+	char szout[256];
 	__printf(szout, (char*)"idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
 	__asm {
 		//不要使用 lidt lpidt,why?
@@ -614,7 +614,7 @@ void EnterLongMode() {
 		char* realbuf = (char*)MemLoadDll64((char*)databuf, (char*)KERNEL64_DLL_BASE);
 		typedef int (*ptrfunction)();
 		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(realbuf, "__kKernelEntry64");
-		char szout[1024];
+		char szout[256];
 		__printf(szout, "__kKernelEntry64:%x\r\n", kernel64Entry);
 
 		__asm {

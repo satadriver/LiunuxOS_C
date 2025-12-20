@@ -138,7 +138,7 @@ uint32_t pci_read(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
 
 // 查找 AMD PCnet 网卡
 int find_pcnet() {
-    char szout[1024];
+    char szout[256];
     for (int bus = 0; bus < 256; bus++) {
         for (int slot = 0; slot < 32; slot++) {
             uint32_t vendor_device = pci_read(bus, slot, 0, 0);
@@ -231,7 +231,7 @@ void pcnet_send(uint16_t iobase, uint8_t* data, uint16_t len) {
 }
 
 void pcnet_poll_rx(uint16_t iobase) {
-    char szout[1024];
+    char szout[256];
     if (!(rx_ring[0].flags & 0x8000)) { // OWN 位被网卡清除，表示有数据
         uint16_t len = rx_ring[0].length;
         __printf(szout,"Received %d bytes\n", len);
@@ -275,7 +275,7 @@ int pcnetInit() {
         pcnet_poll_rx(iobase);
         //break;
     }
-    char szout[1024];
+    char szout[256];
 
     __printf(szout, "pcnetInit end\n");
     return 0;

@@ -19,7 +19,7 @@ unsigned long getIndexDirs(char* buf, LPFILEBROWSER files) {
 	int cnt = 0;
 
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 
 	if (__memcmp(buf, "INDX", 4))
 	{
@@ -155,7 +155,7 @@ int getNtfsDirs(unsigned long long secoff, LPFILEBROWSER files, unsigned __int64
 		cnt++;
 	}
 
-	char szout[1024];
+	char szout[256];
 
 	DWORD low = secoff & 0xffffffff;
 	DWORD high = ( secoff >> 32 )&0xffff;

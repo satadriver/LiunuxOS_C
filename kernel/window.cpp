@@ -178,11 +178,13 @@ LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
 
 
 DWORD isTopWindow(int wid) {
+	char szout[256];
 	if (g_ScreenMode == 0) {
 		return TRUE;
 	}
 
 	if (gWindowsList == 0) {
+		__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
 		return 0;
 	}
 	LPWINDOWSINFO window = & gWindowsList[ wid] ;
@@ -206,11 +208,11 @@ LPWINDOWSINFO getTopWindow() {
 
 
 int InsertWindow(WINDOWCLASS* ptrwindow,  char * wname) {
-	char szout[1024];
+	char szout[256];
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	int tid = proc->tid;
-	WINDOWCLASS* lpwindow = (WINDOWCLASS*)linear2phyByPid((unsigned long)ptrwindow, tid);
+	int pid = proc->pid;
+	WINDOWCLASS* lpwindow = (WINDOWCLASS*)linear2phyByPid((unsigned long)ptrwindow, pid);
 
 	LPWINDOWSINFO window = __FindWindow(wname);
 	if (window)
@@ -246,14 +248,61 @@ int InsertWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 }
 
 
+LPWINDOWSINFO DestroyProcessWindow(int pid, int cpu) {
+	if (gWindowsList == 0) {
+		return 0;
+	}
 
+	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.prev;
+	LPWINDOWSINFO hdr = ptr;
+	do
+	{
+		if (ptr == 0)
+		{
+			break;
+		}
+		if (ptr->valid && ptr->window->pid == pid && ptr->window->cpu == cpu)
+		{
+			return ptr;
+		}
+		else {
+			ptr = (LPWINDOWSINFO)(ptr->list.prev);
+		}
+	} while (ptr && ptr != hdr);
 
+	return 0;
+}
+
+LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
+	if (gWindowsList == 0) {
+		return 0;
+	}
+
+	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.prev;
+	LPWINDOWSINFO hdr = ptr;
+	do
+	{
+		if (ptr == 0)
+		{
+			break;
+		}
+		if (ptr->valid && ptr->window->tid == tid && ptr->window->cpu == cpu)
+		{
+			return ptr;
+		}
+		else {
+			ptr = (LPWINDOWSINFO)(ptr->list.prev);
+		}
+	} while (ptr && ptr != hdr);
+
+	return 0;
+}
 
 int RemoveWindow(int id) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
-	char szout[1024];
+	char szout[256];
 	
 	LPWINDOWSINFO window = & gWindowsList [id];
 	if (window->valid) {
@@ -312,7 +361,7 @@ char* SetVideoBase(char* buf) {
 
 
 int MaximizeWindow(LPWINDOWCLASS window) {
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
 
 	enter_task_array_lock_cli();
@@ -375,7 +424,7 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 
 int MinimizeWindow(WINDOWCLASS* lpwindow) {
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, lpwindow, lpwindow->winname);
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
@@ -383,10 +432,10 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 	enter_task_array_lock_cli();
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	int tid = proc->tid;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetTaskTssBase() + tid;
+	int pid = proc->pid;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetTaskTssBase() + pid;
 
-	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,tid);
+	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,pid);
 	if (window->minBuf == 0) {
 		window->minBuf = (char*)__kMalloc(gVideoHeight * gVideoWidth * gBytesPerPixel);
 		if(window->minBuf == 0)

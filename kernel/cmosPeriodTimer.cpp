@@ -192,7 +192,7 @@ int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD
 			gPeriodTimer[i].pid = proc->pid;
 			gPeriodTimer[i].tid = proc->tid;
 
-			char szout[1024];
+			char szout[256];
 			__printf(szout, "%s addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", __FUNCTION__,
 			 addr,i,delay,param1,param2,param3,param4);
 			break;

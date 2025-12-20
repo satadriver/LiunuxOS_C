@@ -52,7 +52,7 @@ int mapFile(DWORD file,int filesize, DWORD dst) {
 //_dl_runtime_reolve()
 
 int initElf(DWORD file, int filesize, DWORD base) {
-	char szout[1024];
+	char szout[256];
 
 	Elf32_Ehdr * elf = (Elf32_Ehdr*)file;
 
@@ -407,7 +407,7 @@ int runElfFunction(char * filename, char * funcname){
 	char * data = 0;
 	int result = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	filesize = readFile(filename, &data);
 	if (filesize <= 0)
@@ -527,7 +527,7 @@ void showAllSegs(DWORD file) {
 	for (int i = 0; i < elf->e_shnum; i++)
 	{
 		char * name = (char*)(sh[i].sh_name + shstr->sh_offset + file);
-		char szout[1024];
+		char szout[256];
 		__printf(szout,"section name:%s,type:%x,offset:%x,address:%x,size:%x,entsize:%x\r\n",
 			name,sh[i].sh_type,sh[i].sh_offset ,sh[i].sh_addr,sh[i].sh_size,sh[i].sh_entsize);
 	}

@@ -20,6 +20,8 @@ extern "C" __declspec(dllexport) DWORD linear2phy(DWORD linear);
 extern "C" __declspec(dllexport) DWORD linear2phyByPid(DWORD linearAddr, int pid);
 
 extern "C" __declspec(dllexport) DWORD getTbPgOff(DWORD phyaddr, DWORD * tboff, DWORD *pgoff);
+
+extern "C" __declspec(dllexport)DWORD linear2phy(DWORD linearAddr);
 #else
 extern "C" __declspec(dllimport) int clearCR3(DWORD * cr3);
 
@@ -33,4 +35,5 @@ extern "C" __declspec(dllimport) DWORD linear2phyByPid(DWORD linearAddr, int pid
 
 extern "C" __declspec(dllimport) DWORD getTbPgOff(DWORD phyaddr, DWORD * tboff, DWORD * pgoff);
 
+extern "C" __declspec(dllimport)DWORD linear2phy(DWORD linearAddr);
 #endif

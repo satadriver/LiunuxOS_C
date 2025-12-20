@@ -95,7 +95,7 @@ DWORD copyKernelCR3(DWORD addr, DWORD size, DWORD *cr3) {
 
 DWORD mapPhyToLinear(DWORD linearaddr, DWORD physaddr, DWORD size, DWORD * cr3,int attr) {
 
-	char szout[1024];
+	char szout[256];
 
 	if (size % PAGE_SIZE)
 	{

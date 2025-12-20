@@ -205,7 +205,7 @@ void __declspec(naked) DebugTrap(LIGHT_ENVIRONMENT* stack) {
 
 void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 
-	char szout[1024];
+	char szout[256];
 
 #ifdef VM86_PROCESS_TASK
 
@@ -273,7 +273,7 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 
 void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 
-	char szout[1024];
+	char szout[256];
 	int len = 0;
 
 	DWORD reg_dr6=0;

@@ -22,9 +22,9 @@ void __kFreeProcess(int pid) {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	freeProcessMemory(pid,cpu);
 
-	freeProcessPages(pid);
+	freeProcessPages(pid,cpu);
 
-	//destroyWindows();
+	DestroyProcessWindow(pid,cpu);
 }
 
 
@@ -44,7 +44,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	int pid = tss[tid].pid;
 
-	char szout[1024];
+	char szout[256];
 
 	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid) {
 		__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
@@ -123,7 +123,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 {
 	int result = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	tss->pid = tid;
 	tss->tid = tid;
@@ -162,7 +162,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
-		__printf(szout, "__initProcess %s %s __kProcessMalloc ERROR\n", funcname, filename);
+		__printf(szout, "%s %s %s %d ERROR\n",__FUNCTION__, funcname, filename,__LINE__);
 		return FALSE;
 	}
 
@@ -179,7 +179,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	{
 		entry = getAddrFromName((DWORD)pemap, funcname);
 		if (entry == FALSE) {
-			__printf(szout, "__kCreateTask not found export function:%s in:%s\n", funcname, filename);
+			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
 			__kFree(pemap);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -203,7 +203,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	result = relocTableV((char*)pemap, USER_SPACE_START);
 	result = importTable((DWORD)pemap);
 	if (result == 0) {
-		__printf(szout, "__kCreateTask importTable error when function:%s file:%s\n", funcname, filename);
+		__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
 		__kFree(pemap);
 		tss->status = TASK_OVER;
 		return FALSE;
@@ -246,6 +246,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
+			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -254,6 +255,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		result = mapPhyToLinear(vaddr, tss->espbase, KTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
+			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -290,6 +292,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
+			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -298,6 +301,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
+			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -376,9 +380,14 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 
-	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase);
+	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",
+		getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
+
+	enter_task_array_lock_other(tss->cpuid);
 
 	tss->status = TASK_RUN;
+
+	leave_task_array_lock_other(tss->cpuid);
 
 #ifdef TASK_SWITCH_ARRAY
 
@@ -392,7 +401,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWORD params) {
 	int result = 0;
-	char szout[1024];
+	char szout[256];
 	if (filename == 0 || funcname == 0)
 	{
 		__printf(szout, "__kCreateProcess filename or functionname is null\n");
@@ -428,25 +437,27 @@ int __kCreateProcessFromAddrFunc(DWORD filedata, int filesize,char * funcname,in
 }
 
 
-int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcname, int syslevel, DWORD params) {
+int __kCreateProcess(DWORD lpfiledata, int filesize,char * fn,char * funname, int syslevel, DWORD lpparams) {
 
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 
 	//同一个进程不论线性还是物理地址，都可以访问。
 	//当一个进程把当前进程的线性地址转换为物理地址，传递给另一个进程，
 	//进入另外一个的这个进程后，其访问这个物理地址的时候是要经过映射的
 	//因此简单的想通过访问共同的物理地址实现共享是不行的
 
-// 	DWORD filedata = linear2phy(lpfiledata);
-// 	char * filename = (char *)linear2phy((DWORD)fn);
-// 	char * funcname = (char *)linear2phy((DWORD)functionname);
-// 	DWORD params = linear2phy(paramlist);
+ 	DWORD filedata = linear2phy(lpfiledata);
+ 	char * filename = (char *)linear2phy((DWORD)fn);
+ 	char * funcname = (char *)linear2phy((DWORD)funname);
+ 	DWORD params = linear2phy(lpparams);
 
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
 	int cpu = GetIdleProcessor();
+
+	//int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	TASKRESULT result;
 	ret = __getFreeTask(&result,cpu,1);

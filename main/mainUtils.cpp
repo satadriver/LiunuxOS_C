@@ -61,15 +61,21 @@ int getpids(char * szout) {
 	int outlen = 0;
 	int len = 0;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (tss[i].status == TASK_RUN)
-		{
-			len = __sprintf(szout + outlen, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
-				tss[i].filename, tss[i].funcname, tss[i].moduleaddr,tss[i].cpuid, tss[i].pid, tss[i].tid, tss[i].level);
-			outlen += len;
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+	for (int i = 0; i < cnt; i++) {
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseSelected(cpus[i]);
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{
+				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
+					tss[i].filename, tss[i].funcname, tss[i].moduleaddr, tss[i].cpuid, tss[i].pid, tss[i].tid, tss[i].level);
+				outlen += len;
+			}
 		}
 	}
+
+
 
 	return outlen;
 }

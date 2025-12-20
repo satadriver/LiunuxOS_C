@@ -261,7 +261,7 @@ int initCCFont() {
 		result = readFile("c:\\liunux\\HZK16", (char**)&gCCFontBase);
 	}
 
-	// 	char szout[1024];
+	// 	char szout[256];
 	// 	int len = __printf(szout, "initCCFont address:%x,size:%x\r\n",gCCFontBase,result);
 	// 	__drawGraphChars((unsigned char*)szout, 0);
 	return result;
@@ -296,7 +296,7 @@ void drawCCFontChar(DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
 //类似*lptest++;中，++的优先级高于*，导致错误发生
 void drawCCFontChar_new(WINDOWCLASS* window, DWORD param2, DWORD param3, DWORD param4) {
 
-	char szout[1024];
+	char szout[256];
 	//__printf(szout,"g_poem_num:%d\r\n", g_poem_num);
 
 	unsigned char* g_cc_peoms[] =
@@ -365,7 +365,7 @@ int displayCCPoem() {
 
 
 extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
-	char szout[1024];
+	char szout[256];
 
 	int retvalue = 0;
 

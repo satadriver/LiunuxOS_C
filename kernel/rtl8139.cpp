@@ -30,7 +30,7 @@ void GetNicMac() {
 }
 
 int initNIC() {
-    char szout[1024];
+    char szout[256];
 	DWORD regs[16];
 	DWORD dev = 0;
 	DWORD vd = 0;
@@ -50,7 +50,7 @@ int initNIC() {
 
 // ³õÊ¼»¯ RTL8139 Íø¿¨
 int rtl8139_init(uint16_t io_base) {
-    char szout[1024];
+    char szout[256];
 
     outportd(0xcf8, g_nic_dev + 4);
     DWORD v = inportd(0xcfc);

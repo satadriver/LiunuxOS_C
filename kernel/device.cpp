@@ -302,7 +302,7 @@ void getKeyboardID() {
 
 	gKeyboardID = (high << 8) | low;
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "keyboardid:%x\r\n", gKeyboardID);
 }
 

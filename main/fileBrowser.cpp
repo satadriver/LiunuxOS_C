@@ -130,7 +130,7 @@ int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 fil
 
 int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	int result = 0;
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "doFileAction readFileData:%s size:%I64x\n", files->pathname, files->filesize);
 
 	if (files->filesize > 0x10000000)
@@ -205,7 +205,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 //文件大小，属性必须统一 。文件夹大小统一为0，文件夹属性都是0x10,文件属性都是0x20
 int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 
 	int partitionType = 0;
 

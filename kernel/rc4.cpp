@@ -55,7 +55,7 @@ void rc4_crypt(unsigned char* s, unsigned char* Data, unsigned long Len)
 
 int rc4_test()
 {
-    char szout[1024];
+    char szout[256];
 
     unsigned char s[KEY_SIZE] = { 0 }, s2[KEY_SIZE] = { 0 };//S-box
 

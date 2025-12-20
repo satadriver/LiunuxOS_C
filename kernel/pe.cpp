@@ -42,7 +42,7 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 		}
 	}
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "getAddrFromName module:%x,name:%s error\n", module,funname);
 
 	return 0;
@@ -59,7 +59,7 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord) {
 	unsigned int funidx = ord - exp->Base;
 	if (funidx < 0 || funidx >= exp->NumberOfFunctions)
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, "getAddrFromOrd module:%x,ord:%d error\n", module, ord);
 
 		return 0;
@@ -213,7 +213,7 @@ int setImageBase(char* chBaseAddress)
 
 DWORD importTable(DWORD module) {
 
-	char szout[1024];
+	char szout[256];
 	int ret = 0;
 
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
@@ -358,7 +358,7 @@ void initDll() {
 
 
 DWORD loadLibFile(char * dllname) {
-	char szout[1024];
+	char szout[256];
 
 	HMODULE dll = (HMODULE)__kGetModule((LPSTR)dllname);	//without path,only has filename
 	if (NULL == dll)
@@ -502,7 +502,7 @@ void __kStoreModule(char * filename, DWORD addr) {
 		}
 	}
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "__kKeepModule filename:%s,address:%x\n", filename, addr);
 
 	return;

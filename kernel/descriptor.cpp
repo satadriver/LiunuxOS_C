@@ -57,7 +57,7 @@ extern "C" __declspec(naked) void __kCallGateProc(DWORD  params, DWORD count) {
 	}
 
 	{
-		char szout[1024];
+		char szout[256];
 		__printf(szout, "__kCallGateProc running,param1:%x,param2:%x\r\n", params, count);
 	}
 
@@ -141,7 +141,7 @@ extern "C" __declspec(dllexport) void callgateEntry(DWORD  params,DWORD count) {
 		popad
 	}
 
-	char szout[1024];
+	char szout[256];
 	__printf(szout, "callgateEntry leave\r\n");
 
 #if 0
@@ -181,7 +181,7 @@ void readmsr(DWORD num, DWORD *lowpart, DWORD * highpart) {
 		mov[ecx], edx
 	}
 
-	//char szout[1024];
+	//char szout[256];
 	//__printf(szout, "read msr:%x,high:%x,low:%x\r\n", num, *highpart, *lowpart);
 
 }
@@ -243,7 +243,7 @@ extern "C" __declspec(naked) int sysEntry() {
 
 			mov resp, esp
 		}
-		char szout[1024];
+		char szout[256];
 		__printf(szout, "sysEntry current cs:%x,eip:%x,ss:%x,esp:%x\r\n", rcs, reip, rss, resp);
 
 		__asm {

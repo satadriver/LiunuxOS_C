@@ -180,7 +180,7 @@ DWORD showIcon(int x,int y, LPBITMAPINFOHEADER lpbmpinfo) {
 
 int showBmpBits(int x, int y, BITMAPINFOHEADER* info, unsigned char * data) {
 
-	char szout[1024];
+	char szout[256];
 	if (info->biBitCount < 8)
 	{
 		__printf(szout, ( char*)"bmp file bit error\n");
@@ -526,7 +526,7 @@ int initCCFont() {
 		result = readFile(LIUNUX_BASE_PATH "HZK16", (char**)&gCCFontBase);
 	}
 
-	// 	char szout[1024];
+	// 	char szout[256];
 	// 	int len = __printf(szout, "initCCFont address:%x,size:%x\r\n",gCCFontBase,result);
 	// 	__drawGraphChars((unsigned char*)szout, 0);
 	return result;

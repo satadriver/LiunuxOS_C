@@ -901,7 +901,7 @@ double friction(double v, double radius) {
 void TrajectoryVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	int ret = 0;
 
-	char szout[1024];
+	char szout[256];
 
 	unsigned int asc = __kGetKbd(gTrajectWid) & 0xff;
 	if (asc == 0x1b)
@@ -1065,7 +1065,7 @@ void TrajectoryVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 void initTrajectory() {
 	int ret = 0;
-	char szout[1024];
+	char szout[256];
 
 	DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 
