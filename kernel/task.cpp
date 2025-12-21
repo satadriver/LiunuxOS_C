@@ -1443,7 +1443,7 @@ int __initTask0(char * videobase) {
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
-		cli
+		//cli
 		pushad
 		push ds
 		push es
@@ -1497,7 +1497,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov esp, ss: [esp - 20]
 
 		clts
-		sti
+		//sti
 
 		iretd
 

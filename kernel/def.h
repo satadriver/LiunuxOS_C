@@ -72,7 +72,7 @@
 
 #define VM86_PROCESS_TASK
 
-//#define DISABLE_PAGE_MAPPING
+#define DISABLE_PAGE_MAPPING
 
 #define TASK_TIME_SLICE				15
 
@@ -163,8 +163,6 @@
 
 #define VESA_INFO_BASE			0X513000
 
-#define IPI_MSG_BASE			0X514000
-
 #define KEYBOARD_BUFFER			0X518000
 
 #define MOUSE_BUFFER			0X520000
@@ -195,6 +193,8 @@
 
 #define LIB_INFO_SIZE			0X10000
 #define LIB_INFO_BASE			0X5d0000
+
+#define IPI_MSG_BASE			0X5e0000
 
 #define KERNEL_TASK_STACK_BASE 	 0x600000
 #define KERNEL_TASK_STACK_TOP 	 (KERNEL_TASK_STACK_BASE + KTASK_STACK_SIZE - STACK_TOP_DUMMY)
@@ -246,7 +246,7 @@
 
 #define MAIN_DLL_SOURCE_BASE	0X1300000
 
-#define TASKS_TSS_BASE			0X1400000
+//#define TASKS_TSS_BASE			0X1400000
 
 #define TASKS_STACK0_BASE		0x1800000
 
@@ -438,7 +438,7 @@ typedef struct {
 typedef struct  {
 	int cmd;
 	int pc;
-	char params[256];
+	char param[1024];
 }IPI_MSG_PARAM;
 
 #pragma pack(pop)

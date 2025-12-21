@@ -141,14 +141,12 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		}
 		else if (ck == VK_F1)
 		{
-
-			
 			if (__findProcessFileName("__kConsole") == FALSE)
-			{			
+			{
 				unsigned long module = linear2phy((unsigned long)"main.dll");
 				unsigned long func = linear2phy((unsigned long)"__kConsole");
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
-				//__ipiCreaetProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)module, (char*)func, 3, 0);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize,(char*)module,(char*) func, 3, 0);
+				//__ipiCreaetProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 			}
 			continue;
 		}

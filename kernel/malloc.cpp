@@ -393,17 +393,15 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 //U/S--位2是用户/超级用户（User / Supervisor）标志。如果为1，那么运行在任何特权级上的程序都可以访问该页面。
 //如果为0，那么页面只能被运行在超级用户特权级（0、1或2）上的程序访问。页目录项中的U / S位对其所映射的所有页面起作用。
 
-//return phisical address
+
 DWORD __kMalloc(DWORD s) {
 
 	char szout[256];
 	DWORD size = 0;
 	int len = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	//DWORD ret = __kProcessMalloc(s, &size,process->pid,0);
-	DWORD ret = __kProcessMalloc(s, &size, 0, process->cpuid, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-	if (ret == 0) {
-		
+	DWORD ret = __kProcessMalloc(s, &size, process->pid, process->cpuid, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	if (ret == 0) {	
 		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
 	}
 	else {
@@ -423,11 +421,9 @@ int __kFree(DWORD physicalAddr) {
 	if (info)
 	{
 		//int len = __printf(szout, "__kFree address:%x size:%x pid:%d vaddr:%x\n", physicalAddr, info->size, info->pid, info->vaddr);
-		DWORD size = ClearMemAllocItem(info);
-		
+		DWORD size = ClearMemAllocItem(info);	
 	}
-	else {
-		
+	else {	
 		int len = __printf(szout, "__kFree not found address:%x\n", physicalAddr);
 	}
 

@@ -29,7 +29,7 @@ DWORD* gHpetBase = 0;
 
 
 
-int g_test_value = 0;
+int g_ipi_lock = 0;
 
 int g_apic_int_tag = 0;
 
@@ -327,10 +327,10 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 	if (destType == 0) {
 		unsigned int id = cpu << 24;
 		*(DWORD*)(LOCAL_APIC_BASE + 0x310) = id;	
-		
+		iomfence();
 	}
 
-	iomfence();
+	
 
 	unsigned int v = vector;
 	v = v | 0x4000;
@@ -349,8 +349,8 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 
 	v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-	//char szout[256];
-	//__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
+	char szout[256];
+	__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
 
 	return;
 
@@ -393,20 +393,23 @@ int IpiCreateProcess(DWORD base,int size,char * module,char *func,int level,unsi
 	int ret = 0;
 	int id = GetIdleProcessor();
 	IPI_MSG_PARAM* param = (IPI_MSG_PARAM*)IPI_MSG_BASE;
-	//int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
 	param[id].cmd = IPI_CREATEPROCESS;
 
 	param[id].pc = 6;
-	DWORD* params = (DWORD * )param[id].params;
-	params[0] = base;
-	params[1] = size;
-	params[2] = (DWORD)module;
-	params[3] = (DWORD)func;
-	params[4] = level;
-	params[5] = p;
-	
-	
+	IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM* )param[id].param;
+	subparam->base= (char*)base;
+	subparam->size = size;
+
+	__strcpy((char*)subparam->module, module);
+
+	__strcpy(subparam->funcname, func);
+	subparam->level= level;
+	subparam->params =(char*) p;
+	char szout[256];
+	__printf(szout, "%s cpu:%d module:%s function:%s\r\n", __FUNCTION__, id,subparam->module, subparam->funcname);
 	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 	return 0;
 }
 
@@ -429,37 +432,47 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
-		cli
+		//cli
 	}
 
 	{
+		char szout[256];
 
+		//__enterSpinlock(&g_allocate_ap_lock);
 
-		IPI_MSG_PARAM* param =(IPI_MSG_PARAM * )IPI_MSG_BASE;
-		int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		int cmd = param[cpu].cmd;
+		IPI_MSG_PARAM* msg =(IPI_MSG_PARAM * )IPI_MSG_BASE;
+		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		int cmd = msg[id].cmd;
+		
+		//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",cpu, __FUNCTION__,__LINE__,cmd);
+
 		if (cmd == IPI_CREATEPROCESS) {
-			DWORD* params = (DWORD *) param[cpu].params;
-			DWORD base = params[0];
-			DWORD size = params[1];
-			char *  module =(char*) params[2];
-			char* funcname = (char*)params[3];
-			int level = params[4];
-			char* p = (char*)params[5];
+			msg[id].cmd = 0;
 
-			module = "main.dll";
-			funcname = "__kConsole";
+			IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[id].param;
+			DWORD base = (DWORD)subparam->base;
+			DWORD size = subparam->size;
+			char *  module =subparam->module;
+			char* funcname = subparam->funcname;
+			int level = subparam->level;
+			char* p = (char*)subparam->params;
+			
+			//__printf(szout, "%s module:%s function:%s\r\n", __FUNCTION__, module, funcname);
+
 			//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kConsole", 3, 0);
 			if (__findProcessFileName(funcname) == FALSE)
 			{
-				__kCreateProcess(base, size, module, funcname, level, (unsigned long)p);
+				__kCreateProcess(base, size, subparam->module, subparam->funcname, level, (unsigned long)p);
 			}
 		}
 		else {
 
 		}
 
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		//__leaveSpinlock(&g_allocate_ap_lock);
+		
+		g_ipi_lock++;
+		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
 	}
 
 	__asm {
@@ -474,7 +487,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		pop ds
 		popad
 
-		sti
+		//sti
 		iretd
 	}
 }
@@ -484,7 +497,7 @@ int g_lvt_timer = 0;
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
+		//cli
 
 		pushad
 		push ds
@@ -547,7 +560,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
-		sti
+		//sti
 
 		iretd
 	}
@@ -1340,7 +1353,7 @@ void BPCodeStart() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 	__sleep(0);
 #else
-	//SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
+	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
 	__sleep(0);
 
@@ -1379,7 +1392,7 @@ void BPCodeStart() {
 	//AllocateApTask(2);
 
 	__printf(szout, "bsp id:%d version:%x lock:%d timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		cpu, localapic_ver, g_test_value, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
+		cpu, localapic_ver, g_ipi_lock, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1403,13 +1416,15 @@ LPPROCESS_INFO GetTaskTssBaseSelected(int id) {
 
 
 LPPROCESS_INFO GetTaskTssBase() {
-	int bspid = *(int*)CPU_ID_ADDRESS;
+	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	/*
+	int bspid = *(int*)CPU_ID_ADDRESS;	
 	if (id == bspid) {
 		LPPROCESS_INFO process = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		return process;
 	}
-
+	*/
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
 }
 
@@ -1428,14 +1443,15 @@ int GetCpu(int * out,int size) {
 
 
 LPPROCESS_INFO SetTaskTssBase() {
-	char szout[256];
-	int bspid = *(int*)CPU_ID_ADDRESS;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	/*
+	char szout[256];
+	int bspid = *(int*)CPU_ID_ADDRESS;	
 	if (id == bspid) {
 		g_ap_tss_base[id] = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		return g_ap_tss_base[id];
 	}
-
+	*/
 	g_ap_tss_base[id] = (LPPROCESS_INFO)(AP_TASK_TSS_ARRAY + id * 0x400000);
 
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
@@ -1516,7 +1532,7 @@ int GetIdleProcessor() {
 	int total = 0;
 	int bspid = *(int*)CPU_ID_ADDRESS;
 	int cnt = *(int*)CPU_TOTAL_ADDRESS;
-	if (cnt <= 0) {
+	if (cnt <= 1) {
 		return bspid;
 	}
 	
@@ -1529,8 +1545,8 @@ int GetIdleProcessor() {
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)g_ap_tss_base[cpuid];
 			if (proc[i].status == TASK_RUN) {
 				
-				if (cpuid < 0 || cpuid >= 256) {
-					__printf(szout, "%s cpuid error:%d\r\n", __FUNCTION__, cpuid);
+				if (cpuid < 0 || cpuid >= 256 || cpuid != proc[i].cpuid) {
+					__printf(szout, "%s cpuid:%d error\r\n", __FUNCTION__, cpuid);
 					break;
 				}
 				unsigned int c = cpuStatus[cpuid] & 0xffffff;
@@ -1541,7 +1557,6 @@ int GetIdleProcessor() {
 			}
 		}
 	}
-
 
 	if (total) {
 		BubbleSort(cpuStatus, cnt );
@@ -1574,64 +1589,7 @@ int GetIdleProcessor() {
 }
 
 
-int GetIdleProcessor_old() {
-	char szout[256];
 
-	unsigned int cpuStatus[256];
-	__memset((char*)cpuStatus, 0, 256);
-
-	int total = 0;
-	int bspid = *(int*)CPU_ID_ADDRESS;
-	int cnt = *(int*)CPU_TOTAL_ADDRESS;
-	if (cnt <= 0) {
-		return bspid;
-	}
-
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)TASKS_TSS_BASE;
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (proc[i].status == TASK_RUN ) {
-			int cpuid = proc[i].cpuid;
-			if(cpuid < 0 || cpuid >=256){
-				__printf(szout, "%s cpuid error:%d\r\n",__FUNCTION__, cpuid);
-				break;
-			}
-			unsigned int c = cpuStatus[cpuid] & 0xffffff;
-			unsigned int num = cpuid<<24;
-			c++;
-			cpuStatus[cpuid] = (num) | (c);
-			total++;
-		}
-	}
-
-	if (total) {
-		BubbleSort(cpuStatus, cnt);
-	}
-
-	for (int i = 0; i < cnt+1; i++) {
-		unsigned int c = cpuStatus[i] & 0xffffff;
-		unsigned int num = (cpuStatus[i] & 0xff000000) >> 24;
-		if (num == bspid) {
-			if (i < (cnt + 1) / 2) {
-				int n1 = cpuStatus[i] & 0xffffff;
-				int n2 = cpuStatus[i+1] & 0xffffff;
-				if ( n2 > 2*n1) {
-					return num;
-				}
-				else {
-
-				}
-			}
-			else {
-				return num;
-			}
-		}
-		else {
-			return num;
-		}
-	}
-
-	return bspid;
-}
 
 
 

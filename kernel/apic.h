@@ -23,6 +23,17 @@ typedef struct {
 	DWORD tick;			//0x0429b17f
 }HPET_GCAP_ID_REG;
 
+
+
+typedef struct {
+	char* base;
+	int size;
+	char module[256];
+	char funcname[256];
+	int level;
+	char* params;
+}IPI_CREATEPROCESS_PARAM;
+
 #pragma pack()
 
 

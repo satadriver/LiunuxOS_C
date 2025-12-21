@@ -162,7 +162,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
-		__printf(szout, "%s %s %s %d ERROR\n",__FUNCTION__, funcname, filename,__LINE__);
+		__printf(szout, "%s %d ERROR\n",__FUNCTION__, __LINE__);
 		return FALSE;
 	}
 
@@ -179,7 +179,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	{
 		entry = getAddrFromName((DWORD)pemap, funcname);
 		if (entry == FALSE) {
-			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
+			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
 			__kFree(pemap);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -246,7 +246,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
-			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
+			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -292,7 +292,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (tss->espbase == FALSE)
 		{
-			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
+			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -301,7 +301,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		result = mapPhyToLinear(vaddr, tss->espbase, UTASK_STACK_SIZE, (DWORD*)tss->tss.cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		if (result == FALSE)
 		{
-			__printf(szout, "%s %s %s %d ERROR\n", __FUNCTION__, funcname, filename, __LINE__);
+			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
 			__kFreeProcess(tss->pid);
 			tss->status = TASK_OVER;
 			return FALSE;
@@ -404,8 +404,7 @@ int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWO
 	char szout[256];
 	if (filename == 0 || funcname == 0)
 	{
-		__printf(szout, "__kCreateProcess filename or functionname is null\n");
-
+		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
 		return FALSE;
 	}
 
@@ -414,8 +413,7 @@ int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWO
 	filesize = readFile(filename, (char**)&filedata);
 	if (filesize <= 0)
 	{
-		__printf(szout, "__kCreateProcess readFileTo:%s error\n", filename);
-
+		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
 		return FALSE;
 	}
 
@@ -437,34 +435,32 @@ int __kCreateProcessFromAddrFunc(DWORD filedata, int filesize,char * funcname,in
 }
 
 
-int __kCreateProcess(DWORD lpfiledata, int filesize,char * fn,char * funname, int syslevel, DWORD lpparams) {
+int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcname, int syslevel, DWORD params) {
 
 	int ret = 0;
 	char szout[256];
 
-	//同一个进程不论线性还是物理地址，都可以访问。
-	//当一个进程把当前进程的线性地址转换为物理地址，传递给另一个进程，
-	//进入另外一个的这个进程后，其访问这个物理地址的时候是要经过映射的
-	//因此简单的想通过访问共同的物理地址实现共享是不行的
+ 	//DWORD filedata = linear2phy(lpfiledata);
+ 	//char * filename = (char *)linear2phy((DWORD)fn);
+ 	//char * funcname = (char *)linear2phy((DWORD)funname);
+ 	//DWORD params = linear2phy(lpparams);
 
- 	DWORD filedata = linear2phy(lpfiledata);
- 	char * filename = (char *)linear2phy((DWORD)fn);
- 	char * funcname = (char *)linear2phy((DWORD)funname);
- 	DWORD params = linear2phy(lpparams);
+	__printf(szout, "module:%s funcname:%s\r\n", filename, funcname);
 
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
+#ifndef __IPI_CREATEPROCESS
 	int cpu = GetIdleProcessor();
-
-	//int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+#else
+	int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+#endif
 
 	TASKRESULT result;
 	ret = __getFreeTask(&result,cpu,1);
 	if (ret == FALSE)
 	{
-		__printf(szout, "__kCreateProcess filename:%s function:%s __getFreeTask error\n", filename, funcname);
-
+		__printf(szout, "%s %d error\n",__FUNCTION__, __LINE__);
 		return FALSE;
 	}
 
@@ -489,8 +485,7 @@ int __kCreateProcess(DWORD lpfiledata, int filesize,char * fn,char * funname, in
 				return ret;
 			}
 			else {
-				__printf(szout, "__kCreateProcess __initDosTss:%s error\n", filename);
-
+				__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
 				return FALSE;
 			}
 		}
@@ -502,8 +497,7 @@ int __kCreateProcess(DWORD lpfiledata, int filesize,char * fn,char * funname, in
 		{
 			if (funcname == 0)
 			{
-				__printf(szout, "__kCreateProcess run dll without function name\n");
-
+				__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
 				return FALSE;
 			}
 		}
