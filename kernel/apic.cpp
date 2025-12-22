@@ -13,7 +13,9 @@
 #include "device.h"
 #include "coprocessor.h"
 #include "debugger.h"
-
+#include "Pe.h"
+#include "peVirtual.h"
+#include "Thread.h"
 
 int gAllocateAp = 0;
 
@@ -1263,6 +1265,17 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #endif
 
 	__asm {sti}
+
+	int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
+	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
+	//if (kernelMain)
+	{
+		TASKCMDPARAMS cmd;
+		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
+		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
+	}
 
 	while (1) {
 		__asm {

@@ -72,7 +72,7 @@
 
 #define VM86_PROCESS_TASK
 
-#define DISABLE_PAGE_MAPPING
+//#define DISABLE_PAGE_MAPPING
 
 #define TASK_TIME_SLICE				15
 

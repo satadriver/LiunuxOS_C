@@ -36,10 +36,13 @@ DWORD getAddrFromNameV(DWORD module, const char * funname,DWORD vaddr) {
 	}
 
 	char szout[256];
-	__printf(szout, "getAddrFromName module:%x,name:%s error\n", module, funname);
+	__printf(szout, "%s:%d module:%x,name:%d error\n", __FUNCTION__, __LINE__, module, funname);
 
 	return 0;
 }
+
+
+
 
 DWORD getAddrFromOrdV(DWORD module, DWORD ord,DWORD vaddr) {
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
@@ -53,7 +56,7 @@ DWORD getAddrFromOrdV(DWORD module, DWORD ord,DWORD vaddr) {
 	if (funidx < 0 || funidx >= exp->NumberOfFunctions)
 	{
 		char szout[256];
-		__printf(szout, "getAddrFromOrd module:%x,ord:%d error\n", module, ord);
+		__printf(szout, "%s:%d module:%x,ord:%d error\n",__FUNCTION__,__LINE__, module, ord);
 
 		return 0;
 	}

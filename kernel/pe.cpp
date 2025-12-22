@@ -43,7 +43,7 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 	}
 
 	char szout[256];
-	__printf(szout, "getAddrFromName module:%x,name:%s error\n", module,funname);
+	__printf(szout, "%s:%d module:%x,name:%d error\n", __FUNCTION__, __LINE__, module, funname);
 
 	return 0;
 }
@@ -60,7 +60,7 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord) {
 	if (funidx < 0 || funidx >= exp->NumberOfFunctions)
 	{
 		char szout[256];
-		__printf(szout, "getAddrFromOrd module:%x,ord:%d error\n", module, ord);
+		__printf(szout, "%s:%d module:%x,ord:%d error\n", __FUNCTION__, __LINE__, module, ord);
 
 		return 0;
 	}
@@ -228,7 +228,7 @@ DWORD importTable(DWORD module) {
 		if (impd->FirstThunk == 0 && impd->ForwarderChain == 0 && impd->Name == 0 &&
 			impd->DUMMYUNIONNAME.OriginalFirstThunk == 0 && impd->TimeDateStamp == 0)
 		{
-			ret++;
+			//ret++;
 			break;
 		}
 
@@ -264,7 +264,7 @@ DWORD importTable(DWORD module) {
 			impd++;
 			continue;
 		}
-		ret++;
+		//ret++;
 
 		PIMAGE_THUNK_DATA org = (PIMAGE_THUNK_DATA)(impd->DUMMYUNIONNAME.OriginalFirstThunk + module);
 		PIMAGE_THUNK_DATA first = (PIMAGE_THUNK_DATA)(impd->FirstThunk + module);
@@ -282,7 +282,7 @@ DWORD importTable(DWORD module) {
 				addr = getAddrFromOrd((DWORD)dll, ord);
 				if (addr <= 0)
 				{
-					__printf(szout, "getAddrFromOrd function no:%d from lib:%s error\r\n", ord, dllname);
+					__printf(szout, "%s:%d get ord:%d from lib:%s error\r\n", __FUNCTION__, __LINE__, ord, dllname);
 					break;
 				}
 				else{
@@ -296,7 +296,7 @@ DWORD importTable(DWORD module) {
 				addr = getAddrFromName((DWORD)dll, (char*)impname->Name);
 				if (addr <= 0)
 				{
-					__printf(szout, "getAddrFromOrd function:%s from lib:%s error\r\n", impname->Name, dllname);
+					__printf(szout, "%s:%d get function:%s from lib:%s error\r\n", __FUNCTION__, __LINE__, impname->Name, dllname);
 					break;
 				}
 				else {
@@ -314,7 +314,7 @@ DWORD importTable(DWORD module) {
 
 		impd++;
 	}
-	return ret;
+	return TRUE;
 }
 
 
@@ -503,7 +503,7 @@ void __kStoreModule(char * filename, DWORD addr) {
 	}
 
 	char szout[256];
-	__printf(szout, "__kKeepModule filename:%s,address:%x\n", filename, addr);
+	__printf(szout, "%s:%d filename:%s,address:%x\n", __FUNCTION__, __LINE__, filename, addr);
 
 	return;
 }
