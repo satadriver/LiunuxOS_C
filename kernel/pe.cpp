@@ -43,7 +43,7 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 	}
 
 	char szout[256];
-	__printf(szout, "%s:%d module:%x,name:%d error\n", __FUNCTION__, __LINE__, module, funname);
+	__printf(szout, "%s %d module:%x,name:%s error\n", __FUNCTION__, __LINE__, module, funname);
 
 	return 0;
 }
@@ -60,7 +60,7 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord) {
 	if (funidx < 0 || funidx >= exp->NumberOfFunctions)
 	{
 		char szout[256];
-		__printf(szout, "%s:%d module:%x,ord:%d error\n", __FUNCTION__, __LINE__, module, ord);
+		__printf(szout, "%s %d module:%x,ord:%d error\n", __FUNCTION__, __LINE__, module, ord);
 
 		return 0;
 	}

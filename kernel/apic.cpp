@@ -442,7 +442,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 	subparam->params = (DWORD)p;
 	char szout[256];
 	__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,
-		id,base,size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname,level,p);
+		id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 
 	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 	__leaveSpinlock(&g_allocate_ap_lock);
@@ -452,6 +452,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 }
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -469,7 +470,8 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
-		//cli
+		mov ss,ax
+		
 	}
 
 	{
@@ -496,7 +498,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 			
 			//__printf(szout, "%s module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
 
-			if (__findProcessFileName(funcname) == FALSE)
+			if (__findProcessFileName(subparam->funcname) == FALSE)
 			{
 				//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
 				//__kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, (char*)"main.dll", (char*)"__kConsole", 3, 0);
@@ -541,7 +543,6 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		pop ds
 		popad
 
-		//sti
 		iretd
 	}
 }
@@ -551,7 +552,7 @@ int g_lvt_timer = 0;
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		//cli
+		cli
 
 		pushad
 		push ds
@@ -570,6 +571,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX	
+		MOV ss, AX
 	}
 
 	{
@@ -614,7 +616,6 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
-		//sti
 
 		iretd
 	}
@@ -641,6 +642,7 @@ extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* st
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		MOV ss, AX
 	}
 
 	{
@@ -688,6 +690,7 @@ extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		MOV ss, AX
 	}
 
 	{
@@ -737,6 +740,7 @@ extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* st
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		MOV ss, AX
 	}
 
 	{
@@ -784,6 +788,7 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		MOV ss, AX
 	}
 
 	{
@@ -844,8 +849,8 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
-
-		cli
+		MOV ss, AX
+		//cli
 	}
 
 	{
@@ -927,7 +932,7 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
-		sti
+
 		//clts
 		iretd
 
@@ -1209,8 +1214,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__sprintf(procname, "apic_process_%d", cpuid);
 
 	//__printf(szout, "pid:%d cpu:%s\r\n", freeTss.number, procname);
-
-	
 
 	process->tss.cr3 = PDE_ENTRY_VALUE;
 	__strcpy(process->filename, (char*)procname);

@@ -27,7 +27,7 @@
 
 
 
-int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
 
 	char szout[1024];

@@ -330,7 +330,6 @@ void __declspec(naked) DeviceUnavailable(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
-
 		mov ss, ax
 	}
 
@@ -1225,7 +1224,6 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 #endif	
 		//clts
-		//sti
 
 		iretd
 
@@ -1501,7 +1499,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
-
+		//cli
 		pushad
 		push ds
 		push es
@@ -1520,7 +1518,7 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 		MOV FS, ax
 		MOV GS, AX
 		mov ss, ax
-		//cli
+		
 	}
 
 	{

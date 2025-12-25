@@ -1497,7 +1497,6 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov esp, ss: [esp - 20]
 
 		clts
-		//sti
 
 		iretd
 
@@ -1533,7 +1532,6 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 			popad
 
 			//clts
-			sti
 
 			iretd
 		}
@@ -1568,7 +1566,6 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 		mov esp, ss: [esp - 20]
 
 		//clts
-		sti
 
 		iretd
 	}

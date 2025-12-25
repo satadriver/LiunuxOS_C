@@ -146,17 +146,17 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				unsigned long module = linear2phy((unsigned long)"main.dll");
 				unsigned long func = linear2phy((unsigned long)"__kConsole");
 				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
-				unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
-				if (addr) 
+				//unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
+				//if (addr) 
 				{
 					//__printf(szout, "%s:%d to call __ipiCreateThread \r\n", __FUNCTION__, __LINE__);
 					//__ipiCreateThread(addr, (char*)MAIN_DLL_SOURCE_BASE, 0, (char*)"__kConsole");
 					//__kCreateThread(addr, (unsigned long)MAIN_DLL_SOURCE_BASE, 0, (char*)"__kConsole");
 					
 				}
-				else {
-					__printf(szout, "%s:%d error\r\n", __FUNCTION__,__LINE__);
-				}
+				//else {
+				//	__printf(szout, "%s:%d error\r\n", __FUNCTION__,__LINE__);
+				//}
 			}
 			continue;
 		}

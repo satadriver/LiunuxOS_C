@@ -538,6 +538,7 @@ void kbdtest() {
 
 __declspec(naked) void KeyboardIntProc() {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -555,6 +556,7 @@ __declspec(naked) void KeyboardIntProc() {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
+		MOV ss, AX
 	}
 
 	{
