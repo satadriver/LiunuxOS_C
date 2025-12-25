@@ -90,7 +90,7 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	window->tid = tid;
 	window->cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	//LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
+
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 

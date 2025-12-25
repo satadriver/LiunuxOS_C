@@ -143,7 +143,6 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 
 		int v3 = inportb(0x70);
 
-		//LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 		char szout[256];
@@ -194,7 +193,6 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 	{
 		//__kException((const char*)"OverflowException", 4, stack);
 
-		//LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 		char szout[256];

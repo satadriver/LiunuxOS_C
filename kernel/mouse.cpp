@@ -44,12 +44,14 @@ void mousetest() {
 int getmouse(LPMOUSEINFO lpinfo,int wid) {
 
 	__asm {
+		push edi
 		push wid
 		push lpinfo
 		mov edi, esp
 		mov eax, 3
 		int 80h
 		add esp,8
+		pop edi
 	}
 }
 

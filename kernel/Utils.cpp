@@ -1106,9 +1106,11 @@ DWORD __leaveLock(DWORD * lockvalue) {
 int getCpuType(char* name) {
 
 	__asm {
+		push edi
 		mov edi, name
 		mov eax, 9
 		int 80h
+		pop edi
 	}
 
 	return 0;
@@ -1117,9 +1119,11 @@ int getCpuType(char* name) {
 int getCpuInfo(char* name) {
 
 	__asm {
+		push edi
 		mov edi, name
 		mov eax, 12
 		int 80h
+		pop edi
 	}
 
 	return 0;
@@ -1195,18 +1199,22 @@ int __GetCurrentPid() {
 
 int __sleep(int millisecs) {
 	__asm {
+		push edi
 		mov eax, SLEEP
 		lea edi, millisecs
 		int 80h
+		pop edi
 	}
 }
 
 
 int __giveup() {
 	__asm {
+		push edi
 		mov eax, GIVEUP_LIFE
 		mov edi,0
 		int 80h
+		pop edi
 	}
 }
 

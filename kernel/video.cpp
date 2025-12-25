@@ -864,9 +864,11 @@ int __drawGraphCharInt(char* font, int color, int pos, int bgcolor) {
 	params[2] = pos;
 	params[3] = bgcolor;
 	__asm {
+		push edi
 		mov eax, 4
 		lea edi, params
 		int 80h
+		pop edi
 	}
 }
 

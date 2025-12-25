@@ -153,9 +153,14 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			GiveupLive(stack);
 			break;
 		}
-		case IPI_CREATEPROC:
+		case SRV_IPI_CREATEPROC:
 		{
 			IpiCreateProcess(params[0], params[1], (char*)params[2], (char*)params[3], params[4], params[5]);
+			break;
+		}
+		case SRV_IPI_CREATETHREAD:
+		{
+			IpiCreateThread((char*)params[0], (char*)params[1], params[2], (char*)params[3]);
 			break;
 		}
 		default: {
@@ -168,14 +173,29 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 
 
 
-extern "C"  __declspec(dllexport)void __ipiCreaetProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
+extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
 
 	__asm {
-		mov eax, IPI_CREATEPROC
+		push edi
+		mov eax, SRV_IPI_CREATEPROC
 		lea edi,base
 		int 0x80
+		pop edi
 	}
 }
+extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p,char * func ) {
+
+	__asm {
+		push edi
+		mov eax, SRV_IPI_CREATETHREAD
+		lea edi, addr
+		int 0x80
+		pop edi
+	}
+}
+
+
+
 
 
 void sleep(DWORD * params) {

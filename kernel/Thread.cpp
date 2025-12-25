@@ -85,8 +85,11 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int ret = 0;
 
 	char szout[256];
-
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
+#ifdef __IPI_CREATEPROCESS
+	int cpu = GetIdleProcessor();
+#else
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+#endif
 
 	TASKRESULT freetask;
 	ret = __getFreeTask(&freetask, cpu,1);
@@ -116,7 +119,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->heapsize = process->heapsize;
 	tss->pid = process->pid;
 	tss->ppid = process->pid;
-
+	tss->tid = freetask.number;
 	//int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
 	tss->cpuid = cpu;
@@ -149,7 +152,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = TASKS_STACK0_BASE + (freetask.number + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	tss->tss.esp0 = TASKS_STACK0_BASE + (TASK_LIMIT_TOTAL * tss->cpuid + freetask.number + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	DWORD espsize = 0;
@@ -261,8 +264,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	{
 		__memcpy((char*)params->lpcmdparams, (char*)runparam, sizeof(TASKCMDPARAMS));
 	}
-
-	tss->tid = freetask.number;
 
 	tss->counter = 0;
 

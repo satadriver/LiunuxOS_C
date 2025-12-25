@@ -107,7 +107,7 @@
 
 #define TASK_SWITCH_VECTOR			0XFD
 
-#define STACK_TOP_DUMMY				0x20
+#define STACK_TOP_DUMMY				0x10
 #define TASK_STACK0_SIZE 			0x1000
 #define V86_STACK_SIZE				0X10000
 #define UTASK_STACK_SIZE			0x100000
@@ -169,7 +169,7 @@
 
 #define LOG_BUFFER_BASE			0X530000
 
-#define BSP_TASK_TSS_BASE		0X540000
+//#define BSP_TASK_TSS_BASE		0X540000
 
 #define V86_TSS_BASE			0X544000
 
@@ -236,7 +236,7 @@
 
 #define AP_KSTACK_BASE			0xe00000
 
-#define AP_STACK0_BASE			0Xf00000
+
 
 #define KERNEL_DLL_BASE			0x1000000
 
@@ -246,9 +246,8 @@
 
 #define MAIN_DLL_SOURCE_BASE	0X1300000
 
-//#define TASKS_TSS_BASE			0X1400000
+#define TASKS_STACK0_BASE		0x1400000
 
-#define TASKS_STACK0_BASE		0x1800000
 
 #define KERNEL64_DLL_BASE				0x1900000
 
@@ -444,7 +443,7 @@ typedef struct  {
 #pragma pack(pop)
 
 #define IPI_CREATEPROCESS	1
-
+#define IPI_CREATETHREAD	2
 
 #define __sizeof(T) ( (size_t)(&T + 1) - (size_t)(&T) )
 

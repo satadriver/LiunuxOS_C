@@ -46,11 +46,13 @@ unsigned int __getchar(int wid) {
 	if (isTopWindow(wid))
 	{
 		__asm {
+			push edi
 			push wid
 			mov edi,esp
 			mov eax, 1
 			int 80h
 			add esp,4
+			pop edi
 		}
  	}
 	else {
@@ -60,9 +62,11 @@ unsigned int __getchar(int wid) {
 
 int __putchar(char * s) {
 	__asm {
+		push edi
 		mov eax, 2
 		mov edi,s
 		int 80h
+		pop edi
 	}
 }
 
@@ -561,6 +565,7 @@ __declspec(naked) void KeyboardIntProc() {
 	}
 
 	__asm {
+
 		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0
 		mov eax, TURNON_SCREEN
 		int 80h

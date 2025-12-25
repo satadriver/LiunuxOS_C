@@ -26,13 +26,20 @@ typedef struct {
 
 
 typedef struct {
-	char* base;
+	DWORD base;
 	int size;
 	char module[256];
 	char funcname[256];
 	int level;
-	char* params;
+	DWORD params;
 }IPI_CREATEPROCESS_PARAM;
+
+typedef struct {
+	DWORD addr;
+	char* module;
+	DWORD params;
+	char funcname[256];
+}IPI_CREATETHREAD_PARAM;
 
 #pragma pack()
 
@@ -109,6 +116,7 @@ extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 
 
 #ifdef DLL_EXPORT
+extern "C"  __declspec(dllexport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllexport) int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 extern "C" __declspec(dllexport) LPPROCESS_INFO GetTaskTssBaseSelected(int id);
 extern "C" __declspec(dllexport) int GetCpu(int* out, int size);
@@ -116,6 +124,7 @@ extern "C" __declspec(dllexport)  LPPROCESS_INFO GetCurrentTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
 #else
+extern "C"  __declspec(dllimport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllimport) int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 extern "C" __declspec(dllimport) LPPROCESS_INFO GetTaskTssBaseSelected(int id);
 extern "C" __declspec(dllimport) int GetCpu(int* out, int size);

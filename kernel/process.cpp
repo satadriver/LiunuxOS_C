@@ -167,7 +167,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (pemap <= 0) {
 		tss->status = TASK_OVER;
-		__printf(szout, "%s %d ERROR\n",__FUNCTION__, __LINE__);
+		__printf(szout, "%s %d ERROR\r\n",__FUNCTION__, __LINE__);
 		return FALSE;
 	}
 
@@ -229,7 +229,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = TASKS_STACK0_BASE + (tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	tss->tss.esp0 = TASKS_STACK0_BASE + (TASK_LIMIT_TOTAL*tss->cpuid + tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	vaddr = tss->vaddr + tss->vasize;
@@ -449,7 +449,8 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
  	//char * funcname = (char *)linear2phy((DWORD)funname);
  	//DWORD params = linear2phy(lpparams);
 
-	__printf(szout, "module:%s funcname:%s\r\n", filename, funcname);
+	__printf(szout, "%s base:%x size:%x module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__,
+		filedata,filesize, filename, filename, funcname, funcname);
 
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;

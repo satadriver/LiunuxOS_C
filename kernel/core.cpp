@@ -296,7 +296,10 @@ void initGdt() {
 	makeCodeSegDescriptor(0, 3, 32, 0, 1, ldt + 2);
 	makeDataSegDescriptor(0, 3, 32, 0, 1, ldt + 3);
 
-	initKernelTss((TSS*)GetCurrentTaskTssBase(),TASKS_STACK0_BASE + TASK_STACK0_SIZE - STACK_TOP_DUMMY,KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
+	int cpu = (LOCAL_APIC_BASE + 0x20) >> 24;
+
+	initKernelTss((TSS*)GetCurrentTaskTssBase(),TASKS_STACK0_BASE + (cpu*TASK_LIMIT_TOTAL + 1)* TASK_STACK0_SIZE - STACK_TOP_DUMMY,
+		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
 
 	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
