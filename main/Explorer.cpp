@@ -145,6 +145,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			{
 				unsigned long module = linear2phy((unsigned long)"main.dll");
 				unsigned long func = linear2phy((unsigned long)"__kConsole");
+				//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 				//unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
 				//if (addr) 

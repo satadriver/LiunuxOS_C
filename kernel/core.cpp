@@ -312,7 +312,7 @@ void initGdt() {
 	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssV86Selector));
 
 	gdtbase.addr = GDT_BASE;
-	gdtbase.size = AP_TSS_SELECTOR + sizeof(TssDescriptor) * 256 -1;
+	gdtbase.size =  sizeof(TssDescriptor) * 256 - 1;
 	__asm {
 		//do not use lgdt lpgdt,why?
 		lgdt gdtbase
@@ -405,7 +405,7 @@ void initIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
+	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 0, descriptor + APIC_IPI_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
 	//makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
 	

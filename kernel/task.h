@@ -96,9 +96,7 @@ int __initTask0(char * videobase);
 
 int __getFreeTask(LPTASKRESULT ret,int id,int tag);
 
-void enter_task_array_lock_other(int id);
 
-void leave_task_array_lock_other(int id);
 
 
 
@@ -132,6 +130,9 @@ extern "C"  __declspec(dllexport) void leave_task_array_lock_sti();
 extern "C"  __declspec(dllexport) void enter_task_list_lock_cli();
 extern "C"  __declspec(dllexport) void leave_task_list_lock_sti();
 
+extern "C"  __declspec(dllexport) void enter_task_array_lock_other(int id);
+
+extern "C"  __declspec(dllexport) void leave_task_array_lock_other(int id);
 #else
 
 extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
@@ -161,6 +162,9 @@ extern "C"  __declspec(dllimport) void enter_task_array_lock_cli();
 extern "C"  __declspec(dllimport) void leave_task_array_lock_sti();
 extern "C"  __declspec(dllimport) void enter_task_list_lock_cli();
 extern "C"  __declspec(dllimport) void leave_task_list_lock_sti();
+extern "C"  __declspec(dllimport) void enter_task_array_lock_other(int id);
+
+extern "C"  __declspec(dllimport) void leave_task_array_lock_other(int id);
 #endif
 
 
