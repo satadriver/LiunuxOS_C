@@ -265,28 +265,28 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 
 
 
-void initGdt() {
-
+char* InitGdt() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	char* lpgdt = (char*)(GDT_BASE + id * 0x10000);
 	DescriptTableReg gdtbase;
 	__asm {
 		sgdt gdtbase;
 	}
 
 	char szout[256];
-	__printf(szout, "gdt base:%x,size:%x\r\n", gdtbase.addr, gdtbase.size);
 
-	__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
-	__memcpy((char*)GDT_BASE, (char*)gdtbase.addr, gdtbase.size + 1);
+	//__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
+	__memcpy((char*)lpgdt, (char*)gdtbase.addr, gdtbase.size + 1);
 
-	SegDescriptor* gdt = (SegDescriptor*)GDT_BASE;
+	SegDescriptor* gdt = (SegDescriptor*)lpgdt;
 	makeCodeSegDescriptor(0, 0, 32, 0, 1, gdt + 1);
 	makeDataSegDescriptor(0, 0, 32, 0, 1, gdt + 2);
 	makeCodeSegDescriptor(0, 3, 32, 0, 1, gdt + 3);
 	makeDataSegDescriptor(0, 3, 32, 0, 1, gdt + 4);
 
-	makeCallGateDescriptor((DWORD)__kCallGateProc, KERNEL_MODE_CODE, 3, 2, (CallGateDescriptor*)(GDT_BASE + callGateSelector));
+	makeCallGateDescriptor((DWORD)__kCallGateProc, KERNEL_MODE_CODE, 3, 2, (CallGateDescriptor*)(lpgdt + callGateSelector));
 
-	makeLDTDescriptor(LDT_BASE, 3, 0x27, (TssDescriptor*)(GDT_BASE + ldtSelector));
+	makeLDTDescriptor(LDT_BASE, 3, 0x27, (TssDescriptor*)(lpgdt + ldtSelector));
 
 	__memset((char*)LDT_BASE, 0, sizeof(SegDescriptor) * 8192);
 	SegDescriptor* ldt = (SegDescriptor*)LDT_BASE;
@@ -296,22 +296,24 @@ void initGdt() {
 	makeCodeSegDescriptor(0, 3, 32, 0, 1, ldt + 2);
 	makeDataSegDescriptor(0, 3, 32, 0, 1, ldt + 3);
 
-	int cpu = (LOCAL_APIC_BASE + 0x20) >> 24;
+	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
 
-	initKernelTss((TSS*)GetCurrentTaskTssBase(),TASKS_STACK0_BASE + (cpu*TASK_LIMIT_TOTAL + 1)* TASK_STACK0_SIZE - STACK_TOP_DUMMY,
-		KERNEL_TASK_STACK_TOP, 0, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((unsigned long)GetCurrentTaskTssBase(), 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTaskSelector));
+	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
+	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * id + 0 + 1) - STACK_TOP_DUMMY);
+
+	initKernelTss(&proc->tss,stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));
 
 	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssExceptSelector));
+	makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssExceptSelector));
 
 	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssTimerSelector));
+	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc,gKernel16 , PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(GDT_BASE + kTssV86Selector));
+	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
 
-	gdtbase.addr = GDT_BASE;
+	gdtbase.addr = (DWORD)lpgdt;
 	gdtbase.size =  sizeof(TssDescriptor) * 256 - 1;
 	__asm {
 		//do not use lgdt lpgdt,why?
@@ -320,23 +322,27 @@ void initGdt() {
 		mov ax, kTssTaskSelector
 		ltr ax
 
-		mov ax, ldtSelector
-		lldt ax
+		//mov ax, ldtSelector
+		//lldt ax
 	}
+
+	__printf(szout, "gdt base:%x,size:%x\r\n", gdtbase.addr, gdtbase.size);
+	return lpgdt;
 }
 
 
 
 
 
-void initIDT() {
+char* InitIDT() {
 
 #ifdef _DEBUG
 	SegDescriptor* gdt = (SegDescriptor*)new char[0x10000];
 	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)new char[0x10000];
 #else
-
-	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)IDT_BASE;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	char* lpidt = (char*)(IDT_BASE + id * 0x10000);
+	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)lpidt;
 #endif
 
 	for (int i = 0; i < 256; i++)
@@ -425,13 +431,14 @@ void initIDT() {
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE;
+	idtbase.addr = (DWORD)descriptor;
 	char szout[256];
 	__printf(szout, "idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
 	__asm {
 		//不要使用 lidt lpidt,why?
 		lidt idtbase
 	}
+	return lpidt;
 }
 
 void InitIdt64() {

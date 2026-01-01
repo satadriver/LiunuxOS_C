@@ -145,11 +145,11 @@ struct Tss64Descriptor {
 
 void EnterLongMode();
 
-void initGdt();
+char* InitGdt();
 
 void InitIdt64();
 
-void initIDT();
+char* InitIDT();
 
 void initV86Tss(TSS* tss, DWORD esp0,  DWORD ip,DWORD cs, DWORD cr3, DWORD ldt);
 

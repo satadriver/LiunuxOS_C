@@ -77,8 +77,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	char szout[256];
 
-	initGdt();
-	initIDT();
+	InitGdt();
+	InitIDT();
 	SetIVTVector();
 
 	initDevices();

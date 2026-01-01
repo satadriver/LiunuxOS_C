@@ -212,9 +212,9 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	outputStr((char*)"Welcome to LiunuxOS!\r\n", OUTPUT_TEXTMODE_COLOR);
 
-	initGdt();
+	InitGdt();
 
-	initIDT();
+	InitIDT();
 	SetIVTVector();
 
 	//outputStr("GDT idt\r\n", OUTPUT_TEXTMODE_COLOR);

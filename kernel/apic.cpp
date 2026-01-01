@@ -330,8 +330,6 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 		iomfence();
 	}
 
-	
-
 	unsigned int v = vector;
 	v = v | 0x4000;
 
@@ -474,13 +472,13 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	{
 		char szout[256];
 
-		//__enterSpinlock(&g_allocate_ap_lock);
+		__enterSpinlock(&g_allocate_ap_lock);
 
 		IPI_MSG_PARAM* msg =(IPI_MSG_PARAM * )IPI_MSG_BASE;
 		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		int cmd = msg[id].cmd;
 		
-		__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+		//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
 
 		if (cmd == IPI_CREATEPROCESS) {
 			msg[id].cmd = 0;
@@ -522,7 +520,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 		}
 
-		//__leaveSpinlock(&g_allocate_ap_lock);
+		__leaveSpinlock(&g_allocate_ap_lock);
 		
 		g_ipi_lock++;
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
@@ -947,8 +945,6 @@ int AllocateApTask(int intnum) {
 	int res = -1;
 	int cpuId = 0;
 
-	//__enterSpinlock(&g_allocate_ap_lock);
-
 	int total = *(int*)(CPU_TOTAL_ADDRESS);
 	if (total > 0) {
 
@@ -974,8 +970,6 @@ int AllocateApTask(int intnum) {
 			}
 		} while (gAllocateAp != idx);
 	}
-
-	//__leaveSpinlock(&g_allocate_ap_lock);
 
 	char szout[256];
 	unsigned long v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
@@ -1193,35 +1187,19 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	int ioapic_ver = ReadIoApicReg(1) & 0xff;
 
-	DescriptTableReg gdtbase;
-	__asm {
-		sgdt gdtbase
-	}
-	
-	char* gdt_ptr = (char*)(GDT_BASE + cpuid * 0x10000);
-	gdtbase.addr = GDT_BASE + cpuid * 0x10000;
-	gdtbase.size = 0x10000 - 1;
-	__memcpy(gdt_ptr,(char*) GDT_BASE,GDT_LIMIT_SIZE);
-
 	SetTaskTssBase();
 	InitTaskArray();
 	TASKRESULT freeTss;
 	__getFreeTask(&freeTss, cpuid, 0);
 	int tid = freeTss.number;
-	//WriteIoApicReg(0, cpuid << 24);
+	char * lpgdt = InitGdt();
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
-	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * cpuid + tid + 1) - STACK_TOP_DUMMY);
-
-	LPPROCESS_INFO process = GetCurrentTaskTssBase();
-	initKernelTss((TSS*)&process->tss, stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
-
-	makeTssDescriptor((unsigned long)process, 3, sizeof(TSS) - 1,(TssDescriptor*)(GDT_BASE + cpuid * 0x10000 + kTssTaskSelector) );
-
+	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * cpuid + 0 + 1) - STACK_TOP_DUMMY);
 	char procname[64];
 	__sprintf(procname, "apic_process_%d", cpuid);
 
 	//__printf(szout, "pid:%d cpu:%s\r\n", freeTss.number, procname);
-
+	LPPROCESS_INFO process = GetCurrentTaskTssBase();
 	process->tss.cr3 = PDE_ENTRY_VALUE;
 	__strcpy(process->filename, (char*)procname);
 	__strcpy(process->funcname, (char*)procname);	
@@ -1244,15 +1222,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
 
-	short tr_offset = kTssTaskSelector ;
+	char * lpidt = InitIDT();
 
 	__asm {
-		//do not use lgdt lpgdt,why?
-		lgdt gdtbase
-
-		mov ax, tr_offset
-		ltr ax
-
 		mov eax, PDE_ENTRY_VALUE
 		mov cr3, eax
 
@@ -1266,15 +1238,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		//mov fs,ax
 		//mov gs,ax
 		//mov ss,ax
-	}
-
-	DescriptTableReg idtbase;
-	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE + cpuid * 0x10000;
-	char* idt_ptr = (char*)(IDT_BASE + cpuid * 0x10000);
-	__memcpy(idt_ptr, (char*)IDT_BASE, 256*8);
-	__asm {
-		lidt idtbase
 	}
 
 	short tr_new;
@@ -1328,7 +1291,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #endif
 
 #ifndef IPI_TASK_SWITCH
-	ret = InitLocalApicTimer();
+	//ret = InitLocalApicTimer();
 #endif
 
 	__asm {sti}
@@ -1445,10 +1408,10 @@ void BPCodeStart() {
 		v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
-		//AllocateApTask(APIC_IPI_VECTOR);	
+		AllocateApTask(APIC_IPI_VECTOR);	
 #endif
 	}
-	SetIcr(0, APIC_IPI_VECTOR, 0, 3);
+	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 
 	//InitLocalApicErr();
 

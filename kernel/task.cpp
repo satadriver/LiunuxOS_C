@@ -1395,6 +1395,9 @@ int __initTask0(char * videobase) {
 	LPPROCESS_INFO tssbase = SetTaskTssBase();
 
 	InitTaskArray();
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
+	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * id + 0 + 1) - STACK_TOP_DUMMY);
 
 	//initTaskSwitchTss();
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -1403,8 +1406,8 @@ int __initTask0(char * videobase) {
 	process0->status = TASK_RUN;
 	process0->tid = KERNEL_PROCESS_ID;
 	process0->pid = KERNEL_PROCESS_ID;
-	process0->cpuid = 0;
-	process0->espbase = KERNEL_TASK_STACK_TOP;
+	process0->cpuid = id;
+	process0->espbase = stacktop;
 	process0->level = 0;
 	process0->counter = 0;
 	process0->vaddr = 0;
