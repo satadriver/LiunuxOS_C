@@ -72,7 +72,7 @@
 
 #define VM86_PROCESS_TASK
 
-//#define DISABLE_PAGE_MAPPING
+#define DISABLE_PAGE_MAPPING
 
 #define TASK_TIME_SLICE				15
 
@@ -137,8 +137,8 @@
 #define rwData16Seg 				0x68
 #define eoCode32Seg					0x70
 #define roData32Seg					0x78
-
-#define GDT_LIMIT_SIZE				roData32Seg + 8
+#define kTssIpiSelector				0x80
+#define GDT_LIMIT_SIZE				kTssIpiSelector + 8
 
 
 #define RM_EMS_BASE		 			0X100000
@@ -169,6 +169,8 @@
 #define MOUSE_BUFFER			0X520000
 
 #define LOG_BUFFER_BASE			0X530000
+
+#define IPI_TSS_BASE			0X540000
 
 #define V86_TSS_BASE			0X544000
 

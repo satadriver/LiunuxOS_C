@@ -87,7 +87,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
 	//__MyTestTask(0, 0, 0, 0, 0);
-	displayCCPoem();
+	//displayCCPoem();
 
 	while (1)
 	{

@@ -60,6 +60,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	int ret = 0;
 
+	char szout[256];
+
 	gVideoMode = *(WORD*)((char*)vesa - 2);
 
 	gV86VMIEntry = v86ProcessBase;
@@ -74,8 +76,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
-
-	char szout[256];
 
 	InitGdt();
 	InitIDT();
@@ -111,12 +111,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		sti
 	}
 
-
 	initFileSystem();
 
 	initDll();
 
-	
 #ifdef LOCAL_APIC_ENABLE
 	BPCodeStart();
 #endif
@@ -130,7 +128,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	//initNIC();
 
 	//pcnetInit();
-
 
 #ifdef VM86_PROCESS_TASK
 	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
@@ -155,7 +152,15 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	//ret = loadLibRunFun(LIUNUX_BASE_PATH "main.dll", "__kMainProcess");
 
-	__printf(szout, "Hello world Liunux!Version:%s\r\nPress any key to continue...\r\n",LIUNUXOS_VERSION);
+	char* reg_esp = 0;
+	char* reg_ebp = 0;
+	__asm {
+		mov[reg_esp], esp
+		mov[reg_ebp], ebp
+	}
+
+	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
+		LIUNUXOS_VERSION,reg_esp,reg_ebp);
 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
@@ -176,11 +181,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	{
 		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
-
-	//__sleep(1000);
-
-	//AllocateAP(INTR_8259_MASTER + 1);
-	//AllocateAP(INTR_8259_SLAVE + 4);
 
 	while (1)
 	{

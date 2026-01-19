@@ -345,12 +345,19 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			vmtag = 0;
 		}
 		
+		LPPROCESS_INFO lptss = GetTaskTssBaseSelected(cpu);
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
+
 		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		if (process->pid == pid)
+		if (process->pid == pid && process->cpuid == cpu)
 		{
+			enter_task_array_lock_other(cpu);
 			if (vmtag) {
 				vaddr = process->vaddr + process->vasize;
 				process->vasize += size;
+
+				vaddr = tss->vaddr + tss->vasize;
+				tss->vasize += size;
 			}
 			else {
 				//process->vasize = vaddr + size;
@@ -358,12 +365,15 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			
 			DWORD* cr3 = (DWORD*)process->tss.cr3;
 			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+
+			cr3 = (DWORD*)process->tss.cr3;
+			pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
+
+			leave_task_array_lock_other(cpu);
 		}
 		else {
 			enter_task_array_lock_other(cpu);
 
-			LPPROCESS_INFO lptss = GetTaskTssBaseSelected(cpu);
-			LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
 				tss->vasize += size;
@@ -375,8 +385,8 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			DWORD* cr3 = (DWORD*)tss->tss.cr3;
 			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
 
-			cr3 = (DWORD*)process->tss.cr3;
-			pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
+			//cr3 = (DWORD*)process->tss.cr3;
+			//pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
 
 			leave_task_array_lock_other(cpu);
 		}

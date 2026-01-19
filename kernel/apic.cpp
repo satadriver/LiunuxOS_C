@@ -446,6 +446,8 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 
 	return 0;
 }
+
+
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
 		cli
@@ -478,7 +480,8 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		int cmd = msg[id].cmd;
 		
-		//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+		__sprintf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+		__drawGraphChar(szout, 0, 0x100000, 0xffffffff);
 
 		if (cmd == IPI_CREATEPROCESS) {
 			msg[id].cmd = 0;
@@ -570,13 +573,15 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
+		__sprintf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
+		int resultpos = __drawGraphChar(szout, 0, 0, 0xffffffff);
 		//__printf(szout, "entry %s\r\n", __FUNCTION__);
+		
 
 		g_lvt_timer++;
 		
 		//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+		//LPPROCESS_INFO next = SingleTssSchedule(stack);
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		//__enterSpinlock(&g_ap_work_lock);
@@ -588,14 +593,16 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 			*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 		}
 	}
-
+	
 	__asm {
+		/*
 #ifdef SINGLE_TASK_TSS
 		call GetCurrentTaskTssBase
 		mov edx, eax
 		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
 		mov cr3, eax
 #endif
+		*/
 		mov esp, ebp
 		pop ebp
 		add esp, 4
@@ -608,7 +615,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		popad
 
 #ifdef SINGLE_TASK_TSS
-		mov esp, dword ptr ss : [esp - 20]
+		//mov esp, dword ptr ss : [esp - 20]
 #endif	
 
 		iretd
@@ -1152,10 +1159,12 @@ int InitLocalApicTimer() {
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
 	char* reg_esp = 0;
+	char* reg_ebp = 0;
 	int ret = 0;
 	__asm {
 		//cli
 		mov ds:[reg_esp],esp
+		mov ds : [reg_ebp] , ebp
 	}
 
 	char szout[256];
@@ -1192,7 +1201,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	TASKRESULT freeTss;
 	__getFreeTask(&freeTss, cpuid, 0);
 	int tid = freeTss.number;
-	char * lpgdt = InitGdt();
+	
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
 	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * cpuid + 0 + 1) - STACK_TOP_DUMMY);
 	char procname[64];
@@ -1221,6 +1230,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	process->status = TASK_RUN;
 
 	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
+
+	char* lpgdt = InitGdt();
 
 	char * lpidt = InitIDT();
 
@@ -1252,7 +1263,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	unsigned long long tssdesc = *(unsigned long long*)(GDT_BASE + cpuid * 0x10000 + kTssTaskSelector );
 	__printf(szout, "ap id:%d process:%x tss:%i64x idt:%x size:%x gdt:%x size:%d ltr:%x\r\n",
 		cpuid,process, tssdesc, idtbase_new.addr, idtbase_new.size,gdtbase_new.addr, gdtbase_new.size, tr_new);
-
+	
 	initCoprocessor();
 	enableVME();
 	enablePCE();
@@ -1262,7 +1273,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	initDebugger();
 	EnableSyscall();
 	sysEntryInit((DWORD)sysEntry);
-
+	
 	//InitLocalApicErr();
 
 	//InitLocalApicCmci();
@@ -1275,9 +1286,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #endif
 
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
-	
-	__printf(szout, "ap id:%d version:%x init complete.esp:%x esp:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n", 
-		cpuid, localapic_ver, reg_esp,stacktop,stack0top,lint0,lint1,tid,ioapic_id, ioapic_ver);
 
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
@@ -1296,8 +1304,17 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__asm {sti}
 
-	int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
-	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
+	char* reg_esp_new = 0;
+	__asm {
+		//cli
+		mov ds : [reg_esp_new] , esp
+	}
+
+	__printf(szout, "ap id:%d version:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
+		cpuid, localapic_ver, reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
+
+	//int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
+	//DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
 	//if (kernelMain)
 	{
 		TASKCMDPARAMS cmd;
@@ -1403,10 +1420,10 @@ void BPCodeStart() {
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
-#if 0
+#if 1
 		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
-		v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
+		//v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
+		//__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
 		AllocateApTask(APIC_IPI_VECTOR);	
 #endif
@@ -1451,10 +1468,7 @@ int IsBspProcessor() {
 	return 0;
 }
 
-LPPROCESS_INFO GetTaskTssBaseSelected(int id) {
 
-	return (LPPROCESS_INFO)g_ap_tss_base[id];
-}
 
 LPPROCESS_INFO GetCurrentTaskTssBase() {
 	char szout[256];
@@ -1497,7 +1511,10 @@ LPPROCESS_INFO SetTaskTssBase() {
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
 }
 
+LPPROCESS_INFO GetTaskTssBaseSelected(int id) {
 
+	return (LPPROCESS_INFO)g_ap_tss_base[id];
+}
 
 
 int GetCpu(int* out, int size) {

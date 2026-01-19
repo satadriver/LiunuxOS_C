@@ -243,7 +243,8 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 	tss->iomapEnd = 0xff;
 	tss->iomapOffset = OFFSETOF(TSS, iomapOffset) + SIZEOFMEMBER(TSS, intMap);
 
-	tss->eflags = 0x203202;
+	//tss->eflags = 0x203202;
+	tss->eflags = 0x202;
 
 	tss->ds = KERNEL_MODE_DATA;
 	tss->es = KERNEL_MODE_DATA;
@@ -270,15 +271,16 @@ char* InitGdt() {
 	char* lpgdt = (char*)(GDT_BASE + id * 0x10000);
 	DescriptTableReg gdtbase;
 	__asm {
-		sgdt gdtbase;
+		//sgdt gdtbase;
 	}
 
 	char szout[256];
 
 	//__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
-	__memcpy((char*)lpgdt, (char*)gdtbase.addr, gdtbase.size + 1);
+	//__memcpy((char*)lpgdt, (char*)gdtbase.addr, gdtbase.size + 1);
 
 	SegDescriptor* gdt = (SegDescriptor*)lpgdt;
+	*(unsigned long long*)gdt = 0;
 	makeCodeSegDescriptor(0, 0, 32, 0, 1, gdt + 1);
 	makeDataSegDescriptor(0, 0, 32, 0, 1, gdt + 2);
 	makeCodeSegDescriptor(0, 3, 32, 0, 1, gdt + 3);
@@ -286,6 +288,7 @@ char* InitGdt() {
 
 	makeCallGateDescriptor((DWORD)__kCallGateProc, KERNEL_MODE_CODE, 3, 2, (CallGateDescriptor*)(lpgdt + callGateSelector));
 
+	/*
 	makeLDTDescriptor(LDT_BASE, 3, 0x27, (TssDescriptor*)(lpgdt + ldtSelector));
 
 	__memset((char*)LDT_BASE, 0, sizeof(SegDescriptor) * 8192);
@@ -295,6 +298,7 @@ char* InitGdt() {
 	makeDataSegDescriptor(0, 0, 32, 0, 1, ldt + 1);
 	makeCodeSegDescriptor(0, 3, 32, 0, 1, ldt + 2);
 	makeDataSegDescriptor(0, 3, 32, 0, 1, ldt + 3);
+	*/
 
 	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
 
@@ -304,29 +308,59 @@ char* InitGdt() {
 	initKernelTss(&proc->tss,stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));
 
-	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssExceptSelector));
+	if (id == 0) {
+		initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
+		makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssExceptSelector));
 
-	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
+		initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
+		makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 
-	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc,gKernel16 , PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
+		initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
+		makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
+	}
+	initKernelTss((TSS*)IPI_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)IPIIntHandler, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((DWORD)IPI_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssIpiSelector));
+	
 
 	gdtbase.addr = (DWORD)lpgdt;
 	gdtbase.size =  sizeof(TssDescriptor) * 256 - 1;
-	__asm {
-		//do not use lgdt lpgdt,why?
-		lgdt gdtbase
 
+	__asm {
+		lgdt fword ptr ds:[gdtbase]
+
+		mov ax, KERNEL_MODE_CODE
+		mov word ptr ds:[_initGdt_flush_entry + 5],ax
+
+		lea eax, _initGdt_flush_over
+		mov ds:[_initGdt_flush_entry + 1],eax
+		lea eax, _initGdt_flush_entry
+		jmp eax
+
+		_initGdt_flush_entry:
+		_emit 0xea
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+
+		_initGdt_flush_over:
+		mov ax, KERNEL_MODE_DATA
+		mov ds,ax
+		mov es,ax
+		mov fs,ax
+		mov gs,ax
+		mov ss,ax
+		
 		mov ax, kTssTaskSelector
 		ltr ax
 
 		//mov ax, ldtSelector
 		//lldt ax
 	}
-
-	__printf(szout, "gdt base:%x,size:%x\r\n", gdtbase.addr, gdtbase.size);
+	unsigned long long tssdesc = *(unsigned long long*)( lpgdt + kTssTaskSelector);
+	__printf(szout, "cpu:%d,gdt base:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, stack0top, stacktop);
 	return lpgdt;
 }
 
@@ -411,10 +445,11 @@ char* InitIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 0, descriptor + APIC_IPI_VECTOR);
-	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
-	//makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
+	makeTaskGateDescriptor((DWORD)kTssIpiSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_IPI_VECTOR));
+	//makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
 	
+	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
+
 	makeIntGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);
 
@@ -431,12 +466,11 @@ char* InitIDT() {
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = (DWORD)descriptor;
+	idtbase.addr = (DWORD)lpidt;
 	char szout[256];
-	__printf(szout, "idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
+	__printf(szout, "cpu:%d idt base:%x,size:%x\r\n",id, idtbase.addr, idtbase.size);
 	__asm {
-		//不要使用 lidt lpidt,why?
-		lidt idtbase
+		lidt fword ptr ds:[idtbase]
 	}
 	return lpidt;
 }
@@ -669,6 +703,9 @@ void EnterLongMode() {
 			mov edx, kernel64Entry32
 			mov  ds : [eax] , edx
 
+			mov ax, KERNEL_MODE_CODE
+			mov word ptr ds:[__bit64EntryOffset+4],ax
+
 			mov eax, PDE64_ENTRY_VALUE
 			mov cr3, eax
 
@@ -696,7 +733,7 @@ void EnterLongMode() {
 			_emit 0
 			_emit 0
 			_emit 0
-			_emit 8
+			_emit 0
 			_emit 0	
 
 			push dword ptr KERNEL_MODE_CODE
