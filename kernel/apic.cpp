@@ -451,12 +451,16 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
 		cli
+		
 		pushad
 		push ds
 		push es
 		push fs
 		push gs
 		push ss
+
+		//mov esp, IPI_STACK_ADDR
+		//mov ebp,esp
 
 		push esp
 		sub esp, 4
@@ -534,6 +538,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		pop ebp
 		add esp, 4
 		pop esp
+
 		pop ss
 		pop gs
 		pop fs
@@ -542,6 +547,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		popad
 
 		iretd
+		jmp IPIIntHandler
 	}
 }
 
