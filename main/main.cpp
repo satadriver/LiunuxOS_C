@@ -32,3 +32,14 @@ int __stdcall WinMain(unsigned int hInstance, unsigned int hPrevInstance, char *
 }
 #endif
 
+
+
+extern "C" __declspec(dllexport) int __DummyProcess() {
+
+	while (1) {
+		__asm {
+			hlt
+		}
+	}
+
+}

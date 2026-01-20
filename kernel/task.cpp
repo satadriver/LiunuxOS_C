@@ -1386,10 +1386,9 @@ void SetIVTVector() {
 
 
 
-void SetTaskVideoBase(char* videobase) {
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	proc->videoBase = (char*)videobase;
-}
+
+
+
 
 
 int __initTask0(char * filename,char *funcname,int showx,int showy) {
@@ -1397,6 +1396,8 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	LPPROCESS_INFO tssbase = SetTaskTssBase();
 
 	InitTaskArray();
+
+	//return 0;
 
 	TASKRESULT freeTss;
 	__getFreeTask(&freeTss, id, 0);
@@ -1422,6 +1423,8 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->showX = showx;
 	process0->showY = showy;
 	process0->window = 0;
+
+	process0->videoBase = (char*)gGraphBase;
 	
 	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
 
@@ -1599,3 +1602,48 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 }
 
 
+
+
+extern "C" __declspec(dllexport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack) {
+	__asm {
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV fs, ax
+		MOV gs, ax
+		mov ss, ax
+	}
+
+	while (1) {
+		__asm {
+			hlt
+		}
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+		ret
+	}
+}

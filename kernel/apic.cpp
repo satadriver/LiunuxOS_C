@@ -460,6 +460,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		push ss
 
 		//mov esp, IPI_STACK_ADDR
+		//sub esp,0x1000
 		//mov ebp,esp
 
 		push esp
@@ -470,9 +471,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
 		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-		mov ss,ax	
+		MOV fs, ax
+		MOV gs, ax
+		mov ss, ax	
 	}
 
 	{
@@ -484,8 +485,8 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		int cmd = msg[id].cmd;
 		
-		__sprintf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
-		__drawGraphChar(szout, 0, 0x100000, 0xffffffff);
+		__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+		//__drawGraphChar(szout, 0, 0x100000, 0xffffffff);
 
 		if (cmd == IPI_CREATEPROCESS) {
 			msg[id].cmd = 0;
@@ -579,15 +580,15 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		__sprintf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
-		int resultpos = __drawGraphChar(szout, 0, 0, 0xffffffff);
-		//__printf(szout, "entry %s\r\n", __FUNCTION__);
+		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
+		//int resultpos = __drawGraphChar(szout, 0, 0x20000, 0xffffffff);
+		__printf(szout, "entry %s\r\n", __FUNCTION__);
 		
 
 		g_lvt_timer++;
 		
 		//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-		//LPPROCESS_INFO next = SingleTssSchedule(stack);
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		//__enterSpinlock(&g_ap_work_lock);
@@ -601,14 +602,14 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	}
 	
 	__asm {
-		/*
+		
 #ifdef SINGLE_TASK_TSS
 		call GetCurrentTaskTssBase
 		mov edx, eax
 		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
 		mov cr3, eax
 #endif
-		*/
+		
 		mov esp, ebp
 		pop ebp
 		add esp, 4
@@ -621,7 +622,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		popad
 
 #ifdef SINGLE_TASK_TSS
-		//mov esp, dword ptr ss : [esp - 20]
+		mov esp, dword ptr ss : [esp - 20]
 #endif	
 
 		iretd
@@ -1157,7 +1158,7 @@ int InitLocalApicTimer() {
 	DWORD cnt2 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
 
 	char szout[256];
-	__printf(szout, "cnt1:%x cnt2:%x\r\n", cnt1,cnt2);
+	//__printf(szout, "cnt1:%x cnt2:%x\r\n", cnt1,cnt2);
 
 	return 0;
 }
@@ -1168,7 +1169,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	char* reg_ebp = 0;
 	int ret = 0;
 	__asm {
-		//cli
 		mov ds:[reg_esp],esp
 		mov ds : [reg_ebp] , ebp
 	}
@@ -1202,50 +1202,15 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	int ioapic_ver = ReadIoApicReg(1) & 0xff;
 
-	/*
-	SetTaskTssBase();
-	InitTaskArray();
-	TASKRESULT freeTss;
-	__getFreeTask(&freeTss, cpuid, 0);
-	int tid = freeTss.number;
-	
-	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
-	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * cpuid + 0 + 1) - STACK_TOP_DUMMY);
-	char procname[64];
-	__sprintf(procname, "apic_process_%d", cpuid);
-
-	//__printf(szout, "pid:%d cpu:%s\r\n", freeTss.number, procname);
-	LPPROCESS_INFO process = GetCurrentTaskTssBase();
-	process->tss.cr3 = PDE_ENTRY_VALUE;
-	__strcpy(process->filename, (char*)procname);
-	__strcpy(process->funcname, (char*)procname);	
-	process->cpuid = cpuid;
-	process->tid = tid;
-	process->pid = tid;
-	process->espbase = (unsigned long)stacktop;
-	process->level = 0;
-	process->counter = 0;
-	process->vaddr = 0;
-	process->vasize = 0;
-	process->moduleaddr = (DWORD)0;
-	process->videoBase = (char*)gGraphBase;
-	process->showX = 0;
-	process->showY = GRAPHCHAR_HEIGHT * cpuid * 16+256;
-	process->window = 0;
-	process->sleep = 0;
-	process->copyMap = 0;
-	process->status = TASK_RUN;
-
-	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
-	*/
 	SetTaskVideoBase((char*)gGraphBase);
+
 	char* lpgdt = InitGdt();
 
 	char * lpidt = InitIDT();
 
 	char procname[64];
 	__sprintf(procname, "Apic_Process_%d", cpuid);
-	__initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 64);
+	__initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 256);
 
 	__asm {
 		mov eax, PDE_ENTRY_VALUE
@@ -1254,13 +1219,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		mov eax, cr0
 		or eax, 0x80000000
 		mov cr0, eax
-
-		//mov ax, KERNEL_MODE_CODE
-		//mov ds,ax
-		//mov es,ax
-		//mov fs,ax
-		//mov gs,ax
-		//mov ss,ax
 	}
 
 	short tr_new;
@@ -1278,14 +1236,17 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		cpuid,process, tssdesc, idtbase_new.addr, idtbase_new.size,gdtbase_new.addr, gdtbase_new.size, tr_new);
 	
 	initCoprocessor();
+
+	EnableSyscall();
+	sysEntryInit((DWORD)sysEntry);
+
 	enableVME();
 	enablePCE();
 	enableMCE();
 	enableTSD();
 
 	initDebugger();
-	EnableSyscall();
-	sysEntryInit((DWORD)sysEntry);
+
 	
 	//InitLocalApicErr();
 
@@ -1312,32 +1273,23 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 #endif
 
 #ifndef IPI_TASK_SWITCH
-	//ret = InitLocalApicTimer();
+	ret = InitLocalApicTimer();
 #endif
 
 	__asm {sti}
 
 	char* reg_esp_new = 0;
 	__asm {
-		//cli
 		mov ds : [reg_esp_new] , esp
 	}
 	int tid = process->tid;
-	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
-	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * cpuid + 0 + 1) - STACK_TOP_DUMMY);
+	unsigned long stacktop = (unsigned long)process->tss.esp;
+	unsigned long stack0top = (unsigned long)process->tss.esp0;
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
-	//int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
-	//DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
-	//if (kernelMain)
-	{
-		TASKCMDPARAMS cmd;
-		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
-		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
-		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
-	}
+	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+	__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 
 	while (1) {
 		__asm {
@@ -1436,7 +1388,7 @@ void BPCodeStart() {
 	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 #if 1
-		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
+		//SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
 		//v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 		//__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
@@ -1565,8 +1517,6 @@ void BubbleSort(unsigned int* arr, int count) {
 
 
 int GetIdleProcessor() {
-
-	//return 1;
 
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
 	int* ids = (int*)CPU_ID_ADDRESS;

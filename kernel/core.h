@@ -184,6 +184,8 @@ void makeTrapGate64Descriptor(QWORD base, DWORD selector, int dpl, IntTrapGate64
 
 void initTss64(TSS64_DATA* tss, QWORD rsp);
 
+void SetTaskVideoBase(char* videobase);
+
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) void initEfer();
 

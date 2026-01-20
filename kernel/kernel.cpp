@@ -74,8 +74,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gKernel16 = kernel16;
 	gKernel32 = kernel32;
 	
+	gGraphBase =(DWORD)( vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+	SetTaskVideoBase(vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
-	SetTaskVideoBase((char*)gGraphBase);
+	
 	InitGdt();
 	InitIDT();
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -139,16 +141,19 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	//EnterLongMode();
 
-	int imagesize = getSizeOfImage((char*)KERNEL_DLL_BASE);
+	int imageSize = getSizeOfImage((char*)KERNEL_DLL_BASE);
 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
 	if (kernelMain)
 	{
 		TASKCMDPARAMS cmd;
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 	}
+
+	imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+	__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 
 	//logFile("__kernelEntry\n");
 	
@@ -181,7 +186,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
-		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", EXPLORER_TASKNAME, 3, 0);
+		imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
 	while (1)

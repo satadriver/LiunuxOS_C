@@ -139,7 +139,12 @@ void makeTaskGateDescriptor(DWORD selector, int dpl, TaskGateDescriptor* descrip
 	descriptor->unused3 = 0;
 }
 
+char* GetAddressFromDesc(char* data) {
 
+	TssDescriptor* desc = (TssDescriptor*)data;
+	return (char*)(desc->baseLow | (desc->baseMid << 16) | (desc->baseHigh << 24));
+
+}
 
 void makeCallGateDescriptor(DWORD base, DWORD selector, int dpl, int paramcnt, CallGateDescriptor* descriptor) {
 	descriptor->present = 1;
@@ -257,6 +262,11 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 	tss->esp0 = esp0;
 	tss->ss0 = KERNEL_MODE_STACK;
 
+	tss->esp1 = esp0;
+	tss->ss1 = KERNEL_MODE_STACK;
+	tss->esp2 = esp0;
+	tss->ss2 = KERNEL_MODE_STACK;
+
 	tss->eip = eip;
 	tss->cs = KERNEL_MODE_CODE;
 
@@ -325,7 +335,7 @@ char* InitGdt() {
 	makeTssDescriptor((DWORD)IPI_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssIpiSelector));
 	
 	gdtbase.addr = (DWORD)lpgdt;
-	gdtbase.size =  sizeof(TssDescriptor) * 256 - 1;
+	gdtbase.size =  sizeof(TssDescriptor) * 8192 - 1;
 
 	__asm {
 		lgdt fword ptr ds:[gdtbase]
@@ -361,6 +371,7 @@ char* InitGdt() {
 		//mov ax, ldtSelector
 		//lldt ax
 	}
+
 	unsigned long long tssdesc = *(unsigned long long*)( lpgdt + kTssTaskSelector);
 	__printf(szout, "cpu:%d,gdt base:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, stack0top, stacktop);
 	return lpgdt;
@@ -911,4 +922,10 @@ void EOIHandler() {
 	}
 	
 #endif
+}
+
+
+void SetTaskVideoBase(char* videobase) {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	proc->videoBase = (char*)videobase;
 }
