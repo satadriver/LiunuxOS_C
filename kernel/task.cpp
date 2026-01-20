@@ -1386,39 +1386,44 @@ void SetIVTVector() {
 
 
 
+void SetTaskVideoBase(char* videobase) {
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	proc->videoBase = (char*)videobase;
+}
 
 
-
-
-int __initTask0(char * videobase) {
-
+int __initTask0(char * filename,char *funcname,int showx,int showy) {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	LPPROCESS_INFO tssbase = SetTaskTssBase();
 
 	InitTaskArray();
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	TASKRESULT freeTss;
+	__getFreeTask(&freeTss, id, 0);
+	int tid = freeTss.number;
+
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * id + 0 + 1) - STACK_TOP_DUMMY);
 
-	//initTaskSwitchTss();
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	__strcpy(process0->filename, (char*)LIUNUX_KERNEL32_DLL);
-	__strcpy(process0->funcname, (char*)"__kKernel");
+	__strcpy(process0->filename, (char*)filename);
+	__strcpy(process0->funcname, (char*)funcname);
 	process0->status = TASK_RUN;
-	process0->tid = KERNEL_PROCESS_ID;
-	process0->pid = KERNEL_PROCESS_ID;
+	process0->tid = tid;
+	process0->pid = tid;
 	process0->cpuid = id;
 	process0->espbase = stacktop;
 	process0->level = 0;
 	process0->counter = 0;
 	process0->vaddr = 0;
-	process0->vasize = MEMMORY_ALLOC_BASE;
-	process0->moduleaddr = (DWORD)KERNEL_DLL_BASE;
-	process0->videoBase = (char*)videobase;
-	process0->showX = 0;
-	process0->showY = 0;
+	process0->vasize = 0;
+	process0->moduleaddr = (DWORD)0;
+
+	process0->showX = showx;
+	process0->showY = showy;
 	process0->window = 0;
 	
-	__memcpy((char*)&tssbase[0], (char*)process0, sizeof(PROCESS_INFO));
+	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
 
 #ifdef TASK_SWITCH_ARRAY
 

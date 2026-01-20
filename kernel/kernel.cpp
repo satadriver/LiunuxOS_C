@@ -74,11 +74,13 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gKernel16 = kernel16;
 	gKernel32 = kernel32;
 	
-	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
-
+	SetTaskVideoBase((char*)gGraphBase);
 	InitGdt();
 	InitIDT();
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	__initTask0((char*)LIUNUX_KERNEL32_DLL,"__kKernel",0, GRAPHCHAR_HEIGHT * id * 16 + 64);
+
 	SetIVTVector();
 
 	initDevices();

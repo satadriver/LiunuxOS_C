@@ -180,7 +180,8 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	int ret = 0;
 
-	__initTask0((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+	SetTaskVideoBase((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+	__initTask0((char*)LIUNUX_KERNEL32_DLL, "__kKernel",0,0);
 
 	gV86VMIEntry = v86ProcessBase;
 

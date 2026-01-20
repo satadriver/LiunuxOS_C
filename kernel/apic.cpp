@@ -1202,6 +1202,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	int ioapic_ver = ReadIoApicReg(1) & 0xff;
 
+	/*
 	SetTaskTssBase();
 	InitTaskArray();
 	TASKRESULT freeTss;
@@ -1236,10 +1237,15 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	process->status = TASK_RUN;
 
 	__memcpy((char*)freeTss.lptss, (char*)process, sizeof(PROCESS_INFO));
-
+	*/
+	SetTaskVideoBase((char*)gGraphBase);
 	char* lpgdt = InitGdt();
 
 	char * lpidt = InitIDT();
+
+	char procname[64];
+	__sprintf(procname, "Apic_Process_%d", cpuid);
+	__initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 64);
 
 	__asm {
 		mov eax, PDE_ENTRY_VALUE
@@ -1266,6 +1272,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		str ax
 		mov tr_new, ax
 	}
+	LPPROCESS_INFO process = GetCurrentTaskTssBase();
 	unsigned long long tssdesc = *(unsigned long long*)(GDT_BASE + cpuid * 0x10000 + kTssTaskSelector );
 	__printf(szout, "ap id:%d process:%x tss:%i64x idt:%x size:%x gdt:%x size:%d ltr:%x\r\n",
 		cpuid,process, tssdesc, idtbase_new.addr, idtbase_new.size,gdtbase_new.addr, gdtbase_new.size, tr_new);
@@ -1315,7 +1322,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		//cli
 		mov ds : [reg_esp_new] , esp
 	}
-
+	int tid = process->tid;
+	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (cpuid + 1) - STACK_TOP_DUMMY);
+	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * cpuid + 0 + 1) - STACK_TOP_DUMMY);
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
@@ -1484,7 +1493,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * id);
 	return process;
-
+	/*
 	int cnt = *(int*)CPU_TOTAL_ADDRESS;
 	if (cnt)
 	{
@@ -1501,6 +1510,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 
 	__printf(szout, "%s error,cpu:%d,ap count:%d\r\n", __FUNCTION__, id, cnt);
 	return 0;
+	*/
 }
 
 LPPROCESS_INFO GetTaskTssBase() {
