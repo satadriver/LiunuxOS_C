@@ -34,6 +34,23 @@ void initPaging() {
 		mov eax, cr0
 		or eax, 0x80000000
 		mov cr0, eax
+
+		mov ax, KERNEL_MODE_CODE
+		mov word ptr ds : [_paging_flush_entry + 5] , ax
+
+		lea eax, _paging_flush_leave
+		mov ds : [_paging_flush_entry + 1] , eax
+
+		_paging_flush_entry :
+		_emit 0xea
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+
+		_paging_flush_leave:
 	}
 }
 

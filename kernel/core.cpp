@@ -338,15 +338,13 @@ char* InitGdt() {
 	gdtbase.size =  sizeof(TssDescriptor) * 8192 - 1;
 
 	__asm {
-		lgdt fword ptr ds:[gdtbase]
+		lgdt gdtbase
 
 		mov ax, KERNEL_MODE_CODE
 		mov word ptr ds:[_initGdt_flush_entry + 5],ax
 
 		lea eax, _initGdt_flush_over
 		mov ds:[_initGdt_flush_entry + 1],eax
-		lea eax, _initGdt_flush_entry
-		jmp eax
 
 		_initGdt_flush_entry:
 		_emit 0xea
@@ -483,7 +481,7 @@ char* InitIDT() {
 	char szout[256];
 	__printf(szout, "cpu:%d idt base:%x,size:%x\r\n",id, idtbase.addr, idtbase.size);
 	__asm {
-		lidt fword ptr ds:[idtbase]
+		lidt idtbase
 	}
 	return lpidt;
 }

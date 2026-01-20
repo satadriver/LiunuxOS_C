@@ -580,9 +580,9 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
-		//int resultpos = __drawGraphChar(szout, 0, 0x20000, 0xffffffff);
-		__printf(szout, "entry %s\r\n", __FUNCTION__);
+		__sprintf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
+		int resultpos = __drawGraphChar(szout, 0, 0x20000, 0xffffffff);
+		//__printf(szout, "entry %s\r\n", __FUNCTION__);
 		
 
 		g_lvt_timer++;
@@ -1219,6 +1219,23 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		mov eax, cr0
 		or eax, 0x80000000
 		mov cr0, eax
+
+		mov ax, KERNEL_MODE_CODE
+		mov word ptr ds : [_paging_flush_entry + 5] , ax
+
+		lea eax, _paging_flush_leave
+		mov ds : [_paging_flush_entry + 1] , eax
+
+		_paging_flush_entry :
+		_emit 0xea
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+
+		_paging_flush_leave:
 	}
 
 	short tr_new;
@@ -1236,18 +1253,17 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		cpuid,process, tssdesc, idtbase_new.addr, idtbase_new.size,gdtbase_new.addr, gdtbase_new.size, tr_new);
 	
 	initCoprocessor();
-
 	EnableSyscall();
 	sysEntryInit((DWORD)sysEntry);
-
 	enableVME();
 	enablePCE();
 	enableMCE();
 	enableTSD();
-
 	initDebugger();
 
-	
+	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveLock(&g_allocate_ap_lock);
+
 	//InitLocalApicErr();
 
 	//InitLocalApicCmci();
@@ -1261,9 +1277,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 
-	__leaveSpinlock(&g_allocate_ap_lock);
-	//__leaveLock(&g_allocate_ap_lock);
-
 	//__asm{int APIC_IPI_VECTOR}
 #ifdef TASK_SWITCH_ARRAY
 
@@ -1276,6 +1289,11 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	ret = InitLocalApicTimer();
 #endif
 
+	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
+
+
+
 	__asm {sti}
 
 	char* reg_esp_new = 0;
@@ -1287,9 +1305,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	unsigned long stack0top = (unsigned long)process->tss.esp0;
 	__printf(szout, "ap id:%d version:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
-
-	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-	__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 
 	while (1) {
 		__asm {
