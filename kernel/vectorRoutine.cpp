@@ -32,6 +32,7 @@ __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -127,6 +128,7 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -182,6 +184,7 @@ void __declspec(naked) OverflowException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -232,6 +235,7 @@ void __declspec(naked) BoundRangeExceed(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -277,6 +281,7 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -324,6 +329,7 @@ void __declspec(naked) DeviceUnavailable(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -371,9 +377,9 @@ void __declspec(naked) DoubleFault(LIGHT_ENVIRONMENT* stack) {
 
 		push esp
 		sub esp, 4
-
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -418,6 +424,7 @@ void __declspec(naked) CoprocSegOverrun(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -466,6 +473,7 @@ void __declspec(naked) InvalidTss(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -514,6 +522,7 @@ void __declspec(naked) SegmentUnpresent(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -559,6 +568,7 @@ void __declspec(naked) StackSegFault(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -603,6 +613,7 @@ void __declspec(naked) GeneralProtection(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -648,6 +659,7 @@ void __declspec(naked) PageFault(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -702,6 +714,7 @@ void __declspec(naked) AnonymousException(LIGHT_ENVIRONMENT* stack) {
 
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -746,6 +759,7 @@ void __declspec(naked) FloatPointError(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -796,6 +810,7 @@ void __declspec(naked) AlignmentCheck(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -841,6 +856,7 @@ void __declspec(naked) MachineCheck(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -887,6 +903,7 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -930,6 +947,7 @@ __declspec(naked) void VirtualizationException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -975,6 +993,7 @@ __declspec(naked) void CtrlProtectException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1022,6 +1041,7 @@ __declspec(naked) void HypervisorInjectException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1067,6 +1087,7 @@ __declspec(naked) void VMMCommException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1112,6 +1133,7 @@ __declspec(naked) void SecurityException(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1160,7 +1182,7 @@ mov esp, ss: [esp - 20]这一行汇编将esp0替换为新任务的tss中保存的esp0值
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
-		//cli
+		cli
 		pushad
 		push ds
 		push es
@@ -1172,6 +1194,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1257,6 +1280,7 @@ void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp,4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1307,6 +1331,7 @@ void __declspec(naked) Com1IntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1357,6 +1382,7 @@ void __declspec(naked) Parallel2IntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1408,6 +1434,7 @@ void __declspec(naked) FloppyDiskIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1457,6 +1484,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1511,6 +1539,7 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1571,6 +1600,7 @@ void __declspec(naked) SlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1622,6 +1652,7 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1672,6 +1703,7 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1722,6 +1754,7 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1772,6 +1805,7 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1838,6 +1872,7 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1904,6 +1939,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1936,6 +1972,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	__asm {
+		add esp, NATIVE_STACK_LIMIT
 		mov esp, ebp
 		pop ebp
 		add esp, 4
@@ -1969,6 +2006,7 @@ void __declspec(naked) ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -1987,6 +2025,8 @@ void __declspec(naked) ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	__asm {
+		add esp, NATIVE_STACK_LIMIT
+
 		mov esp, ebp
 		pop ebp
 		add esp, 4

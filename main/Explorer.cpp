@@ -46,7 +46,7 @@
 #include "SquareVector.h"
 #include "TrajectoryBall.h"
 #include "CubeVector.h"
-#include "servicesproc.h"
+#include "systemService.h"
 #include "apic.h"
 
 
@@ -145,8 +145,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			{
 				unsigned long module = linear2phy((unsigned long)"main.dll");
 				unsigned long func = linear2phy((unsigned long)"__kConsole");
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
-				//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
+				//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 				//unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
 				//if (addr) 
 				{
@@ -166,7 +166,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 			if (__findProcessFileName("ScreenVector") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "ScreenVector", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "ScreenVector", 3, 0);
 			}
 			continue;
 		}
@@ -177,7 +177,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 				DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kClock");
 				if (thread) {
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kClock", 3, 0);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kClock", 3, 0);
 				}
 			}
 			continue;
@@ -187,7 +187,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 			if (__findProcessFileName("TrajectoryBall") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TrajectoryBall", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TrajectoryBall", 3, 0);
 			}
 			continue;
 		}
@@ -195,7 +195,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("SpiralBall") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "SpiralBall", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "SpiralBall", 3, 0);
 			}
 			continue;
 		}
@@ -203,7 +203,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("__kPaint") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kPaint", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kPaint", 3, 0);
 			}
 			continue;
 		}
@@ -211,7 +211,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("CubeVector") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "CubeVector", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "CubeVector", 3, 0);
 			}
 			continue;
 		}
@@ -219,7 +219,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("__kChinesePoem") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kChinesePoem", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kChinesePoem", 3, 0);
 			}
 			continue;
 		}
@@ -227,7 +227,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("DiamondVector") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DiamondVector", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DiamondVector", 3, 0);
 			}
 			continue;
 		}
@@ -235,7 +235,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("EllipseVector") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "EllipseVector", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "EllipseVector", 3, 0);
 			}
 			continue;
 		}
@@ -247,7 +247,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		else if (ck == VK_F12) {
 			if (__findProcessFileName("SquareVector") == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "SquareVector", 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "SquareVector", 3, 0);
 			}
 			continue;
 		}
@@ -343,7 +343,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				
 			}
 			else if (mouseinfo.x >= atapi.pos.x && mouseinfo.x <= (atapi.pos.x + atapi.frameSize + atapi.width) && 
@@ -351,7 +351,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = CDROM_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrISO");
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 				
 			}
@@ -360,7 +360,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = FLOPPY_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrFllopy");
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
 				
 			}	
 		}

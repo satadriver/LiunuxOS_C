@@ -144,7 +144,7 @@
     <ClCompile Include="cmosPeriodTimer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="servicesProc.cpp">
+    <ClCompile Include="systemService.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="malloc.cpp">
@@ -353,7 +353,7 @@
     <ClInclude Include="cmosPeriodTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="servicesProc.h">
+    <ClInclude Include="systemService.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="malloc.h">

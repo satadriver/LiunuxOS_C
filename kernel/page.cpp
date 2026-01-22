@@ -15,20 +15,10 @@ LPMEMALLOCINFO gPageAllocList = 0;
 
 
 
-void initPaging() {
-
-	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-	InitListEntry(&pageList->list);
-	pageList->addr = 0;
-	pageList->size = 0;
-	pageList->vaddr = 0;
-	pageList->pid = 0;
-
-	linearMapping();
+void EnablePaging32(char * pde) {
 
 	__asm {
-		mov eax, PDE_ENTRY_VALUE
+		mov eax, pde 
 		mov cr3, eax
 
 		mov eax, cr0
@@ -43,15 +33,31 @@ void initPaging() {
 
 		_paging_flush_entry :
 		_emit 0xea
-		_emit 0
-		_emit 0
-		_emit 0
-		_emit 0
-		_emit 0
-		_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
+			_emit 0
 
 		_paging_flush_leave:
 	}
+}
+
+
+void initPaging() {
+
+	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	InitListEntry(&pageList->list);
+	pageList->addr = 0;
+	pageList->size = 0;
+	pageList->vaddr = 0;
+	pageList->pid = 0;
+
+	linearMapping();
+
+	EnablePaging32((char*)PDE_ENTRY_VALUE);
 }
 
 LPMEMALLOCINFO getFreePageIdx() {

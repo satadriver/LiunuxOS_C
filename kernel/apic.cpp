@@ -459,21 +459,18 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		push gs
 		push ss
 
-		//mov esp, IPI_STACK_ADDR
-		//sub esp,0x1000
-		//mov ebp,esp
-
 		push esp
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
 		mov es, ax
 		MOV fs, ax
 		MOV gs, ax
-		mov ss, ax	
+		mov ss, ax
 	}
 
 	{
@@ -485,7 +482,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		int cmd = msg[id].cmd;
 		
-		__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+		//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
 		//__drawGraphChar(szout, 0, 0x100000, 0xffffffff);
 
 		if (cmd == IPI_CREATEPROCESS) {
@@ -569,6 +566,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -580,15 +578,15 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		__sprintf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
-		int resultpos = __drawGraphChar(szout, 0, 0x20000, 0xffffffff);
+		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
+		//int resultpos = __drawGraphChar(szout, 0, 0x20000, 0xffffffff);
 		//__printf(szout, "entry %s\r\n", __FUNCTION__);
 		
 
 		g_lvt_timer++;
 		
-		//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+		//LPPROCESS_INFO next = SingleTssSchedule(stack);
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		//__enterSpinlock(&g_ap_work_lock);
@@ -635,6 +633,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -646,6 +645,7 @@ extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* st
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -683,6 +683,7 @@ extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* st
 
 extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -694,6 +695,7 @@ extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -733,6 +735,7 @@ extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -744,6 +747,7 @@ extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* st
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -781,6 +785,7 @@ extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* st
 
 extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -792,6 +797,7 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -842,6 +848,7 @@ int g_cmos_timer = 0;
 
 extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -853,6 +860,7 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -860,7 +868,6 @@ extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
 		MOV FS, ax
 		MOV GS, AX
 		MOV ss, AX
-		//cli
 	}
 
 	{
@@ -1212,31 +1219,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__sprintf(procname, "Apic_Process_%d", cpuid);
 	__initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 256);
 
-	__asm {
-		mov eax, PDE_ENTRY_VALUE
-		mov cr3, eax
-
-		mov eax, cr0
-		or eax, 0x80000000
-		mov cr0, eax
-
-		mov ax, KERNEL_MODE_CODE
-		mov word ptr ds : [_paging_flush_entry + 5] , ax
-
-		lea eax, _paging_flush_leave
-		mov ds : [_paging_flush_entry + 1] , eax
-
-		_paging_flush_entry :
-		_emit 0xea
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
-
-		_paging_flush_leave:
-	}
+	EnablePaging32((char*)PDE_ENTRY_VALUE);
 
 	short tr_new;
 	DescriptTableReg idtbase_new;
@@ -1289,10 +1272,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	ret = InitLocalApicTimer();
 #endif
 
-	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
-
-
 
 	__asm {sti}
 
@@ -1403,7 +1384,7 @@ void BPCodeStart() {
 	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 #if 1
-		//SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
+		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
 		//v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 		//__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else

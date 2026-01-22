@@ -1,4 +1,4 @@
-#include "servicesProc.h"
+#include "systemService.h"
 #include "task.h"
 #include "hardware.h"
 #include "task.h"
@@ -23,6 +23,7 @@ DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 	}
 
 	__asm {
@@ -589,6 +590,7 @@ DWORD __declspec(naked) vm86IntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 	}
 
 	__asm {

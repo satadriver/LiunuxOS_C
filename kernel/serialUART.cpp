@@ -156,6 +156,7 @@ extern "C"  __declspec(naked) void __kCom1Proc(LIGHT_ENVIRONMENT * stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -255,6 +256,7 @@ extern "C"  __declspec(naked) void __kCom2Proc(LIGHT_ENVIRONMENT * stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax

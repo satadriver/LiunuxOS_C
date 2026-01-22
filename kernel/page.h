@@ -19,6 +19,8 @@
 
 void initPaging();
 
+void EnablePaging32(char* pde);
+
 LPMEMALLOCINFO getFreePageIdx();
 
 int resetPageIdx(LPMEMALLOCINFO pde);

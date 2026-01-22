@@ -8,7 +8,7 @@
 #include "process.h"
 #include "window.h"
 #include "apic.h"
-#include "servicesProc.h"
+#include "systemService.h"
 
 int unicode2asc(short* unicode, int unicodelen, char* asc) {
 	int i = 0;

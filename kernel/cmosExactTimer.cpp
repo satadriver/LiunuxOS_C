@@ -5,7 +5,7 @@
 #include "video.h"
 #include "ListEntry.h"
 #include "hardware.h"
-#include "servicesProc.h"
+#include "systemService.h"
 #include "cmosExactTimer.h"
 #include "apic.h"
 

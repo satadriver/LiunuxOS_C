@@ -6,7 +6,7 @@
 #include "process.h"
 #include "task.h"
 #include "device.h"
-#include "servicesProc.h"
+#include "systemService.h"
 #include "apic.h"
 
 DWORD gKbdTest = FALSE;

@@ -21,7 +21,7 @@
 #include "paint.h"
 #include "malloc.h"
 #include "Thread.h"
-#include "servicesProc.h"
+#include "systemService.h"
 #include "pci.h"
 #include "cmd.h"
 

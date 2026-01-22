@@ -37,6 +37,14 @@
 #include "VMM.h"
 #include "rtl8139.h"
 #include "pcnet.h"
+#include "systemService.h"
+#include "pe64.h"
+//#include <stdio.h>
+#include "base64.h"
+#include "md5.h"
+#include "aes.h"
+#include "des.h"
+#include "rc4.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -152,8 +160,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 	}
 
-	imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-	__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
+	//imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
+	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 
 	//logFile("__kernelEntry\n");
 	
@@ -187,7 +195,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
 		imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
+		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
 	while (1)
@@ -238,7 +246,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 
-#include "servicesProc.h"
+
 
 #ifdef _DEBUG
 
@@ -253,13 +261,6 @@ void mytest(LIGHT_ENVIRONMENT  * stack) {
 #endif
 
 
-#include "pe64.h"
-#include <stdio.h>
-#include "base64.h"
-#include "md5.h"
-#include "aes.h"
-#include "des.h"
-#include "rc4.h"
 #ifdef _USRDLL
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {
 	return TRUE;

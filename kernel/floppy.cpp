@@ -179,6 +179,7 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax

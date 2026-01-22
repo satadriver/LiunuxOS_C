@@ -8,7 +8,7 @@
 #include "gdi.h"
 #include "malloc.h"
 #include "page.h"
-#include "servicesProc.h"
+#include "systemService.h"
 #include "cmosExactTimer.h"
 #include "hardware.h"
 #include "device.h"

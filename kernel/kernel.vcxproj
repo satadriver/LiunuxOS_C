@@ -257,7 +257,7 @@
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="pci.cpp" />
     <ClCompile Include="pe.cpp" />
-    <ClCompile Include="servicesProc.cpp" />
+    <ClCompile Include="systemService.cpp" />
     <ClCompile Include="malloc.cpp" />
     <ClCompile Include="soundBlaster\sbPlay.cpp" />
     <ClCompile Include="speaker.cpp" />
@@ -327,7 +327,7 @@
     <ClInclude Include="mouse.h" />
     <ClInclude Include="pci.h" />
     <ClInclude Include="Pe.h" />
-    <ClInclude Include="servicesProc.h" />
+    <ClInclude Include="systemService.h" />
     <ClInclude Include="malloc.h" />
     <ClInclude Include="soundBlaster\sbPlay.h" />
     <ClInclude Include="speaker.h" />

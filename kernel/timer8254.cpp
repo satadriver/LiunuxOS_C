@@ -16,7 +16,10 @@ int getTimer8254Delay(){
 
 
 void init8254Timer() {
-	*((int*)TIMER0_TICK_COUNT) = 0;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		*(int*)(TIMER0_TICK_COUNT + i * sizeof(int)) = 0;
+	}
+	
 	__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
 }
 
@@ -26,8 +29,8 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 	{
 		return -1;
 	}
-
-	DWORD* lptickcnt = (DWORD*)TIMER0_TICK_COUNT;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD* lptickcnt = (DWORD*)(TIMER0_TICK_COUNT+id*sizeof(int));
 
 	int dt = getTimer8254Delay();
 
@@ -77,13 +80,13 @@ void __k8254TimerProc() {
 
 	int result = 0;
 	//in both c and c++ language,the * priority is lower than ++
-
-	DWORD* lptickcnt = (DWORD*)TIMER0_TICK_COUNT;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD* lptickcnt = (DWORD*)(TIMER0_TICK_COUNT + id*sizeof(int));
 
 	(*lptickcnt)++;
 
-	DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
-	*pdoscounter = *lptickcnt;
+	//DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
+	//*pdoscounter = *lptickcnt;
 
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{

@@ -12,7 +12,7 @@
 #include "malloc.h"
 #include "core.h"
 #include "vectorRoutine.h"
-#include "servicesProc.h"
+#include "systemService.h"
 #include "apic.h"
 #include "apic.h"
 #include "window.h"
@@ -1454,7 +1454,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
-		//cli
+		cli
 		pushad
 		push ds
 		push es
@@ -1466,6 +1466,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax

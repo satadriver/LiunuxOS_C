@@ -5,7 +5,7 @@
 #include "device.h"
 #include "core.h"
 #include "VM86.h"
-#include "servicesProc.h"
+#include "systemService.h"
 
 //VME bit0
 //虚拟8086模式扩展（中的位0）置1时则在虚拟8086模式下，启用中断和异常处理扩展。置0时禁用扩展功能。
@@ -127,6 +127,7 @@ void __declspec(naked) BreakPointTrap(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax
@@ -170,6 +171,7 @@ void __declspec(naked) DebugTrap(LIGHT_ENVIRONMENT* stack) {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov eax, KERNEL_MODE_DATA
 		mov ds, ax

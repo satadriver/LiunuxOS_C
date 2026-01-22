@@ -54,6 +54,7 @@ extern "C" __declspec(naked) void __kCallGateProc(DWORD  params, DWORD count) {
 
 	__asm {
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 	}
 
 	{
