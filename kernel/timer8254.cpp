@@ -4,7 +4,8 @@
 #include "utils.h"
 #include "apic.h"
 
-TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
+//TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
+TIMER_PROC_PARAM * g8254Timer = 0;
 
 
 int getTimer8254Delay(){
@@ -20,7 +21,8 @@ void init8254Timer() {
 		*(int*)(TIMER0_TICK_COUNT + i * sizeof(int)) = 0;
 	}
 	
-	__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
+	//__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
+	g8254Timer =(TIMER_PROC_PARAM*) __kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) * TASK_LIMIT_TOTAL);
 }
 
 
@@ -39,7 +41,7 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 		ticks++;
 	}
 
-	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
+	for (int i = id* REALTIMER_CALLBACK_MAX; i < (id +1)* REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (g8254Timer[i].func == 0 && g8254Timer[i].tickcnt == 0)
 		{
@@ -66,11 +68,12 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 
 
 
-void __kRemove8254Timer(int no) {
-	if (no >= 0 && no < REALTIMER_CALLBACK_MAX)
+void __kRemove8254Timer(int  n) {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (n >= id* REALTIMER_CALLBACK_MAX && n < (id+1)* REALTIMER_CALLBACK_MAX)
 	{
-		g8254Timer[no].func = 0;
-		g8254Timer[no].tickcnt = 0;
+		g8254Timer[n].func = 0;
+		g8254Timer[n].tickcnt = 0;
 	}
 }
 
@@ -88,7 +91,7 @@ void __k8254TimerProc() {
 	//DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
 	//*pdoscounter = *lptickcnt;
 
-	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
+	for (int i = id * REALTIMER_CALLBACK_MAX; i < (id + 1) * REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (g8254Timer[i].func)
 		{

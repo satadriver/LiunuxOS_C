@@ -27,6 +27,7 @@
 #include "Thread.h"
 #include "fileWindow.h"
 #include "apic.h"
+#include "systemService.h"
 
 
 
@@ -163,7 +164,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 		DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_bmp");
 
-		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
+		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 		//return __kCreateProcess(MAIN_DLL_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 	}
 	else if (__memcmp(files->pathname + fnlen - 4, ".wav", 4) == 0)
@@ -177,7 +178,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	{
 		cmd.cmd = SHOW_WINDOW_TXT;
 
-		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
+		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 
 		DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_txt");
@@ -186,7 +187,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	{
 		cmd.cmd = SHOW_WINDOW_JPEG;
 
-		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
+		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 
 		DWORD thread = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_jpg");
@@ -195,7 +196,7 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	{
 		cmd.filesize = (DWORD)files->filesize;
 		//return __kCreateThread((DWORD)__kShowWindow, (DWORD)&cmd, "__kShowWindow");
-		return __kCreateProcess((unsigned int)cmd.addr, cmd.filesize, files->pathname, files->pathname, 3, (DWORD)&cmd);
+		return __ipiCreateProcess((unsigned int)cmd.addr, cmd.filesize, files->pathname, files->pathname, 3, (DWORD)&cmd);
 	}
 	return 0;
 }

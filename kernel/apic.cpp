@@ -496,7 +496,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 			int level = subparam->level;
 			char* p = (char*)subparam->params;
 			
-			__printf(szout, "%s module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
+			//__printf(szout, "%s module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
 
 			if (__findProcessFileName(subparam->funcname) == FALSE)
 			{

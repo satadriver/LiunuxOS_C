@@ -59,7 +59,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
 
 			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (__memcmp(filename + fnlen - 4, ".jpg", 4) == 0 || __memcmp(filename + fnlen - 5, ".jpeg", 5) == 0)
 		{
@@ -68,7 +68,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			//DWORD addr = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
 			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (isTxtFile(filename, fnlen))
 		{
@@ -77,7 +77,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			//DWORD addr = getAddrFromName(MAIN_DLL_BASE, "__kShowWindow");
 			//return __kCreateThread(addr, (DWORD)&taskcmd, "__kShowWindow");
 			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+			return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 		}
 		else if (__memcmp(filename + fnlen - 4, ".zip", 4) == 0 || __memcmp(filename + fnlen - 4, ".apk", 4) == 0)
 		{
@@ -198,7 +198,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 			int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
-			return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kPaint", 3, (DWORD)&taskcmd);
+			return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kPaint", 3, (DWORD)&taskcmd);
 		}
 	}
 	else if (__strcmp(params[0], "tss") == 0) {
@@ -283,7 +283,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__strcpy(taskcmd.filename, params[0]);
 		taskcmd.cmd = SHOW_TEST_WINDOW;
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		return __kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
+		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 	}
 	else if (__strcmp(params[0], "timer0Tick") == 0)
 	{

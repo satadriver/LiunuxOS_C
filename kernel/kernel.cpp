@@ -195,7 +195,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
 		imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
+		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
 	while (1)
