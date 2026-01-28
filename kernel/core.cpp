@@ -456,8 +456,8 @@ char* InitIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-	makeTaskGateDescriptor((DWORD)kTssIpiSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_IPI_VECTOR));
-	//makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
+	//makeTaskGateDescriptor((DWORD)kTssIpiSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_IPI_VECTOR));
+	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
 	
 	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
 

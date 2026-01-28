@@ -1007,6 +1007,17 @@ DWORD __enterSpinlock(DWORD * lpv) {
 }
 
 
+DWORD CheckSpinlock(DWORD* lpv) {
+	int v = 0;
+	__asm {
+		mov eax,lpv
+		mov edx,[v]
+		lock xadd dword ptr ds:[eax],edx
+		mov [v],edx
+	}
+	return v;
+}
+
 
 DWORD __leaveSpinlock(DWORD * lpv) {
 	__asm {

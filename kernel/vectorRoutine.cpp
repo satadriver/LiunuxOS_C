@@ -1176,9 +1176,57 @@ pushad不会修改esp的值，此时保存到旧任务tss中的esp0值指向eip,cs,eflags
 popad不会将esp修改为popad时压入堆栈中的esp，而是直接将esp+32
 
 mov esp, ss: [esp - 20]这一行汇编将esp0替换为新任务的tss中保存的esp0值
-
 */
+#ifdef LOCAL_APIC_ENABLE
+extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
+	__asm {
+		cli
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+
+		//clts
+	}
+
+	EOICommand(INTR_8259_MASTER + 0);
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		//clts
+
+		iretd
+
+		jmp TimerInterrupt
+	}
+}
+#else
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
@@ -1207,9 +1255,9 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
+
 		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[256];
-		//__printf(szout,"TimerInterrupt\r\n");
 
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
@@ -1221,6 +1269,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
 		*gintr_sta = 0xff;
 #endif	
+
 	}
 
 	__asm {
@@ -1241,10 +1290,9 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		pop es
 		pop ds
 		popad
+
 #ifdef SINGLE_TASK_TSS
-
 		mov esp, ss: [esp - 20]
-
 #endif	
 		//clts
 
@@ -1253,7 +1301,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		jmp TimerInterrupt
 	}
 }
-
+#endif
 //Prefixes 指令代码的前缀，每指令最多能够有4个/种前缀修饰。
 //有操作数大小前缀。如前面提到的 66。它指定 32 - bit 操作数大小，FE 前缀则表示 8 - bit 操作数。按 16 位机上的传统，默认的操作为 16 位，不使用前缀。
 //有反复类型前缀，如最常见的 F3 表示 REP、REPE、REPZ 反复前缀。还有 F2 表示 REPNE、REPNZ 前缀。

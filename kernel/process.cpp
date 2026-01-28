@@ -364,11 +364,11 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",
 		getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 
-	enter_task_array_lock_other(tss->cpuid);
+	//enter_task_array_lock_cli();
 
 	tss->status = TASK_RUN;
 
-	leave_task_array_lock_other(tss->cpuid);
+	//leave_task_array_lock_sti();
 
 #ifdef TASK_SWITCH_ARRAY
 
@@ -439,7 +439,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 #endif
 
 	TASKRESULT result;
-	ret = __getFreeTask(&result,cpu,1);
+	ret = __getFreeTask(&result,1);
 	if (ret == FALSE)
 	{
 		__printf(szout, "%s %d error\n",__FUNCTION__, __LINE__);

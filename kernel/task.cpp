@@ -22,6 +22,7 @@
 unsigned long g_task_array_lock[256] ;
 unsigned long g_task_list_lock [256];
 
+/*
 void enter_task_array_lock() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_task_array_lock[id]);
@@ -31,6 +32,9 @@ void leave_task_array_lock() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
+*/
+
+
 
 void enter_task_array_lock_cli() {
 	__asm {cli}
@@ -44,6 +48,7 @@ void leave_task_array_lock_sti() {
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
 
+/*
 void enter_task_list_lock() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_task_list_lock[id]);
@@ -53,7 +58,7 @@ void leave_task_list_lock() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__leaveSpinlock(&g_task_list_lock[id]);
 }
-
+*/
 void enter_task_list_lock_cli() {
 	__asm {cli}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -68,18 +73,15 @@ void leave_task_list_lock_sti() {
 }
 
 
-
-
-
-
-void enter_task_array_lock_other(int id) {
+/*
+void enter_task_array_lock_id(int id) {
 	__enterSpinlock(&g_task_array_lock[id]);
 }
 
-void leave_task_array_lock_other(int id) {
+void leave_task_array_lock_id(int id) {
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
-
+*/
 
 TASK_LIST_ENTRY *gTasksListPtr[256] ;
 TASK_LIST_ENTRY* gTasksListPos[256];
@@ -409,7 +411,7 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 }
 
 
-int __getFreeTask(LPTASKRESULT ret,int id,int tag) {
+int __getFreeTask(LPTASKRESULT ret,int intTag) {
 	int result = 0;
 	if (ret == 0)
 	{
@@ -418,10 +420,13 @@ int __getFreeTask(LPTASKRESULT ret,int id,int tag) {
 	ret->lptss = 0;
 	ret->number = 0;
 
-	if (tag) {
+	if (intTag) {
 		__asm {cli}
 	}
-	enter_task_array_lock_other(id);
+	
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	__enterSpinlock(&g_task_array_lock[id]);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseSelected(id);
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -441,9 +446,9 @@ int __getFreeTask(LPTASKRESULT ret,int id,int tag) {
 		}
 	}
 
-	leave_task_array_lock_other(id);
+	__leaveSpinlock(&g_task_array_lock[id]);
 
-	if (tag) {
+	if (intTag) {
 		__asm {sti}
 	}
 	return result;
@@ -638,7 +643,13 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[256];
 	int ret = 0;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __enterSpinlock(&g_task_array_lock[id]);
+	ret = CheckSpinlock(&g_task_array_lock[id]);
+	if (ret == 0) {
+		ret = __enterSpinlock(&g_task_array_lock[id]);
+	}
+	else {
+		return 0;
+	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -792,21 +803,21 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
 	__asm {
-		FNCLEX
-		fninit
-		//fwait
+		//FNCLEX
+		//fninit
+		////fwait
 		mov eax, fenvprev
 		FxSAVE[eax]
-		//fsave [fenv]
+		////fsave [fenv]
 	}
 
 	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
 	__asm {
 		mov eax, fenvnext
-		//frstor [fenv]
+		////frstor [fenv]
 		fxrstor[eax]
-		FNCLEX
-		fninit
+		//FNCLEX
+		//fninit
 	}
 
 	env->eax = process->tss.eax;
@@ -1400,7 +1411,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	//return 0;
 
 	TASKRESULT freeTss;
-	__getFreeTask(&freeTss, id, 0);
+	__getFreeTask(&freeTss, 0);
 	int tid = freeTss.number;
 
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
@@ -1476,7 +1487,6 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 
 		//clts
-		
 	}
 
 	{

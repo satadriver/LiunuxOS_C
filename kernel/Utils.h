@@ -17,6 +17,7 @@ typedef struct
 
 #pragma pack()
 
+DWORD CheckSpinlock(DWORD* lpv);
 
 int __GetCurrentTid();
 

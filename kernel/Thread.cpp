@@ -92,7 +92,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #endif
 
 	TASKRESULT freetask;
-	ret = __getFreeTask(&freetask, cpu,1);
+	ret = __getFreeTask(&freetask, 1);
 	if (ret == FALSE)
 	{
 		return FALSE;

@@ -392,7 +392,7 @@ int InitIoApicRte() {
 
 int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 {
-	__enterSpinlock(&g_allocate_ap_lock);
+	//__enterSpinlock(&g_allocate_ap_lock);
 	int ret = 0;
 	int id = GetIdleProcessor();
 	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
@@ -410,7 +410,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	char szout[256];
 	__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
 	
-	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveSpinlock(&g_allocate_ap_lock);
 
 	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
@@ -419,7 +419,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p)
 {
-	__enterSpinlock(&g_allocate_ap_lock);
+	//__enterSpinlock(&g_allocate_ap_lock);
 	int ret = 0;
 	int id = GetIdleProcessor();
 	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
@@ -441,7 +441,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 		id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 
 	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
-	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveSpinlock(&g_allocate_ap_lock);
 	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
 	return 0;
@@ -476,7 +476,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	{
 		char szout[256];
 
-		__enterSpinlock(&g_allocate_ap_lock);
+		//__enterSpinlock(&g_allocate_ap_lock);
 
 		IPI_MSG_PARAM* msg =(IPI_MSG_PARAM * )IPI_MSG_BASE;
 		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -525,7 +525,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 		}
 
-		__leaveSpinlock(&g_allocate_ap_lock);
+		//__leaveSpinlock(&g_allocate_ap_lock);
 		
 		g_ipi_lock++;
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
@@ -578,10 +578,11 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n",szout);
+		if (g_lvt_timer % 0x10 == 0) {
+			//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
+		}
 		//int resultpos = __drawGraphChar(szout, 0, 0x20000, 0xffffffff);
 		//__printf(szout, "entry %s\r\n", __FUNCTION__);
-		
 
 		g_lvt_timer++;
 		
@@ -593,7 +594,8 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	
 		//__leaveSpinlock(&g_ap_work_lock);
 
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		//*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+
 		if (g_apic_int_tag) {
 			*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 		}
@@ -622,6 +624,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
+		mov dword ptr ds:[LOCAL_APIC_BASE +0xb0],0
 
 		iretd
 
@@ -1247,9 +1250,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
-	//InitLocalApicErr();
+	InitLocalApicErr();
 
-	//InitLocalApicCmci();
+	InitLocalApicCmci();
+
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
 
@@ -1261,6 +1265,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 
 	//__asm{int APIC_IPI_VECTOR}
+
 #ifdef TASK_SWITCH_ARRAY
 
 #else
@@ -1393,16 +1398,17 @@ void BPCodeStart() {
 	}
 	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 
-	//InitLocalApicErr();
+	InitLocalApicErr();
 
-	//InitLocalApicCmci();
+	InitLocalApicCmci();
 	
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
 	
-	//initHpet();
-	//InitIoApicRte();
-	//DisableInt();
+	initHpet();
+	InitIoApicRte();
+	DisableInt();
+	
 	//ret = DisableLocalApicLVT();
 	
 	g_apic_int_tag = 1;

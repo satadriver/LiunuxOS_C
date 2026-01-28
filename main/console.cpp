@@ -24,6 +24,7 @@
 #include "systemService.h"
 #include "pci.h"
 #include "cmd.h"
+#include "timer8254.h"
 
 
 
@@ -48,7 +49,7 @@ extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, c
 	//window.showBakX = window.showX;
 	//window.showBakY = window.showY;
 	window.tag = 0;
-	window.cursorID = __kAddExactTimer((DWORD)windowCursor, CURSOR_REFRESH_MILLISECONDS,(unsigned long) &window, 0, 0, 0);
+	window.cursorID = __kAdd8254Timer((DWORD)windowCursor, CURSOR_REFRESH_MILLISECONDS,(unsigned long) &window, 0, 0, 0);
 
 	while (1)
 	{

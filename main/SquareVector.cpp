@@ -95,7 +95,7 @@ void initSquareVector() {
 
 	gVectorGraphBuf = (char*)g_sqaure_window.backBuf;
 	gVectorGraphWid = g_sqaure_window.id;
-	gVectorGraphTid = __kAddExactTimer((DWORD)SqaureAnimation, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
+	gVectorGraphTid = __kAdd8254Timer((DWORD)SqaureAnimation, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
 
 	gBaseColor = 0;
 }

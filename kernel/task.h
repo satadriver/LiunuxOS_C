@@ -94,7 +94,7 @@ extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 
-int __getFreeTask(LPTASKRESULT ret,int id,int tag);
+int __getFreeTask(LPTASKRESULT ret,int intTag);
 
 
 
@@ -130,9 +130,9 @@ extern "C"  __declspec(dllexport) void leave_task_array_lock_sti();
 extern "C"  __declspec(dllexport) void enter_task_list_lock_cli();
 extern "C"  __declspec(dllexport) void leave_task_list_lock_sti();
 
-extern "C"  __declspec(dllexport) void enter_task_array_lock_other(int id);
+extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
-extern "C"  __declspec(dllexport) void leave_task_array_lock_other(int id);
+extern "C"  __declspec(dllexport) void leave_task_array_lock_id(int id);
 
 extern "C" __declspec(dllexport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack);
 #else
@@ -164,9 +164,9 @@ extern "C"  __declspec(dllimport) void enter_task_array_lock_cli();
 extern "C"  __declspec(dllimport) void leave_task_array_lock_sti();
 extern "C"  __declspec(dllimport) void enter_task_list_lock_cli();
 extern "C"  __declspec(dllimport) void leave_task_list_lock_sti();
-extern "C"  __declspec(dllimport) void enter_task_array_lock_other(int id);
+extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 
-extern "C"  __declspec(dllimport) void leave_task_array_lock_other(int id);
+extern "C"  __declspec(dllimport) void leave_task_array_lock_id(int id);
 
 extern "C" __declspec(dllimport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack);
 #endif

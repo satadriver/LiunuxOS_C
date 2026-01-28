@@ -307,11 +307,11 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	__strcpy(tss->funcname, funcname);
 
-	enter_task_array_lock_other(tss->cpuid);
+	//enter_task_array_lock_cli();
 
 	tss->status = TASK_RUN;
 
-	leave_task_array_lock_other(tss->cpuid);
+	//leave_task_array_lock_sti();
 
 #ifdef TASK_SWITCH_ARRAY
 
