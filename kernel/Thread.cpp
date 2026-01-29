@@ -30,7 +30,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		return 0;
 	}
 
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	if (current->tid == tid)
 	{
 		current->status = TASK_OVER;
@@ -52,7 +52,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	DestroyThreadWindow(tid, cpu);
 
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 
 	if (dwtid & 0x80000000) {
 		return 0;
@@ -256,9 +256,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->window = 0;
 	tss->videoBase = (char*)gGraphBase;
 
-	enter_task_array_lock_cli();
+	//enter_task_array_lock();
 	tss->status = TASK_RUN;
-	leave_task_array_lock_sti();
+	//leave_task_array_lock();
 
 #ifdef TASK_SWITCH_ARRAY
 

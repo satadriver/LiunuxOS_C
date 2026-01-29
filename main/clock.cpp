@@ -240,7 +240,7 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			}
 		}
 
-		__sleep(100);
+		__sleep(50);
 
 		DATETIME dt;		
 		__getDateTime(&dt);

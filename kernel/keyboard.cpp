@@ -562,7 +562,6 @@ __declspec(naked) void KeyboardIntProc() {
 	{
 		__kKeyboardProc();
 
-
 		EOICommand(INTR_8259_MASTER + 1);
 	}
 

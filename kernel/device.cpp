@@ -8,7 +8,8 @@
 
 #include "mouse.h"
 
-
+#define TIMER1_DIVIDE_FREQ  1193
+#define TIMER2_DIVIDE_FREQ  1193
 
 //tr6,tr7
 //https://www.kancloud.cn/wizardforcel/intel-80386-ref-manual/123864
@@ -368,8 +369,7 @@ void enableSpeaker() {
 	outportb(0x61, 3);
 }
 
-#define TIMER1_DIVIDE_FREQ  1193
-#define TIMER2_DIVIDE_FREQ  1193
+
 
 //d6 d7 select timer, 00 = 40h, 01 = 41h, 02 = 42h
 //d4 d5 mode :11 read read / write low byte first, than read / write high byte.00 lock value

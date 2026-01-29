@@ -125,10 +125,10 @@ extern "C"  __declspec(dllexport) void leave_task_array_lock();
 extern "C"  __declspec(dllexport) void enter_task_list_lock();
 extern "C"  __declspec(dllexport) void leave_task_list_lock();
 
-extern "C"  __declspec(dllexport) void enter_task_array_lock_cli();
-extern "C"  __declspec(dllexport) void leave_task_array_lock_sti();
-extern "C"  __declspec(dllexport) void enter_task_list_lock_cli();
-extern "C"  __declspec(dllexport) void leave_task_list_lock_sti();
+extern "C"  __declspec(dllexport) void enter_task_array_lock();
+extern "C"  __declspec(dllexport) void leave_task_array_lock();
+extern "C"  __declspec(dllexport) void enter_task_list_lock();
+extern "C"  __declspec(dllexport) void leave_task_list_lock();
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
@@ -160,10 +160,10 @@ extern "C"  __declspec(dllimport) void leave_task_array_lock();
 extern "C"  __declspec(dllimport) void enter_task_list_lock();
 extern "C"  __declspec(dllimport) void leave_task_list_lock();
 
-extern "C"  __declspec(dllimport) void enter_task_array_lock_cli();
-extern "C"  __declspec(dllimport) void leave_task_array_lock_sti();
-extern "C"  __declspec(dllimport) void enter_task_list_lock_cli();
-extern "C"  __declspec(dllimport) void leave_task_list_lock_sti();
+extern "C"  __declspec(dllimport) void enter_task_array_lock();
+extern "C"  __declspec(dllimport) void leave_task_array_lock();
+extern "C"  __declspec(dllimport) void enter_task_list_lock();
+extern "C"  __declspec(dllimport) void leave_task_list_lock();
 extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllimport) void leave_task_array_lock_id(int id);

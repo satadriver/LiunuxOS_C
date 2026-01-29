@@ -972,7 +972,7 @@ WORD __ntohs(WORD v) {
 
 
 //xadd oprd1,oprd2,先将两个数交换，再将二者之和送给第一个数,oprd1:mem or reg,oprd2:reg
-DWORD __lockInc(DWORD *v) {
+int __lockInc(int *v) {
 	DWORD old = 0;
 	__asm {
 		mov eax, 1
@@ -983,7 +983,7 @@ DWORD __lockInc(DWORD *v) {
 }
 
 
-void __initSpinlock(DWORD * v) {
+void __initSpinlock(int * v) {
 	*v = 0;
 }
 
@@ -992,7 +992,7 @@ void __initSpinlock(DWORD * v) {
 格式 ： bts dword ptr [ecx],0
 [ecx] 指向的内存的第0位赋值给 CF 位 ， 并且将[ecx]的第0位置为1
 */
-DWORD __enterSpinlock(DWORD * lpv) {
+int __enterSpinlock(int* lpv) {
 	__asm {
 	__enterSpinLockLoop:
 		mov eax,lpv
@@ -1007,7 +1007,7 @@ DWORD __enterSpinlock(DWORD * lpv) {
 }
 
 
-DWORD CheckSpinlock(DWORD* lpv) {
+int CheckSpinlock(int* lpv) {
 	int v = 0;
 	__asm {
 		mov eax,lpv
@@ -1019,7 +1019,7 @@ DWORD CheckSpinlock(DWORD* lpv) {
 }
 
 
-DWORD __leaveSpinlock(DWORD * lpv) {
+int __leaveSpinlock(int* lpv) {
 	__asm {
 		mov eax, lpv
 
@@ -1028,7 +1028,7 @@ DWORD __leaveSpinlock(DWORD * lpv) {
 }
 
 
-extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD * lockv) {
+extern "C"  __declspec(dllexport) int __spinlockEntry(int* lockv) {
 	__asm {
 
 		__spinlock_xchg:
@@ -1048,7 +1048,7 @@ extern "C"  __declspec(dllexport) int __spinlockEntry(DWORD * lockv) {
 }
 
 //what is the difference between [lockv] and lockv in visual studio embedded asm?
-extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv) {
+extern "C"  __declspec(dllexport) int __spinlockLeave(int* lockv) {
 	DWORD result = 0;
 	__asm {
 		mov eax, 0
@@ -1065,7 +1065,7 @@ extern "C"  __declspec(dllexport) int __spinlockLeave(DWORD * lockv) {
 //CMPXCHG r/m, r 
 // 将AL/AX/EAX/RAX中的值与目的操作数比较:
 // 如果相等,将源操作数的值装载到目的操作数,zf置1;如果不等,将目的操作数的值装载到AL/AX/EAX/RAX,将zf清0
-DWORD __enterLock(DWORD * lockvalue) {
+int __enterLock(int* lockvalue) {
 	DWORD result = 0;
 
 	__asm {
@@ -1089,7 +1089,7 @@ DWORD __enterLock(DWORD * lockvalue) {
 }
 
 
-DWORD __leaveLock(DWORD * lockvalue) {
+int __leaveLock(int* lockvalue) {
 	DWORD result = 0;
 
 	__asm {

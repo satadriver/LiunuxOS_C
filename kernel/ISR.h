@@ -84,7 +84,7 @@ void BoundRangeExceed(LIGHT_ENVIRONMENT* stack);
 
 void UndefinedOpcode(LIGHT_ENVIRONMENT* stack);
 
-void  DeviceUnavailable(LIGHT_ENVIRONMENT* stack);
+void  DeviceNotAvailable(LIGHT_ENVIRONMENT* stack);
 
 void  DoubleFault(LIGHT_ENVIRONMENT* stack);
 

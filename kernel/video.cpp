@@ -1564,8 +1564,8 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 
 	proc->window = window->id;
 
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	tss[tid].window = window->id;
 
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 }

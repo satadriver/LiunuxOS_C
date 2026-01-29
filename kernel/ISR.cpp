@@ -8,7 +8,7 @@
 #include "memory.h"
 #include "Thread.h"
 #include "hardware.h"
-#include "vectorRoutine.h"
+#include "isr.h"
 #include "cmosPeriodTimer.h"
 #include "cmosAlarm.h"
 #include "cmosExactTimer.h"
@@ -315,7 +315,7 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 }
 
 
-void __declspec(naked) DeviceUnavailable(LIGHT_ENVIRONMENT* stack) {
+void __declspec(naked) DeviceNotAvailable(LIGHT_ENVIRONMENT* stack) {
 	__asm {
 
 		pushad
@@ -339,7 +339,7 @@ void __declspec(naked) DeviceUnavailable(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 	}
 
-	__kCoprocessor();
+	__kCoprocessor();		//store old task sse/mmx environment and restore new task sse/mmx environment
 
 	{
 		//__kException((const char*)"DeviceUnavailable", 7, stack);
@@ -1219,8 +1219,6 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		pop ds
 		popad
 
-		//clts
-
 		iretd
 
 		jmp TimerInterrupt
@@ -1250,8 +1248,6 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		MOV FS, ax
 		MOV GS, AX
 		mov ss, ax
-
-		//clts
 	}
 
 	{
@@ -1294,7 +1290,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, ss: [esp - 20]
 #endif	
-		//clts
+		clts
 
 		iretd
 

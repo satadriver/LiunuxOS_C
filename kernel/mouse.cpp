@@ -497,7 +497,6 @@ __declspec(naked) void MouseIntProc() {
 		__kMouseProc();
 
 		EOICommand(INTR_8259_SLAVE + 6);
-
 	}
 	__asm {
 		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0

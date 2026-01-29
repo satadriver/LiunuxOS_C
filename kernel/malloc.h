@@ -41,7 +41,7 @@ typedef struct
 
 #pragma pack()
 
-DWORD getBorderAddr();
+QWORD getBorderAddr();
 
 int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid,int cpu);
 

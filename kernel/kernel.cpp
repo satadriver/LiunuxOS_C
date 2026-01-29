@@ -132,7 +132,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	initDll();
 
 #ifdef LOCAL_APIC_ENABLE
-	//BPCodeStart();
+	BPCodeStart();
 #endif
 
 	ret = StartVirtualTechnology();
@@ -199,7 +199,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
 		imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
+		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
 	while (1)

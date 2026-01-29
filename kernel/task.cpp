@@ -11,7 +11,7 @@
 #include "def.h"
 #include "malloc.h"
 #include "core.h"
-#include "vectorRoutine.h"
+#include "isr.h"
 #include "systemService.h"
 #include "apic.h"
 #include "apic.h"
@@ -19,61 +19,38 @@
 
 #define TASKS_LIST_BUF_SIZE 0x1000
 
-unsigned long g_task_array_lock[256] ;
-unsigned long g_task_list_lock [256];
+int g_task_array_lock[256] ;
+int g_task_list_lock [256];
 
-/*
+
+
 void enter_task_array_lock() {
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_task_array_lock[id]);
 }
 
 void leave_task_array_lock() {
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	__leaveSpinlock(&g_task_array_lock[id]);
-}
-*/
 
-
-
-void enter_task_array_lock_cli() {
-	__asm {cli}
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	__enterSpinlock(&g_task_array_lock[id]);
-}
-
-void leave_task_array_lock_sti() {
-	__asm {sti}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
 
-/*
+
 void enter_task_list_lock() {
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
 	__enterSpinlock(&g_task_list_lock[id]);
 }
 
 void leave_task_list_lock() {
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	__leaveSpinlock(&g_task_list_lock[id]);
-}
-*/
-void enter_task_list_lock_cli() {
-	__asm {cli}
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	__enterSpinlock(&g_task_list_lock[id]);
-}
-
-void leave_task_list_lock_sti() {
-	__asm {sti}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__leaveSpinlock(&g_task_list_lock[id]);
 }
 
 
-/*
 void enter_task_array_lock_id(int id) {
 	__enterSpinlock(&g_task_array_lock[id]);
 }
@@ -81,7 +58,7 @@ void enter_task_array_lock_id(int id) {
 void leave_task_array_lock_id(int id) {
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
-*/
+
 
 TASK_LIST_ENTRY *gTasksListPtr[256] ;
 TASK_LIST_ENTRY* gTasksListPos[256];
@@ -214,7 +191,7 @@ TASK_LIST_ENTRY* InsertTaskList_First(int tid) {
 
 TASK_LIST_ENTRY* InsertTaskList(int tid) {
 
-	enter_task_list_lock_cli();
+	enter_task_list_lock();
 
 	TASK_LIST_ENTRY* result = 0;
 	LPPROCESS_INFO base = (LPPROCESS_INFO)GetTaskTssBase();
@@ -235,14 +212,14 @@ TASK_LIST_ENTRY* InsertTaskList(int tid) {
 			break;
 		}
 	}
-	leave_task_list_lock_sti();
+	leave_task_list_lock();
 
 	return result;
 }
 
 TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 
-	enter_task_list_lock_cli();
+	enter_task_list_lock();
 	TASK_LIST_ENTRY* result = 0;
 	int cnt = 0;
 
@@ -301,14 +278,14 @@ TASK_LIST_ENTRY* RemoveTaskListTid(int tid) {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	DestroyThreadWindow(tid, cpu);
 
-	leave_task_list_lock_sti();
+	leave_task_list_lock();
 
 	return result;
 }
 
 TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 
-	enter_task_list_lock_cli();
+	enter_task_list_lock();
 	TASK_LIST_ENTRY* result = 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -367,7 +344,7 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 
 	__kFreeProcess(pid);
 
-	leave_task_list_lock_sti();
+	leave_task_list_lock();
 
 	return result;
 }
@@ -502,97 +479,97 @@ LPPROCESS_INFO __findProcessByTid(int tid) {
 
 
 int __terminateByFileName(char * filename) {
-	enter_task_array_lock_cli();;
+	enter_task_array_lock();;
 	LPPROCESS_INFO p = __findProcessFileName(filename);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return FALSE;
 }
 
 int __terminateByFuncName(char * funcname) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO * p = __findProcessFuncName(funcname);
 	if (p)
 	{
 		p->status = TASK_OVER;
 
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return FALSE;
 }
 
 int __terminatePid(int pid) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return 0;
 }
 
 
 int __terminateTid(int tid) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_OVER;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return 0;
 }
 
 
 
 int __pauseTid(int tid) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return 0;
 }
 
 
 int __resumeTid(int tid) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO* p = __findProcessByTid(tid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return 0;
 }
 
 
 int __pausePid(int pid) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_SUSPEND;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return 0;
 }
 
 
 int __resumePid(int pid) {
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 	PROCESS_INFO* p = __findProcessByPid(pid);
 	if (p)
 	{
 		p->status = TASK_RUN;
 	}
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 	return 0;
 }
 
@@ -803,8 +780,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
 	__asm {
-		//FNCLEX
-		//fninit
+		FNCLEX
+		fninit
 		////fwait
 		mov eax, fenvprev
 		FxSAVE[eax]
@@ -816,8 +793,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
-		//FNCLEX
-		//fninit
+		FNCLEX
+		fninit
 	}
 
 	env->eax = process->tss.eax;
@@ -1330,7 +1307,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	ActiveApTask(TASK_SWITCH_VECTOR);
 	
 	__asm {
-		//clts			//before all fpu instructions
+		clts			//multiple tss for task switch,must to do this
 	}
 
 	//__printf(szout, "__kTaskSchedule entry\r\n");
@@ -1486,7 +1463,6 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		MOV GS, AX
 		mov ss, ax
 
-		//clts
 	}
 
 	{
@@ -1553,7 +1529,7 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 			pop ds
 			popad
 
-			//clts
+			clts
 
 			iretd
 		}
@@ -1587,7 +1563,7 @@ extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
 
 		mov esp, ss: [esp - 20]
 
-		//clts
+		clts
 
 		iretd
 	}
@@ -1615,7 +1591,7 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 
 
 
-extern "C" __declspec(dllexport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack) {
+extern "C" __declspec(naked) int __kKernelProcess(LIGHT_ENVIRONMENT * stack) {
 	__asm {
 		pushad
 		push ds

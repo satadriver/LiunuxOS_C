@@ -8,7 +8,6 @@
 //LPT1: 0x378 (or occasionally 0x3BC) (IRQ 7)
 //LPT2 : 0x278 (IRQ 6)
 //LPT3 : 0x3BC (IRQ 5)
-///
 
 
 //https://wiki.osdev.org/Parallel_port

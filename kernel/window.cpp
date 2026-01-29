@@ -15,7 +15,7 @@ LPWINDOWSINFO gWindowsList = 0;
 
 POPUPMENU gPopupMenu ;
 
-unsigned long g_window_lock = 0;
+int g_window_lock = 0;
 
 
 void initWindowList() {
@@ -364,7 +364,7 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	char szout[256];
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
 
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -416,7 +416,7 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
 
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 
 	return 0;
 }
@@ -429,7 +429,7 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int pid = proc->pid;
@@ -441,7 +441,7 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 		if(window->minBuf == 0)
 		{
 			__printf(szout, "%s malloc minBuf error\r\n", __FUNCTION__);
-			leave_task_array_lock_sti();
+			leave_task_array_lock();
 			return -1;
 		}
 	}
@@ -474,14 +474,14 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	RemoveWindow(window->id);
 
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 
 	return 0;
 }
 
 
 
-unsigned long g_popupmenu_lock = 0;
+int g_popupmenu_lock = 0;
 
 
 int insertPopupItem(LPWINDOWCLASS window) {

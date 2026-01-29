@@ -46,9 +46,6 @@ void EnableNXE() {
 }
 
 
-
-
-
 //长调用最终调用在哪里.是由调用门(段描述符)来指定的.而不是EIP.EIP是废弃的
 extern "C" __declspec(naked) void __kCallGateProc(DWORD  params, DWORD count) {
 

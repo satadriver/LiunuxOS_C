@@ -145,9 +145,9 @@ void initCoprocessor() {
 }
 
 
-//EM = 1,all float instruction exception
-//MP = 1 && TS =1,fwait exception
-//MP=1 or TS = 1,float instruction exception
+//EM = 1,all float instruction cause this exception
+//MP = 1 && TS = 1,fwait cause this exception
+//TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
 	
 	if (gFpuStatus == 0)

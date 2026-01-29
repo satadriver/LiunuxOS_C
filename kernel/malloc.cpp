@@ -17,12 +17,12 @@ QWORD gAvailableBase = 0;
 
 QWORD gAllocLimitSize = 0;
 
-DWORD gMemAllocLock = FALSE;
+int gMemAllocLock = FALSE;
 
 LPMEMALLOCINFO gMemAllocList = 0;
 
 
-DWORD getBorderAddr() {
+QWORD getBorderAddr() {
 	return gAvailableBase + gAvailableSize;
 }
 
@@ -351,7 +351,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		if (process->pid == pid && process->cpuid == cpu)
 		{
-			enter_task_array_lock_other(cpu);
+			enter_task_array_lock_id(cpu);
 			if (vmtag) {
 				vaddr = process->vaddr + process->vasize;
 				process->vasize += size;
@@ -369,10 +369,10 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			cr3 = (DWORD*)process->tss.cr3;
 			pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
 
-			leave_task_array_lock_other(cpu);
+			leave_task_array_lock_id(cpu);
 		}
 		else {
-			enter_task_array_lock_other(cpu);
+			enter_task_array_lock_id(cpu);
 
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
@@ -388,7 +388,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			//cr3 = (DWORD*)process->tss.cr3;
 			//pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
 
-			leave_task_array_lock_other(cpu);
+			leave_task_array_lock_id(cpu);
 		}
 	}
 #endif

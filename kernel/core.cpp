@@ -16,7 +16,7 @@
 #include "core.h"
 #include "systemService.h"
 #include "task.h"
-#include "vectorRoutine.h"
+#include "isr.h"
 #include "descriptor.h"
 #include "floppy.h"
 #include "parallel.h"
@@ -371,7 +371,7 @@ char* InitGdt() {
 	}
 
 	unsigned long long tssdesc = *(unsigned long long*)( lpgdt + kTssTaskSelector);
-	__printf(szout, "cpu:%d,gdt base:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, stack0top, stacktop);
+	__printf(szout, "cpu:%d,gdt:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, stack0top, stacktop);
 	return lpgdt;
 }
 
@@ -405,7 +405,7 @@ char* InitIDT() {
 	makeTrapGateDescriptor((DWORD)OverflowException, KERNEL_MODE_CODE, 3, descriptor + 4);
 	makeTrapGateDescriptor((DWORD)BoundRangeExceed, KERNEL_MODE_CODE, 3, descriptor + 5);
 	makeTrapGateDescriptor((DWORD)UndefinedOpcode, KERNEL_MODE_CODE, 3, descriptor + 6);
-	makeTrapGateDescriptor((DWORD)DeviceUnavailable, KERNEL_MODE_CODE, 3, descriptor + 7);
+	makeTrapGateDescriptor((DWORD)DeviceNotAvailable, KERNEL_MODE_CODE, 3, descriptor + 7);
 	makeTrapGateDescriptor((DWORD)DoubleFault, KERNEL_MODE_CODE, 3, descriptor + 8);
 
 	makeTrapGateDescriptor((DWORD)CoprocSegOverrun, KERNEL_MODE_CODE, 3, (descriptor + 9));
@@ -456,8 +456,12 @@ char* InitIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-	//makeTaskGateDescriptor((DWORD)kTssIpiSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_IPI_VECTOR));
+//#define IPI_INT_TASKGATE
+#ifdef IPI_INT_TASKGATE
+	makeTaskGateDescriptor((DWORD)kTssIpiSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_IPI_VECTOR));
+#else
 	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
+#endif
 	
 	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
 
@@ -479,12 +483,13 @@ char* InitIDT() {
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = (DWORD)lpidt;
 	char szout[256];
-	__printf(szout, "cpu:%d idt base:%x,size:%x\r\n",id, idtbase.addr, idtbase.size);
+	__printf(szout, "cpu:%d idt:%x,size:%x\r\n",id, idtbase.addr, idtbase.size);
 	__asm {
 		lidt idtbase
 	}
 	return lpidt;
 }
+
 
 void InitIdt64() {
 
@@ -504,7 +509,7 @@ void InitIdt64() {
 	makeTrapGate64Descriptor((DWORD)OverflowException, KERNEL_MODE_CODE, 3, descriptor + 4);
 	makeTrapGate64Descriptor((DWORD)BoundRangeExceed, KERNEL_MODE_CODE, 3, descriptor + 5);
 	makeTrapGate64Descriptor((DWORD)UndefinedOpcode, KERNEL_MODE_CODE, 3, descriptor + 6);
-	makeTrapGate64Descriptor((DWORD)DeviceUnavailable, KERNEL_MODE_CODE, 3, descriptor + 7);
+	makeTrapGate64Descriptor((DWORD)DeviceNotAvailable, KERNEL_MODE_CODE, 3, descriptor + 7);
 	makeTrapGate64Descriptor((DWORD)DoubleFault, KERNEL_MODE_CODE, 3, descriptor + 8);
 
 	makeTrapGate64Descriptor((DWORD)CoprocSegOverrun, KERNEL_MODE_CODE, 3, (descriptor + 9));
@@ -526,7 +531,6 @@ void InitIdt64() {
 	makeTrapGate64Descriptor((DWORD)HypervisorInjectException, KERNEL_MODE_CODE, 3, descriptor + 28);
 	makeTrapGate64Descriptor((DWORD)VMMCommException, KERNEL_MODE_CODE, 3, descriptor + 29);
 	makeTrapGate64Descriptor((DWORD)SecurityException, KERNEL_MODE_CODE, 3, descriptor + 30);
-
 
 	makeIntGate64Descriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
 
@@ -562,7 +566,7 @@ void InitIdt64() {
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
 	idtbase.addr = IDT_BASE;
 	char szout[256];
-	__printf(szout, (char*)"idt base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
+	__printf(szout, (char*)"idt64 base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
 	__asm {
 		//不要使用 lidt lpidt,why?
 		lidt idtbase

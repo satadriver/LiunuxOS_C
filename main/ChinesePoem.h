@@ -1,5 +1,5 @@
 #pragma once
-#pragma once
+
 #include "console.h"
 
 #pragma pack(1)

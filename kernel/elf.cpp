@@ -41,7 +41,7 @@ int mapFile(DWORD file,int filesize, DWORD dst) {
 
 //#define _DEBUG
 #ifdef _DEBUG
-#include <stdio.h>
+//#include <stdio.h>
 #endif
 
 //https://docs.oracle.com/cd/E23824_01/html/819-0690/chapter6-42444.html#scrolltoc

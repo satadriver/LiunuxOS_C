@@ -17,7 +17,6 @@
 
 void EllipseAnimation(WINDOWCLASS * window) {
 
-
 	//DWORD backsize = gBytesPerPixel * (gVideoWidth) * (gVideoHeight);
 	//DWORD backGround = __kMalloc(backsize);
 	//POINT p;

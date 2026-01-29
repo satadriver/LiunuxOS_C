@@ -268,7 +268,7 @@
     <ClCompile Include="process.cpp" />
     <ClCompile Include="utils.cpp" />
     <ClCompile Include="VM86.cpp" />
-    <ClCompile Include="vectorRoutine.cpp" />
+    <ClCompile Include="ISR.cpp" />
     <ClCompile Include="video.cpp" />
     <ClCompile Include="VMM.cpp" />
     <ClCompile Include="window.cpp" />
@@ -338,7 +338,7 @@
     <ClInclude Include="process.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="VM86.h" />
-    <ClInclude Include="vectorRoutine.h" />
+    <ClInclude Include="ISR.h" />
     <ClInclude Include="video.h" />
     <ClInclude Include="VMM.h" />
     <ClInclude Include="window.h" />

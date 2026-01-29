@@ -53,7 +53,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	}
 
 	//__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",tid, pid, current->pid, current->tid, filename, funcname);
-	enter_task_array_lock_cli();
+	enter_task_array_lock();
 
 	LPPROCESS_INFO process = 0;
 
@@ -88,7 +88,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	__kFreeProcess(pid);
 
-	leave_task_array_lock_sti();
+	leave_task_array_lock();
 
 	if (dwtid & 0x80000000) {
 		return;
@@ -364,11 +364,11 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",
 		getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 
-	//enter_task_array_lock_cli();
+	//enter_task_array_lock();
 
 	tss->status = TASK_RUN;
 
-	//leave_task_array_lock_sti();
+	//leave_task_array_lock();
 
 #ifdef TASK_SWITCH_ARRAY
 

@@ -9,7 +9,7 @@
 //BIOS:
 //https://blog.csdn.net/x86ipc/article/details/5303760
 
-DWORD gPageAllocLock = FALSE;
+int gPageAllocLock = FALSE;
 
 LPMEMALLOCINFO gPageAllocList = 0;
 
@@ -59,6 +59,7 @@ void initPaging() {
 
 	EnablePaging32((char*)PDE_ENTRY_VALUE);
 }
+
 
 LPMEMALLOCINFO getFreePageIdx() {
 
