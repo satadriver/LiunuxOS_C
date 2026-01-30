@@ -1006,6 +1006,20 @@ int __enterSpinlock(int* lpv) {
 	}
 }
 
+int __GetSpinlock(int* lpv) {
+	__asm {
+
+		mov edx, lpv
+		lock bts ds : [edx] , 0
+		jnc __getSpinLock
+		mov eax,0
+		jmp __TestSpinlock_end
+		__getSpinLock :
+		mov eax,1
+__TestSpinlock_end:
+	}
+}
+
 
 int CheckSpinlock(int* lpv) {
 	int v = 0;

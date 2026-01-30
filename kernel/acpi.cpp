@@ -240,9 +240,7 @@ int initACPI(void)
 
 extern "C"  __declspec(dllexport) int doPowerOff(void)
 {
-	__asm {
-		//cli
-	}
+
 	const ACPIHeader *dt = acpiDsdt; /*先找dsdt*/
 retry:;
 	u8 *data = (u8 *)dt + sizeof(ACPIHeader); /*获取data和长度*/
@@ -290,9 +288,7 @@ retry:;
 
 extern "C"  __declspec(dllexport) int doReboot(void)
 {
-	__asm {
-		//cli
-	}
+
 	if (acpiFadt->header.length < 129)
 		goto next;  /*检查是否支持reset寄存器*/
 	for (;;) /*发送Reset命令*/

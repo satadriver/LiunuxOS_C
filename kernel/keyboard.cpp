@@ -538,7 +538,7 @@ void kbdtest() {
 
 __declspec(naked) void KeyboardIntProc() {
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es

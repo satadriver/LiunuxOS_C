@@ -240,7 +240,7 @@ unsigned char* poem_ltsbdh = (unsigned char*)
 
 
 
-#define CHINESE_POEM_DELAY 30
+#define CHINESE_POEM_DELAY 100
 
 
 

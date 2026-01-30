@@ -388,7 +388,7 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 }
 
 
-int __getFreeTask(LPTASKRESULT ret,int intTag) {
+int __getFreeTask(LPTASKRESULT ret) {
 	int result = 0;
 	if (ret == 0)
 	{
@@ -397,13 +397,8 @@ int __getFreeTask(LPTASKRESULT ret,int intTag) {
 	ret->lptss = 0;
 	ret->number = 0;
 
-	if (intTag) {
-		__asm {cli}
-	}
-	
-
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	__enterSpinlock(&g_task_array_lock[id]);
+	enter_task_array_lock_id(id);
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseSelected(id);
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -423,11 +418,8 @@ int __getFreeTask(LPTASKRESULT ret,int intTag) {
 		}
 	}
 
-	__leaveSpinlock(&g_task_array_lock[id]);
+	leave_task_array_lock_id(id);
 
-	if (intTag) {
-		__asm {sti}
-	}
 	return result;
 }
 
@@ -620,11 +612,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[256];
 	int ret = 0;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = CheckSpinlock(&g_task_array_lock[id]);
+	ret = __GetSpinlock(&g_task_array_lock[id]);
 	if (ret == 0) {
-		ret = __enterSpinlock(&g_task_array_lock[id]);
-	}
-	else {
 		return 0;
 	}
 
@@ -1000,7 +989,12 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[256];
 	int ret = 0;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __enterSpinlock(&g_task_array_lock[id]);
+	//ret = __enterSpinlock(&g_task_array_lock[id]);
+	ret = __GetSpinlock(&g_task_array_lock[id]);
+	if (ret == 0) {
+		return 0;
+	}
+
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
@@ -1388,7 +1382,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	//return 0;
 
 	TASKRESULT freeTss;
-	__getFreeTask(&freeTss, 0);
+	__getFreeTask(&freeTss);
 	int tid = freeTss.number;
 
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
@@ -1468,10 +1462,11 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	{
 		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[256];
-		//__printf(szout,"TimerInterrupt\r\n");
+		//__printf(szout,"ApTaskSchedule\r\n");
 
 		LPPROCESS_INFO next = SingleTssSchedule(stack);
 
+		//ipi command need to send eoi to local apic
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
 

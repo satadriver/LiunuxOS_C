@@ -118,6 +118,7 @@ extern "C" __declspec(dllexport) WORD __ntohs(WORD v);
 extern "C" __declspec(dllexport)DWORD __ntohl(DWORD v);
 
 extern "C" __declspec(dllexport)int __lockInc(int*v);
+extern "C" __declspec(dllexport)int __GetSpinlock(int* lpv);
 extern "C" __declspec(dllexport)int CheckSpinlock(int* lpv);
 extern "C" __declspec(dllexport)void __initSpinlock(int* v);
 extern "C" __declspec(dllexport)int __enterSpinlock(int * v);
@@ -204,6 +205,7 @@ extern "C" __declspec(dllimport) int upper2lower(char *data, int len);
 extern "C" __declspec(dllimport)WORD __ntohs(WORD v);
 extern "C" __declspec(dllimport)DWORD __ntohl(DWORD v);
 extern "C" __declspec(dllimport)int CheckSpinlock(int* lpv);
+extern "C" __declspec(dllimport)int __GetSpinlock(int* lpv);
 extern "C" __declspec(dllimport)int __lockInc(int*v);
 extern "C" __declspec(dllimport)void __initSpinlock(int* v);
 extern "C" __declspec(dllimport)int __enterSpinlock(int* v);

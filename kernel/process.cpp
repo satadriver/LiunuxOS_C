@@ -361,8 +361,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->ppid = thistss->pid;
 	tss->sleep = 0;
 
-	__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",
-		getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
+	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 
 	//enter_task_array_lock();
 
@@ -426,20 +425,19 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
  	//char * funcname = (char *)linear2phy((DWORD)funname);
  	//DWORD params = linear2phy(lpparams);
 
-	__printf(szout, "%s base:%x size:%x module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__,
-		filedata,filesize, filename, filename, funcname, funcname);
+	//__printf(szout, "%s base:%x size:%x module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__,filedata,filesize, filename, filename, funcname, funcname);
 
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
-#ifdef __IPI_CREATEPROCESS
+#ifdef IPI_TASK_SWITCH
 	int cpu = GetIdleProcessor();
 #else
 	int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 #endif
 
 	TASKRESULT result;
-	ret = __getFreeTask(&result,1);
+	ret = __getFreeTask(&result);
 	if (ret == FALSE)
 	{
 		__printf(szout, "%s %d error\n",__FUNCTION__, __LINE__);

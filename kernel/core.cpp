@@ -454,7 +454,7 @@ char* InitIDT() {
 
 	makeTrapGateDescriptor((DWORD)ServiceEntry, KERNEL_MODE_CODE, 3, descriptor + 0x80);
 	
-	makeIntGateDescriptor((DWORD)HpetTimer0Handler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
+	makeIntGateDescriptor((DWORD)HpetTimerHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
 //#define IPI_INT_TASKGATE
 #ifdef IPI_INT_TASKGATE
@@ -903,7 +903,6 @@ void initTss64(TSS64_DATA* tss, QWORD rsp) {
 void EOIHandler() {
 	
 #ifdef IO_APIC_ENABLE
-	
 	
 	int seq = INTR_8259_MASTER / sizeof(int);
 	int mod = INTR_8259_MASTER % sizeof(int);

@@ -473,7 +473,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 __declspec(naked) void MouseIntProc() {
 
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es

@@ -250,34 +250,32 @@ int initHpet() {
 	int cnt = hg->count;
 
 	DWORD tick = hg->tick;
+	if (tick == 0xffffffff) {
+		tick = 0x0429b17f;
+	}
 
 	unsigned long long ns = 1000000000000000;
 
-	long long tc =( ns / hg->tick)/100;		// 10ms, 14318179 = 1000ms,0x0429b17f=69841279
+	int freq = 1000 / TASK_TIME_SLICE;
+
+	long long tc =( ns / tick)/ freq;		// 10ms, 14318179 = 1000ms,0x0429b17f=69841279
 
 	*(long long*)(APIC_HPET_BASE + 0x10) = 0;
 
 	//General Interrupt Status Register
 	*(long long*)(APIC_HPET_BASE + 0x20) = 0;
-		
-	//timer0
-	unsigned long long* regs = (unsigned long long*)(APIC_HPET_BASE + 0x100);
 
 	//bit3: writing 1 to this field enables periodic timer and writing 0 enables non - periodic mode.O
 	//bit2:Setting this bit to 1 enables triggering of interrupts. Even if this bit is 0, this timer will still set Tn_INT_STS.
-	regs[0] = 0x40 + 8 + 4 + 2;
+	//timer0
+	*(unsigned long long*)(APIC_HPET_BASE + 0x100 + 0x20*0) = 0x40 + 8 + 4 + 2;
 	//Timer N Comparator Value Register
 	//compare with main counter to check if an interrupt should be generated.
-	regs[1] = tc;
-	//regs[2] = 0;
+	*(unsigned long long*)(APIC_HPET_BASE + 0x108 + 0x20*0) = tc;
 
-	regs[4] = 4 + 2;
-	regs[5] = tc;
-	//regs[6] = 0;
-
-	//regs[8] = 0x4;
-	//regs[9] = tc;
-	//regs[10] = 0;
+	//timer1
+	*(unsigned long long*)(APIC_HPET_BASE + 0x100 + 0x20*1) =  4 + 2;
+	*(unsigned long long*)(APIC_HPET_BASE + 0x108 + 0x20*1) = ns / tick;
 
 	//Main Counter Value Register,increase in each interruption
 	//Writes to this register should only be done when the counter is halted (ENABLE_CNF = 0
@@ -291,6 +289,79 @@ int initHpet() {
 	return FALSE;
 }
 
+
+
+
+
+extern "C" void __declspec(naked) HpetTimerHandler(LIGHT_ENVIRONMENT * stack) {
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		MOV ss, AX
+	}
+
+	{
+		char szout[256];
+
+		int value = *(int*)(APIC_HPET_BASE + 0x20);
+		if (value & 1)
+		{
+			//__printf(szout,"hpet timer 0\r\n");
+		}
+		
+		//why not use "else if"?
+		if (value & 2) {
+			//__printf(szout, "hpet timer 1\r\n");
+
+			unsigned long long next_cnt = *(long long*)(APIC_HPET_BASE + 0xf0);
+			unsigned long long period = *(unsigned long long*)(APIC_HPET_BASE + 0x108 + 0x20 * 1);
+			next_cnt += period;
+			*(unsigned long long*)(APIC_HPET_BASE + 0x108 + 0x20 * 1) = next_cnt;
+
+			__kPeriodTimer();
+		}
+
+		*(unsigned __int64*)(APIC_HPET_BASE + 0x20) = 0xff;
+
+		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
+	}
+
+	__asm {
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+		iretd
+
+		jmp HpetTimerHandler
+	}
+}
 
 
 void IoApicRedirect(int pin, int cpu, int vector, int mode) {
@@ -362,9 +433,7 @@ int InitIoApicRte() {
 
 	IoApicRedirect(0x12, bsp_id, INTR_8259_MASTER + 1, 0);
 
-	//IoApicRedirect(0x14, bsp_id, APIC_HPETTIMER_VECTOR, 0);
-
-	IoApicRedirect(0x14, bsp_id, APIC_LVTTIMER_VECTOR, 0);
+	IoApicRedirect(0x14, bsp_id, APIC_HPETTIMER_VECTOR , 0);
 
 	IoApicRedirect(0x16, bsp_id, INTR_8259_MASTER + 3, 0);
 	IoApicRedirect(0x18, bsp_id, INTR_8259_MASTER + 4, 0);
@@ -372,8 +441,7 @@ int InitIoApicRte() {
 	IoApicRedirect(0x1c, bsp_id, INTR_8259_MASTER + 6, 0);
 	IoApicRedirect(0x1e, bsp_id, INTR_8259_MASTER + 7, 0);
 
-	//IoApicRedirect(0x20, bsp_id, APIC_LVTTIMER_VECTOR, 0);
-	//IoApicRedirect(0x20, bsp_id, APIC_HPETTIMER_VECTOR, 0);
+	IoApicRedirect(0x20, bsp_id, APIC_HPETTIMER_VECTOR, 0);
 
 	IoApicRedirect(0x22, bsp_id, INTR_8259_SLAVE + 1, 0);
 	IoApicRedirect(0x24, bsp_id, INTR_8259_SLAVE + 2, 0);
@@ -382,6 +450,15 @@ int InitIoApicRte() {
 	IoApicRedirect(0x2a, bsp_id, INTR_8259_SLAVE + 5, 0);
 	IoApicRedirect(0x2c, bsp_id, INTR_8259_SLAVE + 6, 0);
 	IoApicRedirect(0x2e, bsp_id, INTR_8259_SLAVE + 7, 0);
+
+	IoApicRedirect(0x30, bsp_id, 0x10000, 0);
+	IoApicRedirect(0x32, bsp_id, 0x10000 + 1, 0);
+	IoApicRedirect(0x34, bsp_id, 0x10000 + 2, 0);
+	IoApicRedirect(0x36, bsp_id, 0x10000 + 3, 0);
+	IoApicRedirect(0x38, bsp_id, 0x10000 + 4, 0);
+	IoApicRedirect(0x3a, bsp_id, 0x10000 + 5, 0);
+	IoApicRedirect(0x3c, bsp_id, 0x10000 + 6, 0);
+	IoApicRedirect(0x3e, bsp_id, 0x10000 + 7, 0);
 
 	return 0;
 }
@@ -450,8 +527,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
-		cli
-		
+
 		pushad
 		push ds
 		push es
@@ -521,6 +597,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 				__kCreateThread((DWORD)addr, (DWORD)subparam->module,(unsigned long)p ,subparam->funcname );
 			}
 		}
+		else if (cmd == IPI_TASKSWITCH) {
+			//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+		}
 		else {
 
 		}
@@ -552,8 +631,6 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
-
 		pushad
 		push ds
 		push es
@@ -624,9 +701,11 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 
 
+
+
 extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es
@@ -675,7 +754,6 @@ extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* st
 
 extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
 		pushad
 		push ds
 		push es
@@ -726,7 +804,6 @@ extern "C" void __declspec(naked) LVTErrorIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
 		pushad
 		push ds
 		push es
@@ -775,7 +852,6 @@ extern "C" void __declspec(naked) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT* st
 
 extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
 		pushad
 		push ds
 		push es
@@ -832,119 +908,7 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 
 
 
-int g_cmos_timer = 0;
 
-
-extern "C" void __declspec(naked) HpetTimer0Handler(LIGHT_ENVIRONMENT * stack) {
-	__asm {
-		cli
-		pushad
-		push ds
-		push es
-		push fs
-		push gs
-		push ss
-
-		push esp
-		sub esp, 4
-		push ebp
-		mov ebp, esp
-		sub esp, NATIVE_STACK_LIMIT
-
-		mov eax, KERNEL_MODE_DATA
-		mov ds, ax
-		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-		MOV ss, AX
-	}
-
-	{
-		char szout[256];
-		//__printf(szout, "HpetInterrupt\r\n");
-
-		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
-		int value = *(int*)(APIC_HPET_BASE + 0x20);
-		//if (value & 1)
-		{
-			__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-			//*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffe;
-			//*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
-			
-			//*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
-
-			g_cmos_timer++;
-			if (g_cmos_timer == (1000 / TASK_TIME_SLICE)) {
-				g_cmos_timer = 0;
-				
-				//__kPeriodTimer();
-			}
-		}
-
-		/*
-		if (value & 2) {
-			*(long*)(APIC_HPET_BASE + 0x20) = value & 0xfffffffd;
-			*(unsigned long*)(APIC_HPET_BASE + 0xf0) = 0;
-
-			*(unsigned long*)(APIC_HPET_BASE + 0xf4) = 0;
-
-			g_cmos_timer++;
-			if (g_cmos_timer == (1000 / TASK_TIME_SLICE)) {
-				g_cmos_timer = 0;
-
-			}
-
-			
-			long long idc = *(long long*)APIC_HPET_BASE;
-
-			HPET_GCAP_ID_REG* hg = (HPET_GCAP_ID_REG*)&idc;
-			unsigned long long ns = 1000000000000000;
-
-			long long tc = (ns / hg->tick) / 100;	
-			unsigned long long* regs = (unsigned long long*)(APIC_HPET_BASE + 0x100);
-			*(long long*)(APIC_HPET_BASE + 0x10) = 0;
-			regs[4] = 4 + 2;
-			regs[5] = tc;
-			*(long long*)(APIC_HPET_BASE + 0x10) = 3;
-		}
-		*/
-		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
-
-		DWORD base = APIC_HPET_BASE;
-		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
-		*gintr_sta = 0xff;
-	}
-
-	__asm {
-#ifdef SINGLE_TASK_TSS
-		call GetCurrentTaskTssBase
-		mov edx, eax
-		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
-#endif
-
-		mov esp, ebp
-		pop ebp
-		add esp, 4
-		pop esp
-		pop ss
-		pop gs
-		pop fs
-		pop es
-		pop ds
-		popad
-#ifdef SINGLE_TASK_TSS
-		mov esp, dword ptr ss : [esp - 20]
-#endif	
-
-		//clts
-		iretd
-
-		jmp HpetTimer0Handler
-	}
-}
 
 int AllocateApTask(int intnum) {
 
@@ -1240,14 +1204,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	InitLocalApicCmci();
 
-#ifdef IO_APIC_ENABLE
-	__asm {cli}
-
-	//ret = DisableLocalApicLVT();
-
-	__asm {sti}
-#endif
-
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 
 	//__asm{int APIC_IPI_VECTOR}
@@ -1308,6 +1264,7 @@ void BPCodeStart() {
 	}
 
 	__asm {cli}
+
 	enableLocalApic();
 
 	//enableIoApic();
@@ -1387,16 +1344,14 @@ void BPCodeStart() {
 	InitLocalApicErr();
 
 	InitLocalApicCmci();
-	
+
+	//ret = DisableLocalApicLVT();
+
 #ifdef IO_APIC_ENABLE
 	__asm {cli}
-	
+	DisableInt();
 	initHpet();
 	InitIoApicRte();
-	DisableInt();
-	
-	//ret = DisableLocalApicLVT();
-	
 	g_apic_int_tag = 1;
 	__asm {sti}
 #endif
@@ -1404,7 +1359,6 @@ void BPCodeStart() {
 	//ret = InitLocalApicTimer();
 
 	__sleep(0);
-	//AllocateApTask(2);
 
 	__printf(szout, "bsp id:%d version:%x ipi:%d apic timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
 		cpu, localapic_ver, g_ipi_lock, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);

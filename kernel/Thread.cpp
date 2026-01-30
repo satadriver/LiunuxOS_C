@@ -85,14 +85,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int ret = 0;
 
 	char szout[256];
-#ifdef __IPI_CREATEPROCESS
+#ifdef IPI_TASK_SWITCH
 	int cpu = GetIdleProcessor();
 #else
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 #endif
 
 	TASKRESULT freetask;
-	ret = __getFreeTask(&freetask, 1);
+	ret = __getFreeTask(&freetask);
 	if (ret == FALSE)
 	{
 		return FALSE;

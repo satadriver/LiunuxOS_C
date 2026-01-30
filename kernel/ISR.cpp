@@ -1181,7 +1181,7 @@ mov esp, ss: [esp - 20]这一行汇编将esp0替换为新任务的tss中保存的esp0值
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es
@@ -1228,7 +1228,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es
@@ -1258,13 +1258,6 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
 		EOICommand(INTR_8259_MASTER + 0);
-#if 0
-		* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-		* (DWORD*)(IO_APIC_BASE + 0x40) = 0;
-		DWORD base = APIC_HPET_BASE;
-		unsigned __int64* gintr_sta = (unsigned __int64*)(base + 0x20);
-		*gintr_sta = 0xff;
-#endif	
 
 	}
 
@@ -1571,7 +1564,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
-		//cli
+
 		pushad
 		push ds
 		push es

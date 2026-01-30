@@ -79,9 +79,9 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 
 	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL*5, (DWORD)__doAlarmTask, 0);
 
-	sysEntryProc();
+	//sysEntryProc();
 
-	callgateEntry(0, 0);
+	//callgateEntry(0, 0);
 
 	__giveup();
 
