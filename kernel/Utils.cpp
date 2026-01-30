@@ -1225,7 +1225,7 @@ int __GetCurrentPid() {
 int __sleep(int millisecs) {
 	__asm {
 		push edi
-		mov eax, SLEEP
+		mov eax, SVC_SLEEP
 		lea edi, millisecs
 		int 80h
 		pop edi
@@ -1236,7 +1236,7 @@ int __sleep(int millisecs) {
 int __giveup() {
 	__asm {
 		push edi
-		mov eax, GIVEUP_LIFE
+		mov eax, SVC_GIVEUP_LIFE
 		mov edi,0
 		int 80h
 		pop edi

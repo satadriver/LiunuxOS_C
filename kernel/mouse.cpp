@@ -58,7 +58,7 @@ int getmouse(LPMOUSEINFO lpinfo,int wid) {
 
 void restoreMouse() {
 	__asm {
-		mov eax, RESTORE_MOUSE
+		mov eax, SVC_RESTORE_MOUSE
 		int 80h
 	}
 }
@@ -66,7 +66,7 @@ void restoreMouse() {
 
 void drawMouse() {
 	__asm {
-		mov eax, DRAW_MOUSE
+		mov eax, SVC_DRAW_MOUSE
 		int 80h
 	}
 }
@@ -500,7 +500,7 @@ __declspec(naked) void MouseIntProc() {
 	}
 	__asm {
 		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0
-		mov eax, TURNON_SCREEN
+		mov eax, SVC_TURNON_SCREEN
 		int 80h
 
 		mov esp, ebp

@@ -71,95 +71,95 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	DWORD r = 0;
 	switch (num)
 	{
-		case KBD_OUTPUT:
+		case SVC_KBD_OUTPUT:
 		{
 			r = __kGetKbd(params[0]);
 			break;
 		}
-		case KBD_INPUT:
+		case SVC_KBD_INPUT:
 		{
 			__kPutKbd((unsigned char)params[0], 0);
 			break;
 		}
-		case MOUSE_OUTPUT:
+		case SVC_MOUSE_OUTPUT:
 		{
 			r= __kGetMouse((LPMOUSEINFO)params[0], params[1]);
 			break;
 		}
-		case GRAPH_CHAR_OUTPUT:
+		case SVC_GRAPH_CHAR_OUTPUT:
 		{
 			r = __drawGraphChars((char*)params[0], params[1]);
 			break;
 		}
-		case RANDOM:
+		case SVC_RANDOM:
 		{
 			r = __random((unsigned long)params[0]);
 			break;
 		}
-		case SLEEP:
+		case SVC_SLEEP:
 		{
 			sleep(params);
 
 			break;
 		}
-		case TURNON_SCREEN:
+		case SVC_TURNON_SCREEN:
 		{
 			__turnonScreen();
 			break;
 		}
-		case TURNOFF_SCREEN:
+		case SVC_TURNOFF_SCREEN:
 		{
 			__turnoffScreen();
 			break;
 		}
-		case CPU_MANUFACTORY:
+		case SVC_CPU_MANUFACTORY:
 		{
 			r = __cputype(params);
 			break;
 		}
-		case TIMESTAMP:
+		case SVC_TIMESTAMP:
 		{
 			r = __timestamp(params);
 			break;
 		}
-		case SWITCH_SCREEN:
+		case SVC_SWITCH_SCREEN:
 		{
 			__switchScreen();
 			break;
 		}
-		case CPUINFO:
+		case SVC_CPUINFO:
 		{
 			r = __cpuinfo(params);
 			break;
 		}
-		case DRAW_MOUSE:
+		case SVC_DRAW_MOUSE:
 		{
 			__kRestoreMouse();
 			__kRefreshMouseBackup();
 			__kDrawMouse();
 			break;
 		}
-		case RESTORE_MOUSE:
+		case SVC_RESTORE_MOUSE:
 		{
 
 			__kRestoreMouse();
 			break;
 		}
-		case SET_VIDEOMODE:
+		case SVC_SET_VIDEOMODE:
 		{
 			break;
 		}
-		case GIVEUP_LIFE:
+		case SVC_GIVEUP_LIFE:
 		{
 			GiveupLive(stack);
 			break;
 		}
-		case SRV_IPI_CREATEPROC:
+		case SVC_IPI_CREATEPROC:
 		{
 			IpiCreateProcess(params[0], params[1], (char*)params[2], (char*)params[3], params[4], params[5]);
 			break;
 		}
-		case SRV_IPI_CREATETHREAD:
+		case SVC_IPI_CREATETHREAD:
 		{
 			IpiCreateThread((char*)params[0], (char*)params[1], params[2], (char*)params[3]);
 			break;
@@ -178,7 +178,7 @@ extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, c
 
 	__asm {
 		push edi
-		mov eax, SRV_IPI_CREATEPROC
+		mov eax, SVC_IPI_CREATEPROC
 		lea edi,base
 		int 0x80
 		pop edi
@@ -188,7 +188,7 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module
 
 	__asm {
 		push edi
-		mov eax, SRV_IPI_CREATETHREAD
+		mov eax, SVC_IPI_CREATETHREAD
 		lea edi, addr
 		int 0x80
 		pop edi

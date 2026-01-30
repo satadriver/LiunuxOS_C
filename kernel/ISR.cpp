@@ -16,7 +16,7 @@
 #include "coprocessor.h"
 #include "apic.h"
 
-
+#include "timer8254.h"
 
 
 __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
@@ -1204,6 +1204,8 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 		//clts
 	}
+
+	//__k8254TimerProc();
 
 	EOICommand(INTR_8259_MASTER + 0);
 

@@ -568,7 +568,7 @@ __declspec(naked) void KeyboardIntProc() {
 	__asm {
 
 		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0
-		mov eax, TURNON_SCREEN
+		mov eax, SVC_TURNON_SCREEN
 		int 80h
 
 		mov esp, ebp

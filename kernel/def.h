@@ -45,7 +45,7 @@
 
 #define LOCAL_APIC_ENABLE
 
-#define IO_APIC_ENABLE
+//#define IO_APIC_ENABLE
 
 #define LIUNUXOS_VERSION			"1.1.1"
 

@@ -1,5 +1,4 @@
 
-
 #include "apic.h"
 #include "hardware.h"
 #include "Utils.h"
@@ -323,6 +322,7 @@ extern "C" void __declspec(naked) HpetTimerHandler(LIGHT_ENVIRONMENT * stack) {
 		int value = *(int*)(APIC_HPET_BASE + 0x20);
 		if (value & 1)
 		{
+			//__k8254TimerProc();
 			//__printf(szout,"hpet timer 0\r\n");
 		}
 		
@@ -494,6 +494,8 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	return 0;
 }
 
+
+
 int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p)
 {
 	__enterSpinlock(&g_ipi_lock);
@@ -659,6 +661,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		}
 		
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+
 		//LPPROCESS_INFO next = SingleTssSchedule(stack);
 
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;

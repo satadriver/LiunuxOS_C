@@ -2,24 +2,24 @@
 #include "def.h"
 #include "task.h"
 
-#define KBD_OUTPUT			1
-#define KBD_INPUT			2
-#define MOUSE_OUTPUT		3
-#define GRAPH_CHAR_OUTPUT	4
-#define RANDOM				5
-#define SLEEP				6
-#define TURNON_SCREEN		7
-#define TURNOFF_SCREEN		8
-#define CPU_MANUFACTORY		9
-#define TIMESTAMP			10
-#define SWITCH_SCREEN		11
-#define CPUINFO				12
-#define DRAW_MOUSE			13
-#define RESTORE_MOUSE		14
-#define SET_VIDEOMODE		15
-#define GIVEUP_LIFE			16
-#define SRV_IPI_CREATEPROC		17
-#define SRV_IPI_CREATETHREAD	18
+#define SVC_KBD_OUTPUT			1
+#define SVC_KBD_INPUT			2
+#define SVC_MOUSE_OUTPUT		3
+#define SVC_GRAPH_CHAR_OUTPUT	4
+#define SVC_RANDOM				5
+#define SVC_SLEEP				6
+#define SVC_TURNON_SCREEN		7
+#define SVC_TURNOFF_SCREEN		8
+#define SVC_CPU_MANUFACTORY		9
+#define SVC_TIMESTAMP			10
+#define SVC_SWITCH_SCREEN		11
+#define SVC_CPUINFO				12
+#define SVC_DRAW_MOUSE			13
+#define SVC_RESTORE_MOUSE		14
+#define SVC_SET_VIDEOMODE		15
+#define SVC_GIVEUP_LIFE			16
+#define SVC_IPI_CREATEPROC		17
+#define SVC_IPI_CREATETHREAD	18
 
 
 #ifdef DLL_EXPORT
