@@ -18,6 +18,7 @@ typedef struct
 	DWORD param4;
 	int pid;
 	int tid;
+	char* cr3;
 }TIMER_PROC_PARAM;
 
 #pragma pack()

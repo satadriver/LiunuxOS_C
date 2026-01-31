@@ -79,23 +79,16 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 
 	__kAddAlarmTimer(ALARMER_SECOND_INTERVAL*5, (DWORD)__doAlarmTask, 0);
 
-	//sysEntryProc();
+	int params[16];
+	
+	callgateEntry((char*)params, 4);
 
-	//callgateEntry(0, 0);
+	SysenterProc((char*)params,3);
 
-	__giveup();
-
-	for (int i = 0; i < 16; i++) {
-		
-	}
+	__yield();
 	
 	//runElfFunction("c:\\liunux\\test.so", "__testfunction");
-
-	//while (1) 
-	{
-		__sleep(0);
-	}
-
+	
 	return;
 }
 

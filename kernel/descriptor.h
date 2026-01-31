@@ -39,11 +39,11 @@ typedef struct
 
 #pragma pack()
 
-extern "C" __declspec(dllexport) int sysEntryProc();
+extern "C" __declspec(dllexport) int SysenterProc(char* params, int cnt);
 
-extern "C" __declspec(dllexport) int sysEntry();
+extern "C" __declspec(dllexport) int SysenterEntry(char * params,int cnt);
 
-int sysEntryInit(DWORD entryAddr);
+int SysenterInit(DWORD entryAddr);
 
 void readmsr(DWORD no, DWORD* lowpart, DWORD* highpart);
 
@@ -52,7 +52,7 @@ void writemsr(DWORD no, DWORD lowpart, DWORD highpart);
 
 extern "C" void __kCallGateProc(DWORD  params, DWORD size);
 
-extern "C" __declspec(dllexport) void callgateEntry(DWORD  params, DWORD size);
+extern "C" __declspec(dllexport) void callgateEntry(char*  params, DWORD size);
 
 void EnableNXE();
 

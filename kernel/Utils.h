@@ -103,7 +103,7 @@ extern "C" __declspec(dllexport) int __reset();
 
 extern "C" __declspec(dllexport) int __sleep(int millisecs);
 
-extern "C" __declspec(dllexport) int __giveup();
+extern "C" __declspec(dllexport) int __yield();
 
 extern "C" __declspec(dllexport) int getCpuType(char * name);
 
@@ -191,8 +191,7 @@ extern "C" __declspec(dllimport) int __reset();
 
 extern "C" __declspec(dllimport) int __sleep(int millisecs);
 
-extern "C" __declspec(dllimport) int __giveup();
-
+extern "C" __declspec(dllimport) int __yield();
 
 extern "C" __declspec(dllimport) int getCpuType(char * name);
 

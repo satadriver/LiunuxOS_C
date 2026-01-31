@@ -64,7 +64,7 @@ int getpids(char * szout) {
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
 	for (int i = 0; i < cnt; i++) {
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseSelected(cpus[i]);
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpus[i]);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{

@@ -398,9 +398,9 @@ int __getFreeTask(LPTASKRESULT ret) {
 	ret->number = 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	enter_task_array_lock_id(id);
+	enter_task_array_lock();
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseSelected(id);
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
 	{
 		if (tss[i].status == TASK_OVER)
@@ -418,7 +418,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 		}
 	}
 
-	leave_task_array_lock_id(id);
+	leave_task_array_lock();
 
 	return result;
 }
@@ -1497,9 +1497,9 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	}
 }
 
-extern "C" void __declspec(dllexport) GiveupLive( LIGHT_ENVIRONMENT * stack) {
+extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 	
-	__asm{cli}
+	//__asm{cli}
 	int ret = IsBspProcessor();
 	if (ret) {
 #ifdef SINGLE_TASK_TSS

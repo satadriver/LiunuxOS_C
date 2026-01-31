@@ -107,7 +107,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	EnableSyscall();
 
-	sysEntryInit((DWORD)sysEntry);
+	SysenterInit((DWORD)SysenterEntry);
 
 	enableVME();
 	enablePCE();

@@ -47,6 +47,15 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 			gExactTimer[i].pid = proc->pid;
 			gExactTimer[i].tid = proc->tid;
 
+			/*
+			char* pde = 0;
+			__asm {
+				mov eax,cr3
+				mov [pde],eax
+			}
+			gExactTimer[i].cr3 = pde;
+			*/
+
 			char szout[256];
 			__printf(szout, "%s addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n",
 				__FUNCTION__,

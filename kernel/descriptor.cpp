@@ -56,7 +56,7 @@ extern "C" __declspec(naked) void __kCallGateProc(DWORD  params, DWORD count) {
 
 	{
 		char szout[256];
-		__printf(szout, "__kCallGateProc running,param1:%x,param2:%x\r\n", params, count);
+		__printf(szout, "%s %d param1:%x,param2:%x\r\n",__FUNCTION__,__LINE__, params, count);
 	}
 
 	__asm {
@@ -76,24 +76,20 @@ extern "C" __declspec(naked) void __kCallGateProc(DWORD  params, DWORD count) {
 	}
 	/*
 	ret（近返回）：
-
-C3（无操作数）
-
-C2 imm16（带栈调整，如 ret 4）
-
-retf（远返回）：
-
-CB（无操作数）
-
-CA imm16（带栈调整，如 retf 8）
+	C3（无操作数）
+	C2 imm16（带栈调整，如 ret 4）
+	retf（远返回）：
+	CB（无操作数）
+	CA imm16（带栈调整，如 retf 8）
 	*/
-	//RET immed16:	C2 
-	//RET :		C3 
-	//RETF immed16: //CA 
-	//RETF :	CB 
-	//IRET :	CF 
+
+	//RET immed16:		C2 
+	//RET :				C3 
+	//RETF immed16:		CA 
+	//RETF :			CB 
+	//IRET :			CF 
 	//IRET [bits 16]:	CF 
-	//IRETD :	66 CF
+	//IRETD :			66 CF
 
 	//机器码对应表：
 	//https://defuse.ca/online-x86-assembler.htm#disassembly
@@ -101,9 +97,10 @@ CA imm16（带栈调整，如 retf 8）
 
 
 
-extern "C" __declspec(dllexport) void callgateEntry(DWORD  params,DWORD count) {
+extern "C" __declspec(dllexport) void callgateEntry(char*  params,DWORD count) {
 
 	__asm {
+		pushfd
 		pushad
 		push ds
 		push es
@@ -111,7 +108,7 @@ extern "C" __declspec(dllexport) void callgateEntry(DWORD  params,DWORD count) {
 		push gs
 		push ss
 
-		cli
+		//cli
 
 		push dword ptr count
 		push params
@@ -126,10 +123,10 @@ extern "C" __declspec(dllexport) void callgateEntry(DWORD  params,DWORD count) {
 		_emit callGateSelector
 		_emit 0
 
-		//retf 0x08 will balance the user mode stack esp,so do not to balance it self
+		//retf 0x08 will balance the stack
 		//add esp,8
 
-		sti
+		//sti
 
 		pop ss
 		pop gs
@@ -137,6 +134,7 @@ extern "C" __declspec(dllexport) void callgateEntry(DWORD  params,DWORD count) {
 		pop es
 		pop ds
 		popad
+		popfd
 	}
 
 	char szout[256];
@@ -218,21 +216,26 @@ DWORD g_sysEntryEip3 = 0;
 
 
 
-extern "C" __declspec(naked) int sysEntry() {
+extern "C" __declspec(naked) int SysenterEntry(char * params,int cnt) {
+	__asm {
+		push 0
+		push ebp
+		mov ebp,esp
+		sub esp, NATIVE_STACK_LIMIT
+	}
 
 	{
-		LPTSS tss = (LPTSS)GetCurrentTaskTssBase();
-
 		WORD rcs = 0;
 		DWORD resp = 0;
 		WORD rss = 0;
 		DWORD reip = 0;
+
 		__asm {
 			mov ax, cs
 			mov rcs, ax
 
-			call _eip_tag
-			_eip_tag:
+			call __eip_value
+			__eip_value :
 			pop eax
 			mov reip,eax
 
@@ -241,57 +244,85 @@ extern "C" __declspec(naked) int sysEntry() {
 
 			mov resp, esp
 		}
-		char szout[256];
-		__printf(szout, "sysEntry current cs:%x,eip:%x,ss:%x,esp:%x\r\n", rcs, reip, rss, resp);
 
-		__asm {
-			mov edx, ds: [g_sysEntryEip3]
-			mov ecx, ds : [g_sysEntryStack3]
-			_emit 0x0f
-			_emit 0x35
-		}
+		char szout[256];
+		__printf(szout, "%s %d cs:%x,eip:%x,ss:%x,esp:%x,params:%x,cnt:%x\r\n",__FUNCTION__,__LINE__, rcs, reip, rss, resp+ NATIVE_STACK_LIMIT + 8,params,cnt);
+		//__printf(szout, "%s %d cs:%x,eip:%x,ss:%x,esp:%x,params:%x,cnt:%x\r\n", __FUNCTION__, __LINE__, rcs, reip, rss, resp);
+		
+	}
+
+	__asm {
+		mov esp, ebp
+		add esp, 8
+		nop
+		mov edx, ds: [g_sysEntryEip3]
+		nop
+		mov ecx, ds : [g_sysEntryStack3]
+		nop
+
+		_emit 0x0f
+		_emit 0x35
 	}
 }
 
 
 
 //only be invoked in ring3,in ring0 will cause exception 0dh
-extern "C" __declspec(dllexport) int sysEntryProc() {
+extern "C" __declspec(dllexport) int SysenterProc(char * params,int cnt) {
 
-	{
-		if (g_sysEntryInit == 0) {
-			int res = sysEntryInit((DWORD)sysEntry);
-			if (res) {
-				g_sysEntryInit = TRUE;
-			}
-			else {
-				__asm {
-					ret
-				}
-			}
+	if (g_sysEntryInit == 0) {
+		int res = SysenterInit((DWORD)SysenterEntry);
+		if (res) {
+			g_sysEntryInit = TRUE;
+		}
+		else {
+			return 0;
 		}
 	}
+	
 	__asm {
 		mov ax, cs
 		test ax, 3
 		jz __sysEntryExit
 
-		mov ds : [g_sysEntryStack3] , esp
+		pushfd
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
 
+		mov edi, SYSENTER_STACK_TOP
+		mov eax, params
+		mov [edi],eax
+		mov eax, cnt
+		mov [edi+4],eax
+
+		mov ds : [g_sysEntryStack3] , esp
 		lea eax, __sysEntryExit
 		mov ds:[g_sysEntryEip3],eax
 
-		cli
+		//cli
 
 		_emit 0x0f
 		_emit 0x34
 
-		__sysEntryExit :
-		sti
+		__sysEntryExit :	
+
+		//sti
+
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+		popfd
 	}	
 }
 
-int sysEntryInit(DWORD entryaddr) {
+int SysenterInit(DWORD entryaddr) {
 	WORD regcs = 0;
 	__asm {
 		mov ax, cs
@@ -308,7 +339,7 @@ int sysEntryInit(DWORD entryaddr) {
 
 	writemsr(0x174, csseg, high);
 
-	DWORD esp0 = SYSCALL_STACK_TOP;
+	DWORD esp0 = SYSENTER_STACK_TOP;
 
 	writemsr(0x175, esp0, high);
 

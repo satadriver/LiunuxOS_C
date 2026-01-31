@@ -1233,7 +1233,7 @@ int __sleep(int millisecs) {
 }
 
 
-int __giveup() {
+int __yield() {
 	__asm {
 		push edi
 		mov eax, SVC_GIVEUP_LIFE

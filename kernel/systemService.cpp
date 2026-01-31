@@ -28,7 +28,7 @@ DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
 
-		push dword ptr ss:[esp + 8]
+		push dword ptr ss:[ebp + 8]
 		push edi
 		push eax
 
@@ -151,7 +151,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		}
 		case SVC_GIVEUP_LIFE:
 		{
-			GiveupLive(stack);
+			yield(stack);
 			break;
 		}
 		case SVC_IPI_CREATEPROC:

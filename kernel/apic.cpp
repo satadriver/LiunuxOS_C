@@ -249,8 +249,8 @@ int initHpet() {
 	int cnt = hg->count;
 
 	DWORD tick = hg->tick;
-	if (tick == 0xffffffff) {
-		tick = 0x0429b17f;
+	if (tick == 0xffffffff || hg->venderid == 0xffff) {		
+		tick = 0x0429b17f;			//not support io apic
 	}
 
 	unsigned long long ns = 1000000000000000;
@@ -485,7 +485,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 	subparam->params = (DWORD)p;
 	char szout[256];
-	__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
+	//__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
 	
 	__leaveSpinlock(&g_ipi_lock);
 
@@ -516,8 +516,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 	subparam->level = level;
 	subparam->params = (DWORD)p;
 	char szout[256];
-	__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,
-		id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
+	//__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 
 	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
 	__leaveSpinlock(&g_ipi_lock);
@@ -561,7 +560,6 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 		int cmd = msg[id].cmd;
 		
 		//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
-		//__drawGraphChar(szout, 0, 0x100000, 0xffffffff);
 
 		if (cmd == IPI_CREATEPROCESS) {
 			msg[id].cmd = 0;
@@ -579,7 +577,6 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 			if (__findProcessFileName(subparam->funcname) == FALSE)
 			{
 				//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
-				//__kCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 				__kCreateProcess(subparam->base, subparam->size, (subparam->module), (subparam->funcname), subparam->level, (unsigned long)subparam->params);
 			}
 		}
@@ -666,7 +663,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 	}
 	
 	__asm {
@@ -1193,7 +1190,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	
 	initCoprocessor();
 	EnableSyscall();
-	sysEntryInit((DWORD)sysEntry);
+	SysenterInit((DWORD)SysenterEntry);
 	enableVME();
 	enablePCE();
 	enableMCE();
@@ -1372,7 +1369,7 @@ void BPCodeStart() {
 
 int IsBspProcessor() {
 	unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
-	id = id >> 24;
+
 	int bspid = *(int*)CPU_ID_ADDRESS;
 	if (id == bspid) {
 		return 1;
@@ -1410,6 +1407,12 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 	*/
 }
 
+
+int GetTssSize() {
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	return tssSize;
+}
+
 LPPROCESS_INFO GetTaskTssBase() {
 	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -1421,10 +1424,13 @@ LPPROCESS_INFO SetTaskTssBase() {
 	char szout[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if (id == 0) {
-		g_ap_tss_base[id] = (LPPROCESS_INFO)(AP_TASK_TSS_ARRAY + id * 0x400000);
+		int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+		unsigned long size = tssSize * TASK_LIMIT_TOTAL;
+		g_ap_tss_base[id] = (LPPROCESS_INFO)(AP_TASK_TSS_ARRAY + id * size);
 	}
 	else {
-		unsigned long size = 0x400000;
+		int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+		unsigned long size = tssSize* TASK_LIMIT_TOTAL;
 		char * buf =(char*) __kProcessMalloc(size, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		g_ap_tss_base[id] = (LPPROCESS_INFO)buf;
 		if (buf == 0) {
@@ -1435,7 +1441,7 @@ LPPROCESS_INFO SetTaskTssBase() {
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
 }
 
-LPPROCESS_INFO GetTaskTssBaseSelected(int id) {
+LPPROCESS_INFO GetTaskTssBaseId(int id) {
 
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
 }

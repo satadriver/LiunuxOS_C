@@ -485,6 +485,7 @@ __declspec(naked) void MouseIntProc() {
 		sub esp, 4
 		push ebp
 		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
 
 		mov ax, KERNEL_MODE_DATA
 		mov ds, ax

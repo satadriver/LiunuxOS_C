@@ -63,7 +63,7 @@ void tasktest();
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 
-extern "C" void __declspec(dllexport) GiveupLive(LIGHT_ENVIRONMENT * stack);
+extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);
 
 int __pausePid(int pid);
 
