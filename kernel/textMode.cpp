@@ -232,6 +232,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	char buf[1024];
 
 	initCoprocessor();
+
 	initTimer();
 
 	EnableSyscall();
@@ -246,6 +247,10 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	__sprintf(buf, "%s %d\r\n", __FUNCTION__, __LINE__);
 	outputStr(buf, OUTPUT_TEXTMODE_COLOR);
 
+#ifdef LOCAL_APIC_ENABLE
+	ret = InitLocalApicTimer();
+#endif
+
 	__asm {
 		sti
 	}
@@ -258,7 +263,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	initDll();
 
 #ifdef LOCAL_APIC_ENABLE
-	//BPCodeStart();
+	BPCodeStart();
 #endif
 
 	WINDOWCLASS window;

@@ -240,9 +240,6 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			}
 		}
 
-		__sleep(0);
-		//__giveup();
-
 		DATETIME dt;		
 		__getDateTime(&dt);
 		if (dt.hour >= 12) {
@@ -284,6 +281,9 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			hourx_old = hourx;
 			houry_old = houry;
 		}
+
+		//__sleep(0);
+		__yield();
 	}
 
 	return 0;

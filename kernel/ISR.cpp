@@ -291,6 +291,8 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
+		char szout[256];
+		__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
 		__kCoprocessor();
 		//__kException((const char*)"UndefinedOpcode", 6, stack);
 	}
@@ -338,6 +340,9 @@ void __declspec(naked) DeviceNotAvailable(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
+		char szout[256];
+		__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
+
 		__kCoprocessor();		//store old task sse/mmx environment and restore new task sse/mmx environment
 		//__kException((const char*)"DeviceUnavailable", 7, stack);
 	}
@@ -759,6 +764,8 @@ void __declspec(naked) FloatPointError(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
+		char szout[256];
+		__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
 		//__kException((const char*)"FloatPointError", 16, stack);
 		__kCoprocessor();
 	}
@@ -898,6 +905,8 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 	}
 	{
+		char szout[256];
+		__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
 		__kCoprocessor();
 		//__kException((const char*)"SIMDException", 19, stack);
 	}

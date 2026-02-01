@@ -61,7 +61,7 @@
 
 #define LOCAL_APIC_ENABLE
 
-#define IO_APIC_ENABLE
+//#define IO_APIC_ENABLE
 
 #define LIUNUX_DEBUG_LOG_ON
 

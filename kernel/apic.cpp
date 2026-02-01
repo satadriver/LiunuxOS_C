@@ -1260,12 +1260,6 @@ void BPCodeStart() {
 
 	enableLocalApic();
 
-	//enableIoApic();
-
-#if 0
-	enableRcba();
-#endif
-
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);
 	int lint1 = *(DWORD*)(LOCAL_APIC_BASE + 0x360);
 
@@ -1341,6 +1335,12 @@ void BPCodeStart() {
 	//ret = DisableLocalApicLVT();
 
 #ifdef IO_APIC_ENABLE
+	enableIoApic();
+
+#if 0
+	enableRcba();
+#endif
+
 	__asm {cli}
 	DisableInt();
 	initHpet();

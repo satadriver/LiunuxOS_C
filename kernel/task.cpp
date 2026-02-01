@@ -739,8 +739,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	}
 	__asm {
-		
-		//FNCLEX
+
 		////fwait
 
 		mov eax, fenvprev
@@ -751,7 +750,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		//fninit
+		fninit
+		//FNCLEX
 	}
 
 	if (prev->copyMap == 0) {
