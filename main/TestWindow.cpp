@@ -150,8 +150,6 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
 	__printf(szout,(char*)FLOPPY_DMA_BUFFER + 0x1000);
 
-
-
 	for (int i = 0; i < 0x20; i++) {
 		int size = 0x10 * i + 8;
 		char* buf =(char*) __malloc(size);

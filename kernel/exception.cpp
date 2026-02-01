@@ -16,7 +16,7 @@ int g_ExceptionCounter = 0;
 
 void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 
-	char showinfo[0x1000];
+	char showinfo[256];
 
 	DWORD rcr0 = 0;
 	DWORD rcr2 = 0;
@@ -55,7 +55,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = tss->eip;
 
 			len = __sprintf(showinfo,
-				"VM86 Exception:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"VM86 Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,ds_v86:%x,es_v86:%x,fs_v86:%x,gs_v86:%x,\
 				cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
 				num, tid,pid, cpu,tss->errcode, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
@@ -67,7 +67,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
 				num,tid, pid, cpu, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
@@ -77,7 +77,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
+				"Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
 				num,tid, pid, cpu, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
@@ -92,7 +92,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = tss->eip;
 
 			len = __sprintf(showinfo,
-				"VM86 Exception:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"VM86 Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,ds_v86:%x,es_v86:%x,fs_v86:%x,gs_v86:%x,\
 			cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
 				num, tid, pid, cpu, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
@@ -105,7 +105,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
 				num,tid, pid, cpu, rva,tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
@@ -115,7 +115,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
+				"Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
 				num,tid, pid, cpu, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
@@ -126,7 +126,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	__sprintf(showinfo + len, "Exception level:%d,status:%x,counter:%d,base:%x,sleep:%d,function:%s,file:%s\r\n",
 		process->level, process->status, process->counter, process->moduleaddr, process->sleep, process->funcname, process->filename);
 
-	if (g_ExceptionCounter++ < 4) {
+	if (g_ExceptionCounter++ < 16) {
 		__drawGraphChars(( char*)showinfo, EXCEPTION_TIPS_COLOR);
 	}
 	

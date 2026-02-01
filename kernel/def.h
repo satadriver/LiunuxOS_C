@@ -6,50 +6,38 @@
 #define TRUE		1
 #define FALSE		0
 
-#define UCHAR unsigned char
-#define CHAR char
-#define LPSTR char *
-#define WCHAR wchar_t
-#define USHORT unsigned short
-#define DWORD unsigned long
-#define WORD	unsigned short
-#define HINSTANCE unsigned long
-#define VOID void
-#define LPVOID void *
-#define HMODULE HINSTANCE
-#define UINT16 unsigned short
-#define LONG long
-#define BYTE unsigned char
-#define UINT64 unsigned __int64
-#define UINT32 unsigned int
-#define UINT8 unsigned char
-#define BOOL int
-#define uint16_t unsigned short
-#define uint32_t unsigned int
-#define uint8_t unsigned char
-#define uint64_t unsigned __int64
-#define ULONG32 unsigned int
-#define PULONG32 unsigned int *
-#define DWORD32 unsigned int 
-#define PDWORD32 unsigned int*
-#define ULONG_PTR unsigned long* 
-#define ULONGLONG unsigned __int64
-#define OWORD	__m128
-#define QWORD	unsigned long long
-
-#define APIC_HPET_BASE			0XFED00000
-
-#define IO_APIC_BASE		   	0xFEC00000
-
-#define LOCAL_APIC_BASE			0xfee00000
-
-#define LOCAL_APIC_ENABLE
-
-#define IO_APIC_ENABLE
+#define UCHAR		unsigned char
+#define CHAR		char
+#define LPSTR		char *
+#define WCHAR		wchar_t
+#define USHORT		unsigned short
+#define DWORD		unsigned long
+#define WORD		unsigned short
+#define HINSTANCE	unsigned long
+#define VOID		void
+#define LPVOID		void *
+#define HMODULE		HINSTANCE
+#define UINT16		unsigned short
+#define LONG		long
+#define BYTE		unsigned char
+#define UINT64		unsigned __int64
+#define UINT32		unsigned int
+#define UINT8		unsigned char
+#define BOOL		int
+#define uint16_t	unsigned short
+#define uint32_t	unsigned int
+#define uint8_t		unsigned char
+#define uint64_t	unsigned __int64
+#define ULONG32		unsigned int
+#define PULONG32	unsigned int *
+#define DWORD32		unsigned int 
+#define PDWORD32	unsigned int*
+#define ULONG_PTR	unsigned long* 
+#define ULONGLONG	unsigned __int64
+#define OWORD		__m128
+#define QWORD		unsigned long long
 
 #define LIUNUXOS_VERSION			"1.1.1"
-
-#define LIUNUX_DEBUG_LOG_ON
 
 #define MY_SLAB_FLAG				"LJG "
 
@@ -64,6 +52,18 @@
 #define LIUNUX_KERNEL64_DLL			"liunuxos64.dll"
 
 #define LIUNUX_CHINESE_CHAR_FILE	"HZK16"
+
+#define APIC_HPET_BASE				0XFED00000
+
+#define IO_APIC_BASE		   		0xFEC00000
+
+#define LOCAL_APIC_BASE				0xfee00000
+
+#define LOCAL_APIC_ENABLE
+
+#define IO_APIC_ENABLE
+
+#define LIUNUX_DEBUG_LOG_ON
 
 #define TASK_SWITCH_ARRAY
 
@@ -282,7 +282,7 @@
 #define USER_SPACE_END					0XC0000000
 
 //low 1M memory map
-#define LOADER_BASE_SEGMENT 			0x800
+#define LOADER_BASE_SEGMENT 		0x800
 
 #define KERNEL_BASE_SEGMENT 		0x1000
 
@@ -365,7 +365,7 @@ typedef struct {
 	DWORD _bakMbrSecOff;	//16
 	DWORD _bakMbr2SecOff;	//20
 	WORD _fontSecCnt;		//24
-	DWORD _fontSecOff;		// 26
+	DWORD _fontSecOff;		//26
 	WORD _kdllSecCnt;		//30
 	DWORD _kdllSecOff;		//32
 	WORD _maindllSecCnt;	//36
@@ -406,7 +406,7 @@ typedef struct {
 	DWORD gs;
 
 	//static
-	DWORD ldt;	//96
+	DWORD ldt;		//96
 	unsigned short	trap;				//100
 	unsigned short	iomapOffset;		//102
 	unsigned char	intMap[32];
@@ -449,6 +449,7 @@ typedef struct  {
 }IPI_MSG_PARAM;
 
 #pragma pack(pop)
+
 
 #define IPI_CREATEPROCESS	1
 #define IPI_CREATETHREAD	2

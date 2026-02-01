@@ -180,9 +180,6 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	int ret = 0;
 
-	SetTaskVideoBase((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
-	__initTask0((char*)LIUNUX_KERNEL32_DLL, "__kKernel",0,0);
-
 	gV86VMIEntry = v86ProcessBase;
 
 	gV86VMISize = v86ProcessLen;
@@ -194,6 +191,16 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	gKernel32 = kernel32;
 	gFont = fontbase;
 	glpVesaInfo = vesa;
+
+	g_ScreenMode = 0;
+
+	SetTaskVideoBase((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+
+	InitGdt();
+
+	InitIDT();
+
+	__initTask0((char*)LIUNUX_KERNEL32_DLL, "__kKernel", 0, 0);
 
 	/*
  	DWORD svgaregs[16];
@@ -207,18 +214,14 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 		}
 	}
 	*/
+
 	gTxtBuf = (char*)TEXTMODE_BASE;
 
 	gTxtOffset = 0;
 
 	outputStr((char*)"Welcome to LiunuxOS!\r\n", OUTPUT_TEXTMODE_COLOR);
 
-	InitGdt();
-
-	InitIDT();
 	SetIVTVector();
-
-	//outputStr("GDT idt\r\n", OUTPUT_TEXTMODE_COLOR);
 
 	initTextModeDevices();
 
@@ -226,50 +229,53 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 
 	initPaging();	
 
-	//outputStr("page\r\n", OUTPUT_TEXTMODE_COLOR);
+	char buf[1024];
+
+	initCoprocessor();
+	initTimer();
 
 	EnableSyscall();
+	SysenterInit((DWORD)SysenterEntry);
 	enableVME();
 	enablePCE();
 	enableMCE();
 	enableTSD();
 
-	initCoprocessor();
-
-	//outputStr("initCoprocessor\r\n", OUTPUT_TEXTMODE_COLOR);
-
-	initTimer();
-
 	initDebugger();
 
-	//outputStr("initDebugger\r\n", OUTPUT_TEXTMODE_COLOR);
+	__sprintf(buf, "%s %d\r\n", __FUNCTION__, __LINE__);
+	outputStr(buf, OUTPUT_TEXTMODE_COLOR);
+
+	__asm {
+		sti
+	}
+
+	initFileSystem();
+
+	__sprintf(buf, "%s %d\r\n", __FUNCTION__, __LINE__);
+	outputStr(buf, OUTPUT_TEXTMODE_COLOR);
 
 	initDll();
 
-	BPCodeStart();
-
-	//outputStr("BPCodeStart\r\n", OUTPUT_TEXTMODE_COLOR);
+#ifdef LOCAL_APIC_ENABLE
+	//BPCodeStart();
+#endif
 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, (char*)"__kKernel", 0, 0);
 
-	__asm {
-		sti	
-	}
-
-	initFileSystem();
+	__sprintf(buf, "%s %d\r\n", __FUNCTION__, __LINE__);
+	outputStr(buf, OUTPUT_TEXTMODE_COLOR);
 
 	char cmd[1024];
 	char* lpcmd = cmd;
 	while (1)
 	{
-		unsigned int asc = __kGetKbd(0) & 0xff;
+		unsigned int asc = __kGetKbd(window.id) & 0xff;
 		//unsigned int asc = __getchar(0);
 		//res = isScancodeAsc(asc);
 		if (asc)
 		{
-			__sleep(0);
-
 			outputChar(asc, INPUT_TEXTMODE_COLOR);
 			*lpcmd= asc;
 			lpcmd++;
@@ -291,7 +297,9 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 				}
 				*lpcmd = 0;
 			}
-		}		
+		}	
+
+		__sleep(0);
 	}
 
 	return 0;

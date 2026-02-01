@@ -75,8 +75,6 @@ int __pauseTid(int tid);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
-TASK_LIST_ENTRY* InsertTaskList_First(int tid);
-
 TASK_LIST_ENTRY* GetTaskListHeader();
 void InitTaskList();
 void InitTaskArray();

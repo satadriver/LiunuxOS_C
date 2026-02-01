@@ -196,7 +196,7 @@ int listpci(DWORD* dst) {
 
 
 void showAllPciDevs() {
-	unsigned long devbuf[1024];
+	unsigned long devbuf[2048];
 	int cnt = listpci(devbuf);
 	if (cnt > 0)
 	{

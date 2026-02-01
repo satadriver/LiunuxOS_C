@@ -43,7 +43,6 @@ __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"DivideError", 0, stack);
-
 	}
 
 	__asm {
@@ -294,7 +293,6 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 	{
 		__kCoprocessor();
 		//__kException((const char*)"UndefinedOpcode", 6, stack);
-
 	}
 
 	__asm {
@@ -339,11 +337,9 @@ void __declspec(naked) DeviceNotAvailable(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 	}
 
-	__kCoprocessor();		//store old task sse/mmx environment and restore new task sse/mmx environment
-
 	{
+		__kCoprocessor();		//store old task sse/mmx environment and restore new task sse/mmx environment
 		//__kException((const char*)"DeviceUnavailable", 7, stack);
-
 	}
 
 	__asm {
@@ -390,7 +386,6 @@ void __declspec(naked) DoubleFault(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"DoubleFault", 8, stack);
-
 	}
 
 	__asm {
@@ -440,7 +435,6 @@ void __declspec(naked) CoprocSegOverrun(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		__kException((const char*)"CoprocSegOverrun", 9, stack);
-
 	}
 
 	__asm {
@@ -484,7 +478,6 @@ void __declspec(naked) InvalidTss(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"InvalidTss", 10, stack);
-
 	}
 
 	__asm {
@@ -533,7 +526,6 @@ void __declspec(naked) SegmentUnpresent(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"SegmentUnpresent", 11, stack);
-
 	}
 
 	__asm {
@@ -579,7 +571,6 @@ void __declspec(naked) StackSegFault(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"StackSegFault", 12, stack);
-
 	}
 
 	__asm {
@@ -624,7 +615,6 @@ void __declspec(naked) GeneralProtection(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"GeneralProtection", 13, stack);
-
 	}
 
 	__asm {
@@ -725,7 +715,6 @@ void __declspec(naked) AnonymousException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"AnonymousException", 15, stack);
-
 	}
 
 	__asm {
@@ -769,11 +758,9 @@ void __declspec(naked) FloatPointError(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 	}
 
-	__kCoprocessor();
-
 	{
-		__kException((const char*)"FloatPointError", 16, stack);
-
+		//__kException((const char*)"FloatPointError", 16, stack);
+		__kCoprocessor();
 	}
 
 	__asm {
@@ -821,7 +808,6 @@ void __declspec(naked) AlignmentCheck(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"AlignmentCheck", 17, stack);
-
 	}
 
 	__asm {
@@ -867,7 +853,6 @@ void __declspec(naked) MachineCheck(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"MachineCheck", 18, stack);
-
 	}
 
 	__asm {
@@ -913,8 +898,8 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 		mov ss, ax
 	}
 	{
-		__kException((const char*)"SIMDException", 19, stack);
-
+		__kCoprocessor();
+		//__kException((const char*)"SIMDException", 19, stack);
 	}
 
 	__asm {
@@ -958,7 +943,6 @@ __declspec(naked) void VirtualizationException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"VirtualizationException", 20, stack);
-
 	}
 
 	__asm {
@@ -1004,7 +988,6 @@ __declspec(naked) void CtrlProtectException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"CtrlProtectException", 21, stack);
-
 	}
 
 	__asm {
@@ -1052,7 +1035,6 @@ __declspec(naked) void HypervisorInjectException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"HypervisorInjectException", 28, stack);
-
 	}
 
 	__asm {
@@ -1098,7 +1080,6 @@ __declspec(naked) void VMMCommException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"VMMCommException", 29, stack);
-
 	}
 
 	__asm {
@@ -1144,7 +1125,6 @@ __declspec(naked) void SecurityException(LIGHT_ENVIRONMENT* stack) {
 	}
 	{
 		__kException((const char*)"SecurityException", 30, stack);
-
 	}
 
 	__asm {
@@ -1253,14 +1233,11 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
-
-		//LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		char szout[256];
 
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
 		EOICommand(INTR_8259_MASTER + 0);
-
 	}
 
 	__asm {
@@ -1330,12 +1307,10 @@ void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-
 		EOICommand(INTR_8259_MASTER + 2);
 
 		char szout[256];
 		__printf(szout, (char*)"Com2IntProc!\r\n");
-
 	}
 
 	__asm {
@@ -1383,7 +1358,6 @@ void __declspec(naked) Com1IntProc(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[256];
 		__printf(szout, (char*)"Com1IntProc!\r\n");
-
 
 		EOICommand(INTR_8259_MASTER + 3);
 
@@ -1437,7 +1411,6 @@ void __declspec(naked) Parallel2IntProc(LIGHT_ENVIRONMENT* stack) {
 
 		int v = inportb(0x278 + 1);
 
-
 		EOICommand(INTR_8259_MASTER + 4);
 	}
 
@@ -1488,7 +1461,6 @@ void __declspec(naked) FloppyDiskIntProc(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, (char*)"FloppyDiskIntProc!\r\n");
 
 		EOICommand(INTR_8259_MASTER + 6);
-
 	}
 
 	__asm {
@@ -1530,9 +1502,7 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 		mov es, ax
 		MOV FS, ax
 		MOV GS, AX
-		mov ss, ax
-
-		
+		mov ss, ax	
 	}
 
 	{
@@ -1541,7 +1511,6 @@ void __declspec(naked) Parallel1IntProc(LIGHT_ENVIRONMENT* stack) {
 
 		EOICommand(INTR_8259_MASTER + 7);
 		int v = inportb(0x378 + 1);
-
 	}
 
 	__asm {
@@ -1653,9 +1622,7 @@ void __declspec(naked) SlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, (char*)"SlaveIntProc!\r\n");
 
-
 		EOICommand(INTR_8259_SLAVE + 0);
-
 	}
 
 	__asm {
@@ -1705,9 +1672,7 @@ void __declspec(naked) Slave1IntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, (char*)"Slave1IntProc!\r\n");
 
-
 		EOICommand(INTR_8259_SLAVE + 1);
-
 	}
 
 	__asm {
@@ -1756,9 +1721,7 @@ void __declspec(naked) NetcardIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, (char*)"NetcardIntProc!\r\n");
 
-
 		EOICommand(INTR_8259_SLAVE + 2);
-
 	}
 
 	__asm {
@@ -1807,9 +1770,7 @@ void __declspec(naked) USBIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, (char*)"USBIntProc!\r\n");
 
-
 		EOICommand(INTR_8259_SLAVE + 3);
-
 	}
 
 	__asm {
@@ -1862,12 +1823,9 @@ void __declspec(naked) CoprocessorIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, (char*)"CoprocessorIntProc!\r\n");
 
-
 		outportb(0xf0, 0xf0);
 
-
 		EOICommand(INTR_8259_SLAVE + 5);
-
 	}
 
 	__asm {
@@ -1938,7 +1896,6 @@ void __declspec(naked) IDEMasterIntProc(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		//__printf(szout, "IDEMasterIntProc size:%x tid:%d port:%x status:%x\r\n", size,proc->tid,gAtaBasePort+7,status);
 
-
 		EOICommand(INTR_8259_SLAVE + 6);
 
 	}
@@ -2004,10 +1961,7 @@ void __declspec(naked) IDESlaveIntProc(LIGHT_ENVIRONMENT* stack) {
 		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		__printf(szout, (char*)"IDESlaveIntProc size:%x tid:%d port:%x status:%x\r\n",size, proc->tid, gAtapiBasePort + 7, status);
 
-
-
 		EOICommand(INTR_8259_SLAVE + 7);
-
 	}
 
 	__asm {
@@ -2060,7 +2014,6 @@ void __declspec(naked) ApicSpuriousHandler(LIGHT_ENVIRONMENT* stack) {
 		__printf(szout, "ApicSpuriousHandler!\r\n");
 
 		//* (DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
-
 	}
 
 	__asm {

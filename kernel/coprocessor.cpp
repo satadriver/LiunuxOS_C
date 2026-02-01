@@ -5,7 +5,7 @@
 #include "video.h"
 #include "apic.h"
 
-int gFpuStatus = 0;
+
 
 //EM位控制浮点指令的执行是用软件模拟，还是由硬件执行。EM=0时，硬件控制浮点指令传送到协处理器；EM=1时，浮点指令由软件模拟。 
 //TS位用于加快任务的切换，通过在必要时才进行协处理器切换的方法实现这一目的。每当进行任务切换时，处理器把TS置1。
@@ -31,9 +31,11 @@ int gFpuStatus = 0;
 //instead of your vector unit automatically disabling itself when an exception occurs. 
 //The state of the art includes AVX, which adds
 
-//https://www.felixcloutier.com/x86/
+
+
+
 //fsave保存mm0-mm7,fstenv不保存mm0-mm7
-//MMX: 将8个FPU寄存器重命名为8个64位MMX寄存器，即mm0到mm7。[多媒体]
+//MMX: 将8个FPU寄存器重命名为8个64位MMX寄存器，即mm0到mm7。
 //SSE: 8个128位寄存器（从xmm0到xmm7）
 
 void initFPU() {
@@ -62,7 +64,7 @@ void enableAVX() {
 		__emit 0xe0
 
 		//xgetbv		; Load XCR0 register
-		//or eax, 7	; Set AVX, SSE, X87 bits
+		//or eax, 7		; Set AVX, SSE, X87 bits
 		//xsetbv		; Save back to XCR0
 
 		//To enable AVX - 512, set the OPMASK(bit 5), ZMM_Hi256(bit 6), Hi16_ZMM(bit 7) of XCR0.
@@ -71,9 +73,14 @@ void enableAVX() {
 }
 
 
+//https://xem.github.io/minix86/manual/intel-x86-and-64-manual-vol3/o_fe12b1e2a880e0ce-213.html
+//https://www.felixcloutier.com/x86/
 //https://blog.csdn.net/qq_43401808/article/details/86677863
+
+
 void enableSSE() {
 	DWORD mxcsr_reg = 0x1fbf;
+	//DWORD mxcsr_reg = 0x1f80;
 
 	__asm {
 
@@ -115,9 +122,9 @@ void initCoprocessor() {
 
 	__asm {
 		clts
-		FNCLEX
-		//fwait
 		fninit
+		FNCLEX
+		//fwait	
 
 		mov eax, cr0
 		or eax, 0x10		//et = 1
@@ -149,36 +156,38 @@ void initCoprocessor() {
 //MP = 1 && TS = 1,fwait cause this exception
 //TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
-	
-	if (gFpuStatus == 0)
-	{
-		__asm {
-			clts
-			fnclex
-			//fwait
-			fninit
-		}
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	char* fenv = (char*)FPU_STATUS_BUFFER + (proc->tid << 9);
 
-		gFpuStatus = 1;
-	}
-	else {
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		char * fenv = (char*)FPU_STATUS_BUFFER + (tss->tid << 9);
+	if (proc->fpu == 0)
+	{
+		proc->fpu ++;
 		__asm {
 			clts
-			fnclex
+			//fnclex
 			//fwait
 			fninit
+
+			mov eax, fenv
+			//fsave [fenv]
+			fxsave ds:[eax]
+		}
+	}
+	else {		
+		__asm {
+			clts
+			//fnclex
+			//fwait
+			fninit
+
 			mov eax,fenv
 			//frstor [fenv]
-			fxrstor [eax]
+			fxrstor ds:[eax]
 		}
 	}
 }
 
 
-
-//https://xem.github.io/minix86/manual/intel-x86-and-64-manual-vol3/o_fe12b1e2a880e0ce-213.html
 
 
 /*
@@ -219,5 +228,4 @@ If the EM flag is set, the exception handler can then read the floating-point in
 call the appropriate emulation routine.
 If the MP and TS flags are set or the TS flag alone is set, the exception handler can save the context of the x87 FPU,
 clear the TS flag, and continue execution at the interrupted floating-point or WAIT/FWAIT instruction.
-
 */

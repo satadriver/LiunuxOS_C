@@ -819,6 +819,9 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 
 
 int __printf(char* buf,const char* format, ...) {
+	if (g_ScreenMode == 0) {
+		return 0;
+	}
 
 	if (format == 0 || buf == 0) {
 		return FALSE;
@@ -838,26 +841,22 @@ int __printf(char* buf,const char* format, ...) {
 	}
 
 	int len = __kFormat(buf, (char*)format, (DWORD*)params);
-
-	if (g_ScreenMode) {
-		
-		LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		int cpu = __GetCurrentCpu();
-		LPWINDOWSINFO winfo = __FindProcessWindow(proc->tid,cpu);
-		if (winfo) {
-			LPWINDOWCLASS window = winfo->window;
-			if (window) {
-				__drawWindowChars(buf, 0, window);
-			}
-			else {
-				int endpos = __drawGraphChars((char*)buf, 0);
-			}
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	int cpu = __GetCurrentCpu();
+	LPWINDOWSINFO winfo = __FindProcessWindow(proc->tid,cpu);
+	if (winfo) {
+		LPWINDOWCLASS window = winfo->window;
+		if (window) {
+			__drawWindowChars(buf, 0, window);
 		}
 		else {
 			int endpos = __drawGraphChars((char*)buf, 0);
 		}
-		
 	}
+	else {
+		int endpos = __drawGraphChars((char*)buf, 0);
+	}
+	
 	return len;
 }
 

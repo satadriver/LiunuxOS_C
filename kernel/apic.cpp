@@ -1170,7 +1170,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	char procname[64];
 	__sprintf(procname, "Apic_Process_%d", cpuid);
-	__initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 256);
+	int mytid = __initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 256);
 
 	EnablePaging32((char*)PDE_ENTRY_VALUE);
 
@@ -1207,13 +1207,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 
 	//__asm{int APIC_IPI_VECTOR}
-
-#ifdef TASK_SWITCH_ARRAY
-
-#else
-	InitTaskList();
-	InsertTaskList_First(0);
-#endif
 
 #ifndef IPI_TASK_SWITCH
 	ret = InitLocalApicTimer();
@@ -1417,7 +1410,12 @@ LPPROCESS_INFO GetTaskTssBase() {
 	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	return (LPPROCESS_INFO)g_ap_tss_base[id];
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)g_ap_tss_base[id];
+	if (proc == 0) {
+		proc = SetTaskTssBase();
+		g_ap_tss_base[id] = proc;
+	}
+	return proc;
 }
 
 LPPROCESS_INFO SetTaskTssBase() {

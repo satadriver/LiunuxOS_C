@@ -16,7 +16,7 @@ VMX_CPU g_VMXCPU;
 
 int IsVTEnabled()
 {
-    char szout[1024];
+    char szout[256];
 
     ULONG recx = 0;
     __asm {
