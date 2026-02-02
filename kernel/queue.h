@@ -2,6 +2,8 @@
 
 #include "def.h"
 
+
+
 #pragma pack(1)
 
 typedef struct {
@@ -9,15 +11,16 @@ typedef struct {
 	char * tail;
 	char * base;
 	int size;
-}CycleQueue;
+}RingQueue;
 
 #pragma pack()
 
 
+namespace MyRingQueue{
 
+	int init(RingQueue* q, char* base, int size);
 
-int initQueye(CycleQueue* q, char* base, int size);
+	int push(RingQueue* q, char* value);
 
-int inQueue(CycleQueue* q, char* value);
-
-char* outQueue(CycleQueue* q);
+	char* pop(RingQueue* q);
+}

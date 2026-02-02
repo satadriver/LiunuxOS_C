@@ -12,7 +12,7 @@ typedef struct {
 
 typedef struct {
 	LIST_ENTRY list;
-	LPPROCESS_INFO process;
+	LPPROCESS_INFO node;
 	DWORD valid;
 }TASK_LIST_ENTRY;
 
