@@ -328,6 +328,14 @@ char* InitGdt() {
 	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 #endif
 
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	for (int i = 0; i < 8; i++) {
+		initV86Tss((TSS*)(DOS_TSS_BASE + i* tssSize), TSSDOS_STACK0_TOP+i* TASK_STACK0_SIZE,
+			TSSDOS_STACK_TOP+i* KTASK_STACK_SIZE, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
+		makeTssDescriptor((DWORD)(DOS_TSS_BASE + i * tssSize), 3, sizeof(TSS) - 1,
+			(TssDescriptor*)(lpgdt + kTssDosSelector* sizeof(TaskGateDescriptor)*i));
+	}
+
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
 	
