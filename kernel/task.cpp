@@ -1126,6 +1126,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
+
 	}
 
 	if (current->copyMap == 0) {
@@ -1393,7 +1394,7 @@ void SetIVTVector() {
 		if (seq >= 0x10 && seq < 0x20) {
 			continue;
 		}
-		else if (seq == 0x20 || seq == 0x21) {
+		else if (seq >= 0x20 && seq < 0x30) {
 			continue;
 		}
 		else {

@@ -180,6 +180,17 @@ void makeTrapGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDesc
 	descriptor->baseHigh = (base >> 16) & 0xffff;
 }
 
+
+int SetBitMap(int vector,unsigned char * map) {
+	int q = vector / 8;
+	int r = vector % 8;
+	unsigned char v = (1 << r);
+	unsigned char value = map[q];
+	value = value | v;
+	map[q] = value;
+	return value;
+}
+
 //http://www.rcollins.org/articles/vme1/
 
 /*
@@ -237,7 +248,13 @@ void initV86Tss(TSS* tss, DWORD esp0, DWORD ip,DWORD cs, DWORD cr3,DWORD ldt) {
 	tss->cr3 = cr3;
 	tss->ldt = ldt;
 
-	tss->intMap[31] = 0xff;
+	for (int i = 0x10; i < 0x20; i++) {
+		SetBitMap(i, tss->intMap);
+	}
+
+	for (int i = 0x20; i < 0x30; i++) {
+		SetBitMap(i, tss->intMap);
+	}
 }
 
 
@@ -286,6 +303,8 @@ char* InitGdt() {
 
 	char szout[256];
 
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+
 	//__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
 	//__memcpy((char*)lpgdt, (char*)gdtbase.addr, gdtbase.size + 1);
 
@@ -324,16 +343,20 @@ char* InitGdt() {
 #ifdef SINGLE_TASK_TSS
 
 #else
+	initKernelTss((TSS*)APICTIMER_TSS_BASE+id* tssSize, TSSAPICTIMER_STACK0_TOP+id* TASK_STACK0_SIZE, TSSAPICTIMER_STACK_TOP+id* KTASK_STACK_SIZE,
+		(DWORD)LVTTimerIntHandler, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((DWORD)APICTIMER_TSS_BASE+id* tssSize, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
+
 	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 #endif
 
-	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	
 	for (int i = 0; i < 8; i++) {
-		initV86Tss((TSS*)(DOS_TSS_BASE + i* tssSize), TSSDOS_STACK0_TOP+i* TASK_STACK0_SIZE,
-			TSSDOS_STACK_TOP+i* KTASK_STACK_SIZE, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
-		makeTssDescriptor((DWORD)(DOS_TSS_BASE + i * tssSize), 3, sizeof(TSS) - 1,
-			(TssDescriptor*)(lpgdt + kTssDosSelector* sizeof(TaskGateDescriptor)*i));
+		//initV86Tss((TSS*)(DOS_TSS_BASE + i* tssSize), TSSDOS_STACK0_TOP+i* TASK_STACK0_SIZE,
+		//	TSSDOS_STACK_TOP+i* KTASK_STACK_SIZE, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
+		//makeTssDescriptor((DWORD)(DOS_TSS_BASE + i * tssSize), 3, sizeof(TSS) - 1,
+		//	(TssDescriptor*)(lpgdt + kTssDosSelector* sizeof(TaskGateDescriptor)*i));
 	}
 
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
@@ -470,8 +493,12 @@ char* InitIDT() {
 #else
 	makeIntGateDescriptor((DWORD)IPIIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_IPI_VECTOR);
 #endif
-	
+
+#ifdef SINGLE_TASK_TSS
 	makeIntGateDescriptor((DWORD)LVTTimerIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTIMER_VECTOR);
+#else
+	makeTaskGateDescriptor((DWORD)kTssApicTimerSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_LVTTIMER_VECTOR ));
+#endif
 
 	makeIntGateDescriptor((DWORD)LVTTemperatureIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTTEMPERATURE_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTPerformanceIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTPERFORMANCE_VECTOR);
@@ -594,8 +621,8 @@ int InitGdt64() {
 	gdt[7] = 0x0000000000000000;
 	short tss_offset = 8 * sizeof (SegDescriptor);
 
-	initTss64((TSS64_DATA*)TSS64_BASE_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
-	makeTss64Descriptor(TSS64_BASE_ADDRESS, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
+	initTss64((TSS64_DATA*)KERNEL64_TSS_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
+	makeTss64Descriptor(KERNEL64_TSS_ADDRESS, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
 
 	return tss_offset + sizeof(Tss64Descriptor);
 }

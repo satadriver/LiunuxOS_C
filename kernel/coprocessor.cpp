@@ -79,8 +79,9 @@ void enableAVX() {
 
 
 void enableSSE() {
-	//DWORD mxcsr_reg = 0x1fbf;
-	DWORD mxcsr_reg = 0x1f80;
+	DWORD mxcsr_reg = 0x1fbf;
+	//DWORD mxcsr_reg = 0x1f80;
+	DWORD mxcsr_reg_old = 0;
 
 	__asm {
 
@@ -99,9 +100,12 @@ void enableSSE() {
 		__emit 0x22
 		__emit 0xe0
 
-		//ldmxcsr [mxcsr_reg]
-		stmxcsr [mxcsr_reg]
+		stmxcsr[mxcsr_reg_old]
+		ldmxcsr [mxcsr_reg]
+		
 	}
+	char szout[256];
+	__printf(szout,"mxcsr:%x\r\n", mxcsr_reg_old);
 }
 
 

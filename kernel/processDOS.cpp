@@ -4,6 +4,7 @@
 #include "Kernel.h"
 #include "task.h"
 #include "process.h"
+#include "core.h"
 
 //配置SCSI控制卡支持INT31H
 //要想从扩充内存中获得16K页，可以使用Int 67h来调用EMM，并告诉它将该页放进页框架之中
@@ -156,6 +157,14 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->tss.iomapEnd = 0xff;
 	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
+
+	for (int i = 0x10; i < 0x20; i++) {
+		SetBitMap(i, tss->tss.intMap);
+	}
+
+	for (int i = 0x20; i < 0x30; i++) {
+		SetBitMap(i, tss->tss.intMap);
+	}
 
 	//由于是单处理器，所以每个进程装入的时候必须打开中断位，否则一个进程一旦独占了唯一的一个cpu会导致无法中断
 	DWORD eflags = 0x220202;
