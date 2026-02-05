@@ -3,6 +3,7 @@
 #include "cmosExactTimer.h"
 #include "utils.h"
 #include "apic.h"
+#include "memory.h"
 
 //TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
 TIMER_PROC_PARAM * g8254Timer = 0;
@@ -26,11 +27,13 @@ void init8254Timer() {
 }
 
 
-int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
-	if (addr == 0 || delay == 0)
-	{
-		return -1;
-	}
+int __kAdd8254Timer(DWORD func, DWORD delay, DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
+
+	//unsigned long func = linear2phy((unsigned long)addr);
+	//if (func == 0 || delay == 0)
+	//{
+	//	return -1;
+	//}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	DWORD* lptickcnt = (DWORD*)(TIMER0_TICK_COUNT+id*sizeof(int));
 
@@ -45,7 +48,7 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 	{
 		if (g8254Timer[i].func == 0 && g8254Timer[i].tickcnt == 0)
 		{
-			g8254Timer[i].func = addr;
+			g8254Timer[i].func = func;
 			g8254Timer[i].ticks = ticks;
 			g8254Timer[i].tickcnt = *lptickcnt + ticks;
 			g8254Timer[i].param1 = param1;
@@ -57,7 +60,7 @@ int __kAdd8254Timer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD p
 			g8254Timer[i].tid = proc->tid;
 			char szout[256];
 			__printf(szout, "%s addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", __FUNCTION__,
-			 addr,i,delay,param1,param2,param3,param4);
+				func,i,delay,param1,param2,param3,param4);
 
 			return i;
 		}

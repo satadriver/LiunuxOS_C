@@ -58,7 +58,11 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		return 0;
 	}
 	else {
-		__sleep(-1);
+		//__sleep(-1);
+		__asm {
+			hlt
+
+		}
 	}
 
 	return 0;
@@ -85,11 +89,8 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int ret = 0;
 
 	char szout[256];
-#ifdef IPI_TASK_SWITCH
-	int cpu = GetIdleProcessor();
-#else
+
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-#endif
 
 	TASKRESULT freetask;
 	ret = __getFreeTask(&freetask);

@@ -89,6 +89,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	InitGdt();
 	InitIDT();
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	*(int*)CPU_ID_ADDRESS = id;
 	__initTask0((char*)LIUNUX_KERNEL32_DLL,"__kKernel",0, GRAPHCHAR_HEIGHT * id * 16 + 64);
 
 	SetIVTVector();

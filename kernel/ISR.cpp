@@ -1166,7 +1166,71 @@ popad不会将esp修改为popad时压入堆栈中的esp，而是直接将esp+32
 
 mov esp, ss: [esp - 20]这一行汇编将esp0替换为新任务的tss中保存的esp0值
 */
-#ifdef LOCAL_APIC_ENABLE
+#ifdef TIMER_TASK_SWITCH
+extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
+
+	__asm {
+
+		pushad
+		push ds
+		push es
+		push fs
+		push gs
+		push ss
+
+		push esp
+		sub esp, 4
+		push ebp
+		mov ebp, esp
+		sub esp, NATIVE_STACK_LIMIT
+
+		mov eax, KERNEL_MODE_DATA
+		mov ds, ax
+		mov es, ax
+		MOV FS, ax
+		MOV GS, AX
+		mov ss, ax
+	}
+
+	{
+		char szout[256];
+
+		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+
+		EOICommand(INTR_8259_MASTER + 0);
+	}
+
+	__asm {
+#ifdef SINGLE_TASK_TSS
+		call GetCurrentTaskTssBase
+		mov edx, eax
+		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		mov cr3, eax
+#endif
+
+		mov esp, ebp
+		pop ebp
+		add esp, 4
+		pop esp
+		pop ss
+		pop gs
+		pop fs
+		pop es
+		pop ds
+		popad
+
+#ifdef SINGLE_TASK_TSS
+		mov esp, ss: [esp - 20]
+#endif	
+		clts
+
+		iretd
+
+		jmp TimerInterrupt
+	}
+}
+
+#else
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
@@ -1215,69 +1279,8 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		jmp TimerInterrupt
 	}
 }
-#else
-extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
-	__asm {
 
-		pushad
-		push ds
-		push es
-		push fs
-		push gs
-		push ss
-
-		push esp
-		sub esp, 4
-		push ebp
-		mov ebp, esp
-		sub esp, NATIVE_STACK_LIMIT
-
-		mov eax, KERNEL_MODE_DATA
-		mov ds, ax
-		mov es, ax
-		MOV FS, ax
-		MOV GS, AX
-		mov ss, ax
-	}
-
-	{
-		char szout[256];
-
-		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-
-		EOICommand(INTR_8259_MASTER + 0);
-	}
-
-	__asm {
-#ifdef SINGLE_TASK_TSS
-		call GetCurrentTaskTssBase
-		mov edx,eax
-		mov eax, dword ptr ds: [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
-#endif
-
-		mov esp, ebp
-		pop ebp
-		add esp, 4
-		pop esp
-		pop ss
-		pop gs
-		pop fs
-		pop es
-		pop ds
-		popad
-
-#ifdef SINGLE_TASK_TSS
-		mov esp, ss: [esp - 20]
-#endif	
-		clts
-
-		iretd
-
-		jmp TimerInterrupt
-	}
-}
 #endif
 //Prefixes 指令代码的前缀，每指令最多能够有4个/种前缀修饰。
 //有操作数大小前缀。如前面提到的 66。它指定 32 - bit 操作数大小，FE 前缀则表示 8 - bit 操作数。按 16 位机上的传统，默认的操作为 16 位，不使用前缀。

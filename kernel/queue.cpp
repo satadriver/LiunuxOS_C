@@ -1,7 +1,10 @@
 
 #include "queue.h"
+#include "Utils.h"
 
 using namespace MyRingQueue;
+
+int g_queue_lock = 0;
 
 int MyRingQueue::init(RingQueue* q,char* base,int size) {
 	q->size = size;
@@ -11,14 +14,19 @@ int MyRingQueue::init(RingQueue* q,char* base,int size) {
 	return TRUE;
 }
 
-int MyRingQueue::push(RingQueue* q, char* value) {
+int MyRingQueue::push(RingQueue* q, char* value,int size) {
 
-	*(char**)(q->tail) = value;
+	__enterSpinlock(&g_queue_lock);
+
+	RingQueueData* data = (RingQueueData*)(q->tail);
+
+	__memcpy(data->data, value, size);
+	data->valid = TRUE;
 
 	int overflow = 0;
 
-	char* next = q->tail + sizeof(char*);
-	if (next >= q->base + (q->size) * sizeof(char*))
+	char* next = q->tail + sizeof(RingQueueData);
+	if (next >= q->base + (q->size) * sizeof(RingQueueData))
 	{
 		next = q->base;
 	}
@@ -26,26 +34,76 @@ int MyRingQueue::push(RingQueue* q, char* value) {
 	if (next == q->head) {
 		overflow = 1;
 	}
-
-	if (overflow == 0) {
+	else {
 		q->tail = next;
 	}
 	
+	__leaveSpinlock(&g_queue_lock);
+
 	return overflow;
 }
 
 char * MyRingQueue::pop(RingQueue* q) {
+	char* v = 0;
 	if (q->head == q->tail) {
-		return 0;
+		return v;
 	}
 
-	char * v = *(char**)(q->head);
+	__enterSpinlock(&g_queue_lock);
 
-	q->head += sizeof(char*);
-	if (q->head >= q->base + q->size * sizeof(char*) ) {
+	char* ptr = (char*) q->head;
+	do {
+		RingQueueData* data = (RingQueueData*)ptr;
+		if (data->valid) {
+			v = data->data;
+			break;
+		}
 
-		q->head = q->base;
-	}
+		ptr += sizeof(RingQueueData);
+		if (ptr >= q->base + q->size * sizeof(RingQueueData) ) {
+			ptr = q->base;
+		}
 
+	} while (ptr != (char*)q->tail);
+
+	q->head = ptr;
+
+	__leaveSpinlock(&g_queue_lock);
 	return v;
+}
+
+
+//useless function
+int MyRingQueue::insert(RingQueue* q, char* v,int size) {
+
+	return 0;
+}
+
+
+int MyRingQueue::remove(RingQueue* q, char* v,int size) {
+
+	int result = 0;
+
+	__enterSpinlock(&g_queue_lock);
+
+	char* ptr = q->tail;
+	do {
+		RingQueueData* data = (RingQueueData*)ptr;
+
+		if (__memcmp(data->data,v,size) == 0 ) {
+			__memset(data->data, 0, sizeof(data->data));
+			data->valid = 0;
+			result = TRUE;
+			break;
+		}
+
+		ptr += sizeof(RingQueueData);
+		if (ptr >= q->base + q->size * sizeof(RingQueueData)) {
+			ptr = q->base;
+		}
+	} while (ptr != q->tail);
+
+	__leaveSpinlock(&g_queue_lock);
+
+	return result;
 }

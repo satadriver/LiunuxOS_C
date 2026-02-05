@@ -182,6 +182,8 @@ void makeTrapGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDesc
 
 
 int SetBitMap(int vector,unsigned char * map) {
+	//return 0;
+
 	int q = vector / 8;
 	int r = vector % 8;
 	unsigned char v = (1 << r);
@@ -289,6 +291,14 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 
 	tss->ldt = ldt;
 	tss->cr3 = cr3;
+
+	for (int i = 0x10; i < 0x20; i++) {
+		SetBitMap(i, tss->intMap);
+	}
+
+	for (int i = 0x20; i < 0x30; i++) {
+		SetBitMap(i, tss->intMap);
+	}
 }
 
 

@@ -263,6 +263,7 @@ LPWINDOWSINFO DestroyProcessWindow(int pid, int cpu) {
 		}
 		if (ptr->valid && ptr->window->pid == pid && ptr->window->cpu == cpu)
 		{
+			RemoveWindow(ptr - gWindowsList);
 			return ptr;
 		}
 		else {
@@ -288,6 +289,7 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 		}
 		if (ptr->valid && ptr->window->tid == tid && ptr->window->cpu == cpu)
 		{
+			RemoveWindow(ptr - gWindowsList);
 			return ptr;
 		}
 		else {
@@ -297,6 +299,7 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 
 	return 0;
 }
+
 
 int RemoveWindow(int id) {
 	if (gWindowsList == 0) {
@@ -322,7 +325,7 @@ int RemoveWindow(int id) {
 	return TRUE;
 }
 
-
+/*
 int RemoveProcessWindow(int pid,int cpu) {
 	int v = (cpu << 8) | pid;
 	if (gWindowsList == 0) {
@@ -347,6 +350,7 @@ int RemoveProcessWindow(int pid,int cpu) {
 
 	return 0;
 }
+*/
 
 char* GetVideoBase() {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();

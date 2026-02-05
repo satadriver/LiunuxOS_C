@@ -90,11 +90,16 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	leave_task_array_lock();
 
+	__printf(szout, "pid:%d tid:%d file:%s function:%s terminate\r\n",pid,tid,filename,funcname);
+
 	if (dwtid & 0x80000000) {
 		return;
 	}
 	else {
-		__sleep(-1);
+		__asm {
+			hlt
+		}
+		//__sleep(-1);
 	}
 }
 #else
@@ -428,11 +433,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
-#ifdef IPI_TASK_SWITCH
-	int cpu = GetIdleProcessor();
-#else
 	int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
-#endif
 
 	TASKRESULT result;
 	ret = __getFreeTask(&result);

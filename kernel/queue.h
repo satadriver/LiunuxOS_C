@@ -13,6 +13,13 @@ typedef struct {
 	int size;
 }RingQueue;
 
+
+
+typedef struct {
+	int valid;
+	char data[64];
+}RingQueueData;
+
 #pragma pack()
 
 
@@ -20,7 +27,10 @@ namespace MyRingQueue{
 
 	int init(RingQueue* q, char* base, int size);
 
-	int push(RingQueue* q, char* value);
+	int push(RingQueue* q, char* value,int size);
 
 	char* pop(RingQueue* q);
+
+	int insert(RingQueue* q, char* v,int size);
+	int remove(RingQueue* q, char* v,int size);
 }

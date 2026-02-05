@@ -45,7 +45,7 @@ void enableRcba() {
 
 //bit 9:enable irq 13
 //bit 8:enable apic io
-void EnableInt13() {
+void EnableFloatInt() {
 	outportd(0xcf8, 0x8000f8f0);
 
 	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
@@ -957,9 +957,9 @@ int AllocateApTask(int intnum) {
 
 
 int ActiveApTask(int intnum) {
-#ifndef IPI_TASK_SWITCH
+
 	return 0;
-#endif
+
 	if (intnum < 0 || intnum > 255) {
 		return -1;
 	}
@@ -1208,9 +1208,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	//__asm{int APIC_IPI_VECTOR}
 
-#ifndef IPI_TASK_SWITCH
 	ret = InitLocalApicTimer();
-#endif
 
 	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);

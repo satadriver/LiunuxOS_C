@@ -474,6 +474,8 @@ void restoreScreen() {
 	}
 }
 
+
+
 int setVideoMode(int mode) {
 
 	LPV86VMIPARAMS params = (LPV86VMIPARAMS)V86VMIPARAMS_ADDRESS;

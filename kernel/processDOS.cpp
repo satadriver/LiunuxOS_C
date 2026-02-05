@@ -269,6 +269,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	}
 
 #ifdef SINGLE_TASK_TSS
+	
 	RETUTN_ADDRESS_V86* retv86 = (RETUTN_ADDRESS_V86*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_V86));
 	retv86->ret3.ret0.cs = tss->tss.cs;
 	retv86->ret3.ret0.eip = tss->tss.eip;
@@ -287,7 +288,9 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->tss.esp = (DWORD)retv86;
 	tss->tss.ss = KERNEL_MODE_STACK;
+	
 #else
+
 #endif
 
 	tss->tss.cr3 = PDE_ENTRY_VALUE;
