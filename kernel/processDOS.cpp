@@ -19,6 +19,8 @@
 //INT 4Ah实时钟在闹铃时调用。
 //int 19h 会将MBR的512字节装载到内存0x7c00中，然后JUMP到0x7c00处，开始执行MBR的可执行程序（master booter）
 
+//
+
 
 DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 

@@ -1126,7 +1126,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
-
+		fninit
 	}
 
 	if (current->copyMap == 0) {
@@ -1541,6 +1541,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 		//need to run in another tss
 		//LPPROCESS_INFO next = MultipleTssSchedule(stack);
 		//__sleep(0);
+		LPPROCESS_INFO next = SingleTssSchedule(stack);
 
 		__asm {
 			mov eax, stack

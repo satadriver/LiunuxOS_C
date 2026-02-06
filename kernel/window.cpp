@@ -264,7 +264,7 @@ LPWINDOWSINFO DestroyProcessWindow(int pid, int cpu) {
 		if (ptr->valid && ptr->window->pid == pid && ptr->window->cpu == cpu)
 		{
 			RemoveWindow(ptr - gWindowsList);
-			return ptr;
+			//return ptr;
 		}
 		else {
 			ptr = (LPWINDOWSINFO)(ptr->list.prev);
@@ -289,7 +289,7 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 		}
 		if (ptr->valid && ptr->window->tid == tid && ptr->window->cpu == cpu)
 		{
-			RemoveWindow(ptr - gWindowsList);
+			//RemoveWindow(ptr - gWindowsList);
 			return ptr;
 		}
 		else {

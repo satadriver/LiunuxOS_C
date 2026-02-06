@@ -360,8 +360,15 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 
 			DWORD* cr3 = (DWORD*)process->tss.cr3;
 			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
+
+			if (vmtag) {
+				vaddr = tss->vaddr + tss->vasize;
+				tss->vasize += size;
+			}
+			tss->tss.cr3 = process->tss.cr3;
 		}
-		else {
+		else 
+		{
 			if (vmtag) {
 				vaddr = tss->vaddr + tss->vasize;
 				tss->vasize += size;

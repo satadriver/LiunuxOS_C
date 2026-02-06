@@ -182,7 +182,7 @@ void makeTrapGateDescriptor(DWORD base, DWORD selector, int dpl, IntTrapGateDesc
 
 
 int SetBitMap(int vector,unsigned char * map) {
-	//return 0;
+	return 0;
 
 	int q = vector / 8;
 	int r = vector % 8;
@@ -469,6 +469,7 @@ char* InitIDT() {
 	makeTrapGateDescriptor((DWORD)VMMCommException, KERNEL_MODE_CODE, 3, descriptor + 29);
 	makeTrapGateDescriptor((DWORD)SecurityException, KERNEL_MODE_CODE, 3, descriptor + 30);
 
+	
 #ifdef SINGLE_TASK_TSS
 	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
 #else

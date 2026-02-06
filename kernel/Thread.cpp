@@ -50,7 +50,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	tss[tid].retValue = retvalue;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DestroyThreadWindow(tid, cpu);
+	//DestroyThreadWindow(tid, cpu);
 
 	leave_task_array_lock();
 
@@ -60,9 +60,9 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	else {
 		//__sleep(-1);
 		__asm {
-			hlt
-
+			//hlt
 		}
+		__yield();
 	}
 
 	return 0;

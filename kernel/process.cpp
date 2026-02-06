@@ -24,7 +24,7 @@ void __kFreeProcess(int pid) {
 
 	freeProcessPages(pid,cpu);
 
-	DestroyProcessWindow(pid,cpu);
+	//DestroyProcessWindow(pid,cpu);
 }
 
 
@@ -97,9 +97,11 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	}
 	else {
 		__asm {
-			hlt
+			//hlt
 		}
 		//__sleep(-1);
+
+		__yield();
 	}
 }
 #else
