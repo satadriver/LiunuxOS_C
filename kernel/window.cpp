@@ -263,7 +263,7 @@ LPWINDOWSINFO DestroyProcessWindow(int pid, int cpu) {
 		}
 		if (ptr->valid && ptr->window->pid == pid && ptr->window->cpu == cpu)
 		{
-			RemoveWindow(ptr - gWindowsList);
+			//RemoveWindow(ptr - gWindowsList);
 			//return ptr;
 		}
 		else {
@@ -313,13 +313,15 @@ int RemoveWindow(int id) {
 		__enterSpinlock(&g_window_lock);
 		
 		window->valid = FALSE;
-		window->window = 0;
+		//
 
 		RemoveList(&gWindowsList->list, &window->list);
 
 		__leaveSpinlock(&g_window_lock);
 		
 		__printf(szout, "%s id:%x,name:%s\r\n", __FUNCTION__, window->window->id, window->window->winname);
+
+		window->window = 0;
 	}
 
 	return TRUE;

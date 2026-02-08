@@ -280,6 +280,10 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			minutey_old = minutey;
 			hourx_old = hourx;
 			houry_old = houry;
+
+			dt_old.minute = dt.minute;
+			dt_old.second = dt.second;
+			dt_old.hour = dt.hour;
 		}
 
 		//__sleep(0);

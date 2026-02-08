@@ -174,7 +174,9 @@ void __kCoprocessor() {
 
 			mov eax, fenv
 			//fsave [fenv]
-			fxsave ds:[eax]
+			//fxsave ds:[eax]
+
+			fxrstor ds : [eax]
 		}
 	}
 	else {		
