@@ -99,7 +99,7 @@ void initDebugger() {
 		__emit 0x20
 		__emit 0xe0
 
-		//or eax, 8		//DE
+		or eax, 8		//DE
 
 		//mov cr4,eax
 		__emit 0x0f
@@ -224,15 +224,14 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 	unsigned char code = *(unsigned char*)stack->eip;
 	if (code == 0xcc) {
 		stack->eip++;
-		__printf(szout, (char*)"int3(0xcc) is exception\r\n");
+		__printf(szout, (char*)"int3(0xcc) is a exception\r\n");
 	}
 	else {
-		//__printf(szout, "int3(0xcc) is trap\r\n");
+		__printf(szout, "int3(0xcc) is a trap\r\n");
 	}
 
 	DWORD eflags = 0;
 	__asm {
-		//cpu clear IF when enter interruptions
 		pushfd
 		pop ss:[eflags]
 	}
@@ -311,13 +310,19 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 	
 	if (reg_dr6 & 0x8000)	//BT
 	{
-		len = __printf(szout, (char*)"TSS Trap BreakPoint eip:%x,cs:%x\r\n", stack->eip, stack->cs);
+		int tr_reg = 0;
+		__asm {
 
+			str ax
+			mov word ptr [tr_reg],ax
+		}
+
+		len = __printf(szout, (char*)"TSS Trap BreakPoint tr:%x, eip:%x,cs:%x\r\n",tr_reg, stack->eip, stack->cs);
 	}
 
-	DWORD addr = 0;
-	DWORD bptype = 0;
-	DWORD bplen = 0;
+	DWORD addr[4] ;
+	DWORD bptype[4] ;
+	DWORD bplen[4] ;
 	if (reg_dr6 & 1)
 	{
 		__asm {
@@ -326,10 +331,12 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 
 			mov eax, dr7
 			and eax,0x30000
+			shr eax,16
 			mov [bptype],eax
 
 			mov eax,dr7
 			and eax,0xc0000
+			shr eax, 16
 			mov [bplen],eax
 		}
 	}
@@ -338,15 +345,17 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 	{
 		__asm {
 			mov eax, dr1
-			mov[addr], eax
+			mov[addr+4], eax
 
 			mov eax, dr7
 			and eax, 0x300000
-			mov[bptype], eax
+			shr eax, 20
+			mov[bptype+4], eax
 
 			mov eax, dr7
 			and eax, 0xc00000
-			mov[bplen], eax
+			shr eax, 20
+			mov[bplen+4], eax
 		}
 	}
 
@@ -354,15 +363,17 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 	{
 		__asm {
 			mov eax, dr2
-			mov[addr], eax
+			mov[addr+8], eax
 
 			mov eax, dr7
+			shr eax, 24
 			and eax, 0x3000000
-			mov[bptype], eax
+			mov[bptype+8], eax
 
 			mov eax, dr7
 			and eax, 0xc000000
-			mov[bplen], eax
+			shr eax, 24
+			mov[bplen+8], eax
 		}
 	}
 
@@ -370,27 +381,38 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 	{
 		__asm {
 			mov eax, dr3
-			mov[addr], eax
+			mov[addr+12], eax
 
 			mov eax, dr7
 			and eax, 0x30000000
-			mov[bptype], eax
+			shr eax,28
+			mov[bptype+12], eax
 
 			mov eax, dr7
 			and eax, 0xc0000000
-			mov[bplen], eax
+			shr eax, 28
+			mov[bplen+12], eax
 		}
 	}
-
-	if ( (reg_dr6 & 0x2000) || (reg_dr6 & 0x4000) || (reg_dr6 & 0x8000) )
-	{
-
-	}
 	
-	if((reg_dr6 & 1) || (reg_dr6 & 2) || (reg_dr6 & 4) || (reg_dr6 & 8)){
+	if((reg_dr6 & 1)){
 
-		len = __printf(szout, (char*)"breakpoint address:%x,type:%d,bplen:%d\r\n",addr, bptype,bplen);
+		len = __printf(szout, (char*)"breakpoint address0:%x,type0:%d,bplen0:%d\r\n",addr[0], bptype[0],bplen[0]);
+	}
 
+	if ((reg_dr6 & 2) ) {
+
+		len = __printf(szout, (char*)"breakpoint address1:%x,type1:%d,bplen1:%d\r\n", addr[1], bptype[1], bplen[1]);
+	}
+
+	if ((reg_dr6 & 4)) {
+
+		len = __printf(szout, (char*)"breakpoint address2:%x,type2:%d,bplen2:%d\r\n", addr[2], bptype[2], bplen[2]);
+	}
+
+	if ((reg_dr6 & 8)) {
+
+		len = __printf(szout, (char*)"breakpoint address3:%x,type3:%d,bplen3:%d\r\n", addr[3], bptype[3], bplen[3]);
 	}
 
 	__asm {

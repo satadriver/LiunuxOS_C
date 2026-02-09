@@ -72,7 +72,6 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 	__enableBreakPoint();
 
 	enableSingleStep();
-
 	disableSingleStep();
 
 	enableOverflow();

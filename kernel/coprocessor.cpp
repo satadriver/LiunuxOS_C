@@ -79,8 +79,8 @@ void enableAVX() {
 
 
 void enableSSE() {
-	DWORD mxcsr_reg = 0x1fbf;
-	//DWORD mxcsr_reg = 0x1f80;
+	//DWORD mxcsr_reg = 0x1fbf;
+	DWORD mxcsr_reg = 0x1f80;
 	DWORD mxcsr_reg_old = 0;
 
 	__asm {
@@ -174,7 +174,7 @@ void __kCoprocessor() {
 
 			mov eax, fenv
 			//fsave [fenv]
-			//fxsave ds:[eax]
+			fxsave ds:[eax]
 
 			fxrstor ds : [eax]
 		}
