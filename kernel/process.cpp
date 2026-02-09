@@ -92,7 +92,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	__printf(szout, "pid:%d tid:%d file:%s function:%s terminate\r\n",pid,tid,filename,funcname);
 
-	tss[pid].window = 0;
+	//tss[pid].window = 0;
 	tss[pid].sleep = 0;
 
 	if (dwtid & 0x80000000) {
