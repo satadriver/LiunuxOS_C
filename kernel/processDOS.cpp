@@ -181,7 +181,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->copyMap = 0;
 	tss->fpu = TRUE;
 #ifdef SINGLE_TASK_TSS
-	tss->tss.trap = 0;
+	tss->tss.trap = 1;
 #else
 	tss->tss.trap = 0;
 #endif

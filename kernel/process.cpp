@@ -83,6 +83,8 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	}
 
 	int retvalue = 0;
+	tss[pid].sleep = 0;
+
 
 	tss[process->pid].retValue = retvalue;
 
@@ -91,9 +93,6 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	leave_task_array_lock();
 
 	__printf(szout, "pid:%d tid:%d file:%s function:%s terminate\r\n",pid,tid,filename,funcname);
-
-	//tss[pid].window = 0;
-	tss[pid].sleep = 0;
 
 	if (dwtid & 0x80000000) {
 		return;
@@ -143,7 +142,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	//tss->tss.cr3 = PDE_ENTRY_VALUE;
 
 #ifdef SINGLE_TASK_TSS
-	tss->tss.trap = 0;
+	tss->tss.trap = 1;
 #else
 	tss->tss.trap = 0;
 #endif

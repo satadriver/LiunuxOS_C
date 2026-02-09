@@ -109,7 +109,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
 	tss->copyMap = 0;
 #ifdef SINGLE_TASK_TSS
-	tss->tss.trap = 0;
+	tss->tss.trap = 1;
 #else
 	tss->tss.trap = 0;
 #endif

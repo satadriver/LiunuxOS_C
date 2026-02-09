@@ -4,7 +4,7 @@
 
 
 
-#define SHUTDOWN_SCREEN_SECONDS	9000
+#define SHUTDOWN_SCREEN_SECONDS	900
 
 #pragma pack(1)
 typedef struct

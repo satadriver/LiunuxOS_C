@@ -149,7 +149,7 @@ int setUnicodeFN(LPFAT32DIRECTORY lpdir, char * filename) {
 	ret = getFAT32FileName(filename, shortname);
 	unsigned char checksum = getUnicodeDirectoryChecksum((unsigned char*)shortname);
 
-	//wchar_t wszfn[1024] ;
+	//wchar_t wszfn[1024] = { 0 };
 	wchar_t wszfn[MAX_PATH_SIZE];
 	__memset((char*)wszfn, 0, MAX_PATH_SIZE * sizeof(wchar_t));
 	ret = multiBytes2WideChar(shortname, wszfn);

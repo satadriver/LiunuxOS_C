@@ -99,7 +99,7 @@ void initDebugger() {
 		__emit 0x20
 		__emit 0xe0
 
-		or eax, 8		//DE
+		//or eax, 8		//DE
 
 		//mov cr4,eax
 		__emit 0x0f
@@ -224,14 +224,15 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 	unsigned char code = *(unsigned char*)stack->eip;
 	if (code == 0xcc) {
 		stack->eip++;
-		__printf(szout, (char*)"int3(0xcc) is a exception\r\n");
+		__printf(szout, (char*)"int3(0xcc) is exception\r\n");
 	}
 	else {
-		__printf(szout, "int3(0xcc) is a trap\r\n");
+		__printf(szout, "int3(0xcc) is trap\r\n");
 	}
 
 	DWORD eflags = 0;
 	__asm {
+		//cpu clear IF when enter interruptions
 		pushfd
 		pop ss:[eflags]
 	}
@@ -307,21 +308,22 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 			stack->eflags = eflags;
 		}
 	}
-	
-	if (reg_dr6 & 0x8000)	//BT
-	{
+	if (reg_dr6 & 0x8000) {	//BT
+
 		int tr_reg = 0;
 		__asm {
 
 			str ax
-			mov word ptr [tr_reg],ax
+			mov word ptr[tr_reg], ax
 		}
 
-		len = __printf(szout, (char*)"TSS Trap BreakPoint tr:%x, eip:%x,cs:%x\r\n",tr_reg, stack->eip, stack->cs);
+		len = __printf(szout, (char*)"TSS Trap BreakPoint tr:%x, eip:%x,cs:%x\r\n", tr_reg, stack->eip, stack->cs);
+
 	}
 
-	DWORD addr[4] ;
-	DWORD bptype[4] ;
+
+	DWORD addr[4];
+	DWORD bptype[4];
 	DWORD bplen[4] ;
 	if (reg_dr6 & 1)
 	{
@@ -331,7 +333,7 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 
 			mov eax, dr7
 			and eax,0x30000
-			shr eax,16
+			shr eax, 16
 			mov [bptype],eax
 
 			mov eax,dr7
@@ -366,8 +368,8 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 			mov[addr+8], eax
 
 			mov eax, dr7
-			shr eax, 24
 			and eax, 0x3000000
+			shr eax, 24
 			mov[bptype+8], eax
 
 			mov eax, dr7
@@ -385,7 +387,7 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 
 			mov eax, dr7
 			and eax, 0x30000000
-			shr eax,28
+			shr eax, 28
 			mov[bptype+12], eax
 
 			mov eax, dr7
@@ -394,13 +396,13 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 			mov[bplen+12], eax
 		}
 	}
-	
-	if((reg_dr6 & 1)){
 
-		len = __printf(szout, (char*)"breakpoint address0:%x,type0:%d,bplen0:%d\r\n",addr[0], bptype[0],bplen[0]);
+	if ((reg_dr6 & 1)) {
+
+		len = __printf(szout, (char*)"breakpoint address0:%x,type0:%d,bplen0:%d\r\n", addr[0], bptype[0], bplen[0]);
 	}
 
-	if ((reg_dr6 & 2) ) {
+	if ((reg_dr6 & 2)) {
 
 		len = __printf(szout, (char*)"breakpoint address1:%x,type1:%d,bplen1:%d\r\n", addr[1], bptype[1], bplen[1]);
 	}

@@ -24,7 +24,7 @@
 #include "floppy.h"
 #include "Utils.h"
 #include "menu.h"
-#include "malloc.h"
+
 #include "Pe.h"
 #include "window.h"
 #include "ProcessDos.h"
@@ -72,6 +72,7 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 	__enableBreakPoint();
 
 	enableSingleStep();
+
 	disableSingleStep();
 
 	enableOverflow();
@@ -83,16 +84,6 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 	callgateEntry((char*)params, 4);
 
 	SysenterProc((char*)params,3);
-
-	/*
-	for (int i = 0; i < 16; i++) {
-		int size = i * 0x10 + 0x100;
-		char* data = (char*) __malloc(i*10+0x100);
-		__memset(data, i+0x41, size);
-		__printf(szout, "malloc address:%x\r\n", data);
-		__free((unsigned long)data);
-	}
-	*/
 
 	__yield();
 	

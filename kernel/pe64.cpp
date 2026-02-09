@@ -8,7 +8,7 @@
 #define IMAGE_REL_BASED_HIGHLOW       3  // 32位PE使用
 #define IMAGE_REL_BASED_DIR64         10 // 64位PE使用
 
-QWORD getAddrFromName64(char* module, const char* funname) {
+char* getAddrFromName64(char* module, const char* funname) {
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
 	PIMAGE_NT_HEADERS64 nt = (PIMAGE_NT_HEADERS64)((QWORD)dos + dos->e_lfanew);
 	DWORD exptrva = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
@@ -26,12 +26,13 @@ QWORD getAddrFromName64(char* module, const char* funname) {
 			int idx = ords[i];
 			DWORD* addrs = (DWORD*)(exptable->AddressOfFunctions + module);
 			char* addr = addrs[idx] + module;
-			return (QWORD)addr;
+			return addr;
 		}
 	}
 
 	char szout[256];
-	__printf(szout, "getAddrFromName module:%x,name:%s error\n", module, funname);
+	const char* moduleName = (const char*)(exptable->Name + module);
+	__printf(szout, "%s %d module:%s,function:%s error\n", __FUNCTION__, __LINE__, moduleName, funname);
 
 	return 0;
 }
@@ -48,7 +49,8 @@ QWORD getAddrFromOrd64(char* module, DWORD ord) {
 	if (funidx < 0 || funidx >= exp->NumberOfFunctions)
 	{
 		char szout[256];
-		__printf(szout, "getAddrFromOrd module:%x,ord:%d error\n", module, ord);
+		char* moduleName = (char*)module + exp->Name;
+		__printf(szout, "%s %d module:%s,ord:%d error\n", __FUNCTION__, __LINE__, moduleName, ord);
 
 		return 0;
 	}
@@ -60,8 +62,8 @@ QWORD getAddrFromOrd64(char* module, DWORD ord) {
 
 
 
-
-int relocTable64(char* pImageBase, ULONGLONG newBase) {
+// 函数：应用PE文件的重定位表
+bool relocTable64(char* pImageBase, ULONGLONG newBase) {
 	//ULONGLONG newBase = (ULONGLONG)pImageBase;
 	PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)pImageBase;
 	if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE) {
@@ -73,11 +75,13 @@ int relocTable64(char* pImageBase, ULONGLONG newBase) {
 		return false;
 	}
 
+	// 检查是否为64位PE文件
 	if (pNtHeaders->FileHeader.Machine != IMAGE_FILE_MACHINE_AMD64) {
 		//printf("Not a 64-bit PE file.\n");
 		return false;
 	}
 
+	// 获取重定位表目录项
 	IMAGE_DATA_DIRECTORY relocDir = pNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_BASERELOC];
 	if (relocDir.VirtualAddress == 0 || relocDir.Size == 0) {
 		//printf("No relocation table found (likely a non-relocatable executable).\n");
@@ -88,15 +92,19 @@ int relocTable64(char* pImageBase, ULONGLONG newBase) {
 	PIMAGE_BASE_RELOCATION pReloc = (PIMAGE_BASE_RELOCATION)((BYTE*)pImageBase + relocDir.VirtualAddress);
 	ULONGLONG delta = newBase - pNtHeaders->OptionalHeader.ImageBase;
 
+	// 遍历所有重定位块
 	while (pReloc->VirtualAddress != 0 && pReloc->SizeOfBlock > 0) {
+		// 计算当前块的重定位项数量
 		DWORD numEntries = (pReloc->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(WORD);
 		PWORD pEntries = (PWORD)(pReloc + 1);
 
+		// 处理每个重定位项
 		for (DWORD i = 0; i < numEntries; i++) {
 			WORD entry = pEntries[i];
 			BYTE type = entry >> 12;      // 高4位是类型
 			WORD offset = entry & 0xFFF;  // 低12位是偏移
 
+			// 仅处理64位重定位项
 			if (type == IMAGE_REL_BASED_DIR64) {
 				ULONGLONG* pAddr = (ULONGLONG*)((BYTE*)pImageBase + pReloc->VirtualAddress + offset);
 				*pAddr += delta; // 修正地址
@@ -106,6 +114,7 @@ int relocTable64(char* pImageBase, ULONGLONG newBase) {
 			}
 		}
 
+		// 移动到下一个重定位块
 		pReloc = (PIMAGE_BASE_RELOCATION)((BYTE*)pReloc + pReloc->SizeOfBlock);
 	}
 
@@ -115,7 +124,7 @@ int relocTable64(char* pImageBase, ULONGLONG newBase) {
 
 
 
-bool relocTable32(char* chBaseAddress, ULONGLONG dst)
+bool relocTable64_old(char* chBaseAddress, ULONGLONG dst)
 {
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)chBaseAddress;
 	PIMAGE_NT_HEADERS64 pNt = (PIMAGE_NT_HEADERS64)(chBaseAddress + pDos->e_lfanew);
@@ -239,7 +248,7 @@ QWORD getImageBase64(char* pFileBuff)
 	return imagebase;
 }
 
-
+//why need to modify imagebase？
 int setImageBase64(char* chBaseAddress)
 {
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)chBaseAddress;

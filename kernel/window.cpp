@@ -189,7 +189,7 @@ DWORD isTopWindow(int wid) {
 	}
 	LPWINDOWSINFO window = & gWindowsList[ wid] ;
 	LPWINDOWSINFO prev = (LPWINDOWSINFO)gWindowsList->list.prev;
-	if (window == (LPWINDOWSINFO)prev)		//virtual address and physical address is not equal if DISABLE_PAGE_MAPPING is not defined
+	if (window == (LPWINDOWSINFO)prev)
 	{
 		if (prev->window->id == wid) 
 		{
@@ -266,9 +266,9 @@ LPWINDOWSINFO DestroyProcessWindow(int pid, int cpu) {
 			int id = ptr->window->id;
 			if (id != ptr - gWindowsList) {
 				char szout[256];
-				__printf(szout,"%s window id:%d not equal to %d\r\n", __FUNCTION__,id, ptr - gWindowsList);
+				__printf(szout, "%s window id:%d not equal to %d\r\n", __FUNCTION__, id, ptr - gWindowsList);
 			}
-			RemoveWindow(id);
+			RemoveWindow(ptr - gWindowsList);
 
 		}
 		else {
@@ -297,9 +297,9 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 			int id = ptr->window->id;
 			if (id != ptr - gWindowsList) {
 				char szout[256];
-				__printf(szout, "%s window id:%d not equal to %d\r\n",__FUNCTION__, id, ptr - gWindowsList);
+				__printf(szout, "%s window id:%d not equal to %d\r\n", __FUNCTION__, id, ptr - gWindowsList);
 			}
-			RemoveWindow(id);
+			RemoveWindow(ptr - gWindowsList);
 			return ptr;
 		}
 		else {
@@ -311,7 +311,7 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 }
 
 
-int RemoveWindow(int id) {
+int RemoveWindow(int id) {	//virtual address and physical address is not equal if DISABLE_PAGE_MAPPING is not defined
 	if (gWindowsList == 0) {
 		return 0;
 	}
@@ -327,12 +327,12 @@ int RemoveWindow(int id) {
 		RemoveList(&gWindowsList->list, &window->list);
 
 		LPWINDOWSINFO prev = (LPWINDOWSINFO)gWindowsList->list.prev;
-		
-		__printf(szout, "%s window id:%x,name:%s,prev window:%s\r\n", __FUNCTION__, window->window->id, window->window->winname,prev->window->winname);
+		__printf(szout, "%s window id:%x,name:%s,prev window:%s\r\n", __FUNCTION__, window->window->id, window->window->winname, prev->window->winname);
 
 		window->window = 0;
 
 		__leaveSpinlock(&g_window_lock);
+
 	}
 
 	return TRUE;

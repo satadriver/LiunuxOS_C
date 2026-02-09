@@ -473,7 +473,7 @@ char* InitIDT() {
 #ifdef SINGLE_TASK_TSS
 	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
 #else
-	//makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
+	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
 #endif
 
 	makeIntGateDescriptor((DWORD)KeyboardIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 1);

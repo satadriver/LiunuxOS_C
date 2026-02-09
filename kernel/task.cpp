@@ -635,9 +635,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == prev) {
-			if (current->status == TASK_SUSPEND || current->status == TASK_OVER || current->status == TASK_TERMINATE) {
-				__printf(szout,"current task status:%d error\r\n", current->status);
-			}
 			goto __SingleTssSchedule_end;
 		}
 
@@ -809,6 +806,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos[id]->list.next;
 
+
 	if (prev->status == TASK_TERMINATE  ) {
 		prev->status = TASK_OVER;
 	}
@@ -847,8 +845,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->status == TASK_SUSPEND) {
 	}
 
-	TASK_LIST_ENTRY* ptr = (TASK_LIST_ENTRY*)next;
+	TASK_LIST_ENTRY* ptr = next;
 	do {
+
 		if (next->node->cpuid == id) {
 			if (next->node->status == TASK_TERMINATE) {
 				next->node->status = TASK_OVER;
@@ -865,7 +864,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		next = (TASK_LIST_ENTRY * )(next->list.next);
-
 		if (next == ptr) {
 			if (process->status == TASK_SUSPEND || process->status == TASK_OVER || process->status == TASK_TERMINATE) {
 				__printf(szout, "current task status:%d error\r\n", process->status);
@@ -1054,9 +1052,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == current) {
-			if (current->status == TASK_SUSPEND || current->status == TASK_OVER || current->status == TASK_TERMINATE) {
-				__printf(szout, "current task status:%d error\r\n", current->status);
-			}
 			goto __MultipleTssSchedule_end;
 		}
 
@@ -1247,7 +1242,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		next = (TASK_LIST_ENTRY*)(next->list.next);
-
 		if (next->node == ptr->node || next == ptr) {
 
 			if (current->status == TASK_SUSPEND || current->status == TASK_OVER || current->status == TASK_TERMINATE) {
