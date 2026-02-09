@@ -635,6 +635,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == prev) {
+			if (current->status == TASK_SUSPEND || current->status == TASK_OVER || current->status == TASK_TERMINATE) {
+				__printf(szout,"current task status:%d error\r\n", current->status);
+			}
 			goto __SingleTssSchedule_end;
 		}
 
@@ -1047,6 +1050,9 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == current) {
+			if (current->status == TASK_SUSPEND || current->status == TASK_OVER || current->status == TASK_TERMINATE) {
+				__printf(szout, "current task status:%d error\r\n", current->status);
+			}
 			goto __MultipleTssSchedule_end;
 		}
 

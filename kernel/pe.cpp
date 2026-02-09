@@ -1,13 +1,12 @@
 
 
-//#include <windows.h>
+
 #include "video.h"
 #include "pe.h"
 #include "Utils.h"
 #include "fat32/Fat32File.h"
 #include "task.h"
 #include "malloc.h"
-
 #include "kernel.h"
 
 
@@ -22,11 +21,12 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
 	PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)((DWORD)dos + dos->e_lfanew);
 	DWORD exptrva = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
-	//DWORD size = nt->OptionalHeader.DataDirectory[0].Size;
+	DWORD size = nt->OptionalHeader.DataDirectory[0].Size;
+	if (size <= 0) {
+		return 0;
+	}
 
 	PIMAGE_EXPORT_DIRECTORY exptable = (PIMAGE_EXPORT_DIRECTORY)(exptrva + module);
-
-	// const char * name = (const char*)(exp->Name + module);
 
 	const char ** funnames = (const char **)(exptable->AddressOfNames + module);
 	for (unsigned int i = 0; i < exptable->NumberOfNames; i++)
@@ -37,18 +37,21 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 			WORD * ords = (WORD*)(exptable->AddressOfNameOrdinals + module);
 			int idx = ords[i];
 			DWORD * addrs = (DWORD *)(exptable->AddressOfFunctions + module);
-			unsigned int addr = addrs[idx] + module;
+			unsigned long addr = addrs[idx] + module;
 			return addr;
 		}
 	}
 
 	char szout[256];
-	__printf(szout, "%s %d module:%x,name:%s error\n", __FUNCTION__, __LINE__, module, funname);
+	const char * moduleName = (const char*)(exptable->Name + module);
+	__printf(szout, "%s %d module:%s,function:%s error\n", __FUNCTION__, __LINE__, moduleName, funname);
 
 	return 0;
 }
 
 DWORD getAddrFromOrd(DWORD module, DWORD ord) {
+	char szout[256];
+
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
 	PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)((DWORD)dos + dos->e_lfanew);
 	DWORD rva = nt->OptionalHeader.DataDirectory[0].VirtualAddress;
@@ -56,12 +59,12 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord) {
 
 	PIMAGE_EXPORT_DIRECTORY exp = (PIMAGE_EXPORT_DIRECTORY)(rva + module);
 
-	unsigned int funidx = ord - exp->Base;
+	unsigned int funidx = ord - exp->Base;		//function base number
+	//ord + exp->base ?
 	if (funidx < 0 || funidx >= exp->NumberOfFunctions)
 	{
-		char szout[256];
-		__printf(szout, "%s %d module:%x,ord:%d error\n", __FUNCTION__, __LINE__, module, ord);
-
+		char* moduleName =(char*) module + exp->Name;
+		__printf(szout, "%s %d module:%s,ord:%d error\n", __FUNCTION__, __LINE__, moduleName, ord);
 		return 0;
 	}
 
@@ -72,7 +75,7 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord) {
 
 
 
-bool relocTable(char* chBaseAddress)
+int relocTable(char* chBaseAddress)
 {
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)chBaseAddress;
 	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)(chBaseAddress + pDos->e_lfanew);
@@ -108,7 +111,7 @@ bool relocTable(char* chBaseAddress)
 	return TRUE;
 }
 
-bool mapFileWithAttr(char* pFileBuff, char* chBaseAddress,DWORD * cr3)
+int mapFileWithAttr(char* pFileBuff, char* chBaseAddress,DWORD * cr3)
 {
 
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)pFileBuff;
@@ -137,7 +140,7 @@ bool mapFileWithAttr(char* pFileBuff, char* chBaseAddress,DWORD * cr3)
 	return TRUE;
 }
 
-bool mapFile(char* pFileBuff, char* chBaseAddress)
+int mapFile(char* pFileBuff, char* chBaseAddress)
 {
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)pFileBuff;
 	PIMAGE_NT_HEADERS pNt = (PIMAGE_NT_HEADERS)(pFileBuff + pDos->e_lfanew);
@@ -201,7 +204,8 @@ DWORD getImageBase(char* pFileBuff)
 	return imagebase;
 }
 
-//why need to modify imagebase£¿
+
+
 int setImageBase(char* chBaseAddress)
 {
 	PIMAGE_DOS_HEADER pDos = (PIMAGE_DOS_HEADER)chBaseAddress;

@@ -282,8 +282,8 @@ DWORD getAddrFromOrd(DWORD module, DWORD ord);
 
 DWORD importTable(DWORD module);
 
-bool mapFile(char* pFileBuff, char* chBaseAddress);
-bool relocTable(char* chBaseAddress);
+int mapFile(char* pFileBuff, char* chBaseAddress);
+int relocTable(char* chBaseAddress);
 
 #ifdef DLL_EXPORT
 

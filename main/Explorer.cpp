@@ -98,7 +98,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 		unsigned int ck = __kGetKbd(window.id) & 0xff;
 		if (ck) {
-			//__printf(szout, "click key:%x\r\n", ck);
+			__printf(szout, "click key:%x\r\n", ck);
 		}
 
 		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d||ck == 0x0a) {
@@ -383,8 +383,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 // 			menu.pos.y = mouseinfo.y;
 // 			menu.action = mouseinfo.status;
 		}
-		//__giveup();
-		__sleep(0);
+		__yield();
+		//__sleep(0);
 	}
 	return 0;
 }

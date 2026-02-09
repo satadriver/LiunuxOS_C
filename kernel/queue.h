@@ -29,7 +29,7 @@ namespace MyRingQueue{
 
 	int push(RingQueue* q, char* value,int size);
 
-	char* pop(RingQueue* q);
+	char* pop(RingQueue* q,int reset);
 
 	int insert(RingQueue* q, char* v,int size);
 	int remove(RingQueue* q, char* v,int size);

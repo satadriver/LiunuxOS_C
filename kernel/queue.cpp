@@ -43,13 +43,22 @@ int MyRingQueue::push(RingQueue* q, char* value,int size) {
 	return overflow;
 }
 
-char * MyRingQueue::pop(RingQueue* q) {
+char * MyRingQueue::pop(RingQueue* q,int reset) {
 	char* v = 0;
-	if (q->head == q->tail) {
-		return v;
-	}
 
 	__enterSpinlock(&g_queue_lock);
+
+	if (q->head == q->tail) {
+		if (reset && q->head != q->base) {
+			q->head = q->base;
+		}
+		else {
+			__leaveSpinlock(&g_queue_lock);
+			return v;
+		}
+	}
+
+	
 
 	char* ptr = (char*) q->head;
 	do {
