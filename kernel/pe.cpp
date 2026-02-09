@@ -18,15 +18,20 @@
 
 
 DWORD getAddrFromName(DWORD module, const char * funname) {
+	char szout[256];
+
 	PIMAGE_DOS_HEADER dos = (PIMAGE_DOS_HEADER)module;
 	PIMAGE_NT_HEADERS nt = (PIMAGE_NT_HEADERS)((DWORD)dos + dos->e_lfanew);
 	DWORD exptrva = nt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress;
 	DWORD size = nt->OptionalHeader.DataDirectory[0].Size;
-	if (size <= 0) {
-		return 0;
-	}
 
 	PIMAGE_EXPORT_DIRECTORY exptable = (PIMAGE_EXPORT_DIRECTORY)(exptrva + module);
+
+	const char* moduleName = (const char*)(exptable->Name + module);
+	if (size <= 0) {
+		__printf(szout, "%s %d module:%s,function:%s size:%d error\n", __FUNCTION__, __LINE__, moduleName, funname,size);
+		//return 0;
+	}
 
 	const char ** funnames = (const char **)(exptable->AddressOfNames + module);
 	for (unsigned int i = 0; i < exptable->NumberOfNames; i++)
@@ -41,9 +46,7 @@ DWORD getAddrFromName(DWORD module, const char * funname) {
 			return addr;
 		}
 	}
-
-	char szout[256];
-	const char * moduleName = (const char*)(exptable->Name + module);
+	
 	__printf(szout, "%s %d module:%s,function:%s error\n", __FUNCTION__, __LINE__, moduleName, funname);
 
 	return 0;

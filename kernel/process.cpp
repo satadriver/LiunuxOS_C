@@ -24,7 +24,7 @@ void __kFreeProcess(int pid) {
 
 	freeProcessPages(pid,cpu);
 
-	DestroyProcessWindow(pid,cpu);
+	//DestroyProcessWindow(pid,cpu);
 }
 
 
@@ -143,7 +143,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	//tss->tss.cr3 = PDE_ENTRY_VALUE;
 
 #ifdef SINGLE_TASK_TSS
-	tss->tss.trap = 1;
+	tss->tss.trap = 0;
 #else
 	tss->tss.trap = 0;
 #endif

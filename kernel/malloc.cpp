@@ -477,7 +477,7 @@ DWORD __malloc(DWORD s) {
 int __free(DWORD linearAddr) {
 
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	if (linearAddr >= process->heapbase + process->heapsize)
+	if (linearAddr >= process->heapbase && linearAddr < process->heapbase + process->heapsize)
 	{
 		return __heapFree(linearAddr);
 	}

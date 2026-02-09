@@ -50,7 +50,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 	tss[tid].retValue = retvalue;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DestroyThreadWindow(tid, cpu);
+	//DestroyThreadWindow(tid, cpu);
 
 	leave_task_array_lock();
 
@@ -109,7 +109,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
 	tss->copyMap = 0;
 #ifdef SINGLE_TASK_TSS
-	tss->tss.trap = 1;
+	tss->tss.trap = 0;
 #else
 	tss->tss.trap = 0;
 #endif
