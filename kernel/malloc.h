@@ -34,12 +34,12 @@ typedef struct
 {
 	DWORD addr;
 	DWORD size;
-
+	//WORD remainder;
 }MS_HEAP_STRUCT;
 
-
-
 #pragma pack()
+
+
 
 QWORD getBorderAddr();
 

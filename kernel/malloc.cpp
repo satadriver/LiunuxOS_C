@@ -33,6 +33,9 @@ int getAlignSize(int size, int allignsize) {
 	{
 		allocsize = allocsize + (allignsize - mod);
 	}
+	else {
+		//allocsize = allocsize + allignsize;
+	}
 	return allocsize;
 }
 
