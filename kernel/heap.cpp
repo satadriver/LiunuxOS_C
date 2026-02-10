@@ -149,7 +149,7 @@ DWORD __heapAlloc(int size) {
 	while ((DWORD)lpheap + allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->heapbase + tss->heapsize)
 	{
 		int heapSize = (lpheap->size)& HEAP_BUFFER_FREE;
-		if ((lpheap->size & HEAP_BUFFER_POSITION) && lpheap->size && lpheap->addr)
+		if ( (lpheap->size & HEAP_BUFFER_POSITION) && lpheap->size && lpheap->addr)
 		{
 			lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size & HEAP_BUFFER_FREE) + (sizeof(MS_HEAP_STRUCT) << 1) );
 			continue;
