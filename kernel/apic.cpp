@@ -1210,6 +1210,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	ret = InitLocalApicTimer();
 
+	InitPm();
+
+	GetCpuRate();
+
 	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 

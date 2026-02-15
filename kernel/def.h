@@ -8,6 +8,7 @@
 
 #define UCHAR		unsigned char
 #define CHAR		char
+#define PSTR		char *
 #define LPSTR		char *
 #define WCHAR		wchar_t
 #define USHORT		unsigned short
@@ -24,14 +25,14 @@
 #define UINT32		unsigned int
 #define UINT8		unsigned char
 #define BOOL		int
-#define uint16_t	unsigned short
-#define uint32_t	unsigned int
-#define uint8_t		unsigned char
-#define uint64_t	unsigned __int64
 #define ULONG32		unsigned int
 #define PULONG32	unsigned int *
 #define DWORD32		unsigned int 
 #define PDWORD32	unsigned int*
+#define uint16_t	unsigned short
+#define uint32_t	unsigned int
+#define uint8_t		unsigned char
+#define uint64_t	unsigned __int64
 #define ULONG_PTR	unsigned long* 
 #define ULONGLONG	unsigned __int64
 #define OWORD		__m128
@@ -71,7 +72,7 @@
 
 #define VM86_PROCESS_TASK
 
-#define DISABLE_PAGE_MAPPING
+//#define DISABLE_PAGE_MAPPING
 
 #define TASK_TIME_SLICE				10
 

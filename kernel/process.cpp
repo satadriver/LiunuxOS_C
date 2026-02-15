@@ -18,6 +18,7 @@
 
 
 void __kFreeProcess(int pid) {
+	//return;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	freeProcessMemory(pid,cpu);
@@ -155,7 +156,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->level = syslevel;
 	tss->copyMap = 0;
 
-	DWORD eflags = 0x200202;	//if = 1,et = 1
+	DWORD eflags = 0x200202;	//if = 1,cpuid = 1
 	if (syslevel)
 	{
 		eflags |= (syslevel << 12);	//iopl = 3

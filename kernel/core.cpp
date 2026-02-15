@@ -231,7 +231,7 @@ void initV86Tss(TSS* tss, DWORD esp0, DWORD ip,DWORD cs, DWORD cr3,DWORD ldt) {
 	tss->iomapEnd = 0xff;
 	tss->iomapOffset = OFFSETOF(TSS, iomapOffset) + SIZEOFMEMBER(TSS, intMap);
 
-	tss->eflags = 0x223202;
+	tss->eflags = 0x223202; //if = 1,cpuid = 1,iopl = 3, vm = 1
 
 	tss->ds = cs;
 	tss->es = cs;
@@ -267,8 +267,9 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 	tss->iomapEnd = 0xff;
 	tss->iomapOffset = OFFSETOF(TSS, iomapOffset) + SIZEOFMEMBER(TSS, intMap);
 
-	//tss->eflags = 0x203202;
-	tss->eflags = 0x202;
+	DWORD eflags = 0x200202;	//if = 1,cpuid = 1
+	eflags |= (0 << 12);	//iopl = 3
+	tss->eflags = eflags;		//if = 1,cpuid = 1,iopl = 3
 
 	tss->ds = KERNEL_MODE_DATA;
 	tss->es = KERNEL_MODE_DATA;

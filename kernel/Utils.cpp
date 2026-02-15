@@ -981,6 +981,20 @@ int __lockInc(int *v) {
 	return old;
 }
 
+void EnterSpinlock(int * spinlock) {
+	__asm {
+		xor ecx,ecx
+		xor edx,edx
+		mov eax, spinlock
+
+		monitor eax,ecx,edx
+
+		mov eax,0x20
+		mov edx,0
+		mwait eax,ecx
+	}
+}
+
 
 void __initSpinlock(int * v) {
 	*v = 0;

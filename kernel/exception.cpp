@@ -131,10 +131,10 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	}
 	
 	if (pid == tid) {
-		__terminateProcess(tid | 0x80000000, process->filename, process->funcname, 0);
+		__terminateProcess(tid , process->filename, process->funcname, 0);
 	}
 	else {
-		__kTerminateThread(tid | 0x80000000, process->filename, process->funcname, 0);
+		__kTerminateThread(tid , process->filename, process->funcname, 0);
 	}
 
 	__asm {

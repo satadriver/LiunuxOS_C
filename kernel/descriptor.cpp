@@ -10,7 +10,7 @@
 #include "Kernel.h"
 #include "apic.h"
 
-
+//reference:https://zhuanlan.zhihu.com/p/678582574
 
 //Extended Feature Enable Register(EFER) is a model - specific register added in the AMD K6 processor, 
 //to allow enabling the SYSCALL / SYSRET instruction, and later for entering and exiting long mode.
@@ -351,3 +351,68 @@ int SysenterInit(DWORD entryaddr) {
 
 	return TRUE;
 }
+
+
+
+int GetPmVersion() {
+	int ver = 0;
+	__asm {
+		mov eax,0ah
+		cpuid
+		mov [ver],eax
+	}
+	char szout[256];
+	__printf(szout, "%s %d performance monitor version: %x\r\n",__FUNCTION__,__LINE__, ver);
+	return ver;
+}
+
+
+
+int InitPm() {
+
+	int ver = GetPmVersion();
+	if (ver == 0) {
+		return 0;
+	}
+	unsigned long low = 0;
+	unsigned long high = 0;
+
+	writemsr(0xc1, low, high);
+
+	low = 0x5300c0;
+	writemsr(0x186, low, 0);		//IA32_PERFEVTSELx
+
+	readmsr(0xc1, &low, &high);
+
+	char szout[256];
+	__printf(szout, "%s %d performance monitor counter low:%x,high:%x\r\n", __FUNCTION__, __LINE__, low,high);
+	return 0;
+}
+
+
+int GetCpuRate() {
+
+	unsigned long e7low = 0;
+	unsigned long e7high = 0;
+
+	readmsr(0xe7, &e7low,& e7high);
+
+
+	unsigned long e8low = 0;
+	unsigned long e8high = 0;
+
+	readmsr(0xe8, &e8low, &e8high);
+
+	//__sleep(1000);
+
+	char szout[256];
+	__printf(szout, "%s %d performance monitor counter e7low:%x,e7high:%x ,e8low:%x,e8high:%x\r\n", __FUNCTION__, __LINE__, e7low, e7high, e8low, e8high);
+	return 0;
+
+}
+
+//IA32_FIXED_CTR_CTRL 0x38d
+//IA32_FIXED_CTR0	//0x309
+
+//IA32_APERF	//0xe8
+//IA32_MPERF	//0xe7
