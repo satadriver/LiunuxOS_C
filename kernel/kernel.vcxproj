@@ -206,6 +206,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="aes.cpp" />
+    <ClCompile Include="algorithm.cpp" />
     <ClCompile Include="apic.cpp" />
     <ClCompile Include="atapi.cpp" />
     <ClCompile Include="base64.cpp" />
@@ -275,6 +276,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aes.h" />
+    <ClInclude Include="algorithm.h" />
     <ClInclude Include="apic.h" />
     <ClInclude Include="atapi.h" />
     <ClInclude Include="base64.h" />

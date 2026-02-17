@@ -427,8 +427,11 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)mode, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "windows") == 0) {
-
 		int len =traversalWindow(szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "cpuusage") == 0) {
+		int len = CpuUsage(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else {

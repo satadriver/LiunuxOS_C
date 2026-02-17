@@ -225,8 +225,12 @@ void sleep(DWORD * params) {
 
 	leave_task_array_lock();
 
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long long t1 = __krdtsc();
+
 	while(1)
 	{
+		
 		__asm {
 			hlt
 		}
@@ -239,6 +243,11 @@ void sleep(DWORD * params) {
 			continue;
 		}
 	}
+
+	unsigned long long t2 = __krdtsc();
+	g_cpu_sleep[id] += (t2 - t1);
+
+	g_cpu_active[id] = __krdtsc() - g_cpu_sleep[id];
 }
 
 

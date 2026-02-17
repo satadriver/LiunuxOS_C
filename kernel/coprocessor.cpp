@@ -94,7 +94,7 @@ void enableSSE() {
 		__emit 0x20
 		__emit 0xe0
 		//mov eax, cr4
-		or ax, 3 << 9		; set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
+		or eax, 3 << 9		; set CR4.OSFXSR and CR4.OSXMMEXCPT at the same time
 		//mov cr4, eax
 		__emit 0x0f
 		__emit 0x22
@@ -160,9 +160,30 @@ void initCoprocessor() {
 //MP = 1 && TS = 1,fwait cause this exception
 //TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	char* fenv = (char*)FPU_STATUS_BUFFER + (proc->tid << 9);
 
+	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	LPPROCESS_INFO pb = (LPPROCESS_INFO)GetTaskTssBase();
+
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+	LPPROCESS_INFO proc = pb + current->tid;
+
+	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
+
+	char* fenv = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (current->tid << 9);
+
+	char* fenv_prev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (g_last_task_tid[id] << 9);
+
+	__asm {
+		mov eax, fenv_prev
+		fxsave ds : [eax]
+
+		mov eax, fenv
+		fxrstor ds : [eax]
+	}
+
+	/*
 	if (proc->fpu == 0)
 	{
 		proc->fpu ++;
@@ -174,9 +195,9 @@ void __kCoprocessor() {
 
 			mov eax, fenv
 			//fsave [fenv]
-			//fxsave ds:[eax]
+			fxsave ds:[eax]
 
-			fxrstor ds : [eax]
+			//fxrstor ds : [eax]
 		}
 	}
 	else {		
@@ -191,6 +212,9 @@ void __kCoprocessor() {
 			fxrstor ds:[eax]
 		}
 	}
+	*/
+
+
 }
 
 

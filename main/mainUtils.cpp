@@ -82,6 +82,22 @@ int getpids(char * szout) {
 
 
 
+int CpuUsage(char * buf) {
+	int* ids = (int*)CPU_ID_ADDRESS;
+	int counter = *(int*)(CPU_TOTAL_ADDRESS);
+	int len = 0;
+	int offset = 0;
+	
+	for (int i = 0; i < counter; i++) {
+		int id = ids[i];
+		
+		//unsigned long long t = g_cpu_active[id];
+
+		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,sleep:%i64x;", id, g_cpu_active[id], g_cpu_sleep[id]);
+		offset += len;
+	}
+	return offset;
+}
 
 
 int getpid(int pid,char * szout) {

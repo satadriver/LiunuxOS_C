@@ -267,7 +267,7 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 	tss->iomapEnd = 0xff;
 	tss->iomapOffset = OFFSETOF(TSS, iomapOffset) + SIZEOFMEMBER(TSS, intMap);
 
-	DWORD eflags = 0x200202;	//if = 1,cpuid = 1
+	DWORD eflags = 0x203202;	//if = 1,cpuid = 1
 	eflags |= (0 << 12);	//iopl = 3
 	tss->eflags = eflags;		//if = 1,cpuid = 1,iopl = 3
 

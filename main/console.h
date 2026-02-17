@@ -4,7 +4,7 @@
 #include "def.h"
 
 
-#define CURSOR_REFRESH_MILLISECONDS		500
+#define CURSOR_REFRESH_MILLISECONDS		300
 
 
 void setCursor( int*  x, int * y, unsigned int color);

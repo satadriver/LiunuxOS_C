@@ -249,6 +249,9 @@
     <ClCompile Include="ListArray.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="algorithm.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h">
@@ -453,6 +456,9 @@
       <Filter>源文件\cipher</Filter>
     </ClInclude>
     <ClInclude Include="ListArray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithm.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

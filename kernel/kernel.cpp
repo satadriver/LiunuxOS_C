@@ -257,17 +257,13 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 
-
 #ifdef _DEBUG
-
-
 #include "math.h"
 
 void mytest(LIGHT_ENVIRONMENT  * stack) {
 
 	return;
 }
-
 #endif
 
 

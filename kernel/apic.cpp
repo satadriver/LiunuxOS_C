@@ -187,6 +187,8 @@ int enableHpet() {
 
 //enable io apic
 void enableIMCR() {
+	//return;
+
 	outportb(0x22, 0x70);
 	outportb(0x23, 0x01);
 }
@@ -1226,8 +1228,25 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	int tid = process->tid;
 	unsigned long stacktop = (unsigned long)process->tss.esp;
 	unsigned long stack0top = (unsigned long)process->tss.esp0;
-	__printf(szout, "ap id:%d version:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
-		cpuid, localapic_ver, reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
+
+	DWORD reg_cr0 = 0;
+	DWORD reg_cr4 = 0;
+	__asm {
+		mov eax, cr0
+		mov[reg_cr0], eax
+
+		//mov eax,cr4
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
+		mov[reg_cr4], eax
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
+	}
+
+	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
+		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
 	while (1) {
 		__asm {
@@ -1355,8 +1374,23 @@ void BPCodeStart() {
 
 	__sleep(0);
 
-	__printf(szout, "bsp id:%d version:%x ipi:%d apic timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		cpu, localapic_ver, g_ipi_lock, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
+	DWORD reg_cr0 = 0;
+	DWORD reg_cr4 = 0;
+	__asm {
+		mov eax,cr0
+		mov [reg_cr0],eax
+
+		//mov eax,cr4
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
+		mov[reg_cr4], eax
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
+	}
+	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x ipi:%d apic timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
+		cpu,reg_cr0,reg_cr4, localapic_ver, g_ipi_lock, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1476,13 +1510,22 @@ void BubbleSort(unsigned int* arr, int count) {
 
 
 
-
+#include "algorithm.h"
 
 int GetIdleProcessor() {
-
-	int counter = *(int*)(CPU_TOTAL_ADDRESS);
 	int* ids = (int*)CPU_ID_ADDRESS;
+	int counter = *(int*)(CPU_TOTAL_ADDRESS);
+	AlgorithmModel times[TASK_LIMIT_TOTAL];
+	for (int i = 0; i < counter; i++) {
+		int id = ids[i];
+		times[i].v = g_cpu_active[id];
+		times[i].id = id;
+	}
+
+	BubbleSort_ull(times, counter);
 	
+	return times[0].id;
+
 	gAllocateAp++;
 	if (gAllocateAp >= counter) {
 		gAllocateAp = 0;

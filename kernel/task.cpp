@@ -21,6 +21,11 @@
 int g_task_array_lock[256] ;
 int g_task_list_lock [256];
 
+int g_last_task_tid[TASK_LIMIT_TOTAL];
+
+unsigned long long g_cpu_active[TASK_LIMIT_TOTAL];
+unsigned long long g_cpu_sleep[TASK_LIMIT_TOTAL];
+
 int g_tagMsg = 0;
 
 void enter_task_array_lock() {
@@ -635,6 +640,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == prev) {
+			if (next->status == TASK_OVER) {
+				__printf(szout, "%s %d status error!\r\n",__FUNCTION__,__LINE__);
+			}
 			goto __SingleTssSchedule_end;
 		}
 
@@ -668,6 +676,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			continue;
 		}
 	} while (TRUE);
+
+	g_last_task_tid[id] = next->tid;
 
 	current->tss.eax = env->eax;
 	current->tss.ecx = env->ecx;
@@ -703,14 +713,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next, current);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (prev->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (prev->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (next->tid << 9);
 	if (current->fpu == 0 || prev->fpu == 0) {
 		__asm {
 			fninit
@@ -866,7 +876,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		next = (TASK_LIST_ENTRY * )(next->list.next);
 		if (next == ptr) {
 			if (process->status == TASK_SUSPEND || process->status == TASK_OVER || process->status == TASK_TERMINATE) {
-				__printf(szout, "current task status:%d error\r\n", process->status);
+				__printf(szout, "%s %d task status:%d error\r\n", __FUNCTION__,__LINE__,process->status);
 			}
 			goto  __SingleTssSchedule_end;
 		}
@@ -874,6 +884,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	} while (next && (next != ptr) );
 
 	gTasksListPos[id] = next;
+	g_last_task_tid[id] = next->tid;
 
 	process->tss.eax = env->eax;
 	process->tss.ecx = env->ecx;
@@ -909,8 +920,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next->node, prev);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (process->tid << 9);
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->node->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (process->tid << 9);
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL+ (next->node->tid << 9);
 	if (prev->fpu == 0 || process->fpu == 0) {
 		__asm {
 			fninit
@@ -940,7 +951,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
-		fninit
+
+		//fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1086,6 +1098,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	} while (TRUE);
 
+	g_last_task_tid[id] = next->tid;
+
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
 	//DescriptTableReg ldtreg;
 	// 	__asm {
@@ -1095,14 +1109,14 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next, current);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (current->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL+(current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->tid << 9);
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (next->tid << 9);
 	if (current->fpu == 0) {
 		__asm {
 			fninit
@@ -1131,6 +1145,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
+
 		fninit
 	}
 
@@ -1251,6 +1266,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	} while (next && (next != ptr));
 
+	g_last_task_tid[id] = next->tid;
+
 	gTasksListPos[id] = next;
 
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
@@ -1262,14 +1279,14 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next->node, prev);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + (current->tid << 9);
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + (next->node->tid << 9);
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (next->node->tid << 9);
 	if (current->fpu == 0) {
 		__asm {
 			fninit
@@ -1299,7 +1316,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		fninit
+		//fninit
 	}
 
 	if (prev->copyMap == 0) {

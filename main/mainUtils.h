@@ -16,6 +16,8 @@ int getGeneralRegs(char * szout);
 
 int getpid(int pid, char * szout);
 
+int CpuUsage(char* buf);
+
 int getpids(char * szout);
 
 int getmemmap(int pid, char * szout);
