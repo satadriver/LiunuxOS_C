@@ -125,9 +125,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	InitPm();
 	GetCpuRate();
 
-#ifdef LOCAL_APIC_ENABLE
 	ret = InitLocalApicTimer();
-#endif
 
 	__asm {
 		sti

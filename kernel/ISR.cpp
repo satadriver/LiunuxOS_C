@@ -1166,7 +1166,7 @@ popad不会将esp修改为popad时压入堆栈中的esp，而是直接将esp+32
 
 mov esp, ss: [esp - 20]这一行汇编将esp0替换为新任务的tss中保存的esp0值
 */
-#ifdef TIMER_TASK_SWITCH
+#ifdef TASK_SWITCH_TASKGATE
 extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {

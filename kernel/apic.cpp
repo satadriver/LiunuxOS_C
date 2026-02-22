@@ -693,7 +693,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #endif	
 		//mov dword ptr ds:[LOCAL_APIC_BASE +0xb0],0
 
-		clts
+		//clts
 
 		iretd
 

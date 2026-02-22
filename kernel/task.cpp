@@ -677,7 +677,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	} while (TRUE);
 
-	g_last_task_tid[id] = next->tid;
+	g_last_task_tid[id] = current->tid;
 
 	current->tss.eax = env->eax;
 	current->tss.ecx = env->ecx;
@@ -884,7 +884,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	} while (next && (next != ptr) );
 
 	gTasksListPos[id] = next;
-	g_last_task_tid[id] = next->tid;
+	g_last_task_tid[id] = current->tid;
 
 	process->tss.eax = env->eax;
 	process->tss.ecx = env->ecx;
@@ -1098,7 +1098,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	} while (TRUE);
 
-	g_last_task_tid[id] = next->tid;
+	g_last_task_tid[id] = current->tid;
 
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
 	//DescriptTableReg ldtreg;
@@ -1266,7 +1266,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	} while (next && (next != ptr));
 
-	g_last_task_tid[id] = next->tid;
+	g_last_task_tid[id] = current->tid;
 
 	gTasksListPos[id] = next;
 
@@ -1363,9 +1363,11 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	ActiveApTask(TASK_SWITCH_VECTOR);
 	
+#ifndef SINGLE_TASK_TSS
 	__asm {
 		clts			//multiple tss for task switch,must to do this
 	}
+#endif
 
 	//__printf(szout, "__kTaskSchedule entry\r\n");
 

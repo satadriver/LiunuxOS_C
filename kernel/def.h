@@ -70,9 +70,13 @@
 
 #define SINGLE_TASK_TSS
 
+//#define TASK_SWITCH_TASKGATE
+
+//#define IPI_INT_TASKGATE
+
 #define VM86_PROCESS_TASK
 
-#define DISABLE_PAGE_MAPPING
+//#define DISABLE_PAGE_MAPPING
 
 #define TASK_TIME_SLICE				10
 
@@ -119,7 +123,6 @@
 
 #define WINDOW_NAME_LIMIT			64
 
-//#define KERNEL_TASK_LIMIT			64
 #define TASK_LIMIT_TOTAL			256
 
 #define KERNEL_MODE_CODE			8

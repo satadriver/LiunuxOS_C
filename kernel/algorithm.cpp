@@ -20,6 +20,6 @@ void BubbleSort_ull(AlgorithmModel* arr, int count) {
 
 	char szout[256];
 	for (int i = 0; i < count; i++) {
-		__printf(szout, "cpu:%d,active:%i64x\r\n",(int) arr[i].id, arr[i].v);
+		//__printf(szout, "cpu:%d,active:%i64x\r\n",(int) arr[i].id, arr[i].v);
 	}
 }

@@ -358,10 +358,12 @@ char* InitGdt() {
 		(DWORD)LVTTimerIntHandler, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)APICTIMER_TSS_BASE+id* tssSize, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
 
+#endif
+
+#ifdef TASK_SWITCH_TASKGATE
 	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 #endif
-
 	
 	for (int i = 0; i < 8; i++) {
 		//initV86Tss((TSS*)(DOS_TSS_BASE + i* tssSize), TSSDOS_STACK0_TOP+i* TASK_STACK0_SIZE,
@@ -471,10 +473,10 @@ char* InitIDT() {
 	makeTrapGateDescriptor((DWORD)SecurityException, KERNEL_MODE_CODE, 3, descriptor + 30);
 
 	
-#ifdef SINGLE_TASK_TSS
-	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
-#else
+#ifdef TASK_SWITCH_TASKGATE
 	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
+#else
+	makeIntGateDescriptor((DWORD)TimerInterrupt, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 0);
 #endif
 
 	makeIntGateDescriptor((DWORD)KeyboardIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_MASTER + 1);
@@ -499,7 +501,6 @@ char* InitIDT() {
 	
 	makeIntGateDescriptor((DWORD)HpetTimerHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 
-//#define IPI_INT_TASKGATE
 #ifdef IPI_INT_TASKGATE
 	makeTaskGateDescriptor((DWORD)kTssIpiSelector, 3, (TaskGateDescriptor*)(descriptor + APIC_IPI_VECTOR));
 #else

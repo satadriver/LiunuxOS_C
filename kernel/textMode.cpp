@@ -65,7 +65,7 @@ int runcmd(char * cmd) {
 		}*/
 
 #ifdef SINGLE_TASK_TSS
-		__createDosCodeProc(gV86VMIEntry,gV86VMISize, (char*)"V86VMIEntry");
+
 #else
 		__createDosCodeProc(gV86VMIEntry, gV86VMISize, (char*)"V86VMIEntry");
 #endif
@@ -247,9 +247,7 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	__sprintf(buf, "%s %d\r\n", __FUNCTION__, __LINE__);
 	outputStr(buf, OUTPUT_TEXTMODE_COLOR);
 
-#ifdef LOCAL_APIC_ENABLE
 	ret = InitLocalApicTimer();
-#endif
 
 	__asm {
 		sti
