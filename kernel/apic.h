@@ -31,14 +31,15 @@ typedef struct {
 	char module[256];
 	char funcname[256];
 	int level;
-	DWORD params;
+	char params[256];
 }IPI_CREATEPROCESS_PARAM;
 
 typedef struct {
 	DWORD addr;
 	char* module;
-	DWORD params;
+	
 	char funcname[256];
+	char params[256];
 }IPI_CREATETHREAD_PARAM;
 
 #pragma pack()

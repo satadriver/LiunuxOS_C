@@ -485,7 +485,8 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 	__strcpy(subparam->funcname, funname);
 
-	subparam->params = (DWORD)p;
+	//subparam->params = (DWORD)p;
+	__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
 	char szout[256];
 	//__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
 	
@@ -516,7 +517,8 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 
 	__strcpy(subparam->funcname, func);
 	subparam->level = level;
-	subparam->params = (DWORD)p;
+	//subparam->params = (DWORD)p;
+	__memcpy(subparam->params,(char*)p,sizeof(TASKCMDPARAMS));
 	char szout[256];
 	//__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 
@@ -1111,7 +1113,7 @@ int InitLocalApicTimer() {
 
 	iomfence();
 
-	unsigned long long lv = 200000000;
+	unsigned long long lv = APICTIMER_FREQ;
 	lv = lv /16 / (1000 / TASK_TIME_SLICE);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)lv;
 

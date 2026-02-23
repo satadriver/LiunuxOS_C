@@ -342,8 +342,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					__strcpy(taskcmd.filename, "FileMgrHD");
 
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-
-					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					char* param = (char*)linear2phy((DWORD)&taskcmd);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)param);
 				
 			}
 			else if (mouseinfo.x >= atapi.pos.x && mouseinfo.x <= (atapi.pos.x + atapi.frameSize + atapi.width) && 
@@ -351,7 +351,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = CDROM_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrISO");
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					char* param = (char*)linear2phy((DWORD)&taskcmd);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)param);
 					//__kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kClock");
 				
 			}
@@ -360,7 +361,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 					taskcmd.cmd = FLOPPY_FILE_SYSTEM;
 					__strcpy(taskcmd.filename, "FileMgrFllopy");
 					imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)&taskcmd);
+					char* param = (char*)linear2phy((DWORD)&taskcmd);
+					__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kFileManager", 3, (DWORD)param);
 				
 			}	
 		}

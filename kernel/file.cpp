@@ -55,21 +55,21 @@ int initFileSystem() {
 	}
 
 	char szout[256];
-	__printf(szout, "initFileSystem ok\r\n");
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	return TRUE;
 }
 
 int getMBR() {
 	char szout[256];
 	int ret = readSector(0, 0, 1, (char*)&gMBR);
-
+	unsigned short tag = *(WORD*)gMBR.systemFlag;
 	if (*(WORD*)gMBR.systemFlag != 0xaa55)
 	{
-		__printf(szout,( char*)"MBR format error\r\n");
+		__printf(szout,( char*)"%s %d MBR format:%x error\r\n",__FUNCTION__,__LINE__,tag);
 		return FALSE;
 	}
 	else {	
-		__printf(szout, "getMBR ok\r\n");
+		//__printf(szout, "%s ok\r\n", __FUNCTION__);
 	}
 
 	for (int i = 0; i < 4; i++) {
@@ -101,7 +101,8 @@ int getMBR() {
 				return 5;
 			}
 			else {
-				return 0;
+				int type = gMBR.dpt[i].type;
+				__printf(szout, "%s %d mbr format:0x%x\r\n", __FUNCTION__, __LINE__,type);
 			}
 		}
 	}

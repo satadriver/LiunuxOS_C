@@ -218,7 +218,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 		partitionType = getPartitionInfo();
 		if (partitionType <= 0)
 		{
-			__printf(szout, "__kFileManager preparePartitionInfo error\n");
+			__printf(szout, "%s %d error\n",__FUNCTION__,__LINE__);
 			return 0;
 		}
 	}
