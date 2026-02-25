@@ -70,7 +70,7 @@ extern "C"  __declspec(dllexport) int __strcat(char * src, char * dst);
 
 extern "C"  __declspec(dllexport) int __wcscat(wchar_t* src, wchar_t* dst);
 extern "C"  __declspec(dllexport) int __wcscpy(wchar_t* dst, wchar_t* src);
-extern "C"  __declspec(dllexport) int __wcscat(wchar_t* src, wchar_t* dst);
+
 extern "C"  __declspec(dllexport) int __wcslen(wchar_t* s);
 extern "C"  __declspec(dllexport) int __wcscmp(wchar_t* src, wchar_t* dst);
 extern "C"  __declspec(dllexport) wchar_t* __wcsstr(wchar_t* src, wchar_t* dst);

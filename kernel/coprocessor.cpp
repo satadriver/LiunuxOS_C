@@ -63,9 +63,10 @@ void enableAVX() {
 		__emit 0x22
 		__emit 0xe0
 
-		//xgetbv		; Load XCR0 register
-		//or eax, 7		; Set AVX, SSE, X87 bits
-		//xsetbv		; Save back to XCR0
+		xor ecx,ecx
+		xgetbv			; Load XCR0 register
+		or eax, 7		; Set AVX, SSE, X87 bits
+		xsetbv			; Save back to XCR0
 
 		//To enable AVX - 512, set the OPMASK(bit 5), ZMM_Hi256(bit 6), Hi16_ZMM(bit 7) of XCR0.
 		//You must ensure that these bits are valid first(see above).
@@ -119,10 +120,19 @@ extern "C" __declspec(dllexport)int isSSE() {
 		mov [sse],1
 		__noSSE:
 	}
+
+	char szout[256];
+	__printf(szout, "%s %d sse support:%x\r\n",__FUNCTION__,__LINE__, sse);
 	return sse;
 }
 
 void initCoprocessor() {
+	int result = 0;
+
+	result = isSSE();
+	if (result == 0) {
+		return ;
+	}
 
 	__asm {
 		clts
@@ -148,11 +158,11 @@ void initCoprocessor() {
 		__emit 0xe0
 	}
 
-	//EnableInt13();
+	//EnableFloatIrq();
 
 	enableSSE();
 
-	enableAVX();
+	//enableAVX();
 }
 
 

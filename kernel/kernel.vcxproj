@@ -162,7 +162,7 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <FloatingPointModel>Strict</FloatingPointModel>
       <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -220,6 +220,8 @@
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="heap.cpp" />
+    <ClCompile Include="libc.cpp" />
+    <ClCompile Include="libc.h" />
     <ClCompile Include="ListArray.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="parallel.cpp" />

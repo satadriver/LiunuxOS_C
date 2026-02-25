@@ -45,7 +45,7 @@ void enableRcba() {
 
 //bit 9:enable irq 13
 //bit 8:enable apic io
-void EnableFloatInt() {
+void EnableFloatIrq() {
 	outportd(0xcf8, 0x8000f8f0);
 
 	gRcbaBase = (char*)(inportd(0xcfc) & 0xffffc000);
