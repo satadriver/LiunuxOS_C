@@ -5,13 +5,21 @@
 #define _MATH_H_
 
 #define PI 						(3.141592653589793238462643)
-#define E 						(2.7182818284590452353602874)
+#define E 						(2.7182818284590452353602874713527)
 #define SQRT2 					(1.414213562373095145474621858739)
 #define DOUBLE_PRECISION_MIN	0.0000001
 
 #define SL_2PI			PI*2
 #define SL_PI			PI
 #define SL_PI_DIV_2		PI/2
+
+#define LN2			0.69314718055994530941723212145818   // ln(2)
+#define EPSILON		1e-15
+#define MAX_ITER	100
+#define INFINITY	1e308
+
+#define LN10		2.3025850929940456840179914546844  // ln(10)
+
 
 
 
@@ -30,6 +38,10 @@ extern "C"  __declspec(dllexport) double __acos(double x);
 extern "C"  __declspec(dllexport) double __asin(double x);
 extern "C"  __declspec(dllexport) double __atan(double y, double x, int infNum);
 extern "C"  __declspec(dllexport) double _sin(double x);
+
+extern "C"  __declspec(dllexport) double __log(double x);
+
+extern "C"  __declspec(dllexport) double __exp(double x);
 #else
 extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
 extern "C"  __declspec(dllimport) double __abs(double x);
@@ -45,6 +57,10 @@ extern "C"  __declspec(dllimport) double __acos(double x);
 extern "C"  __declspec(dllimport) double __asin(double x);
 extern "C"  __declspec(dllimport) double __atan(double y, double x, int infNum);
 extern "C"  __declspec(dllimport) double _sin(double x);
+
+extern "C"  __declspec(dllimport) double __log(double x);
+
+extern "C"  __declspec(dllimport) double __exp(double x);
 #endif
 
 

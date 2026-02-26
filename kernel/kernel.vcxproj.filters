@@ -46,6 +46,9 @@
     <Filter Include="源文件\cipher">
       <UniqueIdentifier>{0d6dbb60-7582-49c1-9b51-3fe1de2a7990}</UniqueIdentifier>
     </Filter>
+    <Filter Include="kann">
+      <UniqueIdentifier>{772b6a2b-1571-4816-b996-dbedfaff7745}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="kernel.cpp">
@@ -258,6 +261,12 @@
     <ClCompile Include="libc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="kann-master\kann.cpp">
+      <Filter>kann</Filter>
+    </ClCompile>
+    <ClCompile Include="kann-master\kautodiff.cpp">
+      <Filter>kann</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h">
@@ -466,6 +475,12 @@
     </ClInclude>
     <ClInclude Include="algorithm.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kann-master\kann.h">
+      <Filter>kann</Filter>
+    </ClInclude>
+    <ClInclude Include="kann-master\kautodiff.h">
+      <Filter>kann</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

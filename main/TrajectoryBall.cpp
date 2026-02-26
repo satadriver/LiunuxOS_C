@@ -314,7 +314,7 @@ void TrajectoryBallInit() {
 	g_frame_delay = (double)CMOS_EXACT_INTERVAL * 2.0;
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
-	g_frame_delay = (double)CMOS_EXACT_INTERVAL * 2.0;
+	g_frame_delay = (double)TASK_TIME_SLICE * 2.0;
 	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryAnimation, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 

@@ -29,10 +29,16 @@
 #define PULONG32	unsigned int *
 #define DWORD32		unsigned int 
 #define PDWORD32	unsigned int*
+
+#define uint8_t		unsigned char
 #define uint16_t	unsigned short
 #define uint32_t	unsigned int
-#define uint8_t		unsigned char
 #define uint64_t	unsigned __int64
+#define int8_t		char
+#define int16_t		short
+#define int32_t		int
+#define int64_t		__int64
+
 #define ULONG_PTR	unsigned long* 
 #define ULONGLONG	unsigned __int64
 #define OWORD		__m128
@@ -62,11 +68,11 @@
 
 #define LOCAL_APIC_ENABLE
 
-//#define IO_APIC_ENABLE
+#define IO_APIC_ENABLE
 
 #define LIUNUX_DEBUG_LOG_ON
 
-#define TASK_SWITCH_ARRAY
+//#define TASK_SWITCH_ARRAY
 
 #define SINGLE_TASK_TSS
 
@@ -76,7 +82,7 @@
 
 #define VM86_PROCESS_TASK
 
-//#define DISABLE_PAGE_MAPPING
+#define DISABLE_PAGE_MAPPING
 
 #define TASK_TIME_SLICE				10
 

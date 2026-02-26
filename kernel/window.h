@@ -76,15 +76,12 @@ extern "C" __declspec(dllexport) int InsertWindow(WINDOWCLASS* lpwindow,char * n
 
 extern "C" __declspec(dllexport) int traversalWindow(char*);
 
-extern "C" __declspec(dllexport) int MaximizeWindow(WINDOWCLASS * window);
+extern "C" __declspec(dllexport) int MaximizeWindow(LPWINDOWCLASS window);
 extern "C" __declspec(dllexport) int MinimizeWindow(WINDOWCLASS* cwin);
 
 extern "C" __declspec(dllexport) LPWINDOWCLASS insertProcWindow (LPWINDOWCLASS window);
-
 extern "C" __declspec(dllexport) LPWINDOWCLASS removeProcWindow();
-
 extern "C" __declspec(dllexport) int destroyWindows();
-
 extern "C" __declspec(dllexport) LPWINDOWCLASS getWindowFromName(char * winname);
 #else
 extern __declspec(dllimport)LPWINDOWSINFO gWindowsList;
@@ -110,11 +107,8 @@ extern "C" __declspec(dllimport) int MinimizeWindow(WINDOWCLASS * cwin);
 extern "C" __declspec(dllimport) int traversalWindow(char*);
 
 extern "C" __declspec(dllimport) LPWINDOWCLASS insertProcWindow(LPWINDOWCLASS window);
-
 extern "C" __declspec(dllimport) LPWINDOWCLASS removeProcWindow();
-
 extern "C" __declspec(dllimport) int destroyWindows();
-
 extern "C" __declspec(dllimport) LPWINDOWCLASS getWindowFromName(char * winname);
 #endif
 

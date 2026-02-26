@@ -159,10 +159,10 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/Gs8192 </AdditionalOptions>
       <StringPooling>false</StringPooling>
-      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
       <FloatingPointModel>Strict</FloatingPointModel>
       <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -220,6 +220,8 @@
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="heap.cpp" />
+    <ClCompile Include="kann-master\kann.cpp" />
+    <ClCompile Include="kann-master\kautodiff.cpp" />
     <ClCompile Include="libc.cpp" />
     <ClCompile Include="libc.h" />
     <ClCompile Include="ListArray.cpp" />
@@ -293,6 +295,8 @@
     <ClInclude Include="descriptor.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="heap.h" />
+    <ClInclude Include="kann-master\kann.h" />
+    <ClInclude Include="kann-master\kautodiff.h" />
     <ClInclude Include="ListArray.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="parallel.h" />

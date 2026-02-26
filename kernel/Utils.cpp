@@ -221,13 +221,38 @@ wchar_t* __wcsstr(wchar_t* src, wchar_t* dst) {
 	return 0;
 }
 
+int __strncmp(const char* src, const char* dst, size_t n) {
+	int srclen = __strlen(src);
+	int dstlen = __strlen(dst);
+	int len = 0;
+	
+	len = srclen > dstlen ? dstlen : srclen;
 
+	if (n > len) {
+		return -1;
+	}
+
+	int min = 0;
+	min = len > n ? n : len;
+
+	for (int i = 0; i < min; i++) {
+		int v = src[i] - dst[i];
+		if (v) {
+			return v;
+		}
+		else {
+			continue;
+		}
+	}
+
+	return 0;
+}
 int __strcmp(const char * src, const  char * dst) {
 	int srclen = __strlen(src);
 	int dstlen = __strlen(dst);
 	if (srclen != dstlen)
 	{
-		return -1;
+		return srclen - dstlen;
 	}
 
 	for (int i = 0; i < srclen; i++) {

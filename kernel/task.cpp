@@ -884,7 +884,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	} while (next && (next != ptr) );
 
 	gTasksListPos[id] = next;
-	g_last_task_tid[id] = current->tid;
+	g_last_task_tid[id] = prev->tid;
 
 	process->tss.eax = env->eax;
 	process->tss.ecx = env->ecx;
@@ -952,7 +952,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		//fninit
+		fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1316,7 +1316,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		//fninit
+		fninit
 	}
 
 	if (prev->copyMap == 0) {

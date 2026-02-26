@@ -61,7 +61,7 @@ extern "C"  __declspec(dllexport) int __memset(char * dst, int value, int len);
 extern "C"  __declspec(dllexport) int __memset4(char * dst, int value, int len);
 
 extern "C"  __declspec(dllexport) int __strcmp(const char * src, const char * dst);
-
+extern "C"  __declspec(dllexport) int __strncmp(const char* src, const char* dst, size_t n);
 extern "C"  __declspec(dllexport) int __memcmp(const char * src,const char * dst, int len);
 
 extern "C"  __declspec(dllexport) char* __strstr(char * src, char * dst);
@@ -145,7 +145,7 @@ extern "C"  __declspec(dllimport) int __strncpy(char * dst, char * src, int limi
 
 extern "C"  __declspec(dllimport) int __memset(char * dst, int value, int len);
 extern "C"  __declspec(dllimport) int __memset4(char * dst, int value, int len);
-
+extern "C"  __declspec(dllimport) int __strncmp(const char* src, const char* dst, size_t n);
 extern "C"  __declspec(dllimport) int __strcmp(const char * src, const char * dst);
 
 extern "C"  __declspec(dllimport) int __memcmp(const char * src,const char * dst, int len);

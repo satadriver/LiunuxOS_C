@@ -415,6 +415,8 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 		}
 	}
 
+	//__drawWindow(window);
+
 	int size = gVideoHeight * gVideoWidth * gBytesPerPixel;
 	__memcpy((char*)gGraphBase, window->minBuf, size);
 	__kRefreshMouseBackup();

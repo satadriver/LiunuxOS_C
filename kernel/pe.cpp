@@ -245,6 +245,7 @@ DWORD importTable(DWORD module) {
 			continue;
 		}
 		else if (__strstr(( CHAR*)dllname, (char*)"api-ms-win-crt-runtime-") ||
+			__strstr((CHAR*)dllname, (char*)"api-ms-win-crt-") ||
 			__strstr(( char*)dllname, (char*)"VCRUNTIME") ||
 			__strstr(( char*)dllname, (char*)"MSVCR"))
 		{
@@ -397,7 +398,7 @@ DWORD loadLibFile(char * dllname) {
 			return (DWORD)dllptr;
 		}
 		else {
-			__printf(szout, "loadlib readFileTo:%s  error\n", szdllpath);
+			__printf(szout, "%s %d readFileTo:%s error\n",__FUNCTION__,__LINE__, szdllpath);
 
 			return FALSE;
 		}

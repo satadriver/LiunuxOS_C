@@ -205,7 +205,7 @@ int getLocalApicVersion() {
 }
 
 
-//cpuid.01h:ebx[31:24]
+//cpuid.01h:ebx[31:24] or cpuid.04.eax[31:26]
 int getLocalApicID() {
 	__asm {
 		mov eax,1

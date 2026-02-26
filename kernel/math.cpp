@@ -1,4 +1,4 @@
-#ifndef _MATH_C_
+﻿#ifndef _MATH_C_
 #define _MATH_C_
 
 
@@ -135,10 +135,10 @@ extern "C"  __declspec(dllexport) DWORD __sqrtInteger(DWORD i) {
 		MOV ECX, 1
 		_S_LOOP:
 		SUB EAX, EBX
-		JC _END; �н�λΪֹ
-		INC EBX; �޸�Ϊ3��5��7...
+		JC _END; 有借位为止
+		INC EBX; 修改为3、5、7...
 		INC EBX
-		INC ECX; n��1
+		INC ECX; n加1
 		JMP _S_LOOP
 		_END :
 		MOV root, ECX
@@ -164,7 +164,7 @@ extern "C"  __declspec(dllexport) double __acos(double x)
 
 	while (1)
 	{
-		if (__abs(__cos(Mid) - x) < DOUBLE_PRECISION_MIN) //����ֵ���
+		if (__abs(__cos(Mid) - x) < DOUBLE_PRECISION_MIN) //近似值相等
 		{
 			break;
 		}
@@ -173,7 +173,7 @@ extern "C"  __declspec(dllexport) double __acos(double x)
 
 			L = Mid;
 		}
-		else if (x > __cos(Mid)) { //x�����
+		else if (x > __cos(Mid)) { //x在左侧
 
 			R = Mid;
 		}
@@ -202,7 +202,7 @@ extern "C"  __declspec(dllexport) double __asin(double x)
 
 	while (1)
 	{
-		if (__abs(__sin(Mid) - x) < DOUBLE_PRECISION_MIN) //����ֵ���
+		if (__abs(__sin(Mid) - x) < DOUBLE_PRECISION_MIN) //近似值相等
 		{
 			break;
 		}
@@ -211,7 +211,7 @@ extern "C"  __declspec(dllexport) double __asin(double x)
 
 			L = Mid;
 		}
-		else if (x > __sin(Mid)) { //x�����
+		else if (x > __sin(Mid)) { //x在左侧
 
 			R = Mid;
 		}
@@ -375,6 +375,127 @@ int GetCos(int angle) {
 
 int GetSin(int angle) {
 	return g_sincos[angle];
+}
+
+
+
+/**
+ * 最简单的log实现 - 使用变换和级数
+ * 原理：ln(x) = ln(m * 2^k) = ln(m) + k * ln(2)
+ * 其中 m 在 [1, 2) 区间
+ */
+double __log2(double x) {
+	// 检查输入
+	if (x <= 0) {
+		return -999999;  // 错误标记
+	}
+
+	// 特殊情况
+	if (x == 1.0) {
+		return 0.0;
+	}
+
+	// 步骤1：将x归一化到 [1, 2) 区间
+	int k = 0;
+	double m = x;
+
+	// 如果x >= 2，不断除以2
+	while (m >= 2.0) {
+		m = m / 2.0;
+		k++;
+	}
+
+	// 如果x < 1，不断乘以2
+	while (m < 1.0) {
+		m = m * 2.0;
+		k--;
+	}
+
+	// 现在 m 在 [1, 2) 区间
+	// 步骤2：计算 ln(m) 使用变换 y = (m-1)/(m+1)
+	// ln(m) = 2 * [y + y³/3 + y⁵/5 + ...]
+
+	double y = (m - 1.0) / (m + 1.0);
+	double y2 = y * y;
+	double term = y;
+	double ln_m = 0.0;
+
+	// 计算级数
+	for (int n = 1; n <= 20; n += 2) {
+		ln_m = ln_m + term / n;
+		term = term * y2;
+
+		// 如果项太小就停止
+		if (term < 1e-15 && term > -1e-15) {
+			break;
+		}
+	}
+
+	ln_m = 2.0 * ln_m;
+
+	// 步骤3：组合结果 ln(x) = ln(m) + k * ln(2)
+	return ln_m + k * LN2;
+}
+
+
+double __log(double x) {
+	if (x <= 0) return 0;
+	if (x == 1) return 0;
+
+	// 归一化
+	int k = 0;
+	double m = x;
+	while (m >= 2) { m /= 2; k++; }
+	while (m < 1) { m *= 2; k--; }
+
+	// 计算 ln(m)
+	double y = (m - 1) / (m + 1);
+	double y2 = y * y;
+	double sum = y;
+	double term = y;
+
+	// 计算级数直到项足够小
+	for (int n = 3; n <= 19; n += 2) {
+		term = term * y2;
+		sum = sum + term / n;
+
+		if (__abs(term / n) < 1e-15) {
+			break;
+		}
+	}
+
+	return 2 * sum + k * LN2;
+}
+
+
+
+
+
+
+
+
+
+double __exp(double x) {
+	// 处理负数: e^(-x) = 1/e^x
+	if (x < 0) {
+		return 1.0 / __exp(-x);
+	}
+
+	double result = 1.0;  // 第一项: 1
+	double term = 1.0;    // 当前项的值
+
+	// 计算级数的每一项
+	for (int n = 1; n <= 20; n++) {
+		term = term * x / n;  // 第n项 = 第(n-1)项 * x / n
+		result = result + term;
+
+		// 如果当前项非常小，可以提前结束
+		if (term < 1e-15) {
+			break;
+		}
+	}
+
+	return result;
 }
 
 #endif

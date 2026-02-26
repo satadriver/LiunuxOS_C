@@ -81,7 +81,7 @@ int initScreenProtect() {
 
 	gScreenProtectWindowID = InsertWindow(0, (char*) __FUNCTION__);
 
-	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
+	gTimerID = __kAddExactTimer((DWORD)__kScreenProtect, TASK_TIME_SLICE * 2, 0, 0, 0, 0);
 
 	return TRUE;
 }
@@ -279,7 +279,7 @@ void initSquareVideo() {
 
 	gVectorGraphWid = InsertWindow(FALSE, (char*) __FUNCTION__);
 
-	gVectorGraphTid = __kAddExactTimer((DWORD)SquareVideo, CMOS_EXACT_INTERVAL * 2, 0, 0, 0, 0);
+	gVectorGraphTid = __kAddExactTimer((DWORD)SquareVideo, TASK_TIME_SLICE * 2, 0, 0, 0, 0);
 
 	gBaseColor = 0;
 }
@@ -1084,7 +1084,7 @@ void initTrajectory() {
 	g_frame_delay = (double)CMOS_EXACT_INTERVAL * 2.0;
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
-	g_frame_delay = (double)CMOS_EXACT_INTERVAL * 2.0;
+	g_frame_delay = (double)TASK_TIME_SLICE * 2.0;
 	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryVideo, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 
