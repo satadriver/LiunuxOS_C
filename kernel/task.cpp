@@ -945,14 +945,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////fwait
 
 		mov eax, fenvprev
-		FxSAVE[eax]
+		FxSAVE ds:[eax]
 		////fsave [fenv]
 
 		mov eax, fenvnext
 		////frstor [fenv]
-		fxrstor[eax]
+		fxrstor ds:[eax]
 
-		fninit
+		//fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1316,7 +1316,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		fninit
+		//fninit
 	}
 
 	if (prev->copyMap == 0) {

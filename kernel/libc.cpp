@@ -9,17 +9,24 @@
 #include "math.h"
 
 
-#pragma intrinsic(wcslen)  // 启用内部函数
-#pragma function(wcslen)   // 强制使用函数调用而不是内部函数
+
 
 
 #pragma intrinsic(memcpy)  // 启用内部函数
 #pragma function(memcpy)   // 强制使用函数调用而不是内部函数
 
 
+#pragma intrinsic(memset)  // 启用内部函数
+#pragma function(memset)   // 强制使用函数调用而不是内部函数
+
+#pragma intrinsic(memcmp)  // 启用内部函数
+#pragma function(memcmp)   // 强制使用函数调用而不是内部函数
+
 #pragma intrinsic(memmove)  // 启用内部函数
 #pragma function(memmove)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(wcslen)  // 启用内部函数
+#pragma function(wcslen)   // 强制使用函数调用而不是内部函数
 
 #pragma intrinsic(wcscmp)  // 启用内部函数
 #pragma function(wcscmp)   // 强制使用函数调用而不是内部函数
@@ -43,12 +50,6 @@
 #pragma function(strcat)   // 强制使用函数调用而不是内部函数
 
 
-
-#pragma intrinsic(memset)  // 启用内部函数
-#pragma function(memset)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(memcmp)  // 启用内部函数
-#pragma function(memcmp)   // 强制使用函数调用而不是内部函数
 
 #pragma intrinsic(abs)  // 启用内部函数
 #pragma function(abs)   // 强制使用函数调用而不是内部函数
