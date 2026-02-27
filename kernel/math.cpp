@@ -384,7 +384,7 @@ int GetSin(int angle) {
  * 原理：ln(x) = ln(m * 2^k) = ln(m) + k * ln(2)
  * 其中 m 在 [1, 2) 区间
  */
-double __log2(double x) {
+double __log_test(double x) {
 	// 检查输入
 	if (x <= 0) {
 		return -999999;  // 错误标记
@@ -426,7 +426,7 @@ double __log2(double x) {
 		term = term * y2;
 
 		// 如果项太小就停止
-		if (term < 1e-15 && term > -1e-15) {
+		if (term < 1e-15 || term > -1e-15) {
 			break;
 		}
 	}
@@ -485,7 +485,7 @@ double __exp(double x) {
 	double term = 1.0;    // 当前项的值
 
 	// 计算级数的每一项
-	for (int n = 1; n <= 20; n++) {
+	for (int n = 1; n <= 256; n++) {
 		term = term * x / n;  // 第n项 = 第(n-1)项 * x / n
 		result = result + term;
 

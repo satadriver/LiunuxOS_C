@@ -257,7 +257,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 #ifdef _DEBUG
 #include "math.h"
-
+#include <stdio.h>
 void mytest(LIGHT_ENVIRONMENT  * stack) {
 
 	return;
@@ -272,6 +272,8 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
+	//printf("log(7):%lf\r\n", __log(7));
+	double v = __log(20);
 	PROCESS_INFO pin[0x10];
 
 	int size = sizeof(pin[2]);

@@ -247,8 +247,6 @@ double sqrt(double x) {
 	return __sqrt(x);
 }
 
-
-
 float sqrtf(float x) {
 	return __sqrt(x);
 }
@@ -259,10 +257,6 @@ float sinf(float x) {
 	return __sin(x);
 }
 
-
-
-
-
 float logf(float x) {
 	return __log(x);
 }
@@ -270,7 +264,6 @@ float logf(float x) {
 float expf(float x) {
 	return __exp(x);
 }
-
 
 double log(double x) {
 	return __log(x);

@@ -425,14 +425,10 @@ char* InitGdt() {
 
 char* InitIDT() {
 
-#ifdef _DEBUG
-	SegDescriptor* gdt = (SegDescriptor*)new char[0x10000];
-	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)new char[0x10000];
-#else
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	char* lpidt = (char*)(IDT_BASE + id * 0x10000);
 	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)lpidt;
-#endif
 
 	for (int i = 0; i < 256; i++)
 	{
