@@ -124,7 +124,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->cpuid = cpu;
 
-	tss->fpu = TRUE;
+	tss->fpu = 0;
 	tss->level = process->level;
 	tss->vaddr = process->vaddr;
 	tss->vasize = process->vasize;

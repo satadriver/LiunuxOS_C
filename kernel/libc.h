@@ -7,10 +7,7 @@
 
 
 
-// Visual Studio 中的定义
-#define FLT_MAX         3.402823466e+38F        // 最大浮点数
-#define FLT_MAX_10_EXP  38                       // 10 的幂的最大指数
-#define FLT_MAX_EXP     128                      // 2 的幂的最大指数
+
 
 // assert.h 中的简化定义
 #define assert(expression) ((void)0)  // 当 NDEBUG 定义时
@@ -114,7 +111,7 @@ typedef struct _iobuf FILE;
 
 #ifdef DLL_EXPORT
 
-extern "C" __declspec(dllexport) FILE _iob[];
+extern "C" __declspec(dllexport) FILE _iob[3];
 
 // 标准流宏定义
 #define stdin   (&_iob[0])

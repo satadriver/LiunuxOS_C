@@ -750,7 +750,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		fninit
+		//fninit
 		//FNCLEX
 	}
 
@@ -953,7 +953,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor ds:[eax]
 
-		fninit
+		//fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1147,7 +1147,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		fninit
+		//fninit
 	}
 
 	if (current->copyMap == 0) {
@@ -1319,7 +1319,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		fninit
+		//fninit
 	}
 
 	if (prev->copyMap == 0) {

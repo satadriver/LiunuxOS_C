@@ -68,11 +68,11 @@ int getVm86ProcAddr(char * fn,int type, DWORD filedata, int size, int pid) {
 
 			if (type == DOS_EXE_FILE)
 			{
-				info[i].address = i * 0x1000 + DOS_LOAD_FIRST_SEG + 0x10;
+				info[i].address = DOS_LOAD_FIRST_SEG - i * 0x1000 + 0x10;
 			}
 			else
 			{
-				info[i].address = i * 0x1000 + DOS_LOAD_FIRST_SEG + 0x10;
+				info[i].address = DOS_LOAD_FIRST_SEG - i * 0x1000 + 0x10;
 			}
 
 			return info[i].address;
@@ -179,7 +179,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->sleep = 0;
 	tss->copyMap = 0;
-	tss->fpu = TRUE;
+	tss->fpu = 0;
 #ifdef SINGLE_TASK_TSS
 	tss->tss.trap = 1;
 #else

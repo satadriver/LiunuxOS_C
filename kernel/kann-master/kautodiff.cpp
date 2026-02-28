@@ -8,7 +8,7 @@
 #include "kautodiff.h"
 #include "../def.h"
 #include "../libc.h"
-
+#include "../math.h"
 
 
 typedef struct {

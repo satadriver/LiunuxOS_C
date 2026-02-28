@@ -150,7 +150,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.trap = 0;
 	
 	tss->tss.ldt = 0;
-	tss->fpu = TRUE;
+	tss->fpu = 0;
 
 	DWORD syslevel = level & 3;
 	tss->level = syslevel;

@@ -5,7 +5,7 @@
 //#include <assert.h>
 //#include <stdarg.h>
 #include "kann.h"
-
+#include "../math.h"
 
 
 int kann_verbose = 3;

@@ -66,15 +66,15 @@
 
 #define LOCAL_APIC_BASE				0xfee00000
 
-#define LOCAL_APIC_ENABLE
+//#define LOCAL_APIC_ENABLE
 
-#define IO_APIC_ENABLE
+//#define IO_APIC_ENABLE
 
 #define LIUNUX_DEBUG_LOG_ON
 
-//#define TASK_SWITCH_ARRAY
+#define TASK_SWITCH_ARRAY
 
-#define SINGLE_TASK_TSS
+//#define SINGLE_TASK_TSS
 
 //#define TASK_SWITCH_TASKGATE
 
@@ -351,7 +351,7 @@
 
 #define LIMIT_V86_PROC_COUNT		6
 
-#define DOS_LOAD_FIRST_SEG			0X2000
+#define DOS_LOAD_FIRST_SEG			0X7000
 
 #define VSKDLL_LOAD_SEG 			0x2000
 #define VSKDLL_LOAD_OFFSET 			0

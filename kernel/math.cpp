@@ -470,7 +470,18 @@ double __log(double x) {
 
 
 
+double __logn(double base,double exp) {
+	if (base <= 0) return 0;
+	if (base == 1) return 0;
 
+	if (exp == 0) return 0;
+
+	double v1 = __log(base);
+
+	double v2 = __log(exp);
+
+	return v1 / v2;
+}
 
 
 
