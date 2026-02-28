@@ -819,10 +819,12 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	if (prev->status == TASK_TERMINATE  ) {
 		prev->status = TASK_OVER;
+		process->status = TASK_OVER;
 	}
 
 	if (process->status == TASK_TERMINATE) {
 		process->status = TASK_OVER;
+		prev->status = TASK_OVER;
 	}
 
 	if (prev->status == TASK_OVER || process->status == TASK_OVER) {
@@ -918,17 +920,16 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
 
-	debugReg(next->node, prev);
+	debugReg(next->node, process);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (process->tid << 9);
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL+ (next->node->tid << 9);
-	if (prev->fpu == 0 || process->fpu == 0) {
+	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (process->tid * 512);
+	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL+ (next->node->tid * 512);
+	if (process->fpu == 0) {
 		__asm {
 			fninit
 			mov eax, fenvprev
 			FxSAVE[eax]
 		}
-		prev->fpu++;
 		process->fpu++;
 	}
 	if (next->node->fpu == 0) {
@@ -952,7 +953,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor ds:[eax]
 
-		//fninit
+		fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1202,10 +1203,12 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	if (prev->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
+		current->status = TASK_OVER;
 	}
 
 	if (current->status == TASK_TERMINATE) {
 		current->status = TASK_OVER;
+		prev->status = TASK_OVER;
 	}
 
 	if (prev->status == TASK_OVER || current->status == TASK_OVER) {
@@ -1277,7 +1280,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	// 	}
 	//process->tss.ldt = ldtreg.addr;
 
-	debugReg(next->node, prev);
+	debugReg(next->node, current);
 
 	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
@@ -1316,7 +1319,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 
-		//fninit
+		fninit
 	}
 
 	if (prev->copyMap == 0) {
