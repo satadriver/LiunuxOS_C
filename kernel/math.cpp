@@ -509,4 +509,60 @@ double __exp(double x) {
 	return result;
 }
 
+
+
+
+float fabsf(float x) {
+	return __abs(x);
+}
+
+float fabs(float x) {
+	return __abs(x);
+}
+
+int abs(int x) {
+	return __abs(x);
+}
+double pown(double x, int n) {
+	return __pown(x, n);
+}
+double cos(double x) {
+	return __cos(x);
+}
+double sin(double x) {
+	return __sin(x);
+}
+double pow(double a, int b) {
+	return __pow(a, b);
+}
+double sqrt(double x) {
+	return __sqrt(x);
+}
+
+float sqrtf(float x) {
+	return __sqrt(x);
+}
+float cosf(float x) {
+	return __cos(x);
+}
+float sinf(float x) {
+	return __sin(x);
+}
+
+float logf(float x) {
+	return __log(x);
+}
+
+float expf(float x) {
+	return __exp(x);
+}
+
+double log(double x) {
+	return __log(x);
+}
+
+double exp(double x) {
+	return __exp(x);
+}
+
 #endif

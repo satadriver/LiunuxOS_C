@@ -1222,7 +1222,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, ss: [esp - 20]
 #endif	
-		clts
+		//clts
 
 		iretd
 

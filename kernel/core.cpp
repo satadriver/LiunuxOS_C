@@ -374,9 +374,11 @@ char* InitGdt() {
 
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
-	
+
+#ifdef IPI_INT_TASKGATE
 	initKernelTss((TSS*)IPI_TSS_BASE, TSSIPI_STACK0_TOP, TSSIPI_STACK_TOP, (DWORD)IPIIntHandler, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)IPI_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssIpiSelector));
+#endif
 	
 	gdtbase.addr = (DWORD)lpgdt;
 	gdtbase.size =  sizeof(TssDescriptor) * 8192 - 1;

@@ -5,10 +5,13 @@
 //#include <float.h>
 //#include <math.h>
 
-#include "kautodiff.h"
-#include "../def.h"
 #include "../libc.h"
+#include "../def.h"
 #include "../math.h"
+#include "kautodiff.h"
+
+
+
 
 
 typedef struct {

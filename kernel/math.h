@@ -48,6 +48,28 @@ extern "C"  __declspec(dllexport) double _sin(double x);
 extern "C"  __declspec(dllexport) double __log(double x);
 extern "C"  __declspec(dllexport) double __logn(double base, double exp);
 extern "C"  __declspec(dllexport) double __exp(double x);
+
+extern "C" __declspec(dllexport) int abs(int x);
+extern "C" __declspec(dllexport) double pown(double x, int n);
+extern "C" __declspec(dllexport) double cos(double x);
+extern "C" __declspec(dllexport) double sin(double x);
+extern "C" __declspec(dllexport) double pow(double a, int b);
+extern "C" __declspec(dllexport) double sqrt(double x);
+
+extern "C" __declspec(dllexport) float sqrtf(float x);
+extern "C" __declspec(dllexport) float cosf(float x);
+extern "C" __declspec(dllexport) float sinf(float x);
+
+extern "C" __declspec(dllexport) float fabsf(float x);
+extern "C" __declspec(dllexport) float fabs(float x);
+
+extern "C" __declspec(dllexport) double log(double x);
+
+extern "C" __declspec(dllexport) double exp(double x);
+
+extern "C" __declspec(dllexport) float logf(float x);
+
+extern "C" __declspec(dllexport) float expf(float x);
 #else
 extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
 extern "C"  __declspec(dllimport) double __abs(double x);
@@ -67,6 +89,28 @@ extern "C"  __declspec(dllimport) double _sin(double x);
 extern "C"  __declspec(dllimport) double __log(double x);
 extern "C"  __declspec(dllimport) double __logn(double base, double exp);
 extern "C"  __declspec(dllimport) double __exp(double x);
+
+extern "C" __declspec(dllimport) double abs(double x);
+extern "C" __declspec(dllimport) double pown(double x, int n);
+extern "C" __declspec(dllimport) double cos(double x);
+extern "C" __declspec(dllimport) double sin(double x);
+extern "C" __declspec(dllimport) double pow(double a, int b);
+extern "C" __declspec(dllimport) double sqrt(double x);
+
+extern "C" __declspec(dllimport) float sqrtf(float x);
+extern "C" __declspec(dllimport) float cosf(float x);
+extern "C" __declspec(dllimport) float sinf(float x);
+
+extern "C" __declspec(dllimport) float fabsf(float x);
+extern "C" __declspec(dllimport) float fabs(float x);
+
+extern "C" __declspec(dllimport) double log(double x);
+
+extern "C" __declspec(dllimport) double exp(double x);
+
+extern "C" __declspec(dllimport) float logf(float x);
+
+extern "C" __declspec(dllimport) float expf(float x);
 #endif
 
 
