@@ -20,8 +20,11 @@ extern "C"  __declspec(dllexport) double __abs(double x)
 //only when n > 0
 extern "C"  __declspec(dllexport) double __pown(double x, int n)
 {
-	if (n <= 0) {
-		return 0;
+	if (n == 0) {
+		return 1.0;
+	}
+	if (n < 0 ) {
+		return 1 / __pown(x, -n);
 	}
 	double r = 1.0;
 	for (int i = 0; i < n; ++i)
@@ -57,7 +60,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 {
 	if (x < 0)
 	{
-		return -1.0;
+		return 0.0;
 	}
 	if (x == 0)
 	{
@@ -66,24 +69,12 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	double x0, x1;
 	x0 = x;
 	x1 = x / 2.0;
-	while (__abs(x0 - x1) > DOUBLE_PRECISION_MIN)
+	while (__abs(x0 - x1) > 0.0000001)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;
 	}
 	return x1;
-}
-
-extern "C"  __declspec(dllexport)double _sqrt(double x)
-{
-	double xhalf = 0.5f * x;
-	int i = *(int*)&x;
-	i = 0x5f375a86 - (i >> 1);
-	x = *(float*)&i;
-	x = x * (1.5f - xhalf * x * x);
-	x = x * (1.5f - xhalf * x * x);
-	x = x * (1.5f - xhalf * x * x);
-	return 1 / x;
 }
 
 
@@ -439,8 +430,8 @@ double __log_test(double x) {
 
 
 double __log(double x) {
-	if (x <= 0) return 0;
-	if (x == 1) return 0;
+	if (x <= 0) return 0.0;
+	if (x == 1) return 0.0;
 
 	// 归一化
 	int k = 0;
@@ -459,7 +450,7 @@ double __log(double x) {
 		term = term * y2;
 		sum = sum + term / n;
 
-		if (__abs(term / n) < 1e-15) {
+		if (__abs(term / n) < 0.0000001) {
 			break;
 		}
 	}

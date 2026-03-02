@@ -95,7 +95,7 @@ void __kMouseProc() {
 		if ((status & 0xa0) ) {
 			g_mouse_error_cnt++;
 			if (g_mouse_error_cnt <= 16) {
-				__printf(szout, (char*)"mouse status %x error\r\n", status);
+				//__printf(szout, (char*)"mouse status %x error\r\n", status);
 			}
 			
 			//return;

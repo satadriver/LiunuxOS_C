@@ -6,21 +6,21 @@
 
 
 // Visual Studio 中的定义
-#define FLT_MAX         3.402823466e+38F        // 最大浮点数
+#define FLT_MAX         (3.402823466e+38F)        // 最大浮点数
 #define FLT_MAX_10_EXP  38                       // 10 的幂的最大指数
 #define FLT_MAX_EXP     128                      // 2 的幂的最大指数
 
 #define PI 						(3.141592653589793238462643)
 #define E 						(2.7182818284590452353602874713527)
 #define SQRT2 					(1.414213562373095145474621858739)
-#define DOUBLE_PRECISION_MIN	0.0000001
+#define DOUBLE_PRECISION_MIN	(1e-15)
 
-#define SL_2PI			PI*2
+#define SL_2PI			(PI*2)
 #define SL_PI			PI
-#define SL_PI_DIV_2		PI/2
+#define SL_PI_DIV_2		(PI/2)
 
 #define LN2			0.69314718055994530941723212145818   // ln(2)
-#define EPSILON		1e-15
+#define EPSILON		(1e-15)
 #define MAX_ITER	100
 #define INFINITY	1e308
 

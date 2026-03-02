@@ -156,29 +156,34 @@ int fputs(const char* str, FILE* stream) {
 char* fgets(char* str, int n, FILE* stream) {
 	return str;
 }
-
+#ifndef _DEBUG
 void* calloc(int cnt,int size) {
 	char * buf = (char*)__malloc(size*cnt);
 	__memset(buf, 0, size);
 	return buf;
 }
-
+#endif
+#ifndef _DEBUG
 void* malloc(int size) {
 	return (char*)__malloc(size);
 }
+#endif
 
+#ifndef _DEBUG
 void free(void* buf) {
 	__free((unsigned long)buf);
 	return;
 }
+#endif
 
+#ifndef _DEBUG
 void* realloc(void* buf, int size) {
 	char* buffer = (char*)__malloc(size);
 	memcpy(buffer, (char*)buf, size);
 	free(buf);
 	return buffer;
 }
-
+#endif
 int printf(const char* format, ...) {
 	char buf[1024];
 	if (g_ScreenMode == 0) {

@@ -39,7 +39,7 @@
 #include "pcnet.h"
 #include "systemService.h"
 #include "pe64.h"
-//#include <stdio.h>
+#include "ml.h"
 #include "base64.h"
 #include "md5.h"
 #include "aes.h"
@@ -188,6 +188,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
+	//__ipiCreateProcess(KERNEL_DLL_SOURCE_BASE, imageSize, "kernel.dll", "__kMachineLearning", 3, 0);
+	//__kMachineLearning(0, 0, "test", "test", 0);
+
 	while (1)
 	{
 		//break;
@@ -256,7 +259,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 #ifdef _DEBUG
-#include "math.h"
+#include <math.h>
 #include <stdio.h>
 void mytest(LIGHT_ENVIRONMENT  * stack) {
 
@@ -272,8 +275,10 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {
+	__kMachineLearning(0, 0, "test", "test", 0);
+
 	//printf("log(7):%lf\r\n", __log(7));
-	double v = __log(20);
+	//double v = __log(20);
 	PROCESS_INFO pin[0x10];
 
 	int size = sizeof(pin[2]);

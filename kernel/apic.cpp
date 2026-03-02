@@ -387,7 +387,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 	unsigned long long oldValue = GetIoRedirect(pin);
 
 	char szout[256];
-	__printf(szout, "io apic %d value %I64x\r\n ",pin, oldValue);
+	//__printf(szout, "io apic %d value %I64x\r\n ",pin, oldValue);
 
 	setIoRedirect(pin, cpuid, vector, mode);
 }

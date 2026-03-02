@@ -27,7 +27,7 @@
 
 #include "../def.h"
 #include "../libc.h"
-
+//#define __SSE__
 
 #ifndef KANN_AUTODIFF_H
 #define KANN_AUTODIFF_H

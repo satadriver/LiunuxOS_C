@@ -265,6 +265,7 @@ void __declspec(naked) BoundRangeExceed(LIGHT_ENVIRONMENT* stack) {
 }
 
 
+int g_undefined_opcode = 0;
 
 void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 	__asm {
@@ -292,7 +293,10 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
+		if (g_undefined_opcode++ < 5) {
+			__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
+		}
+
 		__kCoprocessor();
 		//__kException((const char*)"UndefinedOpcode", 6, stack);
 	}

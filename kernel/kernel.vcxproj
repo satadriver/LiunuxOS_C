@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -159,10 +159,10 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AdditionalOptions>/Gs8192 </AdditionalOptions>
       <StringPooling>false</StringPooling>
-      <FloatingPointExceptions>true</FloatingPointExceptions>
-      <FloatingPointModel>Strict</FloatingPointModel>
+      <FloatingPointExceptions>false</FloatingPointExceptions>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <BasicRuntimeChecks>UninitializedLocalUsageCheck</BasicRuntimeChecks>
-      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -228,6 +228,7 @@
     <ClCompile Include="libc.h" />
     <ClCompile Include="ListArray.cpp" />
     <ClCompile Include="md5.cpp" />
+    <ClCompile Include="ml.cpp" />
     <ClCompile Include="parallel.cpp" />
     <ClCompile Include="pcnet.cpp" />
     <ClCompile Include="pe64.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="kann-master\kautodiff.h" />
     <ClInclude Include="ListArray.h" />
     <ClInclude Include="md5.h" />
+    <ClInclude Include="ml.h" />
     <ClInclude Include="parallel.h" />
     <ClInclude Include="pcnet.h" />
     <ClInclude Include="pe64.h" />

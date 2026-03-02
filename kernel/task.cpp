@@ -16,7 +16,7 @@
 #include "apic.h"
 #include "apic.h"
 #include "window.h"
-
+#include "malloc.h"
 
 int g_task_array_lock[256] ;
 int g_task_list_lock [256];
@@ -1475,6 +1475,10 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->videoBase = (char*)gGraphBase;
 	
 	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
+
+	DWORD size = HEAP_SIZE;
+	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	process0->heapbase = (DWORD) buf;
 
 #ifdef TASK_SWITCH_ARRAY
 

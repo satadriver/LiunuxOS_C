@@ -159,6 +159,8 @@ void initCoprocessor() {
 		return ;
 	}
 
+	initFPU();
+
 	__asm {
 		clts
 		fninit
@@ -211,11 +213,15 @@ void __kCoprocessor() {
 	char* fenv_prev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (g_last_task_tid[id] << 9);
 
 	__asm {
-		mov eax, fenv_prev
-		fxsave ds : [eax]
+		clts
+		fnclex
+		fninit
 
-		mov eax, fenv
-		fxrstor ds : [eax]
+		//mov eax, fenv_prev
+		//fxsave ds : [eax]
+
+		//mov eax, fenv
+		//fxrstor ds : [eax]
 	}
 
 	/*
@@ -248,8 +254,6 @@ void __kCoprocessor() {
 		}
 	}
 	*/
-
-
 }
 
 

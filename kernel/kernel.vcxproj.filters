@@ -267,6 +267,9 @@
     <ClCompile Include="kann-master\kautodiff.cpp">
       <Filter>kann</Filter>
     </ClCompile>
+    <ClCompile Include="ml.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h">
@@ -481,6 +484,9 @@
     </ClInclude>
     <ClInclude Include="kann-master\kautodiff.h">
       <Filter>kann</Filter>
+    </ClInclude>
+    <ClInclude Include="ml.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
