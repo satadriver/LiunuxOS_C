@@ -38,8 +38,6 @@ extern "C"  __declspec(dllexport) double __sin(double x);
 extern "C"  __declspec(dllexport) double __pow(double a, int b);
 extern "C"  __declspec(dllexport) double __sqrt(double x);
 
-extern "C"  __declspec(dllexport) double _sqrt(double x);
-
 extern "C"  __declspec(dllexport) double __acos(double x);
 extern "C"  __declspec(dllexport) double __asin(double x);
 extern "C"  __declspec(dllexport) double __atan(double y, double x, int infNum);
@@ -78,8 +76,6 @@ extern "C"  __declspec(dllimport) double __cos(double x);
 extern "C"  __declspec(dllimport) double __sin(double x);
 extern "C"  __declspec(dllimport) double __pow(double a, int b);
 extern "C"  __declspec(dllimport) double __sqrt(double a);
-
-extern "C"  __declspec(dllimport) double _sqrt(double x);
 
 extern "C"  __declspec(dllimport) double __acos(double x);
 extern "C"  __declspec(dllimport) double __asin(double x);

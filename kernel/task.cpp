@@ -1479,6 +1479,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	DWORD size = HEAP_SIZE;
 	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	process0->heapbase = (DWORD) buf;
+	process0->heapsize = HEAP_SIZE;
 
 #ifdef TASK_SWITCH_ARRAY
 

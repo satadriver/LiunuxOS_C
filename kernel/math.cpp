@@ -60,7 +60,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 {
 	if (x < 0)
 	{
-		return 0.0;
+		return -x;
 	}
 	if (x == 0)
 	{
@@ -69,7 +69,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	double x0, x1;
 	x0 = x;
 	x1 = x / 2.0;
-	while (__abs(x0 - x1) > 0.0000001)
+	while (__abs(x0 - x1) >= DOUBLE_PRECISION_MIN)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;
@@ -430,7 +430,7 @@ double __log_test(double x) {
 
 
 double __log(double x) {
-	if (x <= 0) return 0.0;
+	if (x <= 0) return DOUBLE_PRECISION_MIN;
 	if (x == 1) return 0.0;
 
 	// 归一化
@@ -450,7 +450,7 @@ double __log(double x) {
 		term = term * y2;
 		sum = sum + term / n;
 
-		if (__abs(term / n) < 0.0000001) {
+		if (__abs(term / n) <= DOUBLE_PRECISION_MIN) {
 			break;
 		}
 	}
@@ -462,7 +462,7 @@ double __log(double x) {
 
 
 double __logn(double base,double exp) {
-	if (base <= 0) return 0;
+	if (base <= 0) return base;
 	if (base == 1) return 0;
 
 	if (exp == 0) return 0;
@@ -492,7 +492,7 @@ double __exp(double x) {
 		result = result + term;
 
 		// 如果当前项非常小，可以提前结束
-		if (term < 1e-15) {
+		if (term <= DOUBLE_PRECISION_MIN) {
 			break;
 		}
 	}

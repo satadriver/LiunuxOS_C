@@ -112,6 +112,13 @@ typedef struct _iobuf FILE;
 #define IS_SCALAR(x) IS_SCALAR_TYPE(__typeof__(x))
 
 
+
+
+int va_test_fun();
+
+int average(int count, ...);
+
+
 #ifdef DLL_EXPORT
 
 extern "C" __declspec(dllexport) FILE _iob[3];

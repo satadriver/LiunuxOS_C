@@ -45,6 +45,8 @@
 #include "aes.h"
 #include "des.h"
 #include "rc4.h"
+#include "libc.h"
+
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -188,8 +190,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
+	//va_test_fun();
+
 	//__ipiCreateProcess(KERNEL_DLL_SOURCE_BASE, imageSize, "kernel.dll", "__kMachineLearning", 3, 0);
-	//__kMachineLearning(0, 0, "test", "test", 0);
+	__kMachineLearning(0, 0, "test", "test", 0);
 
 	while (1)
 	{

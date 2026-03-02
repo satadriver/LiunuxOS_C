@@ -159,7 +159,10 @@ char* fgets(char* str, int n, FILE* stream) {
 #ifndef _DEBUG
 void* calloc(int cnt,int size) {
 	char * buf = (char*)__malloc(size*cnt);
-	__memset(buf, 0, size);
+	if (buf) {
+		__memset(buf, 0, size);
+	}
+	
 	return buf;
 }
 #endif
@@ -179,8 +182,11 @@ void free(void* buf) {
 #ifndef _DEBUG
 void* realloc(void* buf, int size) {
 	char* buffer = (char*)__malloc(size);
-	memcpy(buffer, (char*)buf, size);
-	free(buf);
+	if (buffer) {
+		memcpy(buffer, (char*)buf, size);
+		free(buf);
+	}
+
 	return buffer;
 }
 #endif
@@ -225,4 +231,31 @@ int printf(const char* format, ...) {
 	}
 
 	return len;
+}
+
+
+
+
+int average(int count, ...) {
+	va_list args;
+	double sum = 0;
+
+	va_start(args, count);
+
+	for (int i = 0; i < count; i++) {
+		int num = va_arg(args, int);  
+		sum += num;
+		printf("param %d: %d\n", i + 1, num);
+	}
+
+	va_end(args);
+
+	return sum / count;
+}
+
+int va_test_fun() {
+	int value = average(5, 1, 2, 3, 4, 5);
+	printf("%s %d: %d\n\n", __FUNCTION__,__LINE__, value);
+
+	return 0;
 }

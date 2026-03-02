@@ -9,8 +9,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	kad_node_t* t;
 	t = kann_layer_input(784); // for MNIST
 
-	//kad_node_t* knt = kann_layer_dense(t, 64);
-	//knt = kad_relu(knt); // a 64-neuron hidden layer with ReLU activation
+	kad_node_t* knt = kann_layer_dense(t, 64);
+	knt = kad_relu(knt); // a 64-neuron hidden layer with ReLU activation
 
 
 	//t = kann_layer_cost(t, 10, KANN_C_CEM); // softmax output + multi-class cross-entropy cost
