@@ -17,6 +17,7 @@
 #include "apic.h"
 #include "window.h"
 #include "malloc.h"
+#include "coprocessor.h"
 
 int g_task_array_lock[256] ;
 int g_task_list_lock [256];
@@ -27,6 +28,8 @@ unsigned long long g_cpu_active[TASK_LIMIT_TOTAL];
 unsigned long long g_cpu_sleep[TASK_LIMIT_TOTAL];
 
 int g_tagMsg = 0;
+
+
 
 void enter_task_array_lock() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -713,14 +716,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next, current);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (prev->tid << 9);
+	char* fenvprev = (char*)g_fpu_status[id] + (prev->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (next->tid << 9);
+	char* fenvnext = (char*)g_fpu_status[id] +  (next->tid << 9);
 	if (current->fpu == 0 || prev->fpu == 0) {
 		__asm {
 			fninit
@@ -922,8 +925,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next->node, process);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (process->tid * 512);
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL+ (next->node->tid * 512);
+	char* fenvprev = (char*)g_fpu_status[id] + (process->tid * 512);
+	char* fenvnext = (char*)g_fpu_status[id] + (next->node->tid * 512);
 	if (process->fpu == 0) {
 		__asm {
 			fninit
@@ -1110,14 +1113,14 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next, current);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL+(current->tid << 9);
+	char* fenvprev = (char*)g_fpu_status[id] +(current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (next->tid << 9);
+	char* fenvnext = (char*)g_fpu_status[id] + (next->tid << 9);
 	if (current->fpu == 0) {
 		__asm {
 			fninit
@@ -1282,14 +1285,14 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	debugReg(next->node, current);
 
-	char* fenvprev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (current->tid << 9);
+	char* fenvprev = (char*)g_fpu_status[id] + (current->tid << 9);
 	//If a memory operand is not aligned on a 16-byte boundary, regardless of segment
 	//The assembler issues two instructions for the FSAVE instruction 
 	// (an FWAIT instruction followed by an FNSAVE instruction), 
 	//and the processor executes each of these instructions separately.
 	//If an exception is generated for either of these instructions,
 	// the save EIP points to the instruction that caused the exception.
-	char* fenvnext = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (next->node->tid << 9);
+	char* fenvnext = (char*)g_fpu_status[id] + (next->node->tid << 9);
 	if (current->fpu == 0) {
 		__asm {
 			fninit
@@ -1452,7 +1455,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	int tid = freeTss.number;
 
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
-	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * id + 0 + 1) - STACK_TOP_DUMMY);
+	//unsigned long stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
 
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	__strcpy(process0->filename, (char*)filename);
@@ -1476,10 +1479,17 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	
 	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
 
-	DWORD size = HEAP_SIZE;
-	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-	process0->heapbase = (DWORD) buf;
-	process0->heapsize = HEAP_SIZE;
+	int bsp = IsBspProcessor();
+	if (bsp) {
+		process0->heapbase = (DWORD)BSP_HEAP_BASE;
+		process0->heapsize = HEAP_SIZE; 
+	}
+	else {
+		DWORD size = HEAP_SIZE;
+		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		process0->heapbase = (DWORD)buf;
+		process0->heapsize = HEAP_SIZE;
+	}
 
 #ifdef TASK_SWITCH_ARRAY
 

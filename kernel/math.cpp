@@ -1,10 +1,31 @@
 ﻿#ifndef _MATH_C_
 #define _MATH_C_
 
+#ifdef _DEBUG
+#include <stdio.h>
+#include <float.h>
+#else
+#include "libc.h"
+#include "def.h"
+#endif
 
 
 #include "math.h"
-#include "def.h"
+
+
+
+#ifndef _DEBUG
+#pragma intrinsic(abs)  // 启用内部函数
+#pragma function(abs)   // 强制使用函数调用而不是内部函数
+
+#pragma intrinsic(fprintf)  // 启用内部函数
+#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
+
+#pragma intrinsic(printf)  // 启用内部函数
+#pragma function(printf)   // 强制使用函数调用而不是内部函数
+
+#endif
+
 
 extern "C"  __declspec(dllexport) double __abs(double x)
 {
@@ -58,10 +79,16 @@ extern "C"  __declspec(dllexport) double __pow(double a, int b)
 
 extern "C"  __declspec(dllexport) double __sqrt(double x)
 {
-	if (x < 0)
+	if (x == 0)
 	{
+		printf("%s %d value:%lf is 0!\r\n", __FUNCTION__, __LINE__, x);
+		return DBL_EPSILON;
+	}
+	else if (x < 0) {
+		printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
 		return -x;
 	}
+
 	if (x == 0)
 	{
 		return 0.0;
@@ -69,7 +96,8 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	double x0, x1;
 	x0 = x;
 	x1 = x / 2.0;
-	while (__abs(x0 - x1) >= DOUBLE_PRECISION_MIN)
+	int cnt = 0;
+	while (__abs(x0 - x1) >= 0.0000001 && cnt ++ <= 64)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;
@@ -78,6 +106,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 }
 
 
+//period range : [-pi , pi]
 
 extern "C"  __declspec(dllexport) double __sin(double x)
 {
@@ -102,15 +131,18 @@ extern "C"  __declspec(dllexport) double __sin(double x)
 
 
 
-
+//cox(x) = sin( pi/2 + x) 
 
 extern "C"  __declspec(dllexport) double __cos(double x)
 {
 	double Q = PI/2.0;
 
 	x += Q;
+
+	/*
 	if (x > PI)
 		x -= 2.0 * PI;
+	*/
 
 	return(__sin(x));
 }
@@ -155,7 +187,7 @@ extern "C"  __declspec(dllexport) double __acos(double x)
 
 	while (1)
 	{
-		if (__abs(__cos(Mid) - x) < DOUBLE_PRECISION_MIN) //近似值相等
+		if (__abs(__cos(Mid) - x) < FLT_EPSILON) //近似值相等
 		{
 			break;
 		}
@@ -193,7 +225,7 @@ extern "C"  __declspec(dllexport) double __asin(double x)
 
 	while (1)
 	{
-		if (__abs(__sin(Mid) - x) < DOUBLE_PRECISION_MIN) //近似值相等
+		if (__abs(__sin(Mid) - x) < FLT_EPSILON) //近似值相等
 		{
 			break;
 		}
@@ -225,8 +257,8 @@ extern "C"  __declspec(dllexport) double __asin_old(double x)		//taylor expandat
 	double u, ans;
 	ans = x;	
 	u = x;
-	while (__abs(u) >= DOUBLE_PRECISION_MIN) {
-		if (__abs(u) < DOUBLE_PRECISION_MIN)
+	while (__abs(u) >= FLT_EPSILON) {
+		if (__abs(u) < FLT_EPSILON)
 			break;
 		u = u * (2.0 * n - 1) * (2.0 * n - 1) * x * x / ((2.0 * n) * (2.0 * n + 1));
 		n++;
@@ -417,7 +449,7 @@ double __log_test(double x) {
 		term = term * y2;
 
 		// 如果项太小就停止
-		if (term < 1e-15 || term > -1e-15) {
+		if (__abs(term / n) <= FLT_EPSILON) {
 			break;
 		}
 	}
@@ -430,8 +462,12 @@ double __log_test(double x) {
 
 
 double __log(double x) {
-	if (x <= 0) return DOUBLE_PRECISION_MIN;
-	if (x == 1) return 0.0;
+	if (x <= 0) {
+		printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
+		return -x;
+	}
+	if (x == 1) 
+		return 0.0;
 
 	// 归一化
 	int k = 0;
@@ -450,7 +486,7 @@ double __log(double x) {
 		term = term * y2;
 		sum = sum + term / n;
 
-		if (__abs(term / n) <= DOUBLE_PRECISION_MIN) {
+		if (__abs(term / n) <= 0.00001) {
 			break;
 		}
 	}
@@ -492,7 +528,7 @@ double __exp(double x) {
 		result = result + term;
 
 		// 如果当前项非常小，可以提前结束
-		if (term <= DOUBLE_PRECISION_MIN) {
+		if (term <= FLT_EPSILON) {
 			break;
 		}
 	}
@@ -503,6 +539,7 @@ double __exp(double x) {
 
 
 
+#ifndef _DEBUG
 float fabsf(float x) {
 	return __abs(x);
 }
@@ -533,6 +570,7 @@ double sqrt(double x) {
 float sqrtf(float x) {
 	return __sqrt(x);
 }
+
 float cosf(float x) {
 	return __cos(x);
 }
@@ -555,5 +593,10 @@ double log(double x) {
 double exp(double x) {
 	return __exp(x);
 }
+
+#endif
+
+
+
 
 #endif

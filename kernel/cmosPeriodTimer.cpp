@@ -124,7 +124,7 @@ void __kPeriodTimer() {
 	{
 		__asm {
 			mov eax, SVC_TURNOFF_SCREEN
-			int 80h
+			//int 80h
 		}
 		*lptickcnt = 0;
 	}

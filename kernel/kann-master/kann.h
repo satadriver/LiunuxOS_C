@@ -25,10 +25,13 @@
   SOFTWARE.
 */
 
-
+#ifdef _DEBUG
+#include <stdio.h>
+#else
 #include "../libc.h"
-#include "kautodiff.h"
+#endif
 
+#include "kautodiff.h"
 
 #ifndef KANN_H
 #define KANN_H

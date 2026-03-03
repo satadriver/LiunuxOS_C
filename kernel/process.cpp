@@ -15,7 +15,7 @@
 #include "window.h"
 #include "elf.h"
 #include "apic.h"
-
+#include "core.h"
 
 void __kFreeProcess(int pid) {
 	//return;
@@ -233,7 +233,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = TASKS_STACK0_BASE + (TASK_LIMIT_TOTAL*tss->cpuid + tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	vaddr = tss->vaddr + tss->vasize;

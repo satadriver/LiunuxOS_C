@@ -50,7 +50,7 @@ DWORD __heapFree(DWORD addr) {
 	
 	MS_HEAP_STRUCT* heapEnd = (MS_HEAP_STRUCT*)((UCHAR*)heap + sizeof(MS_HEAP_STRUCT) + heapSize);
 
-	if (heap->addr == addr && heapEnd->addr == addr)
+	if ( (heap->addr == addr && heapEnd->addr == addr) && ( heap->size == heapEnd->size) )
 	{
 		heap->size = heapSize;
 
@@ -94,19 +94,19 @@ DWORD __heapFree(DWORD addr) {
 			nextHdrSize = (sizeof(MS_HEAP_STRUCT) << 1);
 		}
 
-		if ((prev->size & 0x80000000) && (next->size & 0x80000000) )
+		if ( (prev->size & HEAP_BUFFER_POSITION) && (next->size & HEAP_BUFFER_POSITION) )
 		{
 			heap->size = heap->size & HEAP_BUFFER_FREE;
 			heapEnd->size = heap->size;
 		}
-		else if ((prev->size & 0x80000000) == 0 && (next->size & 0x80000000) == 0)
+		else if ((prev->size & HEAP_BUFFER_POSITION) == 0 && (next->size & HEAP_BUFFER_POSITION) == 0)
 		{
 			prev->addr = (DWORD)prev + sizeof(MS_HEAP_STRUCT);
 			prev->size = (prevSize + heapSize + nextSize + prevHdrSize + nextHdrSize ) & HEAP_BUFFER_FREE;
 			nextEnd->size = prev->size;
 			nextEnd->addr = prev->addr;
 		}
-		else if ((prev->size & 0x80000000) && (next->size & 0x80000000) == 0)
+		else if ( (prev->size & HEAP_BUFFER_POSITION) && (next->size & HEAP_BUFFER_POSITION) == 0 )
 		{
 			heap->addr = (DWORD)heap + sizeof(MS_HEAP_STRUCT);
 			heap->size = (heapSize + nextSize + nextHdrSize) & HEAP_BUFFER_FREE;
@@ -114,7 +114,7 @@ DWORD __heapFree(DWORD addr) {
 			nextEnd->addr = heap->addr;
 			nextEnd->size = heap->size;
 		}
-		else if ((prev->size & 0x80000000) == 0 && (next->size & 0x80000000))
+		else if ( (prev->size & HEAP_BUFFER_POSITION) == 0 && (next->size & HEAP_BUFFER_POSITION) )
 		{
 			prev->addr = (DWORD)prev + sizeof(MS_HEAP_STRUCT);
 			prev->size = (prevSize + heapSize + prevHdrSize) & HEAP_BUFFER_FREE;
@@ -122,11 +122,13 @@ DWORD __heapFree(DWORD addr) {
 			heapEnd->addr = prev->addr;
 			heapEnd->size = prev->size;
 		}
-		
+		else {
+			__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
+		}
 		result = TRUE;
 	}
 	else {
-		__printf(szout, "%s %d heap address:%x not found\r\n", __FUNCTION__, __LINE__, addr);
+		__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
 	}
 
 	__leaveSpinlock(&g_heap_alloc_lock);
@@ -137,7 +139,7 @@ DWORD __heapFree(DWORD addr) {
 DWORD __heapAlloc(int size) {
 
 	DWORD addr = 0;
-
+	char szout[256];
 	__enterSpinlock(&g_heap_alloc_lock);
 
 	int allocsize = getAlignSize(size, sizeof(MS_HEAP_STRUCT)*2);
@@ -154,9 +156,9 @@ DWORD __heapAlloc(int size) {
 			lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size & HEAP_BUFFER_FREE) + (sizeof(MS_HEAP_STRUCT) << 1) );
 			continue;
 		}
-		else if (lpheap->size && lpheap->addr)
+		else if ( ((lpheap->size & HEAP_BUFFER_POSITION) == 0) && lpheap->size && lpheap->addr)
 		{
-			if (heapSize >= allocsize + (sizeof(MS_HEAP_STRUCT)*2) )
+			if ( heapSize > allocsize + (sizeof(MS_HEAP_STRUCT)*2) )
 			{			
 				lpheap->addr = (DWORD)((DWORD)lpheap + sizeof(MS_HEAP_STRUCT));
 				lpheap->size = allocsize | HEAP_BUFFER_POSITION;
@@ -174,6 +176,7 @@ DWORD __heapAlloc(int size) {
 				nextEnd->addr = next->addr;
 				
 				addr = lpheap->addr;
+				//__memset((char*)addr, 0, size);
 				break;
 			}
 			else if (heapSize == allocsize ) {
@@ -184,6 +187,7 @@ DWORD __heapAlloc(int size) {
 				heapend->addr = lpheap->addr;
 				heapend->size = lpheap->size;
 				addr = lpheap->addr;
+				//__memset((char*)addr, 0, size);
 				break;
 			}
 			else {
@@ -200,12 +204,17 @@ DWORD __heapAlloc(int size) {
 			heapend->size = lpheap->size;
 
 			addr = lpheap->addr;
+			//__memset((char*)addr, 0, size);
 			break;
 		}
 	}
 
 	__leaveSpinlock(&g_heap_alloc_lock);
 
+	if (addr) {
+		//__printf(szout, "%s %d alloc:%x size:%x\r\n", __FUNCTION__, __LINE__, addr, allocsize);
+	}
+	
 	return addr;
 }
 

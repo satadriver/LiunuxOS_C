@@ -187,7 +187,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 #endif
 	tss->tss.trap=0;
 
-	tss->tss.esp0 = TASKS_STACK0_BASE + (TASK_LIMIT_TOTAL * tss->cpuid + pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	tss->tss.ldt = 0;

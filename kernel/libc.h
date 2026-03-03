@@ -28,6 +28,7 @@ typedef char* va_list;
 #undef _iobuf
 #endif
 
+#ifndef _DEBUG
 
 #pragma pack(1)
 
@@ -45,6 +46,8 @@ struct _iobuf {
 #pragma pack()
 
 typedef struct _iobuf FILE;
+
+#endif
 
 // Visual Studio 中的 <stdio.h> 核心定义
 
@@ -118,6 +121,8 @@ int va_test_fun();
 
 int average(int count, ...);
 
+
+#ifndef _DEBUG
 
 #ifdef DLL_EXPORT
 
@@ -222,6 +227,8 @@ extern "C" __declspec(dllimport) int fputs(const char* str, FILE * stream);
 
 extern "C" __declspec(dllimport) char* fgets(char* str, int n, FILE * stream);
 
+
+#endif
 
 #endif
 

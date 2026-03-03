@@ -188,11 +188,13 @@ void initTss64(TSS64_DATA* tss, QWORD rsp);
 
 void SetTaskVideoBase(char* videobase);
 
+
+
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) void initEfer();
+extern "C" __declspec(dllexport) char* g_stack0_base[TASK_LIMIT_TOTAL];
 
 #else
-extern "C" __declspec(dllimport) void initEfer();
+extern "C" __declspec(dllimport) char* g_stack0_base[TASK_LIMIT_TOTAL];
 
 #endif
 

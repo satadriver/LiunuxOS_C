@@ -437,7 +437,7 @@ int __kFree(DWORD physicalAddr) {
 //return virtual address
 DWORD __malloc(DWORD s) {
 	DWORD res = 0;
-	if (s <= HEAP_SIZE/2)
+	if (s <= HEAP_SIZE/16)
 	{
 		res = __heapAlloc(s);
 		if (res) {
@@ -450,27 +450,68 @@ DWORD __malloc(DWORD s) {
 
 	char szout[256];
 
+	int tag = PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT;
+
 	DWORD size = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD vaddr = process->vaddr + process->vasize;
 	res = __kProcessMalloc(s,&size, process->pid,process->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
 	{
+#ifndef DISABLE_PAGE_MAPPING
 		if (vaddr >= USER_SPACE_END)
 		{
+			int len = __printf(szout, "__malloc(size:%x) vaddr:%s error\n", size, vaddr);
 			__kFree(res);
 			return FALSE;
 		}
 
-		DWORD * cr3 = (DWORD *)process->tss.cr3;
-		DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+		int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+		enter_task_array_lock_id(cpuid);
+
+		if (process->pid == pid && process->cpuid == cpuid)
+		{
+			if (vmtag) {
+				vaddr = process->vaddr + process->vasize;
+				process->vasize += size;
+			}
+
+			DWORD* cr3 = (DWORD*)process->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+
+			if (vmtag) {
+				vaddr = tss->vaddr + tss->vasize;
+				tss->vasize += size;
+			}
+			tss->tss.cr3 = process->tss.cr3;
+		}
+		else
+		{
+			if (vmtag) {
+				vaddr = tss->vaddr + tss->vasize;
+				tss->vasize += size;
+			}
+
+			DWORD* cr3 = (DWORD*)tss->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+		}
+
+		leave_task_array_lock_id(cpuid);
 		if (pagecnt)
 		{
 			return vaddr;
 		}
+#else
+		return res;
+#endif
 	}
 
-	int len = __printf(szout, "__malloc size:%x error\n", size);
+	int len = __printf(szout, "__malloc(size:%x) error\n", size);
 
 	return FALSE;
 }

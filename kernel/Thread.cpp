@@ -7,6 +7,7 @@
 #include "memory.h"
 #include "apic.h"
 #include "window.h"
+#include "core.h"
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -152,7 +153,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = TASKS_STACK0_BASE + (TASK_LIMIT_TOTAL * tss->cpuid + tss->tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tss->tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	DWORD espsize = 0;

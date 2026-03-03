@@ -25,8 +25,13 @@
   SOFTWARE.
 */
 
+#ifndef _DEBUG
 #include "../def.h"
 #include "../libc.h"
+#else
+#include <stdio.h>
+#include <stdint.h>
+#endif
 //#define __SSE__
 
 #ifndef KANN_AUTODIFF_H
@@ -34,8 +39,7 @@
 
 #define KAD_VERSION "r556"
 
-//#include <stdio.h>
-//#include <stdint.h>
+
 
 #ifdef __STRICT_ANSI__
 #define inline

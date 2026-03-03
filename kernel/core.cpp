@@ -29,6 +29,9 @@
 #include "device.h"
 
 
+char* g_stack0_base[TASK_LIMIT_TOTAL];
+
+
 void makeDataSegDescriptor(DWORD base, int dpl, int bit, int direction, int w, SegDescriptor* descriptor) {
 	descriptor->present = 1;
 	descriptor->avl = 0;
@@ -343,7 +346,16 @@ char* InitGdt() {
 	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
 
 	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
-	unsigned long stack0top = (unsigned long)(TASKS_STACK0_BASE + TASK_STACK0_SIZE * (TASK_LIMIT_TOTAL * id + 0 + 1) - STACK_TOP_DUMMY);
+	
+	unsigned long stack0top = 0;
+	if (IsBspProcessor()) {
+		g_stack0_base[id] = (char*)TASKS_STACK0_BASE;
+		stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
+	}
+	else {
+		g_stack0_base[id] = (char*)__kMalloc(TASK_STACK0_SIZE*TASK_LIMIT_TOTAL);
+		stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
+	}
 
 	initKernelTss(&proc->tss,stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));

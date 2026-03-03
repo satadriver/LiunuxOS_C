@@ -49,15 +49,13 @@
 #pragma intrinsic(strcat)  // 启用内部函数
 #pragma function(strcat)   // 强制使用函数调用而不是内部函数
 
-#pragma intrinsic(abs)  // 启用内部函数
-#pragma function(abs)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(fprintf)  // 启用内部函数
-#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
 
 
 
-FILE _iob[3];
+#ifndef _DEBUG
+
+
+
 
 
 void* memcpy(void* dest, const void* src, size_t n) {
@@ -120,47 +118,60 @@ wchar_t* wcscat(wchar_t* dest, const wchar_t* src) {
 }
 
 
-void abort(void) {
 
+
+FILE _iob[3];
+
+
+void abort(void) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 }
 
 
 FILE* fopen(const char* filename, const char* mode) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 
 int fclose(FILE* fp) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fwrite(const void* buf, int cnt, int size,  FILE* fp) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fread( void* buf, int cnt, int size, FILE* fp) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fprintf(FILE* stream, const char* format, ...) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fputc(int character, FILE* stream) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fputs(const char* str, FILE* stream) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 char* fgets(char* str, int n, FILE* stream) {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return str;
 }
-#ifndef _DEBUG
+
 void* calloc(int cnt,int size) {
 	char * buf = (char*)__malloc(size*cnt);
 	if (buf) {
-		__memset(buf, 0, size);
+		__memset(buf, 0, size * cnt);
 	}
 	
 	return buf;
@@ -168,7 +179,9 @@ void* calloc(int cnt,int size) {
 #endif
 #ifndef _DEBUG
 void* malloc(int size) {
-	return (char*)__malloc(size);
+	char * buf = (char*)__malloc(size);
+	__memset(buf, 0, size );
+	return buf;
 }
 #endif
 
@@ -190,6 +203,9 @@ void* realloc(void* buf, int size) {
 	return buffer;
 }
 #endif
+
+
+#ifndef _DEBUG
 int printf(const char* format, ...) {
 	char buf[1024];
 	if (g_ScreenMode == 0) {
@@ -259,3 +275,5 @@ int va_test_fun() {
 
 	return 0;
 }
+
+#endif

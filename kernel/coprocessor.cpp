@@ -31,7 +31,7 @@
 //instead of your vector unit automatically disabling itself when an exception occurs. 
 //The state of the art includes AVX, which adds
 
-
+char* g_fpu_status[TASK_LIMIT_TOTAL];
 
 
 //fsave±£´æmm0-mm7,fstenv²»±£´æmm0-mm7
@@ -153,6 +153,10 @@ extern "C" __declspec(dllexport)int isSSE() {
 
 void initCoprocessor() {
 	int result = 0;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (g_fpu_status[id] == 0) {
+		g_fpu_status[id] = (char*)__kMalloc(512 * TASK_LIMIT_TOTAL);
+	}
 
 	result = isSSE();
 	if (result == 0) {
@@ -198,6 +202,9 @@ void initCoprocessor() {
 //TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
 
+	
+
+	/*
 	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	LPPROCESS_INFO pb = (LPPROCESS_INFO)GetTaskTssBase();
@@ -211,7 +218,7 @@ void __kCoprocessor() {
 	char* fenv = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (current->tid << 9);
 
 	char* fenv_prev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (g_last_task_tid[id] << 9);
-
+	*/
 	__asm {
 		clts
 		fnclex
