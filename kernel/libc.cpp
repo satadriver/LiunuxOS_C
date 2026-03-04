@@ -49,8 +49,14 @@
 #pragma intrinsic(strcat)  // 启用内部函数
 #pragma function(strcat)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(printf)  // 启用内部函数
+#pragma function(printf)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(fprintf)  // 启用内部函数
+#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(_iob)  // 启用内部函数
+#pragma function(_iob)   // 强制使用函数调用而不是内部函数
 
 #ifndef _DEBUG
 
@@ -150,17 +156,17 @@ int fread( void* buf, int cnt, int size, FILE* fp) {
 }
 
 int fprintf(FILE* stream, const char* format, ...) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fputc(int character, FILE* stream) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
 int fputs(const char* str, FILE* stream) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 char* fgets(char* str, int n, FILE* stream) {
@@ -254,7 +260,7 @@ int printf(const char* format, ...) {
 
 int average(int count, ...) {
 	va_list args;
-	double sum = 0;
+	int sum = 0;
 
 	va_start(args, count);
 

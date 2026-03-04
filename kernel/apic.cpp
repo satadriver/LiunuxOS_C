@@ -1374,7 +1374,7 @@ void BPCodeStart() {
 
 	//ret = InitLocalApicTimer();
 
-	__sleep(0);
+	__sleep(100);
 
 	DWORD reg_cr0 = 0;
 	DWORD reg_cr4 = 0;
@@ -1416,7 +1416,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * id);
+	LPPROCESS_INFO process = (LPPROCESS_INFO)(TASK_TSS_BASE + tsssize * id);
 	return process;
 	/*
 	int cnt = *(int*)CPU_TOTAL_ADDRESS;

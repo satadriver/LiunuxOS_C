@@ -44,11 +44,9 @@ typedef struct
 
 	DWORD sleep;
 
-	//物理地址而不是线性地址
-	DWORD moduleaddr;				//可执行模块物理基地址，用于区别进程和线程
-	DWORD moduleLinearAddr;			//可执行模块线性基地址，用于区别进程和线程
+	DWORD espbase;	//esp base address,esp is esp top but not equal to base !
 
-	DWORD espbase;
+	char* fast_heap;
 
 	DWORD heapbase;
 
@@ -56,8 +54,12 @@ typedef struct
 
 	DWORD vaddr;
 
+	DWORD moduleBase;
+
 	//内存分配的虚拟地址偏移
-	DWORD vasize;
+	DWORD * lpvasize;
+
+	DWORD va_size;
 
 	DWORD errorno;
 

@@ -341,13 +341,9 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 	}
 
 #ifndef DISABLE_PAGE_MAPPING
-	if (res ) {		
-		int vmtag = TRUE;
-		if (vaddr == 0) {
-			vaddr = res;
-			vmtag = 0;
-		}
-		
+	if (res  && vaddr) {
+
+		DWORD addr = 0;
 		LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
 		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -356,29 +352,47 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 
 		if (process->pid == pid && process->cpuid == cpu)
 		{
-			if (vmtag) {
-				vaddr = process->vaddr + process->vasize;
-				process->vasize += size;
+			addr = process->vaddr + *process->lpvasize;
+			if (vaddr != addr) {
+				__printf(szout, "%s %d addr:%x vaddr:%x error\r\n", __FUNCTION__,__LINE__,addr,vaddr);
 			}
+			if (addr < USER_SPACE_END)
+			{
+				*process->lpvasize += size;
 
-			DWORD* cr3 = (DWORD*)process->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3,tag);
+				DWORD* cr3 = (DWORD*)process->tss.cr3;
+				DWORD pagecnt = mapPhyToLinear(addr, res, size, cr3, tag);
 
-			if (vmtag) {
-				vaddr = tss->vaddr + tss->vasize;
-				tss->vasize += size;
+				addr = tss->vaddr + *tss->lpvasize;
+				*tss->lpvasize += size;
+
+				tss->tss.cr3 = process->tss.cr3;
+
+				res = addr;
 			}
-			tss->tss.cr3 = process->tss.cr3;
+			else {
+				__printf(szout, "%s size:%x vaddr:%s error\n",__FUNCTION__, size, vaddr);
+			}
 		}
 		else 
 		{
-			if (vmtag) {
-				vaddr = tss->vaddr + tss->vasize;
-				tss->vasize += size;
+			addr = tss->vaddr + *tss->lpvasize;
+			if (vaddr != addr) {
+				__printf(szout, "%s %d addr:%x vaddr:%x error\r\n", __FUNCTION__, __LINE__, addr, vaddr);
 			}
 
-			DWORD* cr3 = (DWORD*)tss->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+			if (addr < USER_SPACE_END)
+			{
+				*tss->lpvasize += size;
+
+				DWORD* cr3 = (DWORD*)tss->tss.cr3;
+				DWORD pagecnt = mapPhyToLinear(addr, res, size, cr3, tag);
+				res = addr;
+
+			}
+			else {
+				__printf(szout, "%s size:%x vaddr:%s error\n", __FUNCTION__, size, vaddr);
+			}
 		}
 		
 		leave_task_array_lock_id(cpu);
@@ -437,14 +451,17 @@ int __kFree(DWORD physicalAddr) {
 //return virtual address
 DWORD __malloc(DWORD s) {
 	DWORD res = 0;
+
+	res = (DWORD)fast_heap_alloc(s);
+	if (res) {
+		return res;
+	}
+
 	if (s <= HEAP_SIZE/16)
 	{
 		res = __heapAlloc(s);
 		if (res) {
 			return res;
-		}
-		else {
-
 		}
 	}
 
@@ -453,65 +470,16 @@ DWORD __malloc(DWORD s) {
 	int tag = PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT;
 
 	DWORD size = 0;
+	int len = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	DWORD vaddr = process->vaddr + process->vasize;
+	DWORD vaddr = process->vaddr + *process->lpvasize;
 	res = __kProcessMalloc(s,&size, process->pid,process->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
 	{
-#ifndef DISABLE_PAGE_MAPPING
-		if (vaddr >= USER_SPACE_END)
-		{
-			int len = __printf(szout, "__malloc(size:%x) vaddr:%s error\n", size, vaddr);
-			__kFree(res);
-			return FALSE;
-		}
-
-		LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
-		int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
-		enter_task_array_lock_id(cpuid);
-
-		if (process->pid == pid && process->cpuid == cpuid)
-		{
-			if (vmtag) {
-				vaddr = process->vaddr + process->vasize;
-				process->vasize += size;
-			}
-
-			DWORD* cr3 = (DWORD*)process->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
-
-			if (vmtag) {
-				vaddr = tss->vaddr + tss->vasize;
-				tss->vasize += size;
-			}
-			tss->tss.cr3 = process->tss.cr3;
-		}
-		else
-		{
-			if (vmtag) {
-				vaddr = tss->vaddr + tss->vasize;
-				tss->vasize += size;
-			}
-
-			DWORD* cr3 = (DWORD*)tss->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
-		}
-
-		leave_task_array_lock_id(cpuid);
-		if (pagecnt)
-		{
-			return vaddr;
-		}
-#else
 		return res;
-#endif
 	}
 
-	int len = __printf(szout, "__malloc(size:%x) error\n", size);
+	len = __printf(szout, "__malloc(size:%x) error\n", size);
 
 	return FALSE;
 }
@@ -524,6 +492,9 @@ int __free(DWORD linearAddr) {
 	if (linearAddr >= process->heapbase && linearAddr < process->heapbase + process->heapsize)
 	{
 		return __heapFree(linearAddr);
+	}
+	else if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {
+		return fast_heap_free((char*)linearAddr);
 	}
 
 	__enterSpinlock(&gMemAllocLock);
@@ -538,7 +509,7 @@ int __free(DWORD linearAddr) {
 		}
 		else {
 			char szout[256];
-			int len = __printf(szout, "__free not found linear address:%x,physical address:%x\n", linearAddr, phyaddr);
+			int len = __printf(szout, "%s %d not found linear address:%x,physical address:%x\n",__FUNCTION__,__LINE__, linearAddr, phyaddr);
 		}
 	}
 

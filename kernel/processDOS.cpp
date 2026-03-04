@@ -266,7 +266,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 		//*(WORD*)(tss->tss.esp + addr) = 0;
 
-		__printf(szout, "__kCreateTask dos com file:%s\r\n\r\n", filename);
+		__printf(szout, "%s %d DOS com format file:%s\r\n\r\n",__FUNCTION__, __LINE__,filename);
 
 	}
 
@@ -301,9 +301,10 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->tid = pid;
 
 	//tss->cpuid = cpuid;
-
-	tss->vasize = 0;
-	tss->vaddr = addr;
+	tss->lpvasize = &tss->va_size;
+	tss->va_size = 0;
+	tss->vaddr = 0;
+	tss->moduleBase = addr;
 
 	tss->level = level & 3;
 
@@ -313,9 +314,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->videoBase = (char*)gGraphBase;
 
 	tss->counter = 0;
-	
-	tss->moduleaddr = addr;
-	tss->moduleLinearAddr = addr;
 
 	__strcpy(tss->filename, filename);
 

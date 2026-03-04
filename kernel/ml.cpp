@@ -7,9 +7,15 @@
 #else
 #include "math.h"
 #endif
+#include "window.h"
+
+
 
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char szout[256];
+
+	//WINDOWCLASS window;
+	//initDesktopWindow(&window, __FUNCTION__, tid, 1);
 
 	printf("%s %d\r\n",__FUNCTION__,__LINE__);
 
@@ -28,7 +34,6 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 
-	/*
 	// generate training data
 	x = (float**)calloc(n_samples, sizeof(float*));
 	y = (float**)calloc(n_samples, sizeof(float*));
@@ -43,7 +48,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
 	// predict
 	x1 = (float*)calloc(max_bit, sizeof(float));
 	for (i = n_err = 0; i < n_samples; ++i) {
@@ -56,16 +61,12 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 			if (max < y1[k]) max = y1[k], max_k = k;
 		if (max_k != c) ++n_err;
 
-		printf("sample:%d,Test error rate: %lf\r\n",i, 100.0 * n_err / n_samples);
+		//printf("sample:%d,Test error rate: %lf\r\n",i, 100.0 * n_err / n_samples);
 	}
 
-	*/
-	//printf( "Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
+	
+	printf( "Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
 	kann_delete(ann); // TODO: also to free x, y and x1
 	return 0;
 	
-
-	
-
-
 }

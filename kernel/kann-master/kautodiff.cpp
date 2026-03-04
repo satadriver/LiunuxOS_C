@@ -99,11 +99,11 @@ static inline kad_node_t *kad_finalize_node(kad_node_t *s) /* a helper function 
 
 static inline kad_node_t *kad_op2_core(int op, kad_node_t *x, kad_node_t *y)
 {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	kad_node_t *s;
 	s = kad_new_core(0, op, 2);
 	s->child[0] = x, s->child[1] = y;
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return kad_finalize_node(s);
 }
 
@@ -1167,7 +1167,7 @@ int kad_op_mul(kad_node_t *p, int action)
 
 int kad_op_cmul(kad_node_t *p, int action)
 {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 
 	int i, n_a_row, n_b_row, n_col, n_a_col = 1, n_b_col = 1;
 	kad_node_t *q[2];
@@ -1179,20 +1179,19 @@ int kad_op_cmul(kad_node_t *p, int action)
 		if (n_a_col < n_col) {
 			n_a_col *= q[0]->d[i];
 
-			printf("%s %d n_a_col:%d n_col:%d\r\n", __FUNCTION__, __LINE__, n_a_col, n_col);
+			//printf("%s %d n_a_col:%d n_col:%d\r\n", __FUNCTION__, __LINE__, n_a_col, n_col);
 		}
 	}
 	for (i = q[1]->n_d - 1; i >= 0; --i) {
 		if (n_b_col < n_col) {
 			n_b_col *= q[1]->d[i];
-			printf("%s %d n_b_col:%d n_col:%d\r\n", __FUNCTION__, __LINE__, n_b_col, n_col);
-
+			//printf("%s %d n_b_col:%d n_col:%d\r\n", __FUNCTION__, __LINE__, n_b_col, n_col);
 		}
 	}
 	
 	n_a_row = kad_len(q[0]) / n_a_col, n_b_row = kad_len(q[1]) / n_b_col;
 
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	if (action == KAD_SYNC_DIM) {
 		if (n_a_col != n_b_col) return -1;
 		p->n_d = 2, p->d[0] = n_a_row, p->d[1] = n_b_row;

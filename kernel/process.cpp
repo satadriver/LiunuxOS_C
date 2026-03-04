@@ -169,9 +169,15 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
 	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
 
+#ifndef DISABLE_PAGE_MAPPING
 	tss->vaddr = USER_SPACE_START;
-	tss->vasize = 0;
-	DWORD vaddr = tss->vaddr + tss->vasize;
+#else
+	tss->vaddr = 0;
+#endif
+	tss->va_size = 0;
+	tss->lpvasize = &tss->va_size;
+
+	DWORD vaddr = tss->vaddr + *tss->lpvasize;
 	DWORD imagesize = getSizeOfImage((char*)filedata);
 	DWORD alignsize = 0;
 	DWORD pemap = (DWORD)__kProcessMalloc(imagesize,&alignsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
@@ -181,12 +187,11 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		return FALSE;
 	}
 
-	tss->moduleaddr = tss->vaddr + tss->vasize;
-	tss->moduleLinearAddr = USER_SPACE_START;
-
 	//__printf(szout, "membase:%x,va size:%x,va:%x\n",pemap,tss->vasize,tss->vaddr);
 
 	mapFile((char*)filedata, (char*)pemap);
+
+	tss->moduleBase = pemap;
 
 	DWORD entry = 0;
 	DWORD type = getType((DWORD)pemap);
@@ -236,7 +241,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
-	vaddr = tss->vaddr + tss->vasize;
+	vaddr = tss->vaddr + *tss->lpvasize;
 	DWORD espsize = 0;
 	LPTASKPARAMS params = 0;
 	DWORD heapsize = 0;
@@ -326,7 +331,9 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		heapsize = UTASK_STACK_SIZE;
 	}
 	
-	vaddr = tss->vaddr + tss->vasize;
+	vaddr = tss->vaddr + *tss->lpvasize;
+	heapsize = HEAP_SIZE;
+
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #ifndef DISABLE_PAGE_MAPPING
 	tss->heapbase = vaddr;
@@ -334,6 +341,10 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->heapbase = heapbase;
 #endif
 	tss->heapsize = heapsize;
+
+	vaddr = tss->vaddr + *tss->lpvasize;
+	heapsize = HEAP_SIZE;
+	tss->fast_heap = (char*)__kProcessMalloc(heapsize, &heapsize, tss->pid, tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	
 	DWORD funTerminate = (DWORD)getAddrFromName(KERNEL_DLL_BASE, "__terminateProcess");
 	params->terminate = (DWORD)funTerminate;

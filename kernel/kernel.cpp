@@ -168,8 +168,11 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		TASKCMDPARAMS cmd;
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
+
+		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning");
+		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning");
 	}
 
 	//imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
@@ -193,9 +196,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
 	//va_test_fun();
-
+	//imageSize = getSizeOfImage((char*)KERNEL_DLL_SOURCE_BASE);
 	//__ipiCreateProcess(KERNEL_DLL_SOURCE_BASE, imageSize, "kernel.dll", "__kMachineLearning", 3, 0);
-	__kMachineLearning(0, 0, "test", "test", 0);
+	//__kMachineLearning(0, 0, "test", "test", 0);
 
 	while (1)
 	{

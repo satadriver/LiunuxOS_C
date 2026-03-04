@@ -3,7 +3,9 @@
 
 #include "def.h"
 
+int fast_heap_free(char* addr);
 
+char* fast_heap_alloc(int allocSize);
 
 DWORD __heapAlloc(int size);
 

@@ -345,7 +345,7 @@ char* InitGdt() {
 
 	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
 
-	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
+	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 	
 	unsigned long stack0top = 0;
 	if (IsBspProcessor()) {
@@ -669,9 +669,9 @@ int Is64Supported() {
 }
 
 
-void EnablePage64() {
+void EnablePage64(char * pde64) {
 	__asm {
-		mov eax, PDE64_ENTRY_VALUE
+		mov eax, pde64
 		mov cr3, eax
 
 		mov eax, cr0
@@ -746,7 +746,9 @@ void EnterLongMode() {
 
 		//InitIdt64();
 
-		InitPage64((QWORD*) PDE64_ENTRY_VALUE);
+		char * pde64 = (char*)__kMalloc(0x1000000);
+
+		InitPage64((QWORD*)pde64);
 
 		InitPAE();
 
@@ -779,7 +781,7 @@ void EnterLongMode() {
 			mov ax, KERNEL_MODE_CODE
 			mov word ptr ds:[__bit64EntryOffset+4],ax
 
-			mov eax, PDE64_ENTRY_VALUE
+			mov eax, pde64
 			mov cr3, eax
 
 			mov ecx, 0xC0000080; EFER MSR

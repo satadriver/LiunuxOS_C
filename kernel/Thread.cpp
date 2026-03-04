@@ -118,17 +118,20 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->tss.cr3 = process->tss.cr3;
 	tss->heapbase = process->heapbase;
+	tss->fast_heap = process->fast_heap;
 	tss->heapsize = process->heapsize;
 	tss->pid = process->pid;
 	tss->ppid = process->pid;
 	tss->tid = freetask.number;
+	tss->moduleBase = module;
 
 	tss->cpuid = cpu;
 
 	tss->fpu = 0;
 	tss->level = process->level;
 	tss->vaddr = process->vaddr;
-	tss->vasize = process->vasize;
+	tss->lpvasize = process->lpvasize;
+	tss->va_size = process->va_size;
 	tss->tss.eflags = process->tss.eflags;
 	int level = process->level;
 	if (level)
@@ -143,8 +146,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->sleep = 0;
 
 	tss->tss.eip = addr;
-	tss->moduleaddr = linear2phy(module);
-	tss->moduleLinearAddr = module;
 	
 	tss->tss.eax = 0;
 	tss->tss.ecx = 0;
@@ -157,7 +158,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	DWORD espsize = 0;
-	DWORD vaddr = tss->vaddr + tss->vasize;
+	DWORD vaddr = tss->vaddr + *tss->lpvasize;
 	LPTASKPARAMS params = 0;
 	if (tss->level == 0)
 	{

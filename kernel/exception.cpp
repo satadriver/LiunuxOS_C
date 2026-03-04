@@ -64,7 +64,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		}
 		else if ((level & 3) ||( tss->cs & 3))
 		{
-			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
+			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
 				"Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
@@ -74,7 +74,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 				rcr0,rcr2,rcr3, rcr4);
 		}
 		else {
-			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
+			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
 				"Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
@@ -102,7 +102,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		else if ((level & 3) || (tss->cs & 3))
 		{
 
-			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
+			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
 				"Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
@@ -112,7 +112,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 				rcr0, rcr2, rcr3, rcr4);
 		}
 		else {
-			DWORD rva = rvaInFile(process->moduleaddr, tss->eip );
+			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
 				"Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
@@ -124,7 +124,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	}
 
 	__sprintf(showinfo + len, "Exception level:%d,status:%x,counter:%d,base:%x,sleep:%d,function:%s,file:%s\r\n",
-		process->level, process->status, process->counter, process->moduleaddr, process->sleep, process->funcname, process->filename);
+		process->level, process->status, process->counter, process->moduleBase, process->sleep, process->funcname, process->filename);
 
 	if (g_ExceptionCounter++ < 16) {
 		__drawGraphChars(( char*)showinfo, EXCEPTION_TIPS_COLOR);

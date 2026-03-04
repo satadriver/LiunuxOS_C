@@ -1454,7 +1454,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	__getFreeTask(&freeTss);
 	int tid = freeTss.number;
 
-	unsigned long stacktop = (unsigned long)(AP_KSTACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
+	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 	//unsigned long stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
 
 	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -1468,14 +1468,16 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->level = 0;
 	process0->counter = 0;
 	process0->vaddr = 0;
-	process0->vasize = 0;
-	process0->moduleaddr = (DWORD)0;
+	process0->lpvasize = &process0->va_size;
+	process0->va_size = 0;
 
 	process0->showX = showx;
 	process0->showY = showy;
 	process0->window = 0;
 
 	process0->videoBase = (char*)gGraphBase;
+
+	process0->moduleBase = KERNEL_DLL_BASE;
 	
 	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
 
@@ -1483,12 +1485,14 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	if (bsp) {
 		process0->heapbase = (DWORD)BSP_HEAP_BASE;
 		process0->heapsize = HEAP_SIZE; 
+		process0->fast_heap = (char*)BSP_FAST_HEAP;
 	}
 	else {
 		DWORD size = HEAP_SIZE;
 		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		process0->heapbase = (DWORD)buf;
 		process0->heapsize = HEAP_SIZE;
+		process0->fast_heap= (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	}
 
 #ifdef TASK_SWITCH_ARRAY

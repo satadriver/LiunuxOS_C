@@ -14,7 +14,7 @@
 
 int g_heap_alloc_lock = 0;
 
-
+int g_heap_fastalloc_lock = 0;
 
 int InitHeap(int pid) {
 
@@ -135,11 +135,91 @@ DWORD __heapFree(DWORD addr) {
 	return result;
 }
 
+int fast_heap_free(char* addr) {
+	int result = 0;
+	__enterSpinlock(&g_heap_fastalloc_lock);
+
+	int bs[8] = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
+	int cnt[8] = { 0x1000,0x1000,0x1000,1024,256,256,128,64 };
+	int size[8] = { 0x1000 * 0x10,0x1000 * 0x20,0x1000 * 0x40,0x400 * 0x80,0x100 * 0x100,0x100 * 0x200,0x80 * 0x400,0x40 * 0x800 };
+
+	int seq = 0;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	char* base = tss->fast_heap;
+	for (int i = 0; i < 8; i++) {
+
+		if (addr >= base && addr < base + size[i]) {
+			int blockSize = bs[i];
+			if (addr[blockSize - 1] & 0x80) {
+				addr[blockSize - 1] = addr[blockSize - 1] & 0x7f;
+				result = 1;
+				break;
+			}
+			else {
+				char szout[256];
+				__printf(szout, "%s %d addr:%x size:%x error\r\n", __FUNCTION__, __LINE__, addr, blockSize);
+				break;
+			}
+		}
+
+		base = base + size[i];
+	}
+	
+	__leaveSpinlock(&g_heap_fastalloc_lock);
+
+	return result;
+}
+
+char* fast_heap_alloc(int allocSize) {
+	__enterSpinlock(&g_heap_fastalloc_lock);
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+	char* ptr = 0;
+
+	char* base = tss->fast_heap;
+	
+	int bs[8] = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
+	int cnt[8] = { 0x1000,0x1000,0x1000,1024,256,256,128,64 };
+	int size[8] = { 0x1000*0x10,0x1000*0x20,0x1000*0x40,0x400*0x80,0x100*0x100,0x100*0x200,0x80*0x400,0x40*0x800 };
+
+	int seq = 0;
+	for (int i = 0; i < 8; i++) {
+
+		if (bs[i] > allocSize) {
+			seq = i;
+			break;
+		}
+
+		base += size[i];
+	}
+
+	if (base && seq) {
+		
+		ptr = base;
+		int blockSize = bs[seq];
+
+		for (int j = 0; j < cnt[seq]; j++) {
+			if (ptr[blockSize - 1] & 0x80) {
+				ptr += blockSize;
+			}
+			else {
+				ptr[blockSize - 1] = ptr[blockSize - 1] | 0x80;
+				break;
+			}
+		}
+	}
+
+	__leaveSpinlock(&g_heap_fastalloc_lock);
+	return ptr;
+}
+
 //allocate size is ( 2*sizeof(MS_HEAP_STRUCT) + MS_HEAP_STRUCT.size)
 DWORD __heapAlloc(int size) {
 
 	DWORD addr = 0;
 	char szout[256];
+
 	__enterSpinlock(&g_heap_alloc_lock);
 
 	int allocsize = getAlignSize(size, sizeof(MS_HEAP_STRUCT)*2);
@@ -211,8 +291,8 @@ DWORD __heapAlloc(int size) {
 
 	__leaveSpinlock(&g_heap_alloc_lock);
 
-	if (addr) {
-		//__printf(szout, "%s %d alloc:%x size:%x\r\n", __FUNCTION__, __LINE__, addr, allocsize);
+	if (addr == 0) {
+		__printf(szout, "%s %d addr:%x size:%x error\r\n", __FUNCTION__, __LINE__, addr, allocsize);
 	}
 	
 	return addr;

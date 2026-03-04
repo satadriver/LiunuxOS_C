@@ -69,7 +69,7 @@ int getpids(char * szout) {
 			if (tss[i].status == TASK_RUN)
 			{
 				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
-					tss[i].filename, tss[i].funcname, tss[i].moduleaddr, tss[i].cpuid, tss[i].pid, tss[i].tid, tss[i].level);
+					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid, tss[i].pid, tss[i].tid, tss[i].level);
 				outlen += len;
 			}
 		}
@@ -106,7 +106,7 @@ int getpid(int pid,char * szout) {
 		if (tss[i].status == TASK_RUN && tss[i].pid == pid)
 		{
 			int len = __sprintf(szout, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
-				tss[i].filename, tss[i].funcname, tss[i].moduleaddr,tss[i].cpuid,tss[i].pid, tss[i].tid, tss[i].level);
+				tss[i].filename, tss[i].funcname, tss[i].moduleBase,tss[i].cpuid,tss[i].pid, tss[i].tid, tss[i].level);
 			return len;
 		}
 	}
