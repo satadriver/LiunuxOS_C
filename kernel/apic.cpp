@@ -653,6 +653,10 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		MOV FS, ax
 		MOV GS, AX	
 		MOV ss, AX
+
+#ifndef SINGLE_TASK_TSS
+		clts
+#endif
 	}
 
 	{

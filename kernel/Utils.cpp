@@ -1274,7 +1274,7 @@ int __sleep(int millisecs) {
 int __yield() {
 	__asm {
 		push edi
-		mov eax, SVC_GIVEUP_LIFE
+		mov eax, SVC_YIELD
 		mov edi,0
 		int 80h
 		pop edi

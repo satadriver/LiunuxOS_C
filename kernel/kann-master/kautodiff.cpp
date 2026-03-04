@@ -21,6 +21,15 @@
 
 #include "kautodiff.h"
 
+#pragma intrinsic(printf)  // 启用内部函数
+#pragma function(printf)   // 强制使用函数调用而不是内部函数
+
+#pragma intrinsic(fprintf)  // 启用内部函数
+#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
+
+#pragma intrinsic(_iob)  // 启用内部函数
+#pragma function(_iob)   // 强制使用函数调用而不是内部函数
+
 
 typedef struct {
 	uint64_t s[2];

@@ -1589,9 +1589,9 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 		LPPROCESS_INFO next = SingleTssSchedule(stack);
 #else
 		//need to run in another tss
-		//LPPROCESS_INFO next = MultipleTssSchedule(stack);
+		LPPROCESS_INFO next = MultipleTssSchedule(stack);
 		//__sleep(0);
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+		//LPPROCESS_INFO next = SingleTssSchedule(stack);
 
 		__asm {
 			mov eax, stack

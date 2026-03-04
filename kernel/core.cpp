@@ -366,9 +366,9 @@ char* InitGdt() {
 #ifdef SINGLE_TASK_TSS
 
 #else
-	initKernelTss((TSS*)APICTIMER_TSS_BASE+id* tssSize, TSSAPICTIMER_STACK0_TOP+id* TASK_STACK0_SIZE, TSSAPICTIMER_STACK_TOP+id* KTASK_STACK_SIZE,
+	initKernelTss((TSS*)(APICTIMER_TSS_BASE+id* tssSize), TSSAPICTIMER_STACK0_TOP+id* TASK_STACK0_SIZE, TSSAPICTIMER_STACK_TOP+id* KTASK_STACK_SIZE,
 		(DWORD)LVTTimerIntHandler, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)APICTIMER_TSS_BASE+id* tssSize, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
+	makeTssDescriptor((DWORD)(APICTIMER_TSS_BASE+id* tssSize), 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
 
 #endif
 

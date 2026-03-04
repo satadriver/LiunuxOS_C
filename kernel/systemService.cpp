@@ -149,7 +149,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		{
 			break;
 		}
-		case SVC_GIVEUP_LIFE:
+		case SVC_YIELD:
 		{
 			yield(stack);
 			break;
