@@ -9,6 +9,7 @@
 #include "Utils.h"
 #include "Kernel.h"
 #include "apic.h"
+#include "systemService.h"
 
 //reference:https://zhuanlan.zhihu.com/p/678582574
 
@@ -384,8 +385,21 @@ int InitPm() {
 
 	readmsr(0xc1, &low, &high);
 
+	unsigned long long tick = __krdtsc();
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	g_cpu_active[id] = tick;
+	if (low == 0 && high == 0) {
+		g_cpu_sleep[id] = 0;
+	}
+	else {
+		unsigned long long llu = high;
+		llu = (llu << 32) + low;
+		g_cpu_sleep[id] = tick - llu;
+	}
+	
 	char szout[256];
-	__printf(szout, "%s %d performance monitor counter low:%x,high:%x\r\n", __FUNCTION__, __LINE__, low,high);
+	__printf(szout, "%s %d performance monitor counter low:%x,high:%x,rdtsc:%I64x\r\n", __FUNCTION__, __LINE__, low,high,tick);
 	return 0;
 }
 
@@ -405,8 +419,22 @@ int GetCpuRate() {
 
 	//__sleep(1000);
 
+	unsigned long long tick = __krdtsc();
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	g_cpu_active[id] = tick;
+	if (e7low == 0 && e7high == 0) {
+		g_cpu_sleep[id] = 0;
+	}
+	else {
+		unsigned long long llu = e7high;
+		llu = (llu << 32) + e7low;
+		g_cpu_sleep[id] = tick - llu;
+	}
+
+
 	char szout[256];
-	__printf(szout, "%s %d performance monitor counter e7low:%x,e7high:%x ,e8low:%x,e8high:%x\r\n", __FUNCTION__, __LINE__, e7low, e7high, e8low, e8high);
+	__printf(szout, "%s %d performance monitor counter e7low:%x,e7high:%x ,e8low:%x,e8high:%x,rdtsc:%I64x\r\n",
+		__FUNCTION__, __LINE__, e7low, e7high, e8low, e8high, tick);
 	return 0;
 
 }

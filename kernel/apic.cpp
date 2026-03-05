@@ -634,6 +634,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
+		cli
 		pushad
 		push ds
 		push es
@@ -1192,7 +1193,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		mov tr_new, ax
 	}
 	LPPROCESS_INFO process = GetCurrentTaskTssBase();
-	unsigned long long tssdesc = *(unsigned long long*)(GDT_BASE + cpuid * 0x10000 + kTssTaskSelector );
+	char* gdt = GetGdtBase();
+	unsigned long long tssdesc = *(unsigned long long*)(gdt + kTssTaskSelector );
 	__printf(szout, "ap id:%d process:%x tss:%i64x idt:%x size:%x gdt:%x size:%d ltr:%x\r\n",
 		cpuid,process, tssdesc, idtbase_new.addr, idtbase_new.size,gdtbase_new.addr, gdtbase_new.size, tr_new);
 	
@@ -1519,6 +1521,7 @@ void BubbleSort(unsigned int* arr, int count) {
 #include "algorithm.h"
 
 int GetIdleProcessor() {
+
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
 	AlgorithmModel times[TASK_LIMIT_TOTAL];
@@ -1530,7 +1533,7 @@ int GetIdleProcessor() {
 
 	BubbleSort_ull(times, counter);
 	
-	return times[0].id;
+	return (int)times[0].id;
 
 	gAllocateAp++;
 	if (gAllocateAp >= counter) {

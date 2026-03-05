@@ -143,6 +143,14 @@ struct Tss64Descriptor {
 #pragma pack()
 
 
+char* SetIdtBase();
+
+char* SetGdtBase();
+
+char* GetIdtBase();
+
+char* GetGdtBase();
+
 void EnterLongMode();
 
 char* InitGdt();

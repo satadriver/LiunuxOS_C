@@ -31,6 +31,10 @@
 
 char* g_stack0_base[TASK_LIMIT_TOTAL];
 
+char* g_gdt_base[TASK_LIMIT_TOTAL];
+
+char* g_idt_base[TASK_LIMIT_TOTAL];
+
 
 void makeDataSegDescriptor(DWORD base, int dpl, int bit, int direction, int w, SegDescriptor* descriptor) {
 	descriptor->present = 1;
@@ -305,11 +309,60 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 	}
 }
 
+char* SetIdtBase() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (g_idt_base[id] == 0) {
+
+		if (IsBspProcessor()) {
+			g_idt_base[id] = (char*)GDT_BASE;
+		}
+		else {
+			g_idt_base[id] = (char*)__kMalloc(0x10000);
+		}
+	}
+	return g_idt_base[id];
+}
+
+
+char* SetGdtBase() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	return g_gdt_base[id];
+	if (g_gdt_base[id] == 0) {
+		if (IsBspProcessor()) {
+			g_gdt_base[id] = (char*)GDT_BASE;
+		}
+		else {
+			g_gdt_base[id] = (char*)__kMalloc(0x10000);
+		}
+	}
+}
+
+char* GetIdtBase() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	return g_idt_base[id];
+}
+
+
+char* GetGdtBase() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	return g_gdt_base[id];
+}
 
 
 char* InitGdt() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	char* lpgdt = (char*)(GDT_BASE + id * 0x10000);
+
+	if (g_gdt_base[id] == 0) {
+		if (IsBspProcessor()) {
+			g_gdt_base[id] = (char*) GDT_BASE;
+		}
+		else {
+			g_gdt_base[id] = (char*)__kMalloc(0x10000);
+		}	
+	}
+	//char* lpgdt = (char*)(GDT_BASE + id * 0x10000);
+
+	char* lpgdt = g_gdt_base[id];
 	DescriptTableReg gdtbase;
 	__asm {
 		//sgdt gdtbase;
@@ -439,10 +492,19 @@ char* InitGdt() {
 
 char* InitIDT() {
 
-
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	char* lpidt = (char*)(IDT_BASE + id * 0x10000);
-	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)lpidt;
+	if (g_idt_base[id] == 0) {
+		if (IsBspProcessor()) {
+			g_idt_base[id] = (char*)IDT_BASE;
+		}
+		else {
+			g_idt_base[id] =(char*) __kMalloc(0x10000);
+		}
+	}
+
+	//char* lpidt = (char*)(IDT_BASE + id * 0x10000);
+
+	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)g_idt_base[id];
 
 	for (int i = 0; i < 256; i++)
 	{
@@ -539,13 +601,13 @@ char* InitIDT() {
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = (DWORD)lpidt;
+	idtbase.addr = (DWORD)g_idt_base[id];
 	char szout[256];
 	__printf(szout, "cpu:%d idt:%x,size:%x\r\n",id, idtbase.addr, idtbase.size);
 	__asm {
 		lidt idtbase
 	}
-	return lpidt;
+	return g_idt_base[id];
 }
 
 

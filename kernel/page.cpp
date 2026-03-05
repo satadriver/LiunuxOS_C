@@ -13,6 +13,7 @@ int gPageAllocLock = FALSE;
 
 LPMEMALLOCINFO gPageAllocList = 0;
 
+char * g_page_table_base = 0;
 
 
 void EnablePaging32(char * pde) {
@@ -54,6 +55,8 @@ void initPaging() {
 	pageList->size = 0;
 	pageList->vaddr = 0;
 	pageList->pid = 0;
+
+	g_page_table_base =(char*) __kMalloc(PAGE_TABLE_SIZE);
 
 	linearMapping();
 
@@ -167,8 +170,8 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 	{
 		for (int n = factor / 2; n && n < factor; )
 		{
-			DWORD addr = PAGE_TABLE_BASE + size * n;
-			if (addr + size > PAGE_TABLE_BASE + PAGE_TABLE_SIZE)
+			DWORD addr = (DWORD) g_page_table_base + size * n;
+			if (addr + size > (DWORD)g_page_table_base + PAGE_TABLE_SIZE)
 			{
 				res = -1;
 				break;

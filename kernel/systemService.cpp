@@ -226,7 +226,19 @@ void sleep(DWORD * params) {
 	leave_task_array_lock();
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	long long t1 = __krdtsc();
+	long long t1 = 0;
+
+	DWORD low1 = 0;
+	DWORD high1 = 0;
+	readmsr(0xe7, &low1, &high1);
+	if (low1 == 0 && high1== 0) {
+		t1 = __krdtsc();
+	}
+	else {
+		t1 = high1;
+		t1 = t1 << 32;
+		t1 += low1;
+	}
 
 	while(1)
 	{
@@ -244,10 +256,26 @@ void sleep(DWORD * params) {
 		}
 	}
 
-	long long t2 = __krdtsc();
-	g_cpu_sleep[id] += (t2 - t1);
+	unsigned long long t2 = 0;
+	if (low1 == 0 && high1 == 0) {
+		t2 = __krdtsc();
+		g_cpu_sleep[id] += (t2 - t1);
 
-	g_cpu_active[id] = __krdtsc() - g_cpu_sleep[id];
+		g_cpu_active[id] = t2 - g_cpu_sleep[id];
+	}
+	else {
+		DWORD low2 = 0;
+		DWORD high2 = 0;
+		readmsr(0xe7, &low2, &high2);
+		t2 = high2;
+		t2 = (t2 << 32) + low2;
+		
+		unsigned long long tick = __krdtsc();
+
+		g_cpu_active[id] = t2;
+		g_cpu_sleep[id] = tick - t2;
+	}
+
 }
 
 
