@@ -202,8 +202,6 @@ void initCoprocessor() {
 //TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
 
-	
-
 	/*
 	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
@@ -221,8 +219,8 @@ void __kCoprocessor() {
 	*/
 	__asm {
 		clts
-		fnclex
-		fninit
+		//fnclex
+		//fninit
 
 		//mov eax, fenv_prev
 		//fxsave ds : [eax]
