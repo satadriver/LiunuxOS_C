@@ -15,6 +15,7 @@
 #include "Pe.h"
 #include "peVirtual.h"
 #include "Thread.h"
+#include "systemService.h"
 
 int gAllocateAp = 0;
 
@@ -737,10 +738,20 @@ extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* st
 	}
 
 	{
+		char szout[256];
+		
+		DWORD low = 0;
+		DWORD high = 0;
+		readmsr(0x19c, &low, &high);
+
+		__printf(szout, "%s local apic temperature low:%x,high:%x\r\n", __FUNCTION__, low,high);
+
+		low = 0x1f + 0x8000 + 0xc00000;
+		writemsr(0x19c, low, high);
+
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 
-		char szout[256];
-		__printf(szout, "%s\r\n", __FUNCTION__);
+
 	}
 
 	__asm {
@@ -1085,6 +1096,30 @@ int DisableLocalApicLVT() {
 
 }
 
+int InitApicThermalMonitor() {
+
+	DWORD tj = 0;
+	CpuTemperature(&tj);
+
+	int threshHold1 = tj;
+
+	int threshHold2 = tj;
+	DWORD low = 0x1f + (threshHold1 << 8) + (0x8000) + (threshHold2 << 16) + 0xc00000;
+	DWORD high = 0;
+	writemsr(0x19b, low, high);
+
+	unsigned long v = 0;
+	v = APIC_LVTTEMPERATURE_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x330) = v ;
+	return 0;
+}
+
+
+int InitApicPerformMonitor() {
+	int v = APIC_LVTPERFORMANCE_VECTOR;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x340) = v ;
+	return 0;
+}
 
 int InitLocalApicCmci() {
 	int v = APIC_LVTCMCI_VECTOR;
@@ -1223,6 +1258,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	InitPm();
 
 	GetCpuRate();
+
+	InitApicThermalMonitor();
+
+	InitApicPerformMonitor();
 
 	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);

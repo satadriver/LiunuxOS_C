@@ -331,7 +331,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "temperature") == 0)
 	{
 		DWORD tj = 0;
-		DWORD temp = __readTemperature(&tj);
+		DWORD temp = CpuTemperature(&tj);
 		__sprintf(szout, "tj:%x,temperature:%d\n", temp);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}

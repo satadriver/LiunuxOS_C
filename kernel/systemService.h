@@ -36,7 +36,7 @@
 
 
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) int __readTemperature(DWORD * temp);
+extern "C" __declspec(dllexport) int CpuTemperature(DWORD * temp);
 extern "C" __declspec(dllexport) int __kVm86IntProc();
 extern "C"  __declspec(dllexport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllexport) DWORD vm86IntProc(LIGHT_ENVIRONMENT* stack);
@@ -75,7 +75,7 @@ extern "C"  __declspec(dllexport) void __ipiCreateProcess(DWORD base, int size, 
 extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p, char* func);
 #else
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
-extern "C" __declspec(dllimport) int __readTemperature(DWORD * temp);
+extern "C" __declspec(dllimport) int CpuTemperature(DWORD * temp);
 extern "C" __declspec(dllimport) int __kVm86IntProc();
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) DWORD vm86IntProc(LIGHT_ENVIRONMENT * stack);
