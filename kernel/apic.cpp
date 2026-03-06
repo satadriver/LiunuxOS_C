@@ -1101,12 +1101,14 @@ int InitApicThermalMonitor() {
 	DWORD tj = 0;
 	CpuTemperature(&tj);
 
-	int threshHold1 = tj;
+	int threshHold1 = tj - 10;
 
-	int threshHold2 = tj;
+	int threshHold2 = tj - 30;
 	DWORD low = 0x1f + (threshHold1 << 8) + (0x8000) + (threshHold2 << 16) + 0xc00000;
 	DWORD high = 0;
-	writemsr(0x19b, low, high);
+
+	//exception ?
+	//writemsr(0x19b, low, high);
 
 	unsigned long v = 0;
 	v = APIC_LVTTEMPERATURE_VECTOR;
@@ -1399,6 +1401,10 @@ void BPCodeStart() {
 	InitLocalApicErr();
 
 	InitLocalApicCmci();
+
+	InitApicThermalMonitor();
+
+	InitApicPerformMonitor();
 
 	//ret = DisableLocalApicLVT();
 

@@ -46,10 +46,6 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		__kFree(tss[tid].espbase);
 	}
 
-	int retvalue = 0;
-
-	tss[tid].retValue = retvalue;
-
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	//DestroyThreadWindow(tid, cpu);
 
@@ -59,11 +55,13 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		return 0;
 	}
 	else {
-		//__sleep(-1);
+
 		__asm {
 			//hlt
 		}
 		__yield();
+
+		__sleep(-1);
 	}
 
 	return 0;
@@ -250,6 +248,13 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	}
 
 	tss->counter = 0;
+	tss->sleep = 0;
+	tss->sleep_total = 0;
+
+	tss->errorno = 0;
+
+	tss->slice = process->slice;
+	tss->frac_slice = 0;
 
 	__strcpy(tss->filename, process->filename);
 	__strcpy(tss->funcname, funcname);

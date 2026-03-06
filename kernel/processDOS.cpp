@@ -5,6 +5,7 @@
 #include "task.h"
 #include "process.h"
 #include "core.h"
+#include "apic.h"
 
 //配置SCSI控制卡支持INT31H
 //要想从扩充内存中获得16K页，可以使用Int 67h来调用EMM，并告诉它将该页放进页框架之中
@@ -299,6 +300,16 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->pid = pid;
 	tss->tid = pid;
+
+	LPPROCESS_INFO thistss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	tss->ppid = thistss->pid;
+
+	tss->slice = TASK_SLICE_USER;
+	tss->frac_slice = 0;
+	tss->counter = 0;
+	tss->sleep = 0;
+	tss->sleep_total = 0;
+	tss->errorno = 0;
 
 	//tss->cpuid = cpuid;
 	tss->lpvasize = &tss->va_size;

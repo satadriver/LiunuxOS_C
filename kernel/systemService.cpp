@@ -164,6 +164,11 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			IpiCreateThread((char*)params[0], (char*)params[1], params[2], (char*)params[3]);
 			break;
 		}
+		case SVC_TEMPERATURE: {
+			DWORD tj = 0;
+			r = CpuTemperature(&tj);
+			break;
+		}
 		default: {
 			break;
 		}
@@ -222,6 +227,9 @@ void sleep(DWORD * params) {
 	
 	cur_tss->sleep += times ;
 	proc->sleep = cur_tss->sleep;
+
+	cur_tss->sleep_total += times;
+	proc->sleep_total += times;
 
 	leave_task_array_lock();
 

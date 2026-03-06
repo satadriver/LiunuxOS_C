@@ -623,6 +623,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		else {
 			current->counter++;
 		}
+
+		current->frac_slice++;
+		if (current->frac_slice >= current->slice) {
+			current->frac_slice = 0;
+		}
+		else {
+			goto __SingleTssSchedule_end;
+		}
 	}
 	else if (current->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
 		//process->status = TASK_SUSPEND;
@@ -742,9 +750,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	}
 	__asm {
-
-		////fwait
-
 		mov eax, fenvprev
 		FxSAVE[eax]
 		////fsave [fenv]
@@ -752,9 +757,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
-
-		//fninit
-		//FNCLEX
 	}
 
 	if (prev->copyMap == 0) {
@@ -819,7 +821,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos[id]->list.next;
 
-
 	if (prev->status == TASK_TERMINATE  ) {
 		prev->status = TASK_OVER;
 		process->status = TASK_OVER;
@@ -858,6 +859,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 
 	if (prev->status == TASK_SUSPEND) {
+	}
+
+	process->frac_slice++;
+	if (process->frac_slice >= process->slice) {
+		process->frac_slice = 0;
+	}
+	else {
+		goto __SingleTssSchedule_end;
 	}
 
 	TASK_LIST_ENTRY* ptr = next;
@@ -955,8 +964,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor ds:[eax]
-
-		//fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1050,6 +1057,14 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 		else {
 			process->counter++;
+		}
+
+		process->frac_slice++;
+		if (process->frac_slice >= process->slice) {
+			process->frac_slice = 0;
+		}
+		else {
+			goto __MultipleTssSchedule_end;
 		}
 	}
 	else if (process->status == TASK_SUSPEND || current->status == TASK_SUSPEND) {
@@ -1149,8 +1164,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
-
-		//fninit
 	}
 
 	if (current->copyMap == 0) {
@@ -1244,6 +1257,14 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->status == TASK_SUSPEND) {
 	}
 
+	current->frac_slice++;
+	if (current->frac_slice >= current->slice) {
+		current->frac_slice = 0;
+	}
+	else {
+		goto __MultipleTssSchedule_end;
+	}
+
 	TASK_LIST_ENTRY* ptr = next;
 	do {
 
@@ -1321,8 +1342,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		mov eax, fenvnext
 		////frstor [fenv]
 		fxrstor[eax]
-
-		//fninit
 	}
 
 	if (prev->copyMap == 0) {
@@ -1463,10 +1482,10 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->status = TASK_RUN;
 	process0->tid = tid;
 	process0->pid = tid;
+	process0->ppid = 0;
 	process0->cpuid = id;
 	process0->espbase = stacktop;
 	process0->level = 0;
-	process0->counter = 0;
 	process0->vaddr = 0;
 	process0->lpvasize = &process0->va_size;
 	process0->va_size = 0;
@@ -1474,6 +1493,13 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->showX = showx;
 	process0->showY = showy;
 	process0->window = 0;
+
+	process0->slice = 1;
+	process0->frac_slice = 0;
+	process0->counter = 0;
+	process0->sleep = 0;
+	process0->sleep_total = 0;
+	process0->errorno = 0;
 
 	process0->videoBase = (char*)gGraphBase;
 
@@ -1589,7 +1615,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 		LPPROCESS_INFO next = SingleTssSchedule(stack);
 #else
 		//need to run in another tss
-		LPPROCESS_INFO next = MultipleTssSchedule(stack);
+		//LPPROCESS_INFO next = MultipleTssSchedule(stack);		//something error
 		//__sleep(0);
 		//LPPROCESS_INFO next = SingleTssSchedule(stack);
 

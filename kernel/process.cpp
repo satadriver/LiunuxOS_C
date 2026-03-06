@@ -86,9 +86,6 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	int retvalue = 0;
 	tss[pid].sleep = 0;
 
-
-	tss[process->pid].retValue = retvalue;
-
 	__kFreeProcess(pid);
 
 	leave_task_array_lock();
@@ -102,9 +99,10 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		__asm {
 			//hlt
 		}
-		//__sleep(-1);
 
 		__yield();
+
+		__sleep(-1);
 	}
 }
 #else
@@ -366,6 +364,18 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->counter = 0;
 	tss->errorno = 0;
 
+	if (tss->level == 0) {
+		tss->slice = TASK_SLICE_KERNEL;
+	}
+	else {
+		tss->slice = TASK_SLICE_USER;
+	}
+	
+	tss->frac_slice = 0;
+
+	tss->sleep = 0;
+	tss->sleep_total = 0;
+
 	tss->pid = tid;
 	tss->tid = tid;
 	__strcpy(tss->filename, filename);
@@ -378,7 +388,6 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	LPPROCESS_INFO thistss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	tss->ppid = thistss->pid;
-	tss->sleep = 0;
 
 	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 

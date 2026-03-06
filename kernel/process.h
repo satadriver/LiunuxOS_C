@@ -42,7 +42,7 @@ typedef struct
 
 	DWORD level;
 
-	DWORD sleep;
+	DWORD status;
 
 	DWORD espbase;	//esp base address,esp is esp top but not equal to base !
 
@@ -52,9 +52,9 @@ typedef struct
 
 	DWORD heapsize;
 
-	DWORD vaddr;
-
 	DWORD moduleBase;
+
+	DWORD vaddr;
 
 	//内存分配的虚拟地址偏移
 	DWORD * lpvasize;
@@ -63,11 +63,15 @@ typedef struct
 
 	DWORD errorno;
 
+	DWORD sleep;
+
+	DWORD sleep_total;
+
 	DWORD counter;
 
-	DWORD status;
+	DWORD slice;
 
-	int retValue;
+	DWORD frac_slice;
 
 	int window;
 

@@ -95,7 +95,8 @@ void EOICommand(int pin);
 void BPCodeStart();
 
 int InitLocalApicTimer();
-
+int InitApicPerformMonitor();
+int InitApicThermalMonitor();
 int DisableLocalApicLVT();
 
 extern "C" void __declspec(dllexport) __kApInitProc();

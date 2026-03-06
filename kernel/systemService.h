@@ -20,7 +20,7 @@
 #define SVC_YIELD				16
 #define SVC_IPI_CREATEPROC		17
 #define SVC_IPI_CREATETHREAD	18
-
+#define SVC_TEMPERATURE			19
 
 #ifdef DLL_EXPORT
 
