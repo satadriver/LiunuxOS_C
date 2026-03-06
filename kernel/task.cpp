@@ -1504,19 +1504,21 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->videoBase = (char*)gGraphBase;
 
 	process0->moduleBase = KERNEL_DLL_BASE;
+
+	process0->heap_cnt = 1;
 	
 	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
 
 	int bsp = IsBspProcessor();
 	if (bsp) {
-		process0->heapbase = (DWORD)BSP_HEAP_BASE;
+		process0->heapbase[0] = (DWORD)BSP_HEAP_BASE;
 		process0->heapsize = HEAP_SIZE; 
 		process0->fast_heap = (char*)BSP_FAST_HEAP;
 	}
 	else {
 		DWORD size = HEAP_SIZE;
 		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		process0->heapbase = (DWORD)buf;
+		process0->heapbase[0] = (DWORD)buf;
 		process0->heapsize = HEAP_SIZE;
 		process0->fast_heap= (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	}

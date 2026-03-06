@@ -115,7 +115,11 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.trap = 0;
 
 	tss->tss.cr3 = process->tss.cr3;
-	tss->heapbase = process->heapbase;
+	tss->heap_cnt = process->heap_cnt;
+	for (int i = 0; i < tss->heap_cnt; i++) {
+
+		tss->heapbase[i] = process->heapbase[i];
+	}
 	tss->fast_heap = process->fast_heap;
 	tss->heapsize = process->heapsize;
 	tss->pid = process->pid;

@@ -463,6 +463,10 @@ DWORD __malloc(DWORD s) {
 		if (res) {
 			return res;
 		}
+		else {
+			CreateHeap();
+			return __heapAlloc(s);
+		}
 	}
 
 	char szout[256];
@@ -487,14 +491,17 @@ DWORD __malloc(DWORD s) {
 
 
 int __free(DWORD linearAddr) {
-
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	if (linearAddr >= process->heapbase && linearAddr < process->heapbase + process->heapsize)
-	{
-		return __heapFree(linearAddr);
-	}
-	else if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {
+
+	if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {
 		return fast_heap_free((char*)linearAddr);
+	}
+
+	for (int i = 0; i < process->heap_cnt; i++) {
+		if (linearAddr >= process->heapbase[i] && linearAddr < process->heapbase[i] + process->heapsize)
+		{
+			return __heapFree(linearAddr);
+		}
 	}
 
 	__enterSpinlock(&gMemAllocLock);

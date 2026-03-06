@@ -46,12 +46,6 @@ typedef struct
 
 	DWORD espbase;	//esp base address,esp is esp top but not equal to base !
 
-	char* fast_heap;
-
-	DWORD heapbase;
-
-	DWORD heapsize;
-
 	DWORD moduleBase;
 
 	DWORD vaddr;
@@ -92,6 +86,14 @@ typedef struct
 	char filename[256];
 
 	char funcname[64];
+
+	char* fast_heap;
+
+	DWORD heapsize;
+
+	int heap_cnt;
+
+	DWORD heapbase[4];
 
 }PROCESS_INFO,*LPPROCESS_INFO;
 

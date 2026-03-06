@@ -319,7 +319,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 
 		unsigned __int64 res = 0;
 		__asm {
-			mov eax, num
 			mov ecx,num
 			rdpmc
 			mov dword ptr [res], eax
@@ -332,7 +331,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	{
 		DWORD tj = 0;
 		DWORD temp = CpuTemperature(&tj);
-		__sprintf(szout, "tj:%x,temperature:%d\n", temp);
+		__sprintf(szout, "tjmax:%x,temperature:%d\n", temp);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "exit") == 0)
@@ -350,18 +349,22 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	{
 		__reset();
 	}
-	else if (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outpport") == 0)
+	else if ( (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outpport") == 0)  )
 	{
 		DWORD port = __strh2i((unsigned char*)params[1]);
-			
-		if (__strcmp(params[0], "inport") == 0)
+		
+		if (__strcmp(params[0], "inport") == 0 && paramcnt >= 2)
 		{
+			DWORD value = 0;
 			__asm {
 				mov edx, port
 				in eax, dx
+				mov [value],eax
 			}
+			__sprintf(szout, "read port:%x,value:%x\r\n", port, value);
+			ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
-		else if (__strcmp(params[0], "outport") == 0)
+		else if (__strcmp(params[0], "outport") == 0 && paramcnt >= 3 )
 		{
 			DWORD num = __strh2i((unsigned char*)params[2]);
 			__asm {
@@ -430,7 +433,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int len =traversalWindow(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "cpuusage") == 0) {
+	else if (__strcmp(params[0], "cpuUsage") == 0) {
 		int len = CpuUsage(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}

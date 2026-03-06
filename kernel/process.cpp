@@ -334,11 +334,12 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 #ifndef DISABLE_PAGE_MAPPING
-	tss->heapbase = vaddr;
+	tss->heapbase[0] = vaddr;
 #else
-	tss->heapbase = heapbase;
+	tss->heapbase[0] = heapbase;
 #endif
 	tss->heapsize = heapsize;
+	tss->heap_cnt = 1;
 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
