@@ -223,7 +223,7 @@ int CreateHeap() {
 
 	tss->heap_cnt = seq;
 
-	__leaveSpinlock(&g_heap_fastalloc_lock);
+	__leaveSpinlock(&g_heap_alloc_lock);
 	return result;
 }
 
