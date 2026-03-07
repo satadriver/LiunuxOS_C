@@ -332,18 +332,24 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
 
+	tss->lpHeapBase = &tss->heapBase;
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	__memset((char*)heapbase, 0, HEAP_SIZE);
+
 #ifndef DISABLE_PAGE_MAPPING
-	tss->heapbase[0] = vaddr;
+	tss->lpHeapBase[0] = (DWORD)vaddr;
 #else
-	tss->heapbase[0] = heapbase;
+	tss->lpHeapBase[0] = (DWORD)heapbase;
 #endif
 	tss->heapsize = heapsize;
 	tss->heap_cnt = 1;
+	tss->heap_lock = 0;
+	tss->lpheap_lock = &tss->heap_lock;
 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
 	tss->fast_heap = (char*)__kProcessMalloc(heapsize, &heapsize, tss->pid, tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	__memset(tss->fast_heap, 0, HEAP_SIZE);
 	
 	DWORD funTerminate = (DWORD)getAddrFromName(KERNEL_DLL_BASE, "__terminateProcess");
 	params->terminate = (DWORD)funTerminate;

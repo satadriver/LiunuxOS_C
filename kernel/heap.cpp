@@ -12,9 +12,9 @@
 
 #define HEAP_BUFFER_FREE		0X7FFFFFFF
 
-int g_heap_alloc_lock = 0;
+//int g_heap_alloc_lock = 0;
 
-int g_heap_fastalloc_lock = 0;
+//int g_heap_fastalloc_lock = 0;
 
 int InitHeap(int pid) {
 
@@ -28,7 +28,7 @@ DWORD __heapFree(DWORD addr) {
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
-	__enterSpinlock(&g_heap_alloc_lock);
+	__enterSpinlock(tss->lpheap_lock);
 
 	MS_HEAP_STRUCT* heap = (MS_HEAP_STRUCT*)((UCHAR*)addr - sizeof(MS_HEAP_STRUCT));
 
@@ -39,7 +39,7 @@ DWORD __heapFree(DWORD addr) {
 
 	int cnt = tss->heap_cnt;
 	for (int i = 0; i < cnt; i++) {
-		if ( addr >= tss->heapbase[i] && addr < tss->heapbase[i] + tss->heapsize ) {
+		if ( addr >= tss->lpHeapBase[i] && addr < tss->lpHeapBase[i] + tss->heapsize ) {
 
 			if ( (heap->addr == addr && heapEnd->addr == addr) && (heap->size == heapEnd->size))
 			{
@@ -52,7 +52,7 @@ DWORD __heapFree(DWORD addr) {
 
 				MS_HEAP_STRUCT* prevEnd = 0;
 				MS_HEAP_STRUCT* prev = 0;
-				if ((DWORD)heap <= tss->heapbase[i]) {
+				if ((DWORD)heap <= tss->lpHeapBase[i]) {
 					prevEnd = (MS_HEAP_STRUCT*)heapEnd;
 					prev = (MS_HEAP_STRUCT*)heap;
 					prevSize = 0;
@@ -67,7 +67,7 @@ DWORD __heapFree(DWORD addr) {
 
 				MS_HEAP_STRUCT* next = (MS_HEAP_STRUCT*)((UCHAR*)heap + (heapSize)+(sizeof(MS_HEAP_STRUCT) << 1));
 				MS_HEAP_STRUCT* nextEnd = 0;
-				if ((DWORD)next >= tss->heapbase[i] + tss->heapsize) {
+				if ((DWORD)next >= tss->lpHeapBase[i] + tss->heapsize) {
 					next = (MS_HEAP_STRUCT*)heap;
 					nextEnd = (MS_HEAP_STRUCT*)heapEnd;
 					nextSize = 0;
@@ -122,7 +122,7 @@ DWORD __heapFree(DWORD addr) {
 		}
 	}
 
-	__leaveSpinlock(&g_heap_alloc_lock);
+	__leaveSpinlock(tss->lpheap_lock);
 
 	if (result == 0) {
 		__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
@@ -132,15 +132,17 @@ DWORD __heapFree(DWORD addr) {
 
 int fast_heap_free(char* addr) {
 	int result = 0;
-	__enterSpinlock(&g_heap_fastalloc_lock);
+
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+	__enterSpinlock(tss->lpheap_lock);
 
 	int bs[8] = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
 	int cnt[8] = { 0x1000,0x1000,0x1000,1024,256,256,128,64 };
 	int size[8] = { 0x1000 * 0x10,0x1000 * 0x20,0x1000 * 0x40,0x400 * 0x80,0x100 * 0x100,0x100 * 0x200,0x80 * 0x400,0x40 * 0x800 };
-
-	int seq = 0;
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	
 	char* base = tss->fast_heap;
+
 	for (int i = 0; i < 8; i++) {
 
 		if (addr >= base && addr < base + size[i]) {
@@ -160,15 +162,39 @@ int fast_heap_free(char* addr) {
 		base = base + size[i];
 	}
 	
-	__leaveSpinlock(&g_heap_fastalloc_lock);
+	__leaveSpinlock(tss->lpheap_lock);
 
 	return result;
 }
 
-char* fast_heap_alloc(int allocSize) {
-	__enterSpinlock(&g_heap_fastalloc_lock);
-
+int init_fastheap() {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	__enterSpinlock(tss->lpheap_lock);
+
+	char* ptr = 0;
+
+	int bs[8] = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
+	int cnt[8] = { 0x1000,0x1000,0x1000,1024,256,256,128,64 };
+	int size[8] = { 0x1000 * 0x10,0x1000 * 0x20,0x1000 * 0x40,0x400 * 0x80,0x100 * 0x100,0x100 * 0x200,0x80 * 0x400,0x40 * 0x800 };
+
+	ptr = tss->fast_heap;
+			
+	for (int i = 0; i < 8; i++) {
+		int num = cnt[i];
+		int blockSize = bs[i];
+		for (int j = 0; j < num; j++) {
+			ptr[blockSize - 1] = ptr[blockSize - 1] & 0x7f;
+			ptr += blockSize;
+		}
+	}
+
+	__leaveSpinlock(tss->lpheap_lock);
+	return 0;
+}
+
+char* fast_heap_alloc(int allocSize) {
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	__enterSpinlock(tss->lpheap_lock);
 
 	char* ptr = 0;
 
@@ -178,7 +204,7 @@ char* fast_heap_alloc(int allocSize) {
 	int cnt[8] = { 0x1000,0x1000,0x1000,1024,256,256,128,64 };
 	int size[8] = { 0x1000*0x10,0x1000*0x20,0x1000*0x40,0x400*0x80,0x100*0x100,0x100*0x200,0x80*0x400,0x40*0x800 };
 
-	int seq = 0;
+	int seq = -1;
 	for (int i = 0; i < 8; i++) {
 
 		if (bs[i] > allocSize) {
@@ -189,7 +215,7 @@ char* fast_heap_alloc(int allocSize) {
 		base += size[i];
 	}
 
-	if (base && seq) {
+	if (seq != -1) {
 		
 		ptr = base;
 		int blockSize = bs[seq];
@@ -205,25 +231,26 @@ char* fast_heap_alloc(int allocSize) {
 		}
 	}
 
-	__leaveSpinlock(&g_heap_fastalloc_lock);
+	__leaveSpinlock(tss->lpheap_lock);
 	return ptr;
 }
 
 
 int CreateHeap() {
 	int result = 0;
-	__enterSpinlock(&g_heap_alloc_lock);
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
+	__enterSpinlock(tss->lpheap_lock);
+	
 	int seq = tss->heap_cnt;
 
-	tss->heapbase[seq] = __kMalloc(tss->heapsize);
+	tss->lpHeapBase[seq] = __kMalloc(tss->heapsize);
+	__memset((char*) tss->lpHeapBase[seq], 0, tss->heapsize);
 
 	seq++;
 
 	tss->heap_cnt = seq;
 
-	__leaveSpinlock(&g_heap_alloc_lock);
+	__leaveSpinlock(tss->lpheap_lock);
 	return result;
 }
 
@@ -233,19 +260,18 @@ DWORD __heapAlloc(int size) {
 	DWORD addr = 0;
 	char szout[256];
 
-	__enterSpinlock(&g_heap_alloc_lock);
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	__enterSpinlock(tss->lpheap_lock);
 
 	int allocsize = getAlignSize(size, sizeof(MS_HEAP_STRUCT)*2);
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	int cnt = tss->heap_cnt;
 
 	for (int i = 0; i < cnt; i++) {
 
-		MS_HEAP_STRUCT* lpheap = (MS_HEAP_STRUCT*)tss->heapbase[i];
+		MS_HEAP_STRUCT* lpheap = (MS_HEAP_STRUCT*)tss->lpHeapBase[i];
 
-		while ((DWORD)lpheap + allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->heapbase[i] + tss->heapsize)
+		while ((DWORD)lpheap + allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->lpHeapBase[i] + tss->heapsize)
 		{
 			int heapSize = (lpheap->size) & HEAP_BUFFER_FREE;
 			if ((lpheap->size & HEAP_BUFFER_POSITION) && lpheap->size && lpheap->addr)
@@ -310,7 +336,7 @@ DWORD __heapAlloc(int size) {
 		}
 	}
 
-	__leaveSpinlock(&g_heap_alloc_lock);
+	__leaveSpinlock(tss->lpheap_lock);
 
 	if (addr == 0) {
 		__printf(szout, "%s %d addr:%x size:%x error\r\n", __FUNCTION__, __LINE__, addr, allocsize);

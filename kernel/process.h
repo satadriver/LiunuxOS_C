@@ -28,6 +28,18 @@ typedef struct
 #pragma pack(pop)
 
 #pragma pack(1)
+
+
+typedef struct {
+	int heapSize;
+	int heapCnt;
+	int heapLock;
+	char* fastHeap;
+	char ** lpheapBase;
+	char* HeapBase;
+}ProcessHeap;
+
+
 typedef struct 
 {
 	TSS tss;
@@ -88,12 +100,12 @@ typedef struct
 	char funcname[64];
 
 	char* fast_heap;
-
+	int heap_lock;
+	int* lpheap_lock;
 	DWORD heapsize;
-
 	int heap_cnt;
-
-	DWORD heapbase[4];
+	DWORD* lpHeapBase;
+	DWORD heapBase;
 
 }PROCESS_INFO,*LPPROCESS_INFO;
 

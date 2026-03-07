@@ -1506,22 +1506,27 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->moduleBase = KERNEL_DLL_BASE;
 
 	process0->heap_cnt = 1;
-	
-	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
+	process0->heap_lock = 0;
+	process0->lpheap_lock = &process0->heap_lock;
+	process0->lpHeapBase = &process0->heapBase;
 
 	int bsp = IsBspProcessor();
 	if (bsp) {
-		process0->heapbase[0] = (DWORD)BSP_HEAP_BASE;
+		process0->lpHeapBase[0] = (DWORD)BSP_HEAP_BASE;
 		process0->heapsize = HEAP_SIZE; 
 		process0->fast_heap = (char*)BSP_FAST_HEAP;
 	}
 	else {
 		DWORD size = HEAP_SIZE;
 		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		process0->heapbase[0] = (DWORD)buf;
+		__memset(buf, 0, HEAP_SIZE);
+		process0->lpHeapBase[0] = (DWORD)buf;
 		process0->heapsize = HEAP_SIZE;
-		process0->fast_heap= (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+		__memset(process0->fast_heap, 0, HEAP_SIZE);
 	}
+
+	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
 
 #ifdef TASK_SWITCH_ARRAY
 

@@ -68,7 +68,7 @@
 
 #define LOCAL_APIC_ENABLE
 
-#define IO_APIC_ENABLE
+//#define IO_APIC_ENABLE
 
 #define LIUNUX_DEBUG_LOG_ON
 
@@ -203,7 +203,7 @@
 
 #define IDT64_BASE_ADDR				0X5b0000
 
-#define LDT_BASE					0x5c0000
+//#define LDT_BASE					0x5c0000
 
 #define LIB_INFO_SIZE				0X10000
 #define LIB_INFO_BASE				0X5d0000

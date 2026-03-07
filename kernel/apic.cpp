@@ -422,7 +422,7 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 
 	v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 	char szout[256];
-	__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
+	//__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
 
 	return;
 
