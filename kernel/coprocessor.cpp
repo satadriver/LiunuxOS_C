@@ -122,28 +122,24 @@ extern "C" __declspec(dllexport)int isSSE() {
 		test edx,1
 		jz __no_fpu
 		mov dword ptr ds:[fpu],1
-			test edx,1<<23
-			jz __no_mmx
-			mov dword ptr ds : [mmx] , 1
+		test edx,1<<23
+		jz __no_mmx
+		mov dword ptr ds : [mmx] , 1
 		test edx, 1 << 25
 		jz __no_sse
-			mov dword ptr ds:[sse], 1
-			test edx, 1 << 26
-			jz __no_sse2
-			mov dword ptr ds : [sse2] , 1
+		mov dword ptr ds:[sse], 1
+		test edx, 1 << 26
+		jz __no_sse2
+		mov dword ptr ds : [sse2] , 1
 		test ecx,1<<28
-			jz __no_avx
-			mov dword ptr ds: [avx],1
+		jz __no_avx
+		mov dword ptr ds: [avx],1
 		
-			
-
 		__no_fpu:
 		__no_mmx:
-	__no_sse:
-	__no_sse2:
-
-	__no_avx:
-
+		__no_sse:
+		__no_sse2:
+		__no_avx:
 	}
 
 	char szout[256];
@@ -219,7 +215,7 @@ void __kCoprocessor() {
 	*/
 	__asm {
 		clts
-		//fnclex
+		fnclex
 		//fninit
 
 		//mov eax, fenv_prev

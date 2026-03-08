@@ -7,6 +7,7 @@
 #include "serialUART.h"
 
 #include "mouse.h"
+#include "Utils.h"
 
 #define TIMER1_DIVIDE_FREQ  1193
 #define TIMER2_DIVIDE_FREQ  1193
@@ -370,13 +371,16 @@ void enableSpeaker() {
 }
 
 
+int g_8254_lock = 0;
+
+
 //8242 init command
 //d6 d7 select timer, 00 = 40h, 01 = 41h, 02 = 42h
 //d4 d5 mode :11 read read / write low byte first, than read / write high byte.00 lock value
 //d1 d2 d3 select work mode,mode 2 or mode 3 is repeat periodic circle timer,others is not periodic circle
 //d0 bcd or binary, 0 = binary, 1 = bcd
 void init8254() {
-
+	__enterSpinlock(&g_8254_lock);
 	unsigned long freq = OSCILLATE_FREQUENCY;
 	unsigned long slice = TASK_TIME_SLICE;
 	unsigned circle = 1000 / slice;
@@ -401,6 +405,8 @@ void init8254() {
 	outportb(TIMER_COMMAND_REG, 0Xb6);
 	outportb(0x42, TIMER2_DIVIDE_FREQ & 0xff);
 	outportb(0x42, (TIMER2_DIVIDE_FREQ >> 8) & 0xff);
+
+	__leaveSpinlock(&g_8254_lock);
 }
 
 //8042 read command
@@ -409,11 +415,17 @@ void init8254() {
 //d3,d2,d1,d0 ,select timer
 //计数到0时，OUT引脚电平翻转，并自动将初值重新装入，继续计数以产生连续的方波
 int Read8254Counter(int num) {
+
+	__enterSpinlock(&g_8254_lock);
+
 	int cmd = 0xc0 | num;
 	outportb(TIMER_COMMAND_REG, cmd);
 
 	unsigned int low = inportb(0x40 + num);
 	unsigned int high = inportb(0x40 + num);
+
+	__leaveSpinlock(&g_8254_lock);
+
 	return low + (high << 8);
 }
 
