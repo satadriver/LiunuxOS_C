@@ -34,8 +34,6 @@ void enablePCE();
 void enableSpeaker();
 void getKeyboardID();
 
-
-
 void __wait8042Empty();
 
 void __wait8042Full();
@@ -58,18 +56,11 @@ void disableMouse();
 
 int delay();
 
+int Read8254Counter(int num);
+
+unsigned long long GetApicTImerFreq();
+
 void __delay();
-
-unsigned short getTimer0Counter();
-
-unsigned short getTimerCounter(int num);
-
-void waitInterval2(int cnt);
-
-void waitInterval1(int cnt);
-
-void waitInterval0(unsigned short v);
-
 
 static uint16_t __pic_get_irq_reg(int ocw3);
 

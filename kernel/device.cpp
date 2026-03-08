@@ -370,7 +370,7 @@ void enableSpeaker() {
 }
 
 
-
+//8242 init command
 //d6 d7 select timer, 00 = 40h, 01 = 41h, 02 = 42h
 //d4 d5 mode :11 read read / write low byte first, than read / write high byte.00 lock value
 //d1 d2 d3 select work mode,mode 2 or mode 3 is repeat periodic circle timer,others is not periodic circle
@@ -403,92 +403,53 @@ void init8254() {
 	outportb(0x42, (TIMER2_DIVIDE_FREQ >> 8) & 0xff);
 }
 
+//8042 read command
+//d7 = 1, d6 =1,read command
+//d5 = 0,d4 =0,lock value
+//d3,d2,d1,d0 ,select timer
+//计数到0时，OUT引脚电平翻转，并自动将初值重新装入，继续计数以产生连续的方波
+int Read8254Counter(int num) {
+	int cmd = 0xc0 | num;
+	outportb(TIMER_COMMAND_REG, cmd);
 
-void waitInterval(int v) {
+	unsigned int low = inportb(0x40 + num);
+	unsigned int high = inportb(0x40 + num);
+	return low + (high << 8);
+}
+
+unsigned long long GetApicTImerFreq() {
 	
-	unsigned short interval = 1000/ (OSCILLATE_FREQUENCY / TIMER1_DIVIDE_FREQ);
-	unsigned short times = (v *1 )/ interval;
-	unsigned short mod =( v * 1) % interval;
-	if (mod != 0)
-	{
-		times++;
+	int v0 = Read8254Counter(0);
+	int v1 = v0;
+	while(v1 == v0){
+		v1= Read8254Counter(0);
 	}
 
-	if (times == 0) {
-		times = 1;
+	unsigned long long cnt0 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+
+	while (v1 != v0) {
+		v0 = Read8254Counter(0);
 	}
 
-	unsigned short v0 = getTimerCounter(1);
-	do {
-		unsigned short v1 = getTimerCounter(1);
-		if (v1 - v0 < times) {
-			continue;
-		}
-		else {
-			break;
-		}
-	} while (1);
+	unsigned long long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
 
-	return;
-}
+	unsigned long slice = TASK_TIME_SLICE;
+	unsigned long long circle = 1000 / slice;
+	unsigned long long delta = (cnt1 > cnt0) ? (cnt1 - cnt0) : (cnt0 - cnt1);
 
-void waitInterval2(int cnt) {
-	unsigned short v0 = getTimerCounter(2);
-	unsigned short v1 = getTimerCounter(2);
-	//while (v0 == v1) 
-	{
-		v1 = getTimerCounter(2);
-	}
-	do {
-		v1 = getTimerCounter(2);
-	} while ((v1 - v0) != cnt && (v0 - v1) != cnt);
-	return;
+	unsigned long long value = delta * circle;
+
+	char szout[256];
+	__printf(szout, "%s %d delta:%I64x,value:%I64x\r\n", __FUNCTION__, __LINE__, delta, value);
+
+	return value;
 }
 
 
-void waitInterval1(int cnt) {
-	unsigned short v0 = getTimerCounter(1) ;
-	unsigned short v1 = getTimerCounter(1);
-	//while (v0 == v1) 
-	{
-		v1 = getTimerCounter(1);
-	}
-	do {
-		v1 = getTimerCounter(1);
-	} while ((v1 - v0) != cnt && (v0 - v1) != cnt);
-	return;
-}
 
-void waitInterval0(unsigned short cnt) {
-	unsigned short v0 = getTimer0Counter();
-	unsigned short v1 = getTimer0Counter();
-	//while (v0 == v1) 
-	{
-		v1 = getTimer0Counter();
-	}
 
-	do {
-		v1 = getTimer0Counter();
-	} while ( (v1 - v0) != cnt && (v0 - v1) != cnt);
-	return;
-}
 
-unsigned short getTimer0Counter() {
 
-	__asm {
-		mov al, 0x6
-		out 43h, al
-
-		//mov al, 0x36
-		//out 43h, al
-
-		in al, 40h
-		mov ah, al
-		in al, 40h
-		xchg ah, al
-		movzx eax, ax
-	}
-}
 
 int delay() {
 	int v = 1;
@@ -509,16 +470,7 @@ void __delay() {
 
 
 
-unsigned short getTimerCounter(int num) {
-	int cmd = (num << 6) + 0x6;
-	outportb(TIMER_COMMAND_REG, cmd);
 
-	//cmd = (num << 6) + 0x36;
-	//outportb(TIMER_COMMAND_REG, cmd);
-	unsigned short low = inportb(0x40 + num);
-	unsigned short high = inportb(0x40 + num);
-	return low + (high << 8);
-}
 
 
 void init8042() {

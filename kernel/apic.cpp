@@ -1156,15 +1156,27 @@ int InitLocalApicTimer() {
 	iomfence();
 
 	unsigned long long lv = APICTIMER_FREQ;
-	lv = lv /16 / (1000 / TASK_TIME_SLICE);
+
+	//lv = lv /16 / (1000 / TASK_TIME_SLICE);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)lv;
 
-	DWORD cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	unsigned long long freq = 0;
+	int times = 16;
+	for (int i = 0; i < times; i++) {
+		freq += GetApicTImerFreq();
+	}
+	freq = freq / times;
 
-	DWORD cnt2 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	//1 / frequency * counter = time cost in one period
+	//counter = time * frequency
+	freq = freq * 16 / 16  /(1000 / TASK_TIME_SLICE);
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)freq;
 
 	char szout[256];
-	//__printf(szout, "cnt1:%x cnt2:%x\r\n", cnt1,cnt2);
+	__printf(szout, "apic timer init value:%I64x\r\n", freq);
 
 	return 0;
 }
