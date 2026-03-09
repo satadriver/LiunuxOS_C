@@ -25,9 +25,6 @@
   SOFTWARE.
 */
 
-#ifndef KANN_AUTODIFF_H
-#define KANN_AUTODIFF_H
-
 #ifndef _DEBUG
 #include "../def.h"
 #include "../libc.h"
@@ -37,10 +34,12 @@
 #endif
 //#define __SSE__
 
+#ifndef KANN_AUTODIFF_H
+#define KANN_AUTODIFF_H
+
 #define KAD_VERSION "r556"
 
-//#include <stdio.h>
-//#include <stdint.h>
+
 
 #ifdef __STRICT_ANSI__
 #define inline
@@ -73,7 +72,7 @@
 #define kad_eval_disable(p) ((p)->tmp = -1)
 
 /* a node in the computational graph */
-typedef struct kad_node_t {
+typedef struct _kad_node_t {
 	uint8_t     n_d;            /* number of dimensions; no larger than KAD_MAX_DIM */
 	uint8_t     flag;           /* type of the node; see KAD_F_* for valid flags */
 	uint16_t    op;             /* operator; kad_op_list[op] is the actual function */
@@ -87,8 +86,8 @@ typedef struct kad_node_t {
 	float      *g;              /* gradient; allocated for internal nodes */
 	void       *ptr;            /* for special operators that need additional parameters (e.g. conv2d) */
 	void       *gtmp;           /* temporary data generated at the forward pass but used at the backward pass */
-	struct kad_node_t **child;  /* operands/child nodes */
-	struct kad_node_t  *pre;    /* usually NULL; only used for RNN */
+	struct _kad_node_t **child;  /* operands/child nodes */
+	struct _kad_node_t  *pre;    /* usually NULL; only used for RNN */
 } kad_node_t, *kad_node_p;
 
 #ifdef __cplusplus

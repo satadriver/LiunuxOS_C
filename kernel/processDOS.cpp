@@ -325,7 +325,8 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->videoBase = (char*)gGraphBase;
 
 	tss->heapsize = 0;
-	tss->heap_cnt = 0;
+	tss->heapCnt = 0;
+	tss->lpHeapCnt = &tss->heapCnt;
 	tss->lpHeapBase = 0;
 	tss->fast_heap = 0;
 	tss->heap_lock = 0;

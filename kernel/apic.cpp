@@ -1161,7 +1161,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)lv;
 
 	unsigned long long freq = 0;
-	int times = 16;
+	int times = 4;
 	for (int i = 0; i < times; i++) {
 		freq += GetApicTImerFreq();
 	}
@@ -1169,7 +1169,7 @@ int InitLocalApicTimer() {
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq * 16 / 16  /(1000 / TASK_TIME_SLICE);
+	freq = freq  / 16  /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 

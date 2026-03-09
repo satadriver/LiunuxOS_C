@@ -37,7 +37,7 @@ DWORD __heapFree(DWORD addr) {
 	
 	MS_HEAP_STRUCT* heapEnd = (MS_HEAP_STRUCT*)((UCHAR*)heap + sizeof(MS_HEAP_STRUCT) + heapSize);
 
-	int cnt = tss->heap_cnt;
+	int cnt = *tss->lpHeapCnt;
 	for (int i = 0; i < cnt; i++) {
 		if ( addr >= tss->lpHeapBase[i] && addr < tss->lpHeapBase[i] + tss->heapsize ) {
 
@@ -241,14 +241,21 @@ int CreateHeap() {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	__enterSpinlock(tss->lpheap_lock);
 	
-	int seq = tss->heap_cnt;
+	int limit = (0x1000 - sizeof(PROCESS_INFO) - (*tss->lpHeapCnt - 1) * sizeof(DWORD) ) / sizeof(DWORD);
+	if (limit > 0) {
+		int seq = *tss->lpHeapCnt;
 
-	tss->lpHeapBase[seq] = __kMalloc(tss->heapsize);
-	__memset((char*) tss->lpHeapBase[seq], 0, tss->heapsize);
+		tss->lpHeapBase[seq] = __kMalloc(tss->heapsize);
+		__memset((char*)tss->lpHeapBase[seq], 0, tss->heapsize);
 
-	seq++;
+		seq++;
 
-	tss->heap_cnt = seq;
+		*tss->lpHeapCnt = seq;
+	}
+	else {
+		char szout[256];
+		__printf(szout, "pid:%d sizeof(PROCESS_INFO):%x is too small to alloc new heap!\r\n",tss->pid, sizeof(PROCESS_INFO));
+	}
 
 	__leaveSpinlock(tss->lpheap_lock);
 	return result;
@@ -265,7 +272,7 @@ DWORD __heapAlloc(int size) {
 
 	int allocsize = getAlignSize(size, sizeof(MS_HEAP_STRUCT)*2);
 
-	int cnt = tss->heap_cnt;
+	int cnt = *tss->lpHeapCnt;
 
 	for (int i = 0; i < cnt; i++) {
 

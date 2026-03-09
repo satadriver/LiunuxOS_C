@@ -11,13 +11,12 @@
 
 
 
+// to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
+
+
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char szout[256];
-
-	//WINDOWCLASS window;
-	//initDesktopWindow(&window, __FUNCTION__, tid, 1);
-
-	printf("%s %d\r\n",__FUNCTION__,__LINE__);
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 
 	int i, k, max_bit = 20, n_samples = 30000, mask = (1 << max_bit) - 1, n_err, max_k;
 	float** x, ** y, max, * x1;
@@ -25,15 +24,9 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	kann_t* ann;
 	// construct an MLP with one hidden layers
 	t = kann_layer_input(max_bit);
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	t = kad_relu(kann_layer_dense(t, 64));
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	t = kann_layer_cost(t, max_bit + 1, KANN_C_CEM); // output uses 1-hot encoding
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	ann = kann_new(t, 0);
-
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
-
 	// generate training data
 	x = (float**)calloc(n_samples, sizeof(float*));
 	y = (float**)calloc(n_samples, sizeof(float*));
@@ -45,10 +38,10 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 			x[i][k] = (float)(a >> k & 1), c += (a >> k & 1);
 		y[i][c] = 1.0f; // c is ranged from 0 to max_bit inclusive
 	}
-
 	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	// predict
 	x1 = (float*)calloc(max_bit, sizeof(float));
 	for (i = n_err = 0; i < n_samples; ++i) {
@@ -60,13 +53,10 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		for (k = 0, max_k = -1, max = -1.0f; k <= max_bit; ++k) // find the max
 			if (max < y1[k]) max = y1[k], max_k = k;
 		if (max_k != c) ++n_err;
-
-		//printf("sample:%d,Test error rate: %lf\r\n",i, 100.0 * n_err / n_samples);
 	}
-
-	
 	printf( "Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
 	kann_delete(ann); // TODO: also to free x, y and x1
 	return 0;
-	
 }
+
+

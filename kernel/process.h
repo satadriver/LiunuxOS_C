@@ -103,7 +103,8 @@ typedef struct
 	int heap_lock;
 	int* lpheap_lock;
 	DWORD heapsize;
-	int heap_cnt;
+	int* lpHeapCnt;
+	int heapCnt;
 	DWORD* lpHeapBase;
 	DWORD heapBase;
 

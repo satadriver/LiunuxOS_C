@@ -811,17 +811,17 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			__wcscpy((wchar_t*)dst + dpos, (wchar_t*)wstr);
 			dpos += tmpstrlen;
 		}
-		else if (format[spos] == '%' && format[spos + 1] == 'f' ) 
+		else if ( (format[spos] == '%' && format[spos + 1] == 'f' ) )
 		{
 			spos += 2;
 
-			double f = *(double*)params;
-			params+=2;
+			float f = *(float*)params;
+			params+=1;
 			
 			int len = strlf2lf(f, dst + dpos);
 			dpos += len;
 		}
-		else if (format[spos] == '%' && format[spos + 1] == 'l' && format[spos + 2] == 'f') {
+		else if ( (format[spos] == '%' && format[spos + 1] == 'l' && format[spos + 2] == 'f') ) {
 			spos += 3;
 
 			double f = *(double*)params;
@@ -829,6 +829,34 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 
 			int len = strlf2lf(f, dst + dpos);
 			dpos += len;
+		}
+		else if (format[spos] == '%' && format[spos + 1] == 'g')  {
+			spos += 2;
+
+			double f = *(double*)params;
+			params += 2;
+
+			int len = strlf2lf(f, dst + dpos);
+			dpos += len;
+		}
+		else if (format[spos] == '%' && format[spos + 1] == '.' && format[spos + 3] == 'f' && format[spos + 2] >= '1' && format[spos + 2] <= '9') 
+		{
+			spos += 4;
+
+			double f = *(double*)params;
+			params += 2;
+
+			int len = strlf2lf(f, dst + dpos);
+			dpos += len;
+		}
+		else if (format[spos] == '%' && format[spos + 1] == 'c') {
+			spos += 2;
+
+			char c = *(char*)params;
+			params += 1;
+
+			dst[dpos++] = c;
+
 		}
 		else {
 			dst[dpos] = format[spos];

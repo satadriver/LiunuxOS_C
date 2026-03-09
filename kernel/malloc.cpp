@@ -501,7 +501,7 @@ int __free(DWORD linearAddr) {
 		return fast_heap_free((char*)linearAddr);
 	}
 
-	for (int i = 0; i < process->heap_cnt; i++) {
+	for (int i = 0; i < *process->lpHeapCnt; i++) {
 		if (linearAddr >= process->lpHeapBase[i] && linearAddr < process->lpHeapBase[i] + process->heapsize)
 		{
 			return __heapFree(linearAddr);

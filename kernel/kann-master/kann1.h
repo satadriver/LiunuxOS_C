@@ -25,18 +25,16 @@
   SOFTWARE.
 */
 
-
-
-#ifndef KANN_H
-#define KANN_H
-
 #ifdef _DEBUG
 #include <stdio.h>
 #else
 #include "../libc.h"
 #endif
 
+#include "kautodiff.h"
 
+#ifndef KANN_H
+#define KANN_H
 
 #define KANN_VERSION "r557"
 
@@ -53,7 +51,9 @@
 #define KANN_RNN_VAR_H0 0x1 /* take the initial hidden values as variables */
 #define KANN_RNN_NORM   0x2 /* apply layer normalization */
 
-#include "kautodiff.h"
+
+
+
 
 typedef struct {
 	int n;            /* number of nodes in the computational graph */

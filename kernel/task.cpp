@@ -1505,7 +1505,8 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 	process0->moduleBase = KERNEL_DLL_BASE;
 
-	process0->heap_cnt = 1;
+	process0->heapCnt = 1;
+	process0->lpHeapCnt = &process0->heapCnt;
 	process0->heap_lock = 0;
 	process0->lpheap_lock = &process0->heap_lock;
 	process0->lpHeapBase = &process0->heapBase;

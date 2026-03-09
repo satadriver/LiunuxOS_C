@@ -1,12 +1,3 @@
-/*
-#include <math.h>
-#include <float.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdarg.h>
-*/
-
 
 #include "kann.h"
 
@@ -25,14 +16,14 @@
 #include "../math.h"
 #endif
 
-#pragma intrinsic(printf)  // å¯ç”¨å†…éƒ¨å‡½æ•°
-#pragma function(printf)   // å¼ºåˆ¶ä½¿ç”¨å‡½æ•°è°ƒç”¨è€Œä¸æ˜¯å†…éƒ¨å‡½æ•°
+#pragma intrinsic(printf)  // ÆôÓÃÄÚ²¿º¯Êý
+#pragma function(printf)   // Ç¿ÖÆÊ¹ÓÃº¯Êýµ÷ÓÃ¶ø²»ÊÇÄÚ²¿º¯Êý
 
-#pragma intrinsic(fprintf)  // å¯ç”¨å†…éƒ¨å‡½æ•°
-#pragma function(fprintf)   // å¼ºåˆ¶ä½¿ç”¨å‡½æ•°è°ƒç”¨è€Œä¸æ˜¯å†…éƒ¨å‡½æ•°
+#pragma intrinsic(fprintf)  // ÆôÓÃÄÚ²¿º¯Êý
+#pragma function(fprintf)   // Ç¿ÖÆÊ¹ÓÃº¯Êýµ÷ÓÃ¶ø²»ÊÇÄÚ²¿º¯Êý
 
-#pragma intrinsic(_iob)  // å¯ç”¨å†…éƒ¨å‡½æ•°
-#pragma function(_iob)   // å¼ºåˆ¶ä½¿ç”¨å‡½æ•°è°ƒç”¨è€Œä¸æ˜¯å†…éƒ¨å‡½æ•°
+#pragma intrinsic(_iob)  // ÆôÓÃÄÚ²¿º¯Êý
+#pragma function(_iob)   // Ç¿ÖÆÊ¹ÓÃº¯Êýµ÷ÓÃ¶ø²»ÊÇÄÚ²¿º¯Êý
 
 int kann_verbose = 3;
 
@@ -86,6 +77,7 @@ static void kad_ext_sync(int n, kad_node_t **a, float *x, float *g, float *c)
 
 kann_t *kann_new(kad_node_t *cost, int n_rest, ...)
 {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	kann_t *a;
 	int i, n_roots = 1 + n_rest, has_pivot = 0, has_recur = 0;
 	kad_node_t **roots;
@@ -116,6 +108,7 @@ kann_t *kann_new(kad_node_t *cost, int n_rest, ...)
 	}
 	kad_ext_collate(a->n, a->v, &a->x, &a->g, &a->c);
 	free(roots);
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return a;
 }
 
@@ -563,6 +556,7 @@ kann_t *kann_load(const char *fn)
 
 kad_node_t *kann_new_leaf_array(int *offset, kad_node_p *par, uint8_t flag, float x0_01, int n_d, int32_t d[KAD_MAX_DIM])
 {
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	int i, len, off = offset && par? *offset : -1;
 	kad_node_t *p;
 
@@ -582,6 +576,7 @@ kad_node_t *kann_new_leaf_array(int *offset, kad_node_p *par, uint8_t flag, floa
 			p->x[i] = (float)(kad_drand_normal(0) * sdev_inv);
 	}
 	if (off >= 0) par[off] = p, ++(*offset);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return p;
 }
 
@@ -595,12 +590,19 @@ kad_node_t *kann_new_leaf2(int *offset, kad_node_p *par, uint8_t flag, float x0_
 
 kad_node_t *kann_layer_dense2(int *offset, kad_node_p *par, kad_node_t *in, int n1)
 {
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	int n0;
 	kad_node_t *w, *b;
 	n0 = in->n_d >= 2? kad_len(in) / in->d[0] : kad_len(in);
 	w = kann_new_leaf2(offset, par, KAD_VAR, 0.0f, 2, n1, n0);
 	b = kann_new_leaf2(offset, par, KAD_VAR, 0.0f, 1, n1);
-	return kad_add(kad_cmul(in, w), b);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	kad_node_t* cm = kad_cmul(in, w);
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	kad_node_t * result = kad_add(cm, b);
+
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	return result;
 }
 
 kad_node_t *kann_layer_dropout2(int *offset, kad_node_p *par, kad_node_t *t, float r)
@@ -790,6 +792,7 @@ kad_node_t *kann_layer_conv1d(kad_node_t *in, int n_flt, int k_size, int stride,
 
 kad_node_t *kann_layer_cost(kad_node_t *t, int n_out, int cost_type)
 {
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	kad_node_t *cost = 0, *truth = 0;
 	assert(cost_type == KANN_C_CEB || cost_type == KANN_C_CEM || cost_type == KANN_C_CEB_NEG || cost_type == KANN_C_MSE);
 	t = kann_layer_dense(t, n_out);
@@ -807,6 +810,7 @@ kad_node_t *kann_layer_cost(kad_node_t *t, int n_out, int cost_type)
 		cost = kad_ce_multi(t, truth);
 	}
 	t->ext_flag |= KANN_F_OUT, cost->ext_flag |= KANN_F_COST;
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return cost;
 }
 
@@ -941,11 +945,11 @@ int kann_train_fnn1b(kann_t *ann, float lr, int mini_size, int max_epoch, int mi
 		}
 		if (n_val > 0) val_cost /= n_val;
 		if (kann_verbose >= 3) {
-			printf( "epoch: %d; training cost: %g", i+1, train_cost);
-			if (n_train_base) printf( " (class error: %.2f%%)", 100.0f * n_train_err / n_train);
+			printf( "epoch: %d; training cost: %g\r\n", i+1, train_cost);
+			if (n_train_base) printf( " (class error: %.2f%%)\r\n", 100.0f * n_train_err / n_train);
 			if (n_val > 0) {
 				printf( "; validation cost: %g", val_cost);
-				if (n_val_base) printf( " (class error: %.2f%%)", 100.0f * n_val_err / n_val);
+				if (n_val_base) printf( " (class error: %.2f%%)\r\n", 100.0f * n_val_err / n_val);
 			}
 			fputc('\n', stderr);
 		}

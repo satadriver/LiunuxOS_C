@@ -342,7 +342,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->lpHeapBase[0] = (DWORD)heapbase;
 #endif
 	tss->heapsize = heapsize;
-	tss->heap_cnt = 1;
+	tss->heapCnt = 1;
+	tss->lpHeapCnt = &tss->heapCnt;
 	tss->heap_lock = 0;
 	tss->lpheap_lock = &tss->heap_lock;
 
