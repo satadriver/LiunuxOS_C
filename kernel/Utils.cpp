@@ -839,7 +839,7 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			int len = strlf2lf(f, dst + dpos);
 			dpos += len;
 		}
-		else if (format[spos] == '%' && format[spos + 1] == '.' && format[spos + 3] == 'f' && format[spos + 2] >= '1' && format[spos + 2] <= '9') 
+		else if (format[spos] == '%' && format[spos + 1] == '.' && format[spos + 3] == 'f' && format[spos + 2] >= '0' && format[spos + 2] <= '9') 
 		{
 			spos += 4;
 

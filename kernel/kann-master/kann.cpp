@@ -563,25 +563,40 @@ kann_t *kann_load(const char *fn)
 
 kad_node_t *kann_new_leaf_array(int *offset, kad_node_p *par, uint8_t flag, float x0_01, int n_d, int32_t d[KAD_MAX_DIM])
 {
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
+
 	int i, len, off = offset && par? *offset : -1;
 	kad_node_t *p;
 
-	if (off >= 0 && par[off]) return par[(*offset)++];
+	if (off >= 0 && par[off]) {
+		//printf("%s %d\r\n", __FUNCTION__, __LINE__);
+		return par[(*offset)++];
+	}
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	p = (kad_node_t*)calloc(1, sizeof(kad_node_t));
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	p->n_d = n_d, p->flag = flag;
 	memcpy(p->d, d, n_d * sizeof(int32_t));
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	len = kad_len(p);
+	//printf("%s %d kad_len:%x\r\n", __FUNCTION__, __LINE__,len);
 	p->x = (float*)calloc(len, sizeof(float));
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	if (p->n_d <= 1) {
-		for (i = 0; i < len; ++i)
+		for (i = 0; i < len; ++i) {
 			p->x[i] = x0_01;
+			//printf("%s %d len:%x\r\n", __FUNCTION__, __LINE__,len);
+		}
 	} else {
 		double sdev_inv;
 		sdev_inv = 1.0 / sqrt((double)len / p->d[0]);
-		for (i = 0; i < len; ++i)
+		for (i = 0; i < len; ++i) {
 			p->x[i] = (float)(kad_drand_normal(0) * sdev_inv);
+		}
 	}
 	if (off >= 0) par[off] = p, ++(*offset);
+
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return p;
 }
 
@@ -595,11 +610,14 @@ kad_node_t *kann_new_leaf2(int *offset, kad_node_p *par, uint8_t flag, float x0_
 
 kad_node_t *kann_layer_dense2(int *offset, kad_node_p *par, kad_node_t *in, int n1)
 {
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	int n0;
 	kad_node_t *w, *b;
 	n0 = in->n_d >= 2? kad_len(in) / in->d[0] : kad_len(in);
 	w = kann_new_leaf2(offset, par, KAD_VAR, 0.0f, 2, n1, n0);
 	b = kann_new_leaf2(offset, par, KAD_VAR, 0.0f, 1, n1);
+
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return kad_add(kad_cmul(in, w), b);
 }
 
@@ -945,7 +963,7 @@ int kann_train_fnn1b(kann_t *ann, float lr, int mini_size, int max_epoch, int mi
 			if (n_train_base) printf( " (class error: %.2f%%)", 100.0f * n_train_err / n_train);
 			if (n_val > 0) {
 				printf( "; validation cost: %g", val_cost);
-				if (n_val_base) printf( " (class error: %.2f%%)", 100.0f * n_val_err / n_val);
+				if (n_val_base) printf( " (class error: %.2f%%)\r\n", 100.0f * n_val_err / n_val);
 			}
 			fputc('\n', stderr);
 		}

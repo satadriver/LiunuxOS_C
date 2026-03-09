@@ -105,8 +105,8 @@ typedef struct
 	DWORD heapsize;
 	int* lpHeapCnt;
 	int heapCnt;
-	DWORD* lpHeapBase;
-	DWORD heapBase;
+	char** lpHeapBase;
+	char* heapBase;
 
 }PROCESS_INFO,*LPPROCESS_INFO;
 

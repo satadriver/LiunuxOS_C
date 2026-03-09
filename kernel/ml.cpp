@@ -24,9 +24,13 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	kann_t* ann;
 	// construct an MLP with one hidden layers
 	t = kann_layer_input(max_bit);
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	t = kad_relu(kann_layer_dense(t, 64));
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	t = kann_layer_cost(t, max_bit + 1, KANN_C_CEM); // output uses 1-hot encoding
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	ann = kann_new(t, 0);
+	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	// generate training data
 	x = (float**)calloc(n_samples, sizeof(float*));
 	y = (float**)calloc(n_samples, sizeof(float*));

@@ -1082,6 +1082,7 @@ double kad_drand_normal(void *d)
 			v1 = 2.0 * kad_drand(d) - 1.0;
 			v2 = 2.0 * kad_drand(d) - 1.0;
 			rsq = v1 * v1 + v2 * v2;
+			//printf("%s %d rsq:%lf\r\n", __FUNCTION__, __LINE__, rsq);
 		} while (rsq >= 1.0 || rsq == 0.0);
 		fac = sqrt(-2.0 * log(rsq) / rsq);
 		r->n_gset = v1 * fac;
@@ -1766,6 +1767,7 @@ int kad_op_tanh(kad_node_t *p, int action)
 
 int kad_op_relu(kad_node_t *p, int action)
 {
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	int i, n;
 	kad_node_t *q = p->child[0];
 	n = kad_len(q);
@@ -1779,6 +1781,7 @@ int kad_op_relu(kad_node_t *p, int action)
 			if (q->x[i] > 0.0f)
 				q->g[i] += p->g[i];
 	}
+	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 

@@ -337,9 +337,9 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	__memset((char*)heapbase, 0, HEAP_SIZE);
 
 #ifndef DISABLE_PAGE_MAPPING
-	tss->lpHeapBase[0] = (DWORD)vaddr;
+	tss->lpHeapBase[0] = (char*)vaddr;
 #else
-	tss->lpHeapBase[0] = (DWORD)heapbase;
+	tss->lpHeapBase[0] = (char*)heapbase;
 #endif
 	tss->heapsize = heapsize;
 	tss->heapCnt = 1;

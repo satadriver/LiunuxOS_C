@@ -1464,6 +1464,7 @@ void SetIVTVector() {
 
 
 int __initTask0(char * filename,char *funcname,int showx,int showy) {
+	char szout[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	LPPROCESS_INFO tssbase = SetTaskTssBase();
 
@@ -1476,7 +1477,11 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 	//unsigned long stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
 
-	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	//why not use process0 but lpproc?
+	LPPROCESS_INFO process0  = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
+	LPPROCESS_INFO lpproc = (LPPROCESS_INFO)(freeTss.lptss);
+	
 	__strcpy(process0->filename, (char*)filename);
 	__strcpy(process0->funcname, (char*)funcname);
 	process0->status = TASK_RUN;
@@ -1487,7 +1492,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->espbase = stacktop;
 	process0->level = 0;
 	process0->vaddr = 0;
-	process0->lpvasize = &process0->va_size;
+	process0->lpvasize = &lpproc->va_size;
 	process0->va_size = 0;
 
 	process0->showX = showx;
@@ -1506,28 +1511,34 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->moduleBase = KERNEL_DLL_BASE;
 
 	process0->heapCnt = 1;
-	process0->lpHeapCnt = &process0->heapCnt;
+	process0->lpHeapCnt = &lpproc->heapCnt;
 	process0->heap_lock = 0;
-	process0->lpheap_lock = &process0->heap_lock;
-	process0->lpHeapBase = &process0->heapBase;
+	process0->lpheap_lock = &lpproc->heap_lock;
+	process0->lpHeapBase = &lpproc->heapBase;
 
 	int bsp = IsBspProcessor();
 	if (bsp) {
-		process0->lpHeapBase[0] = (DWORD)BSP_HEAP_BASE;
+		process0->heapBase = (char*)BSP_HEAP_BASE;
+		//__printf(szout,"%s %d process0->lpHeapBase[0]:%x\r\n", __FUNCTION__, __LINE__, process0->lpHeapBase[0]);
 		process0->heapsize = HEAP_SIZE; 
 		process0->fast_heap = (char*)BSP_FAST_HEAP;
 	}
 	else {
 		DWORD size = HEAP_SIZE;
 		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		__memset(buf, 0, HEAP_SIZE);
-		process0->lpHeapBase[0] = (DWORD)buf;
+		//__printf(szout,"%s %d __kProcessMalloc heap base:%x\r\n", __FUNCTION__, __LINE__, buf);
+		process0->heapBase = (char*)buf;
 		process0->heapsize = HEAP_SIZE;
 		process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		__memset(process0->fast_heap, 0, HEAP_SIZE);
+		
 	}
+	__memset((char*) process0->heapBase, 0, HEAP_SIZE);
+	__memset(process0->fast_heap, 0, HEAP_SIZE);
 
-	__memcpy((char*)freeTss.lptss, (char*)process0, sizeof(PROCESS_INFO));
+	__memcpy((char*)lpproc, (char*)process0, sizeof(PROCESS_INFO));
+	
+	__printf(szout, "%s %d cpu:%d *lpHeapCnt:%d,*lpheap_lock:%d,*lpHeapBase:%x\r\n",__FUNCTION__,__LINE__,id,
+		*process0->lpHeapCnt, *process0->lpheap_lock, process0->lpHeapBase[0]);
 
 #ifdef TASK_SWITCH_ARRAY
 

@@ -103,7 +103,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	x0 = x;
 	x1 = x / 2.0;
 	int cnt = 0;
-	while (__abs(x0 - x1) >= 0.0000001 && cnt ++ <= 64)
+	while (__abs(x0 - x1) >= DBL_EPSILON && cnt ++ <= 256)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;
@@ -488,11 +488,11 @@ double __log(double x) {
 	double term = y;
 
 	// 计算级数直到项足够小
-	for (int n = 3; n <= 19; n += 2) {
+	for (int n = 3; n <= 256; n += 2) {
 		term = term * y2;
 		sum = sum + term / n;
 
-		if (__abs(term / n) <= 0.00001) {
+		if (__abs(term / n) <= DBL_EPSILON) {
 			break;
 		}
 	}

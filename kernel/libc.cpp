@@ -178,15 +178,16 @@ void* calloc(int cnt,int size) {
 	char * buf = (char*)__malloc(size*cnt);
 	if (buf) {
 		__memset(buf, 0, size * cnt);
+		return buf;
 	}
 	
-	return buf;
+	return 0;
 }
 #endif
 #ifndef _DEBUG
 void* malloc(int size) {
 	char * buf = (char*)__malloc(size);
-	__memset(buf, 0, size );
+	//__memset(buf, 0, size );
 	return buf;
 }
 #endif
@@ -204,9 +205,10 @@ void* realloc(void* buf, int size) {
 	if (buffer) {
 		memcpy(buffer, (char*)buf, size);
 		free(buf);
+		return buffer;
 	}
 
-	return buffer;
+	return buf;
 }
 #endif
 

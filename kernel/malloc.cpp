@@ -450,6 +450,7 @@ int __kFree(DWORD physicalAddr) {
 
 //return virtual address
 DWORD __malloc(DWORD s) {
+	char szout[256];
 	DWORD res = 0;
 
 	res = (DWORD)fast_heap_alloc(s);
@@ -464,12 +465,18 @@ DWORD __malloc(DWORD s) {
 			return res;
 		}
 		else {
-			CreateHeap();
-			return __heapAlloc(s);
+			int result = CreateHeap();
+			if (result) {
+				return __heapAlloc(s);
+			}
+			else {
+				__printf(szout, "CreateHeap error\n", s);
+				return 0;
+			}
 		}
 	}
 
-	char szout[256];
+	
 
 	int tag = PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT;
 
@@ -502,7 +509,7 @@ int __free(DWORD linearAddr) {
 	}
 
 	for (int i = 0; i < *process->lpHeapCnt; i++) {
-		if (linearAddr >= process->lpHeapBase[i] && linearAddr < process->lpHeapBase[i] + process->heapsize)
+		if (linearAddr >= (DWORD)process->lpHeapBase[i] && linearAddr < (DWORD)process->lpHeapBase[i] + process->heapsize)
 		{
 			return __heapFree(linearAddr);
 		}

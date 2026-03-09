@@ -39,7 +39,7 @@ DWORD __heapFree(DWORD addr) {
 
 	int cnt = *tss->lpHeapCnt;
 	for (int i = 0; i < cnt; i++) {
-		if ( addr >= tss->lpHeapBase[i] && addr < tss->lpHeapBase[i] + tss->heapsize ) {
+		if ( addr >= (DWORD)tss->lpHeapBase[i] && addr < (DWORD)tss->lpHeapBase[i] + tss->heapsize ) {
 
 			if ( (heap->addr == addr && heapEnd->addr == addr) && (heap->size == heapEnd->size))
 			{
@@ -52,7 +52,7 @@ DWORD __heapFree(DWORD addr) {
 
 				MS_HEAP_STRUCT* prevEnd = 0;
 				MS_HEAP_STRUCT* prev = 0;
-				if ((DWORD)heap <= tss->lpHeapBase[i]) {
+				if ((DWORD)heap <= (DWORD)tss->lpHeapBase[i]) {
 					prevEnd = (MS_HEAP_STRUCT*)heapEnd;
 					prev = (MS_HEAP_STRUCT*)heap;
 					prevSize = 0;
@@ -67,7 +67,7 @@ DWORD __heapFree(DWORD addr) {
 
 				MS_HEAP_STRUCT* next = (MS_HEAP_STRUCT*)((UCHAR*)heap + (heapSize)+(sizeof(MS_HEAP_STRUCT) << 1));
 				MS_HEAP_STRUCT* nextEnd = 0;
-				if ((DWORD)next >= tss->lpHeapBase[i] + tss->heapsize) {
+				if ((DWORD)next >= (DWORD)tss->lpHeapBase[i] + tss->heapsize) {
 					next = (MS_HEAP_STRUCT*)heap;
 					nextEnd = (MS_HEAP_STRUCT*)heapEnd;
 					nextSize = 0;
@@ -114,7 +114,8 @@ DWORD __heapFree(DWORD addr) {
 					heapEnd->size = prev->size;
 				}
 				else {
-					__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
+					//__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
+					break;
 				}
 				result = TRUE;
 				break;
@@ -153,8 +154,6 @@ int fast_heap_free(char* addr) {
 				break;
 			}
 			else {
-				char szout[256];
-				__printf(szout, "%s %d addr:%x size:%x error\r\n", __FUNCTION__, __LINE__, addr, blockSize);
 				break;
 			}
 		}
@@ -164,6 +163,10 @@ int fast_heap_free(char* addr) {
 	
 	__leaveSpinlock(tss->lpheap_lock);
 
+	if (result == 0) {
+		char szout[256];
+		__printf(szout, "%s %d addr:%x error\r\n", __FUNCTION__, __LINE__, addr);
+	}
 	return result;
 }
 
@@ -245,12 +248,14 @@ int CreateHeap() {
 	if (limit > 0) {
 		int seq = *tss->lpHeapCnt;
 
-		tss->lpHeapBase[seq] = __kMalloc(tss->heapsize);
+		tss->lpHeapBase[seq] = (char*) __kMalloc(tss->heapsize);
 		__memset((char*)tss->lpHeapBase[seq], 0, tss->heapsize);
 
 		seq++;
 
 		*tss->lpHeapCnt = seq;
+
+		result = seq;
 	}
 	else {
 		char szout[256];
@@ -274,9 +279,9 @@ DWORD __heapAlloc(int size) {
 
 	int cnt = *tss->lpHeapCnt;
 
-	for (int i = 0; i < cnt; i++) {
+	for (int num = 0; num < cnt; num++) {
 
-		MS_HEAP_STRUCT* lpheap = (MS_HEAP_STRUCT*)tss->lpHeapBase[i];
+		MS_HEAP_STRUCT* lpheap = (MS_HEAP_STRUCT*)tss->lpHeapBase[num];
 
 		while ( allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->heapsize)
 		{
@@ -321,7 +326,7 @@ DWORD __heapAlloc(int size) {
 					break;
 				}
 				else {
-					lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size) + (sizeof(MS_HEAP_STRUCT) << 1));
+					lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + heapSize + (sizeof(MS_HEAP_STRUCT) << 1));
 					continue;
 				}
 			}
@@ -338,8 +343,11 @@ DWORD __heapAlloc(int size) {
 				break;
 			}
 			else {
-				lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size) + (sizeof(MS_HEAP_STRUCT) << 1));
-				continue;
+				//lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + heapSize + (sizeof(MS_HEAP_STRUCT) << 1));
+				//continue;
+				__printf(szout, "%s %d heap alloc size:%x heap base:%x heap:%x heap size:%x error\r\n", 
+					__FUNCTION__, __LINE__,  allocsize, tss->lpHeapBase[num], lpheap->addr,lpheap->size);
+				break;
 			}
 		}
 		if (addr) {

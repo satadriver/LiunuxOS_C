@@ -248,7 +248,8 @@ extern char *kad_op_name[KAD_MAX_OP];
 static inline int kad_len(const kad_node_t *p) /* calculate the size of p->x */
 {
 	int n = 1, i;
-	for (i = 0; i < p->n_d; ++i) n *= p->d[i];
+	for (i = 0; i < p->n_d; ++i) 
+		n *= p->d[i];
 	return n;
 }
 
