@@ -494,7 +494,7 @@ int __free(DWORD linearAddr) {
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	if (linearAddr == 0) {
-		return 0;
+		//return 0;
 	}
 
 	if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {

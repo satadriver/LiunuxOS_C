@@ -278,15 +278,15 @@ DWORD __heapAlloc(int size) {
 
 		MS_HEAP_STRUCT* lpheap = (MS_HEAP_STRUCT*)tss->lpHeapBase[i];
 
-		while ((DWORD)lpheap + allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->lpHeapBase[i] + tss->heapsize)
+		while ( allocsize + (sizeof(MS_HEAP_STRUCT) << 1) <= tss->heapsize)
 		{
 			int heapSize = (lpheap->size) & HEAP_BUFFER_FREE;
 			if ((lpheap->size & HEAP_BUFFER_POSITION) && lpheap->size && lpheap->addr)
 			{
-				lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size & HEAP_BUFFER_FREE) + (sizeof(MS_HEAP_STRUCT) << 1));
+				lpheap = (MS_HEAP_STRUCT*)( (UCHAR*)lpheap + heapSize + (sizeof(MS_HEAP_STRUCT) << 1) );
 				continue;
 			}
-			else if (((lpheap->size & HEAP_BUFFER_POSITION) == 0) && lpheap->size && lpheap->addr)
+			else if ( ((lpheap->size & HEAP_BUFFER_POSITION) == 0) && lpheap->size && lpheap->addr)
 			{
 				if (heapSize > allocsize + (sizeof(MS_HEAP_STRUCT) * 2))
 				{
@@ -325,7 +325,7 @@ DWORD __heapAlloc(int size) {
 					continue;
 				}
 			}
-			else {
+			else if(lpheap->size == 0 && lpheap->addr == 0){
 				lpheap->addr = (DWORD)((DWORD)lpheap + sizeof(MS_HEAP_STRUCT));
 				lpheap->size = (allocsize) | HEAP_BUFFER_POSITION;
 
@@ -336,6 +336,10 @@ DWORD __heapAlloc(int size) {
 				addr = lpheap->addr;
 				//__memset((char*)addr, 0, size);
 				break;
+			}
+			else {
+				lpheap = (MS_HEAP_STRUCT*)((UCHAR*)lpheap + (lpheap->size) + (sizeof(MS_HEAP_STRUCT) << 1));
+				continue;
 			}
 		}
 		if (addr) {
