@@ -131,7 +131,7 @@
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) DWORD __sqrtInteger(DWORD i);
-extern "C"  __declspec(dllexport) double __abs(double x);
+extern "C"  __declspec(dllexport) int __abs(int x);
 extern "C"  __declspec(dllexport) double __pown(double x, int n);
 extern "C"  __declspec(dllexport) double __cos(double x);
 extern "C"  __declspec(dllexport) double __sin(double x);
@@ -143,10 +143,24 @@ extern "C"  __declspec(dllexport) double __asin(double x);
 extern "C"  __declspec(dllexport) double __atan(double y, double x, int infNum);
 extern "C"  __declspec(dllexport) double _sin(double x);
 
+extern "C" __declspec(dllexport) float __cosf(float x);
+extern "C" __declspec(dllexport) float __sinf(float x);
+
 extern "C"  __declspec(dllexport) double __log(double x);
 extern "C"  __declspec(dllexport) double __logn(double base, double exp);
 extern "C"  __declspec(dllexport) double __exp(double x);
+extern "C" __declspec(dllexport) double __fabs(double x);
 
+extern "C" __declspec(dllexport) float __logf(float x);
+
+extern "C" __declspec(dllexport) float __expf(float x);
+
+extern "C" __declspec(dllexport) float __sqrtf(float x);
+
+extern "C" __declspec(dllexport) float __fabsf(float x);
+
+
+#ifndef _DEBUG
 extern "C" __declspec(dllexport) int abs(int x);
 extern "C" __declspec(dllexport) double pown(double x, int n);
 extern "C" __declspec(dllexport) double cos(double x);
@@ -154,23 +168,13 @@ extern "C" __declspec(dllexport) double sin(double x);
 extern "C" __declspec(dllexport) double pow(double a, int b);
 extern "C" __declspec(dllexport) double sqrt(double x);
 
-extern "C" __declspec(dllexport) float sqrtf(float x);
-extern "C" __declspec(dllexport) float cosf(float x);
-extern "C" __declspec(dllexport) float sinf(float x);
-
-extern "C" __declspec(dllexport) float fabsf(float x);
-extern "C" __declspec(dllexport) float fabs(float x);
-
 extern "C" __declspec(dllexport) double log(double x);
-
 extern "C" __declspec(dllexport) double exp(double x);
 
-extern "C" __declspec(dllexport) float logf(float x);
-
-extern "C" __declspec(dllexport) float expf(float x);
+#endif
 #else
 extern "C" __declspec(dllimport) DWORD __sqrtInteger(DWORD i);
-extern "C"  __declspec(dllimport) double __abs(double x);
+extern "C"  __declspec(dllimport) int __abs(int x);
 extern "C"  __declspec(dllimport) double __pown(double x, int n);
 extern "C"  __declspec(dllimport) double __cos(double x);
 extern "C"  __declspec(dllimport) double __sin(double x);
@@ -185,6 +189,15 @@ extern "C"  __declspec(dllimport) double _sin(double x);
 extern "C"  __declspec(dllimport) double __log(double x);
 extern "C"  __declspec(dllimport) double __logn(double base, double exp);
 extern "C"  __declspec(dllimport) double __exp(double x);
+extern "C" __declspec(dllimport) float __sqrtf(float x);
+extern "C" __declspec(dllimport) float __cosf(float x);
+extern "C" __declspec(dllimport) float __sinf(float x);
+extern "C" __declspec(dllimport) float __fabsf(float x);
+extern "C" __declspec(dllimport) double __fabs(double x);
+extern "C" __declspec(dllimport) float __logf(float x);
+extern "C" __declspec(dllimport) float __expf(float x);
+
+
 
 extern "C" __declspec(dllimport) double abs(double x);
 extern "C" __declspec(dllimport) double pown(double x, int n);
@@ -192,21 +205,10 @@ extern "C" __declspec(dllimport) double cos(double x);
 extern "C" __declspec(dllimport) double sin(double x);
 extern "C" __declspec(dllimport) double pow(double a, int b);
 extern "C" __declspec(dllimport) double sqrt(double x);
-
-extern "C" __declspec(dllimport) float sqrtf(float x);
-extern "C" __declspec(dllimport) float cosf(float x);
-extern "C" __declspec(dllimport) float sinf(float x);
-
-extern "C" __declspec(dllimport) float fabsf(float x);
-extern "C" __declspec(dllimport) float fabs(float x);
-
 extern "C" __declspec(dllimport) double log(double x);
-
 extern "C" __declspec(dllimport) double exp(double x);
 
-extern "C" __declspec(dllimport) float logf(float x);
 
-extern "C" __declspec(dllimport) float expf(float x);
 #endif
 
 

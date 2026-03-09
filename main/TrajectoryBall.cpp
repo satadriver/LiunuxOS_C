@@ -49,7 +49,7 @@ WINDOWCLASS g_tb_window;
 
 //F = 1/2 * ro * v*v * s * 1300*c
 double resist_air(double v, double radius) {
-	double t = __abs((v * v * 0.67 * __sqrt(radius) / 1226.0 / 2.0));
+	double t = __fabs((v * v * 0.67 * __sqrt(radius) / 1226.0 / 2.0));
 #if 0
 	double min = 0.5 * 1000.0 / g_frame_delay;
 	if (t < min) {
@@ -95,7 +95,7 @@ double resist_bounce(double v, double radius) {
 
 
 double friction(double v, double radius) {
-	double r = __abs(v / 4.0);
+	double r = __fabs(v / 4.0);
 #if 0
 	double min = 0.1 * 1000.0 / g_frame_delay;
 	if (r > min) {
@@ -147,7 +147,7 @@ void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	char szout[1024];
 
 	double dx = resist_air(g_x_s, g_radius) * g_frame_delay / 1000.0;
-	if (__abs(g_centerY - ((double)gVideoHeight - (double)g_radius)) <= 1.0) {
+	if (__fabs(g_centerY - ((double)gVideoHeight - (double)g_radius)) <= 1.0) {
 		dx += friction(g_x_s, g_radius) * g_frame_delay / 1000.0;
 	}
 
@@ -170,7 +170,7 @@ void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 
 	__int64 max_y = (__int64)((double)gVideoHeight - g_radius);
-	if (__abs(g_y_s) < 0.1) {
+	if (__fabs(g_y_s) < 0.1) {
 		//g_y_s = 0;
 	}
 
@@ -238,7 +238,7 @@ void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	g_centerY = y;
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
-	if (__abs(g_y_s) <= 0.5 && __abs(g_x_s) <= 0.5 && (__abs(y - max_y) < 0.1 || __abs(g_centerY - max_y) < 0.1)) {
+	if (__fabs(g_y_s) <= 0.5 && __fabs(g_x_s) <= 0.5 && (__fabs(y - max_y) < 0.1 || __fabs(g_centerY - max_y) < 0.1)) {
 		g_counter++;
 		if (g_counter > 2000.0 / g_frame_delay) {
 			g_counter = 0;

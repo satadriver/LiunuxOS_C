@@ -21,7 +21,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <float.h>
-#include <math.h>
+//#include <math.h>
 #else
 #include "../libc.h"
 #include "../def.h"
@@ -29,6 +29,19 @@
 #endif
 
 
+#include "../math.h"
+#define sqrt __sqrt
+#define sqrtf __sqrtf
+#define exp __exp
+#define expf __expf
+#define log __log
+#define sin __sin
+#define cos __cos
+#define sinf __sinf
+#define cosf __cosf
+#define fabs __fabs
+#define fabsf __fabsf
+#define logf __logf
 
 #pragma intrinsic(printf)  // 启用内部函数
 #pragma function(printf)   // 强制使用函数调用而不是内部函数

@@ -1395,7 +1395,7 @@ int __drawLine(int x1, int y1, int x2, int y2,int colorBuf, DWORD color, char* b
 	int sx = 0;
 	int ly = 0;
 	int sy = 0;
-	if ( __abs((double)x2 - (double)x1) >= __abs((double)y2 - (double)y1) ) {
+	if (__fabs((double)x2 - (double)x1) >= __fabs((double)y2 - (double)y1) ) {
 		k = ( 1.0* ( (double)y2 - (double)y1) )/ ( 1.0*( (double)x2 - (double)x1) );
 		if (x2 >= x1) {	
 			sx = x1;

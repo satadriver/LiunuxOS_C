@@ -33,7 +33,7 @@
 #endif
 
 
-extern "C"  __declspec(dllexport) double __abs(double x)
+extern "C"  __declspec(dllexport) int __abs(int x)
 {
 	if (x < 0)
 	{
@@ -103,7 +103,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	x0 = x;
 	x1 = x / 2.0;
 	int cnt = 0;
-	while (__abs(x0 - x1) >= DBL_EPSILON && cnt ++ <= 256)
+	while (__fabs(x0 - x1) >= DBL_EPSILON && cnt ++ <= 256)
 	{
 		x0 = x1;
 		x1 = (x0 + (x / x0)) / 2;
@@ -129,8 +129,8 @@ extern "C"  __declspec(dllexport) double __sin(double x)
 	const double B = 1.2732395447;
 	const double C = -0.4052847346;
 	const double P = 0.2310792853;		//0.225; 
-	double y = B * x + C * x * __abs(x);
-	y = P * (y * __abs(y) - y) + y;
+	double y = B * x + C * x * __fabs(x);
+	y = P * (y * __fabs(y) - y) + y;
 	return y;
 }
 
@@ -193,7 +193,7 @@ extern "C"  __declspec(dllexport) double __acos(double x)
 
 	while (1)
 	{
-		if (__abs(__cos(Mid) - x) < FLT_EPSILON) //近似值相等
+		if (__fabs(__cos(Mid) - x) < DBL_EPSILON) //近似值相等
 		{
 			break;
 		}
@@ -231,7 +231,7 @@ extern "C"  __declspec(dllexport) double __asin(double x)
 
 	while (1)
 	{
-		if (__abs(__sin(Mid) - x) < FLT_EPSILON) //近似值相等
+		if (__fabs(__sin(Mid) - x) < DBL_EPSILON) //近似值相等
 		{
 			break;
 		}
@@ -263,9 +263,8 @@ extern "C"  __declspec(dllexport) double __asin_old(double x)		//taylor expandat
 	double u, ans;
 	ans = x;	
 	u = x;
-	while (__abs(u) >= FLT_EPSILON) {
-		if (__abs(u) < FLT_EPSILON)
-			break;
+	while (__fabs(u) >= DBL_EPSILON) {
+
 		u = u * (2.0 * n - 1) * (2.0 * n - 1) * x * x / ((2.0 * n) * (2.0 * n + 1));
 		n++;
 		ans = ans + u;
@@ -413,60 +412,6 @@ int GetSin(int angle) {
  * 原理：ln(x) = ln(m * 2^k) = ln(m) + k * ln(2)
  * 其中 m 在 [1, 2) 区间
  */
-double __log_test(double x) {
-	// 检查输入
-	if (x <= 0) {
-		return -999999;  // 错误标记
-	}
-
-	// 特殊情况
-	if (x == 1.0) {
-		return 0.0;
-	}
-
-	// 步骤1：将x归一化到 [1, 2) 区间
-	int k = 0;
-	double m = x;
-
-	// 如果x >= 2，不断除以2
-	while (m >= 2.0) {
-		m = m / 2.0;
-		k++;
-	}
-
-	// 如果x < 1，不断乘以2
-	while (m < 1.0) {
-		m = m * 2.0;
-		k--;
-	}
-
-	// 现在 m 在 [1, 2) 区间
-	// 步骤2：计算 ln(m) 使用变换 y = (m-1)/(m+1)
-	// ln(m) = 2 * [y + y³/3 + y⁵/5 + ...]
-
-	double y = (m - 1.0) / (m + 1.0);
-	double y2 = y * y;
-	double term = y;
-	double ln_m = 0.0;
-
-	// 计算级数
-	for (int n = 1; n <= 20; n += 2) {
-		ln_m = ln_m + term / n;
-		term = term * y2;
-
-		// 如果项太小就停止
-		if (__abs(term / n) <= FLT_EPSILON) {
-			break;
-		}
-	}
-
-	ln_m = 2.0 * ln_m;
-
-	// 步骤3：组合结果 ln(x) = ln(m) + k * ln(2)
-	return ln_m + k * LN2;
-}
-
-
 double __log(double x) {
 	if (x <= 0) {
 		printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
@@ -492,7 +437,7 @@ double __log(double x) {
 		term = term * y2;
 		sum = sum + term / n;
 
-		if (__abs(term / n) <= DBL_EPSILON) {
+		if (__fabs(term / n) <= DBL_EPSILON) {
 			break;
 		}
 	}
@@ -534,7 +479,7 @@ double __exp(double x) {
 		result = result + term;
 
 		// 如果当前项非常小，可以提前结束
-		if (term <= FLT_EPSILON) {
+		if (term <= DBL_EPSILON) {
 			break;
 		}
 	}
@@ -545,15 +490,41 @@ double __exp(double x) {
 
 
 
+
+float __fabsf(float x) {
+	if (x >= 0) {
+		return x;
+	}
+	return -(x);
+}
+
+double __fabs(double x) {
+	if (x >= 0) {
+		return x;
+	}
+	return -(x);
+}
+
+float __sqrtf(float x) {
+	return __sqrt(x);
+}
+
+float __cosf(float x) {
+	return __cos(x);
+}
+float __sinf(float x) {
+	return __sin(x);
+}
+
+float __logf(float x) {
+	return __log(x);
+}
+
+float __expf(float x) {
+	return __exp(x);
+}
+
 #ifndef _DEBUG
-float fabsf(float x) {
-	return __abs(x);
-}
-
-float fabs(float x) {
-	return __abs(x);
-}
-
 int abs(int x) {
 	return __abs(x);
 }
@@ -571,25 +542,6 @@ double pow(double a, int b) {
 }
 double sqrt(double x) {
 	return __sqrt(x);
-}
-
-float sqrtf(float x) {
-	return __sqrt(x);
-}
-
-float cosf(float x) {
-	return __cos(x);
-}
-float sinf(float x) {
-	return __sin(x);
-}
-
-float logf(float x) {
-	return __log(x);
-}
-
-float expf(float x) {
-	return __exp(x);
 }
 
 double log(double x) {

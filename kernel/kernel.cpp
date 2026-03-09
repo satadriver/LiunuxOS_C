@@ -278,6 +278,12 @@ void mytest(LIGHT_ENVIRONMENT  * stack) {
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {
 	return TRUE;
 }
+#elif defined _CONSOLE
+int main() {
+	__kMachineLearning(0, 0, "test", "test", 0);
+	return 0;
+}
+
 #else
 int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lpCmdLine,  int nShowCmd )
 {

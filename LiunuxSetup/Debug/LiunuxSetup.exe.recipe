@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\ljg\LiunuxOS_C\Release\kernel.dll</FullPath>
+      <FullPath>C:\Users\ljg\LiunuxOS_C\Debug\LiunuxSetup.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
