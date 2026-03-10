@@ -43,6 +43,9 @@ typedef struct {
 typedef struct 
 {
 	TSS tss;
+	char level;
+	char fpu;
+	char copyMap;
 
 	int cpuid;
 
@@ -51,8 +54,6 @@ typedef struct
 	DWORD tid;
 
 	DWORD ppid;
-
-	DWORD level;
 
 	DWORD status;
 
@@ -92,13 +93,12 @@ typedef struct
 	DWORD dr6;
 	DWORD dr7;
 
-	char fpu;
-	char copyMap;
-
 	char filename[256];
 
 	char funcname[64];
 
+	char* fast_heap_large;
+	int large_heap_size;
 	char* fast_heap;
 	int heap_lock;
 	int* lpheap_lock;

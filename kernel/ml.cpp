@@ -2,14 +2,36 @@
 
 #include "kann-master/kann.h"
 #ifdef _DEBUG
-#include <stdio.h>
-#include <stdlib.h>
+
+#include "math.h"
+#include "libc.h"
 #else
 #include "math.h"
 #endif
-#include "window.h"
+//#include <windows.h>
+
+#include "math.h"
+#include "libc.h"
+#include "malloc.h"
+#define sqrt __sqrt
+#define sqrtf __sqrtf
+#define exp __exp
+#define expf __expf
+#define log __log
+#define sin __sin
+#define cos __cos
+#define sinf __sinf
+#define cosf __cosf
+#define fabs __fabs
+#define fabsf __fabsf
+#define logf __logf
 
 
+#include <stdlib.h>
+#define malloc mymalloc
+#define free myfree
+#define realloc __realloc
+#define calloc __calloc
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
@@ -38,6 +60,10 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		int c, a = kad_rand(0) & (mask >> 1);
 		x[i] = (float*)calloc(max_bit, sizeof(float));
 		y[i] = (float*)calloc(max_bit + 1, sizeof(float));
+		if (x[i] == 0 || y[i] == 0) {
+			
+		}
+		//printf("x[%d]:%x,y[%d]:%x\r\n", i, x[i], i, y[i]);
 		for (k = c = 0; k < max_bit; ++k)
 			x[i][k] = (float)(a >> k & 1), c += (a >> k & 1);
 		y[i][c] = 1.0f; // c is ranged from 0 to max_bit inclusive

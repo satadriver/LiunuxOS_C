@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <stdlib.h>
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
@@ -30,6 +29,8 @@
 
 
 #include "../math.h"
+#include "../libc.h"
+#include "../malloc.h"
 #define sqrt __sqrt
 #define sqrtf __sqrtf
 #define exp __exp
@@ -42,6 +43,13 @@
 #define fabs __fabs
 #define fabsf __fabsf
 #define logf __logf
+
+#define malloc mymalloc
+#define free myfree
+#define realloc __realloc
+#define calloc __calloc
+
+#define abort __abort
 
 #pragma intrinsic(printf)  // 启用内部函数
 #pragma function(printf)   // 强制使用函数调用而不是内部函数

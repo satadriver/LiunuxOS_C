@@ -129,9 +129,7 @@ wchar_t* wcscat(wchar_t* dest, const wchar_t* src) {
 FILE _iob[3];
 
 
-void abort(void) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
-}
+
 
 
 FILE* fopen(const char* filename, const char* mode) {
@@ -173,44 +171,57 @@ char* fgets(char* str, int n, FILE* stream) {
 	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return str;
 }
+#endif
 
-void* calloc(int cnt,int size) {
-	char * buf = (char*)__malloc(size*cnt);
+
+void __abort(void) {
+	char szout[256];
+	__printf(szout,"%s %d\r\n", __FUNCTION__, __LINE__);
+}
+
+
+void* mymalloc(int size) {
+	char * buf = (char*)__malloc(size);
+	//__memset(buf, 0, size );
+	if (buf == 0) {
+		return 0;
+	}
+	return buf;
+}
+
+
+
+void myfree(void* buf) {
+	__free((unsigned long)buf);
+	return;
+}
+
+void* __calloc(int cnt, int size) {
+	char* buf = (char*)__malloc(size * cnt);
 	if (buf) {
 		__memset(buf, 0, size * cnt);
 		return buf;
 	}
-	
+
 	return 0;
 }
-#endif
-#ifndef _DEBUG
-void* malloc(int size) {
-	char * buf = (char*)__malloc(size);
-	//__memset(buf, 0, size );
-	return buf;
-}
-#endif
 
-#ifndef _DEBUG
-void free(void* buf) {
-	__free((unsigned long)buf);
-	return;
-}
-#endif
-
-#ifndef _DEBUG
-void* realloc(void* buf, int size) {
+void* __realloc(void* buf, int size) {
 	char* buffer = (char*)__malloc(size);
 	if (buffer) {
-		memcpy(buffer, (char*)buf, size);
-		free(buf);
+		if (buf) {
+			__memcpy(buffer, (char*)buf, size);
+			__free((DWORD)buf);
+		}
+		else {
+			__memset(buffer, 0, size);
+		}
 		return buffer;
 	}
 
 	return buf;
 }
-#endif
+
 
 
 #ifndef _DEBUG

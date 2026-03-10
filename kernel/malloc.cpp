@@ -452,37 +452,50 @@ int __kFree(DWORD physicalAddr) {
 DWORD __malloc(DWORD s) {
 	char szout[256];
 	DWORD res = 0;
-
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	res = (DWORD)fast_heap_alloc(s);
 	if (res) {
 		return res;
 	}
 
-	if (s <= HEAP_SIZE/16)
-	{
-		res = __heapAlloc(s);
+	if (process->fast_heap_large && process->large_heap_size) {
+		res = (DWORD)fast_heap_alloc_large(s);
 		if (res) {
 			return res;
 		}
-		else {
-			int result = CreateHeap();
-			if (result) {
-				return __heapAlloc(s);
-			}
-			else {
-				__printf(szout, "CreateHeap error\n", s);
-				return 0;
+	}
+	
+	if (s < process->heapsize/4)
+	{
+		int cnt = *process->lpHeapCnt;
+		for (int num = 0; num < cnt; num++) {
+
+			CHAR* heapBase = (char*)process->lpHeapBase[num];
+			int heapLimit = process->heapsize << num;
+
+			res = __heapAlloc(heapBase, heapLimit, s);
+			if (res) {
+				return res;
 			}
 		}
-	}
 
-	
+		int seq = CreateHeap();
+		if (seq) {
+			int heapLimit = process->heapsize << seq;
+			char* heapBase = (char*)process->lpHeapBase[seq];
+			return __heapAlloc(heapBase, heapLimit,s);
+		}
+		else {
+			__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__,__LINE__);
+			return 0;
+		}
+	}
 
 	int tag = PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT;
 
 	DWORD size = 0;
 	int len = 0;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
 	DWORD vaddr = process->vaddr + *process->lpvasize;
 	res = __kProcessMalloc(s,&size, process->pid,process->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
@@ -498,20 +511,28 @@ DWORD __malloc(DWORD s) {
 
 
 int __free(DWORD linearAddr) {
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
+	
 	if (linearAddr == 0) {
-		//return 0;
+		return 0;
 	}
 
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {
 		return fast_heap_free((char*)linearAddr);
 	}
 
-	for (int i = 0; i < *process->lpHeapCnt; i++) {
-		if (linearAddr >= (DWORD)process->lpHeapBase[i] && linearAddr < (DWORD)process->lpHeapBase[i] + process->heapsize)
+	if (process->fast_heap_large && process->large_heap_size) {
+		if (linearAddr >= (DWORD)process->fast_heap_large && linearAddr < (DWORD)process->fast_heap_large + process->large_heap_size) {
+			return fast_heap_free_large((char*)linearAddr);
+		}
+	}
+
+	for (int num = 0; num < *process->lpHeapCnt; num++) {
+		int heapLimit = process->heapsize << num;
+		char* heapBase = process->lpHeapBase[num];
+		if (linearAddr >= (DWORD)heapBase && linearAddr < (DWORD)heapBase + heapLimit)
 		{
-			return __heapFree(linearAddr);
+			return __heapFree(heapBase, heapLimit,linearAddr);
 		}
 	}
 

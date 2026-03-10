@@ -1516,6 +1516,9 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->lpheap_lock = &lpproc->heap_lock;
 	process0->lpHeapBase = &lpproc->heapBase;
 
+	process0->large_heap_size = 0;
+	process0->fast_heap_large = 0;
+
 	int bsp = IsBspProcessor();
 	if (bsp) {
 		process0->heapBase = (char*)BSP_HEAP_BASE;

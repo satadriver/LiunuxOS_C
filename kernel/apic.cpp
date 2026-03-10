@@ -1472,14 +1472,65 @@ int IsBspProcessor() {
 }
 
 
+#ifdef _DEBUG
+#include <stdio.h>
+#include <stdlib.h>
+LPPROCESS_INFO g_proc_info = 0;
+
+
+
+LPPROCESS_INFO DebugCreateProcess() {
+	if (g_proc_info == 0) {
+		g_proc_info = (LPPROCESS_INFO)malloc(0x10000);
+		__memset((char*)g_proc_info, 0, sizeof(PROCESS_INFO));
+		int debug_heap_size = 0x100000;
+		g_proc_info->fast_heap = (char*)malloc(debug_heap_size);
+		g_proc_info->fast_heap_large = 0;
+		//g_proc_info->fast_heap_large = (char*)malloc(debug_heap_size);
+
+		//g_proc_info->heapBase = (char*)malloc(debug_heap_size);
+		int total = 1;
+		g_proc_info->lpHeapBase = &g_proc_info->heapBase;
+		int num = 0;
+		for (num = 0; num < total; num++) {
+			char * buf = (char*)malloc(debug_heap_size<< num);
+			if (buf) {
+				g_proc_info->lpHeapBase[num] = buf;
+			}
+			else {
+				break;
+			}
+		}
+		g_proc_info->heapCnt = total;
+
+		g_proc_info->lpHeapCnt = &g_proc_info->heapCnt;
+		g_proc_info->heapsize = debug_heap_size;
+		g_proc_info->heap_lock = 0;
+		g_proc_info->lpheap_lock = &g_proc_info->heap_lock;
+		g_proc_info->va_size = 0;
+		g_proc_info->lpvasize = &g_proc_info->va_size;
+	}
+	return 0;
+}
+
+#endif
 
 LPPROCESS_INFO GetCurrentTaskTssBase() {
+#ifdef _DEBUG
+	if (g_proc_info == 0) {
+		DebugCreateProcess();
+	}
+	LPPROCESS_INFO tss = g_proc_info;
+	return g_proc_info;
+#else
+
+#endif
 	char szout[256];
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	int tsssize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)(TASK_TSS_BASE + tsssize * id);
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)(TASK_TSS_BASE + tssSize * id);
 	return process;
 	/*
 	int cnt = *(int*)CPU_TOTAL_ADDRESS;

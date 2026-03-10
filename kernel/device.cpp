@@ -429,7 +429,7 @@ int Read8254Counter(int num) {
 	return low + (high << 8);
 }
 
-unsigned long long GetApicTImerFreq() {
+unsigned long GetApicTImerFreq() {
 	
 	int v0 = Read8254Counter(0);
 	int v1 = v0;
@@ -437,22 +437,22 @@ unsigned long long GetApicTImerFreq() {
 		v1= Read8254Counter(0);
 	}
 
-	unsigned long long cnt0 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	unsigned long cnt0 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
 
 	while (v1 != v0) {
 		v0 = Read8254Counter(0);
 	}
 
-	unsigned long long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	unsigned long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
 
 	unsigned long slice = TASK_TIME_SLICE;
-	unsigned long long circle = 1000 / slice;
-	unsigned long long delta = (cnt1 > cnt0) ? (cnt1 - cnt0) : (cnt0 - cnt1);
-
-	unsigned long long value = delta * circle;
+	unsigned long circle = 1000 / slice;
+	unsigned long delta = (cnt1 > cnt0) ? (cnt1 - cnt0) : (cnt0 - cnt1);
+	delta = cnt0 - cnt1;
+	unsigned long value = delta * circle;
 
 	char szout[256];
-	__printf(szout, "%s %d delta:%I64x,value:%I64x\r\n", __FUNCTION__, __LINE__, delta, value);
+	//__printf(szout, "%s %d delta:%I64x,value:%I64x\r\n", __FUNCTION__, __LINE__, delta, value);
 
 	return value;
 }

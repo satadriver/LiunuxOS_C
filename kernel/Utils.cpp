@@ -872,6 +872,9 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 
 
 int __printf(char* buf,const char* format, ...) {
+#ifdef _DEBUG
+	return 0;
+#endif
 	if (g_ScreenMode == 0) {
 		return 0;
 	}

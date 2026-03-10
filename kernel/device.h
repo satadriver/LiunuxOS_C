@@ -58,7 +58,7 @@ int delay();
 
 int Read8254Counter(int num);
 
-unsigned long long GetApicTImerFreq();
+unsigned long GetApicTImerFreq();
 
 void __delay();
 

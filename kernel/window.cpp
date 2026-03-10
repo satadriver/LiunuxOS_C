@@ -381,11 +381,15 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	char szout[256];
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
 
-	enter_task_array_lock();
+	//enter_task_array_lock();
+	enter_task_array_lock_id(window->cpu);
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO process = (LPPROCESS_INFO)tss + proc->tid;
+	int tid = window->tid;
+
+	//LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO procBase = GetTaskTssBaseId(window->cpu);
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO process = (LPPROCESS_INFO)procBase + tid;
 	LPWINDOWSINFO topwinfo = getTopWindow();
 	if (topwinfo == 0) {
 		//error
@@ -395,7 +399,7 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 		__printf(szout, "%s getTopWindow %s\r\n", __FUNCTION__,topwinfo->window->winname);
 
 		if (topwinfo->window->minBuf) {
-			LPPROCESS_INFO winproc = tss + topwinfo->window->tid;
+			//LPPROCESS_INFO winproc = tss + topwinfo->window->tid;
 			//winproc->videoBase = topwinfo->window->minBuf;
 		}
 	}
@@ -423,8 +427,8 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__kDrawMouse();
 	DWORD cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	if (proc->tid == window->tid ) {
-		proc->videoBase = (char*)gGraphBase;
+	if (current->tid == window->tid ) {
+		current->videoBase = (char*)gGraphBase;
 		process->videoBase = (char*)gGraphBase;
 	}
 	else {
@@ -435,8 +439,8 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 
 	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
 
-	leave_task_array_lock();
-
+	//leave_task_array_lock();
+	leave_task_array_lock_id(window->cpu);
 	return 0;
 }
 

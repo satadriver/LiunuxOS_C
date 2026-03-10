@@ -121,6 +121,22 @@ int va_test_fun();
 
 int average(int count, ...);
 
+#ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) void* __calloc(int cnt, int size);
+extern "C" __declspec(dllexport) void* __realloc(void* buf, int size);
+extern "C" __declspec(dllexport) void* mymalloc(int size);
+
+extern "C" __declspec(dllexport) void myfree(void* buf);
+extern "C" __declspec(dllimport) void __abort(void);
+#else
+extern "C" __declspec(dllimport) void* __calloc(int cnt, int size);
+extern "C" __declspec(dllimport) void* __realloc(void* buf, int size);
+extern "C" __declspec(dllimport) void* mymalloc(int size);
+
+extern "C" __declspec(dllimport) void myfree(void* buf);
+
+extern "C" __declspec(dllexport) void __abort(void);
+#endif
 
 #ifndef _DEBUG
 
@@ -154,15 +170,11 @@ extern "C" __declspec(dllexport) wchar_t* wcscat(wchar_t* dest, const wchar_t* s
 
 extern "C" __declspec(dllexport) int printf(const char* format, ...);
 
-extern "C" __declspec(dllexport) void* calloc(int cnt,int size);
 
-extern "C" __declspec(dllexport) void* malloc(int size);
 
-extern "C" __declspec(dllexport) void* realloc(void*buf,int size);
 
-extern "C" __declspec(dllexport) void free(void* buf);
 
-extern "C" __declspec(dllexport) void abort(void);
+
 
 extern "C" __declspec(dllexport) FILE* fopen(const char* filename, const char* mode);
 extern "C" __declspec(dllexport) int fclose(FILE * stream);
@@ -206,15 +218,10 @@ extern "C" __declspec(dllimport) wchar_t* wcscat(wchar_t* dest, const wchar_t* s
 
 extern "C" __declspec(dllimport) int printf(const char* format, ...);
 
-extern "C" __declspec(dllimport) void* calloc(int cnt, int size);
 
-extern "C" __declspec(dllimport) void* malloc(int size);
 
-extern "C" __declspec(dllimport) void* realloc(void* buf, int size);
 
-extern "C" __declspec(dllimport) void free(void* buf);
 
-extern "C" __declspec(dllimport) void abort(void);
 
 extern "C" __declspec(dllimport) FILE * fopen(const char* filename, const char* mode);
 extern "C" __declspec(dllimport) int fclose(FILE * stream);

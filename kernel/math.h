@@ -197,8 +197,6 @@ extern "C" __declspec(dllimport) double __fabs(double x);
 extern "C" __declspec(dllimport) float __logf(float x);
 extern "C" __declspec(dllimport) float __expf(float x);
 
-
-
 extern "C" __declspec(dllimport) double abs(double x);
 extern "C" __declspec(dllimport) double pown(double x, int n);
 extern "C" __declspec(dllimport) double cos(double x);
