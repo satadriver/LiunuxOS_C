@@ -70,6 +70,8 @@ typedef struct
 
 	DWORD errorno;
 
+	DWORD priority;
+
 	DWORD sleep;
 
 	DWORD sleep_total;

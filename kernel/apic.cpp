@@ -1718,7 +1718,24 @@ int GetIdleProcessor() {
 
 
 
+int GetIdleProcess() {
 
+	PROCESS_INFO* proc = GetTaskTssBase();
+
+	AlgorithmModel idle[TASK_LIMIT_TOTAL];
+	int count = 0;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (proc->status == TASK_RUN) {
+			idle[count].id = i;
+			idle[count].v = proc->priority;
+			count++;
+		}
+	}
+
+	QuickSort(idle,0, count-1);
+
+	return (int)idle[0].id;
+}
 
 
 

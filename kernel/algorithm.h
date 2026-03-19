@@ -14,3 +14,9 @@ struct AlgorithmModel {
 
 
 void BubbleSort_ull(AlgorithmModel* arr, int count);
+
+void QuickSort(AlgorithmModel* s, int low, int high);
+
+int fastSort(int data[], int left, int right);
+
+void quickSort(int s[], int low, int high);
