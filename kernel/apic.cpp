@@ -1718,7 +1718,7 @@ int GetIdleProcessor() {
 
 
 
-int GetIdleProcess() {
+int GetReadyProcess() {
 
 	PROCESS_INFO* proc = GetTaskTssBase();
 
@@ -1726,6 +1726,7 @@ int GetIdleProcess() {
 	int count = 0;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (proc->status == TASK_RUN) {
+			proc->priority = (proc->counter - proc->sleep_total) * proc->slice + proc->slice;
 			idle[count].id = i;
 			idle[count].v = proc->priority;
 			count++;
@@ -1734,8 +1735,14 @@ int GetIdleProcess() {
 
 	QuickSort(idle,0, count-1);
 
-	return (int)idle[0].id;
+	int id = idle[count - 1].id;
+	proc[id].priority -= proc[id].slice;
+
+	return id;
 }
+
+
+
 
 
 

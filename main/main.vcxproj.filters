@@ -123,6 +123,9 @@
     <ClCompile Include="SquareVector.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="3d.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gdi\jpeg.h">
@@ -201,6 +204,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SquareVector.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="3d.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

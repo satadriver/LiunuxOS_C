@@ -212,6 +212,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="3d.cpp" />
     <ClCompile Include="ChinesePoem.cpp" />
     <ClCompile Include="clock.cpp" />
     <ClCompile Include="cmd.cpp" />
@@ -240,6 +241,7 @@
     <ClCompile Include="DiamondVector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3d.h" />
     <ClInclude Include="ChinesePoem.h" />
     <ClInclude Include="clock.h" />
     <ClInclude Include="cmd.h" />
