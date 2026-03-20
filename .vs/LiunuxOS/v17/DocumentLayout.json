@@ -7,6 +7,10 @@
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\Project\\LiunuxOS_C\\main\\3d.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\3d.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\systemService.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\systemService.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -119,10 +123,6 @@
       "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\Project\\LiunuxOS_C\\main\\3d.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\3d.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\Project\\LiunuxOS_C\\main\\3d.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\3d.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -202,7 +202,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "task.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\task.cpp",
               "RelativeDocumentMoniker": "kernel\\task.cpp",
@@ -215,7 +215,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "systemService.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\systemService.cpp",
               "RelativeDocumentMoniker": "kernel\\systemService.cpp",
@@ -234,14 +234,14 @@
               "RelativeDocumentMoniker": "kernel\\apic.cpp",
               "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp",
               "RelativeToolTip": "kernel\\apic.cpp",
-              "ViewState": "AgIAAIoEAAAAAAAAAAAvwJUEAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAANwGAAAAAAAAAAAAAPIGAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-03-06T02:23:43.51Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "process.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\process.cpp",
               "RelativeDocumentMoniker": "kernel\\process.cpp",
@@ -254,7 +254,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "processDOS.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\processDOS.cpp",
               "RelativeDocumentMoniker": "kernel\\processDOS.cpp",
@@ -267,7 +267,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "thread.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\Thread.cpp",
               "RelativeDocumentMoniker": "kernel\\Thread.cpp",
@@ -280,7 +280,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 1,
+              "Title": "3d.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\3d.cpp",
+              "RelativeDocumentMoniker": "main\\3d.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\main\\3d.cpp",
+              "RelativeToolTip": "main\\3d.cpp",
+              "ViewState": "AgIAACkAAAAAAAAAAAAuwDwAAABCAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-20T04:16:01.945Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "descriptor.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\descriptor.cpp",
               "RelativeDocumentMoniker": "kernel\\descriptor.cpp",
@@ -293,7 +306,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "mainUtils.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\mainUtils.cpp",
               "RelativeDocumentMoniker": "main\\mainUtils.cpp",
@@ -306,7 +319,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "task.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\task.h",
               "RelativeDocumentMoniker": "kernel\\task.h",
@@ -319,7 +332,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "descriptor.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\descriptor.h",
               "RelativeDocumentMoniker": "kernel\\descriptor.h",
@@ -332,7 +345,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "process.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\process.h",
               "RelativeDocumentMoniker": "kernel\\process.h",
@@ -345,7 +358,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "apic.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apic.h",
               "RelativeDocumentMoniker": "kernel\\apic.h",
@@ -358,7 +371,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "algorithm.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\algorithm.cpp",
               "RelativeDocumentMoniker": "kernel\\algorithm.cpp",
@@ -371,7 +384,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "def.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\def.h",
               "RelativeDocumentMoniker": "kernel\\def.h",
@@ -384,7 +397,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "apicTimer.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apicTimer.cpp",
               "RelativeDocumentMoniker": "kernel\\apicTimer.cpp",
@@ -397,7 +410,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "TrajectoryBall.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\TrajectoryBall.cpp",
               "RelativeDocumentMoniker": "main\\TrajectoryBall.cpp",
@@ -410,7 +423,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "console.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\console.cpp",
               "RelativeDocumentMoniker": "main\\console.cpp",
@@ -423,7 +436,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "ISR.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\ISR.cpp",
               "RelativeDocumentMoniker": "kernel\\ISR.cpp",
@@ -436,7 +449,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "apicTimer.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apicTimer.h",
               "RelativeDocumentMoniker": "kernel\\apicTimer.h",
@@ -449,7 +462,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "SquareVector.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\SquareVector.cpp",
               "RelativeDocumentMoniker": "main\\SquareVector.cpp",
@@ -462,7 +475,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "SpiralBall.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\SpiralBall.cpp",
               "RelativeDocumentMoniker": "main\\SpiralBall.cpp",
@@ -475,7 +488,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "ScreenVector.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\ScreenVector.cpp",
               "RelativeDocumentMoniker": "main\\ScreenVector.cpp",
@@ -488,7 +501,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "ChinesePoem.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\ChinesePoem.cpp",
               "RelativeDocumentMoniker": "main\\ChinesePoem.cpp",
@@ -501,7 +514,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "screenProtect.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\screenProtect.cpp",
               "RelativeDocumentMoniker": "kernel\\screenProtect.cpp",
@@ -514,7 +527,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "cmosPeriodTimer.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\cmosPeriodTimer.cpp",
               "RelativeDocumentMoniker": "kernel\\cmosPeriodTimer.cpp",
@@ -527,7 +540,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "kernel.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kernel.cpp",
               "RelativeDocumentMoniker": "kernel\\kernel.cpp",
@@ -540,7 +553,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "device.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\device.cpp",
               "RelativeDocumentMoniker": "kernel\\device.cpp",
@@ -553,7 +566,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "device.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\device.h",
               "RelativeDocumentMoniker": "kernel\\device.h",
@@ -567,19 +580,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 29,
-              "Title": "3d.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\3d.cpp",
-              "RelativeDocumentMoniker": "main\\3d.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\main\\3d.cpp",
-              "RelativeToolTip": "main\\3d.cpp",
-              "ViewState": "AgIAAJIAAAAAAAAAAAAuwJoAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-20T04:16:01.945Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 28,
               "Title": "cmd.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\cmd.cpp",
               "RelativeDocumentMoniker": "main\\cmd.cpp",

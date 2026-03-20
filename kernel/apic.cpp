@@ -1736,48 +1736,47 @@ int g_debug_tag = 0;
 PROCESS_INFO * GetReadyProcess() {
 	int id = 0;
 	char szout[256];
-	PROCESS_INFO* proc = GetTaskTssBase();
-
+	PROCESS_INFO* tss = GetTaskTssBase();
+	PROCESS_INFO* current = GetCurrentTaskTssBase();
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	AlgorithmModel idle[TASK_LIMIT_TOTAL];
-	do {
-		int count = 0;
-		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-			if (proc[i].status == TASK_RUN) {
-				//proc[i].delta += proc[i].slice;
-				proc[i].priority = (proc[i].tick) ;
-				if (proc[i].priority < 0) {
-					proc[i].priority = 0;
-				}
-				idle[count].id = proc[i].tid;
-				idle[count].v = proc[i].priority;
-				count++;
+
+	int count = 0;
+	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+		if (tss[i].status == TASK_RUN && tss->tid != current->tick) {
+			//proc[i].delta += proc[i].slice;
+			tss[i].priority = (tss[i].tick) ;
+			if (tss[i].priority < 0) {
+				tss[i].priority = 0;
 			}
+			idle[count].id = tss[i].tid;
+			idle[count].v = tss[i].priority;
+			count++;
 		}
+	}
 
-		QuickSort(idle,0, count-1);
+	if (count) {
 
-		if ( (g_debug_tag++)%100 == 0) {
+		QuickSort(idle, 0, count - 1);
+
+		if ((g_debug_tag++) % 100 == 0) {
 			for (int i = 0; i < count; i++) {
 				int pid = (int)idle[i].id;
 				int priority = (int)idle[i].v;
-				__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n", 
-					__FUNCTION__, __LINE__,cpu,pid,
-					priority, proc[id].delta,proc[id].counter,proc[id].sleep_total,proc[i].slice);
+				__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n",
+					__FUNCTION__, __LINE__, cpu, pid,
+					priority, tss[id].delta, tss[id].counter, tss[id].sleep_total, tss[i].slice);
 			}
 		}
 
 		id = idle[0].id;
-		break;
-	} while (1);
-
-	proc[id].delta -= proc[id].slice;
-	if (proc[id].delta <= 0) {
-		//proc[id].delta = 0;
+	}
+	else {
+		id = current->tid;
 	}
 
-	return proc + id;
+	return tss + id;
 }
 
 
