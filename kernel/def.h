@@ -74,7 +74,9 @@
 
 #define TASK_SWITCH_ARRAY
 
-//#define SINGLE_TASK_TSS
+#define TASK_SWITCH_PRIORITY
+
+#define SINGLE_TASK_TSS
 
 //#define TASK_SWITCH_TASKGATE
 

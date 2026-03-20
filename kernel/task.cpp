@@ -24,8 +24,8 @@ int g_task_list_lock [256];
 
 int g_last_task_tid[TASK_LIMIT_TOTAL];
 
-unsigned long long g_cpu_active[TASK_LIMIT_TOTAL];
-unsigned long long g_cpu_sleep[TASK_LIMIT_TOTAL];
+unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
+unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
 
 int g_tagMsg = 0;
 
@@ -584,16 +584,17 @@ void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[256];
 	int ret = 0;
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		return 0;
-	}
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + proc->tid);
 	LPPROCESS_INFO next = prev;
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	ret = __GetSpinlock(&g_task_array_lock[id]);
+	if (ret == 0) {
+		return prev;
+	}
 
 	if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
@@ -643,7 +644,12 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", proc->status, prev->status);
 		goto __SingleTssSchedule_end;
 	}
-	
+#ifdef TASK_SWITCH_PRIORITY
+	next = GetReadyProcess();
+	if(next == prev) {
+		goto __SingleTssSchedule_end;
+	}
+#else
 	do {
 		next++;
 		if (next - tss >= TASK_LIMIT_TOTAL) {
@@ -687,6 +693,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			continue;
 		}
 	} while (TRUE);
+#endif
 
 	g_last_task_tid[id] = proc->tid;
 
@@ -780,8 +787,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		__memcpy((char*)proc, (char*)next, sizeof(PROCESS_INFO));
 	}
 
-	//tasktest();
-
 	env->eax = proc->tss.eax;
 	env->ecx = proc->tss.ecx;
 	env->edx = proc->tss.edx;
@@ -805,21 +810,21 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[256];
 	
 	int ret = 0;
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __GetSpinlock(&g_task_list_lock[id]);
-	if (ret == 0) {
-		return 0;
-	}
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		__leaveSpinlock(&g_task_list_lock[id]);
-		return 0;
-	}
-
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos[id]->list.next;
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	ret = __GetSpinlock(&g_task_list_lock[id]);
+	if (ret == 0) {
+		return prev;
+	}
+	ret = __GetSpinlock(&g_task_array_lock[id]);
+	if (ret == 0) {
+		__leaveSpinlock(&g_task_list_lock[id]);
+		return prev;
+	}
 
 	if (prev->status == TASK_TERMINATE  ) {
 		prev->status = TASK_OVER;
@@ -1014,16 +1019,15 @@ __SingleTssSchedule_end:
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	char szout[256];
 	int ret = 0;
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		return 0;
-	}
-
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
 	LPPROCESS_INFO next = current;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	ret = __GetSpinlock(&g_task_array_lock[id]);
+	if (ret == 0) {
+		return current;
+	}
 
 	if (current->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		current->status = TASK_OVER;
@@ -1070,7 +1074,12 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, current->status);
 		goto __MultipleTssSchedule_end;
 	}
-	
+#ifdef TASK_SWITCH_PRIORITY
+	next = GetReadyProcess();
+	if (next == current) {
+		goto __MultipleTssSchedule_end;
+	}
+#else
 	do {
 		next++;
 		if (next - tss >= TASK_LIMIT_TOTAL) {
@@ -1111,7 +1120,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			continue;
 		}
 	} while (TRUE);
-
+#endif
 	g_last_task_tid[id] = current->tid;
 
 	//切换到新任务的cr3和ldt会被自动加载，但是iret也会加载cr3和ldt，因此不需要手动加载
@@ -1193,21 +1202,20 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 	char szout[256];
 	int ret = 0;
-
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __GetSpinlock(&g_task_list_lock[id]);
-	if (ret == 0) {
-		return 0;
-	}
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		return 0;
-	}
-
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + proc->tid);
 	TASK_LIST_ENTRY* next = (TASK_LIST_ENTRY*)gTasksListPos[id]->list.next;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	ret = __GetSpinlock(&g_task_list_lock[id]);
+	if (ret == 0) {
+		return prev;
+	}
+	ret = __GetSpinlock(&g_task_array_lock[id]);
+	if (ret == 0) {
+		__leaveSpinlock(&g_task_list_lock[id]);
+		return prev;
+	}
 
 	if (prev->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
@@ -1369,8 +1377,25 @@ __MultipleTssSchedule_end:
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
 
 	char szout[256];
+	
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO current  = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
 
-	__int64 timeh1 = __krdtsc();
+	__int64 time1 = __krdtsc();
+
+	if (current->prev_tick && prev->prev_tick) {
+		current->tick += time1 - current->prev_tick;
+		prev->tick += time1 - prev->prev_tick;
+	}
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (g_pm_enable == 0) {	
+		if (g_cpu_prev_tick[id]) {
+			g_cpu_tick[id] += time1 - g_cpu_prev_tick[id];
+			g_cpu_prev_tick[id] = 0;
+		}
+	}
 
 	__kApicTimerProc();
 
@@ -1382,18 +1407,12 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	}
 #endif
 
-	//__printf(szout, "__kTaskSchedule entry\r\n");
-
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
-
-	if (process->tid != current->tid) {
-		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", process->tid, current->tid);
+	if (prev->tid != current->tid) {
+		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", prev->tid, current->tid);
 		return 0;
 	}
 
-	V86ProcessCheck(env, current, process);
+	V86ProcessCheck(env,current,prev);
 
 #ifdef SINGLE_TASK_TSS
 	LPPROCESS_INFO next = SingleTssSchedule(env);
@@ -1401,8 +1420,10 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
 	
+	__int64 time2 = __krdtsc();
+
 	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
-		__int64 timeh2 = __krdtsc() - timeh1;
+		__int64 deltaTime = time2 - time1;
 
 		DWORD cpureq;
 		DWORD maxreq;
@@ -1412,8 +1433,16 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 		__printf(szout,
 			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
-			process->tss.link, current->tss.link, next->tss.link, env->eflags, process->tss.eflags, current->tss.eflags, next->tss.eflags,
-			current->pid, current->tid, next->pid, next->tid, timeh2, cpurate);
+			prev->tss.link, current->tss.link, next->tss.link, env->eflags, prev->tss.eflags, current->tss.eflags, next->tss.eflags,
+			current->pid, current->tid, next->pid, next->tid, deltaTime, cpurate);
+	}
+	
+	current->prev_tick = time2;
+	if (next) {
+		next->prev_tick = time2;
+	}
+	if (g_pm_enable == 0) {
+		g_cpu_prev_tick[id] = time2;
 	}
 	return TRUE;
 }
@@ -1506,6 +1535,11 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 	process0->large_heap_size = 0;
 	process0->fast_heap_large = 0;
+
+	process0->delta = 32;
+	process0->priority = 0;
+	process0->tick = 0;
+	process0->prev_tick = __krdtsc();
 
 	int bsp = IsBspProcessor();
 	if (bsp) {

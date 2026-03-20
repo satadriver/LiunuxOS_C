@@ -223,39 +223,48 @@ void sleep(DWORD * params) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = proc->tid;
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO cur_tss = tss + tid;
+	LPPROCESS_INFO current = tss + tid;
 	
-	cur_tss->sleep += times ;
-	proc->sleep = cur_tss->sleep;
+	current->sleep += times ;
+	proc->sleep = current->sleep;
 
-	cur_tss->sleep_total += times;
+	current->sleep_total += times;
 	proc->sleep_total += times;
+
+	unsigned long long tick1 = __krdtsc();
+	current->tick += (tick1 - current->prev_tick);
+	proc->tick += (tick1 - proc->prev_tick);
+
+	current->prev_tick = 0;
+	proc->prev_tick = 0;
 
 	leave_task_array_lock();
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	long long t1 = 0;
 
-	DWORD low1 = 0;
-	DWORD high1 = 0;
-	readmsr(0xe7, &low1, &high1);
-	if (low1 == 0 && high1== 0) {
-		t1 = __krdtsc();
+	if (g_pm_enable == 0) {
+		if (g_cpu_prev_tick[id]) {
+			g_cpu_tick[id] += (g_cpu_prev_tick[id] - tick1);
+			g_cpu_prev_tick[id] = 0;
+		}
 	}
 	else {
-		t1 = high1;
-		t1 = t1 << 32;
-		t1 += low1;
+		DWORD low2 = 0;
+		DWORD high2 = 0;
+		readmsr(0xe7, &low2, &high2);
+		unsigned long long delta = high2;
+		delta = (delta << 32) + low2;
+		g_cpu_tick[id] = tick1 - delta;
+		g_cpu_prev_tick[id] = 0;
 	}
 
 	while(1)
-	{
-		
+	{	
 		__asm {
 			hlt
 		}
 
-		if (cur_tss->sleep == 0)
+		if (current->sleep == 0)
 		{
 			break;
 		}
@@ -264,26 +273,7 @@ void sleep(DWORD * params) {
 		}
 	}
 
-	unsigned long long t2 = 0;
-	if (low1 == 0 && high1 == 0) {
-		t2 = __krdtsc();
-		g_cpu_sleep[id] += (t2 - t1);
-
-		g_cpu_active[id] = t2 - g_cpu_sleep[id];
-	}
-	else {
-		DWORD low2 = 0;
-		DWORD high2 = 0;
-		readmsr(0xe7, &low2, &high2);
-		t2 = high2;
-		t2 = (t2 << 32) + low2;
-		
-		unsigned long long tick = __krdtsc();
-
-		g_cpu_active[id] = t2;
-		g_cpu_sleep[id] = tick - t2;
-	}
-
+	return;
 }
 
 

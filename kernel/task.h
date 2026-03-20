@@ -101,8 +101,8 @@ int __getFreeTask(LPTASKRESULT ret);
 
 #ifdef DLL_EXPORT
 
-extern "C" __declspec(dllexport) unsigned long long g_cpu_active[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllexport) unsigned long long g_cpu_sleep[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
 
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
@@ -138,8 +138,8 @@ extern "C"  __declspec(dllexport) void leave_task_array_lock_id(int id);
 
 extern "C" __declspec(dllexport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack);
 #else
-extern "C" __declspec(dllimport) unsigned long long g_cpu_active[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllimport) unsigned long long g_cpu_sleep[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
 extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
 extern "C"  __declspec(dllimport) int __terminateTid(int tid);

@@ -16,6 +16,7 @@
 #include "elf.h"
 #include "apic.h"
 #include "core.h"
+#include "systemService.h"
 
 void __kFreeProcess(int pid) {
 	//return;
@@ -378,8 +379,11 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	else {
 		tss->slice = TASK_SLICE_USER;
 	}
-	
+	tss->delta = 32;
+	tss->priority = 0;
 	tss->frac_slice = 0;
+	tss->tick = 0;
+	tss->prev_tick = 0;
 
 	tss->sleep = 0;
 	tss->sleep_total = 0;

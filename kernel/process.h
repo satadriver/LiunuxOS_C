@@ -70,7 +70,11 @@ typedef struct
 
 	DWORD errorno;
 
-	DWORD priority;
+	int priority;
+	int delta;
+
+	unsigned long long tick;
+	unsigned long long prev_tick;
 
 	DWORD sleep;
 

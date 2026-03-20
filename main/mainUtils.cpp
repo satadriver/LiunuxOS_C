@@ -93,7 +93,7 @@ int CpuUsage(char * buf) {
 		
 		//unsigned long long t = g_cpu_active[id];
 
-		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,sleep:%i64x;", id, g_cpu_active[id], g_cpu_sleep[id]);
+		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,sleep:%i64x;", id, g_cpu_tick[id], g_cpu_prev_tick[id]);
 		offset += len;
 	}
 	return offset;

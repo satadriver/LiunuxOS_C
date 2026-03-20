@@ -52,33 +52,51 @@ typedef struct
 #pragma pack()
 
 
+
+
+
 int GetPmVersion();
 
 int InitPm();
+
 int GetCpuRate();
 
-extern "C" __declspec(dllexport) int SysenterProc(char* params, int cnt);
-
-extern "C" __declspec(dllexport) int SysenterEntry(char * params,int cnt);
-
-int SysenterInit(DWORD entryAddr);
-
-void readmsr(DWORD no, DWORD* lowpart, DWORD* highpart);
-
-void writemsr(DWORD no, DWORD lowpart, DWORD highpart);
-
-
-extern "C" void __kCallGateProc(DWORD  params, DWORD size);
-
-extern "C" __declspec(dllexport) void callgateEntry(char*  params, DWORD size);
 
 void EnableNXE();
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) int SysenterProc(char* params, int cnt);
+
+extern "C" __declspec(dllexport) int SysenterEntry(char* params, int cnt);
+extern "C" __declspec(dllexport) void __kCallGateProc(DWORD  params, DWORD size);
+extern "C" __declspec(dllexport) void callgateEntry(char* params, DWORD size);
+
 extern "C" __declspec(dllexport) void EnableSyscall();
 
+extern "C" __declspec(dllexport)int SysenterInit(DWORD entryAddr);
+
+extern "C" __declspec(dllexport) int g_pm_enable;
+
+extern "C" __declspec(dllexport)void readmsr(DWORD no, DWORD* lowpart, DWORD* highpart);
+
+extern "C" __declspec(dllexport)void writemsr(DWORD no, DWORD lowpart, DWORD highpart);
+
 #else
+extern "C" __declspec(dllimport) int SysenterProc(char* params, int cnt);
+
+extern "C" __declspec(dllimport) int SysenterEntry(char* params, int cnt);
+extern "C" __declspec(dllimport) void __kCallGateProc(DWORD  params, DWORD size);
+extern "C" __declspec(dllimport) void callgateEntry(char* params, DWORD size);
+
 extern "C" __declspec(dllimport) void EnableSyscall();
+
+extern "C" __declspec(dllimport) void EnableSyscall();
+
+extern "C" __declspec(dllimport) int g_pm_enable;
+
+extern "C" __declspec(dllimport)void readmsr(DWORD no, DWORD* lowpart, DWORD* highpart);
+
+extern "C" __declspec(dllimport)void writemsr(DWORD no, DWORD lowpart, DWORD highpart);
 
 #endif
 

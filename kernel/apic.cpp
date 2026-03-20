@@ -3,7 +3,7 @@
 #include "hardware.h"
 #include "Utils.h"
 #include "descriptor.h"
-
+#include "algorithm.h"
 #include "task.h"
 #include "cmosAlarm.h"
 #include "cmosExactTimer.h"
@@ -1181,7 +1181,7 @@ int InitLocalApicTimer() {
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq  /(1000 / TASK_TIME_SLICE);
+	freq = freq /16 /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
@@ -1638,7 +1638,7 @@ void BubbleSort(unsigned int* arr, int count) {
 
 
 
-#include "algorithm.h"
+
 
 int GetIdleProcessor() {
 
@@ -1647,7 +1647,8 @@ int GetIdleProcessor() {
 	AlgorithmModel times[TASK_LIMIT_TOTAL];
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];
-		times[i].v = g_cpu_active[id];
+
+		times[i].v = g_cpu_tick[id];
 		times[i].id = id;
 	}
 
@@ -1655,6 +1656,7 @@ int GetIdleProcessor() {
 	
 	return (int)times[0].id;
 
+	/*
 	gAllocateAp++;
 	if (gAllocateAp >= counter) {
 		gAllocateAp = 0;
@@ -1662,7 +1664,7 @@ int GetIdleProcessor() {
 	}
 	int cpuid = ids[gAllocateAp];
 	return cpuid;
-
+	
 	char szout[256];
 
 	unsigned int cpuStatus[256];
@@ -1725,32 +1727,57 @@ int GetIdleProcessor() {
 	}
 
 	return bspid;
+	*/
 }
 
 
+int g_debug_tag = 0;
 
-
-int GetReadyProcess() {
-
+PROCESS_INFO * GetReadyProcess() {
+	int id = 0;
+	char szout[256];
 	PROCESS_INFO* proc = GetTaskTssBase();
 
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
 	AlgorithmModel idle[TASK_LIMIT_TOTAL];
-	int count = 0;
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (proc->status == TASK_RUN) {
-			proc->priority = (proc->counter - proc->sleep_total) * proc->slice + proc->slice;
-			idle[count].id = i;
-			idle[count].v = proc->priority;
-			count++;
+	do {
+		int count = 0;
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (proc[i].status == TASK_RUN) {
+				//proc[i].delta += proc[i].slice;
+				proc[i].priority = (proc[i].tick) ;
+				if (proc[i].priority < 0) {
+					proc[i].priority = 0;
+				}
+				idle[count].id = proc[i].tid;
+				idle[count].v = proc[i].priority;
+				count++;
+			}
 		}
+
+		QuickSort(idle,0, count-1);
+
+		if ( (g_debug_tag++)%100 == 0) {
+			for (int i = 0; i < count; i++) {
+				int pid = (int)idle[i].id;
+				int priority = (int)idle[i].v;
+				__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n", 
+					__FUNCTION__, __LINE__,cpu,pid,
+					priority, proc[id].delta,proc[id].counter,proc[id].sleep_total,proc[i].slice);
+			}
+		}
+
+		id = idle[0].id;
+		break;
+	} while (1);
+
+	proc[id].delta -= proc[id].slice;
+	if (proc[id].delta <= 0) {
+		//proc[id].delta = 0;
 	}
 
-	QuickSort(idle,0, count-1);
-
-	int id = idle[count - 1].id;
-	proc[id].priority -= proc[id].slice;
-
-	return id;
+	return proc + id;
 }
 
 

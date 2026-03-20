@@ -353,9 +353,21 @@ int SysenterInit(DWORD entryaddr) {
 	return TRUE;
 }
 
-
+int g_pm_enable = FALSE;
 
 int GetPmVersion() {
+
+	DWORD low = 0;
+	DWORD high = 0;
+	readmsr(0xe7, &low, &high);
+	if(low || high ) {
+		g_pm_enable = g_pm_enable| TRUE;
+	}
+	else {
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		g_cpu_prev_tick[id] = __krdtsc();
+	}
+
 	int ver = 0;
 	__asm {
 		mov eax,0ah
@@ -386,17 +398,6 @@ int InitPm() {
 	readmsr(0xc1, &low, &high);
 
 	unsigned long long tick = __krdtsc();
-
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	g_cpu_active[id] = tick;
-	if (low == 0 && high == 0) {
-		g_cpu_sleep[id] = 0;
-	}
-	else {
-		unsigned long long llu = high;
-		llu = (llu << 32) + low;
-		g_cpu_sleep[id] = tick - llu;
-	}
 	
 	char szout[256];
 	__printf(szout, "%s %d performance monitor counter low:%x,high:%x,rdtsc:%I64x\r\n", __FUNCTION__, __LINE__, low,high,tick);
@@ -411,26 +412,14 @@ int GetCpuRate() {
 
 	readmsr(0xe7, &e7low,& e7high);
 
-
 	unsigned long e8low = 0;
 	unsigned long e8high = 0;
 
 	readmsr(0xe8, &e8low, &e8high);
 
-	//__sleep(1000);
-
 	unsigned long long tick = __krdtsc();
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	g_cpu_active[id] = tick;
-	if (e7low == 0 && e7high == 0) {
-		g_cpu_sleep[id] = 0;
-	}
-	else {
-		unsigned long long llu = e7high;
-		llu = (llu << 32) + e7low;
-		g_cpu_sleep[id] = tick - llu;
-	}
 
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	char szout[256];
 	__printf(szout, "%s %d performance monitor counter e7low:%x,e7high:%x ,e8low:%x,e8high:%x,rdtsc:%I64x\r\n",

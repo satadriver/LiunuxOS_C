@@ -88,6 +88,8 @@ void setIoApicID(int id);
 
 int IsBspProcessor();
 
+PROCESS_INFO* GetReadyProcess();
+
 int GetIdleProcessor();
 
 void EOICommand(int pin);
