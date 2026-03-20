@@ -285,9 +285,9 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 	}
-	else if (__strcmp(params[0], "timer0Tick") == 0)
+	else if (__strcmp(params[0], "ApicTimerTick") == 0)
 	{
-		DWORD cnt = *((DWORD*)TIMER0_TICK_COUNT);
+		DWORD cnt = *((DWORD*)APICTIMER_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}

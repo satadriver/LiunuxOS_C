@@ -429,7 +429,7 @@ int Read8254Counter(int num) {
 	return low + (high << 8);
 }
 
-unsigned long GetApicTImerFreq() {
+unsigned long GetApicTimerFreq() {
 	
 	int v0 = Read8254Counter(0);
 	int v1 = v0;

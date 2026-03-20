@@ -7,7 +7,7 @@
 #include "hardware.h"
 #include "systemService.h"
 #include "cmosExactTimer.h"
-#include "timer8254.h"
+#include "apictimer.h"
 #include "apic.h"
 
 void EnableCmos() {
@@ -149,7 +149,7 @@ char* dayOfWeek2str(int n) {
 void initTimer() {
 	initPeriodTimer();
 	initExactTimer();
-	init8254Timer();
+	initApicTimer();
 
 	outportb(0x70, 0x0c | 0x80);
 	inportb(0x71);

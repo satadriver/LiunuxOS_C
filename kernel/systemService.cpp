@@ -306,7 +306,7 @@ DWORD __random(DWORD r) {
 			g_random_seed = r;
 		}
 		else {
-			g_random_seed = *((DWORD*)TIMER0_TICK_COUNT);
+			g_random_seed = *((DWORD*)APICTIMER_TICK_COUNT);
 		}
 	}
 	g_random_seed = (w * g_random_seed*v + u)% 0xffffffff;
@@ -319,7 +319,7 @@ DWORD __random(DWORD r) {
 DWORD __random_old(DWORD init) {
 	unsigned __int64 t = init;
 	if (t == 0) {
-		DWORD dt = *((DWORD*)TIMER0_TICK_COUNT);
+		DWORD dt = *((DWORD*)APICTIMER_TICK_COUNT);
 		t = dt;
 	}
 	t = (t *( 7 *7*7*7*7 )) % 0xffffffff;

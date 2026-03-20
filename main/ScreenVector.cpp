@@ -13,7 +13,7 @@
 #include "hardware.h"
 #include "device.h"
 #include "math.h"
-#include "timer8254.h"
+#include "apictimer.h"
 
 #include "guiHelper.h"
 
@@ -144,7 +144,7 @@ int initScreenVector() {
 	ret = __drawCircle(gCircleCenterX, gCircleCenterY,gRadius | 0x0000000, (gRadius / 2) | 0x0000000, gCircleColor,
 		(unsigned char*)videoBase + screensize * 2);
 
-	gTimerID = __kAdd8254Timer((DWORD)ScreenAnimation, TASK_TIME_SLICE * 2, 0, 0, 0, 0);
+	gTimerID = __kAddApicTimer((DWORD)ScreenAnimation, TASK_TIME_SLICE * 2, 0, 0, 0, 0);
 
 	return TRUE;
 }

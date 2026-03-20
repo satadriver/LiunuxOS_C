@@ -16,7 +16,7 @@
 #include "hardware.h"
 #include "device.h"
 #include "math.h"
-#include "timer8254.h"
+#include "apictimer.h"
 #include "guiHelper.h"
 #include "trajectoryBall.h"
 
@@ -122,7 +122,7 @@ void stopTrajectoryBall() {
 #ifdef USE_CMOS_EXACT_TIMER
 	__kRemoveExactTimer(gTrajectTid);
 #else
-	__kRemove8254Timer(gTrajectTid);
+	__kRemoveApicTimer(gTrajectTid);
 #endif
 
 	//removeWindow(gTrajectWid);
@@ -315,7 +315,7 @@ void TrajectoryBallInit() {
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
 	g_frame_delay = (double)TASK_TIME_SLICE * 2.0;
-	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryAnimation, (int)g_frame_delay, 0, 0, 0, 0);
+	gTrajectTid = __kAddApicTimer((DWORD)TrajectoryAnimation, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 
 	double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;

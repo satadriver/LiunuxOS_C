@@ -15,7 +15,7 @@
 #include "hardware.h"
 #include "device.h"
 #include "math.h"
-#include "timer8254.h"
+#include "apictimer.h"
 #include "guiHelper.h"
 #include "SpiralBall.h"
 

@@ -94,6 +94,8 @@ void EOICommand(int pin);
 
 void BPCodeStart();
 
+
+
 int InitLocalApicTimer();
 int InitApicPerformMonitor();
 int InitApicThermalMonitor();
@@ -125,6 +127,8 @@ extern "C" __declspec(dllexport) int GetCpu(int* out, int size);
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetCurrentTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
+
+extern "C" __declspec(dllexport)  unsigned long long ApicTimerFreq();
 #else
 extern "C"  __declspec(dllimport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllimport) int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
@@ -134,4 +138,6 @@ extern "C"  __declspec(dllimport)  LPPROCESS_INFO GetCurrentTaskTssBase();
 
 extern "C" __declspec(dllimport)  LPPROCESS_INFO GetTaskTssBase();
 extern "C" __declspec(dllimport)  LPPROCESS_INFO SetTaskTssBase();
+
+extern "C" __declspec(dllimport)  unsigned long long ApicTimerFreq();
 #endif

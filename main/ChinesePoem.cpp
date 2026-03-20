@@ -15,7 +15,7 @@
 #include "guiHelper.h"
 #include "fileWindow.h"
 #include "cmosExactTimer.h"
-#include "timer8254.h"
+#include "apictimer.h"
 
 
 
@@ -353,7 +353,7 @@ int displayCCPoem() {
 	{
 		__drawCCS((unsigned char*)"欢迎来到汉字的世界！\r\n", 0xff0000);
 
-		g_cc_timer = __kAdd8254Timer((DWORD)drawCCFontChar, CHINESE_POEM_DELAY,
+		g_cc_timer = __kAddApicTimer((DWORD)drawCCFontChar, CHINESE_POEM_DELAY,
 			(DWORD)&poem_ljx, (DWORD)&g_cc_color, (DWORD)&g_cc_idx, (DWORD)&g_cc_timer);
 	}
 

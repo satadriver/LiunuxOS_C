@@ -1136,6 +1136,15 @@ int InitLocalApicErr() {
 	return 0;
 }
 
+unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+
+
+unsigned long long ApicTimerFreq() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	return g_apic_freq[id] ;
+}
+
+
 int InitLocalApicTimer() {
 
 	int v = 0;
@@ -1161,15 +1170,18 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)lv;
 
 	unsigned long long freq = 0;
-	int times = 4;
+	int times = 3;
 	for (int i = 0; i < times; i++) {
-		freq += GetApicTImerFreq();
+		freq += GetApicTimerFreq();
 	}
 	freq = freq / times;
 
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	g_apic_freq[id] = freq;
+
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq  / 16  /(1000 / TASK_TIME_SLICE);
+	freq = freq  /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 

@@ -6,7 +6,7 @@
 #include "Pe.h"
 #include "processDOS.h"
 #include "file.h"
-#include "timer8254.h"
+#include "apictimer.h"
 #include "page.h"
 #include "def.h"
 #include "malloc.h"
@@ -1372,7 +1372,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	__int64 timeh1 = __krdtsc();
 
-	__k8254TimerProc();
+	__kApicTimerProc();
 
 	ActiveApTask(TASK_SWITCH_VECTOR);
 	

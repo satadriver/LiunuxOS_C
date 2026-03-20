@@ -159,7 +159,7 @@
     <ClCompile Include="peVirtual.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="timer8254.cpp">
+    <ClCompile Include="apicTimer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="page.cpp">
@@ -386,7 +386,7 @@
     <ClInclude Include="peVirtual.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="timer8254.h">
+    <ClInclude Include="apicTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="page.h">

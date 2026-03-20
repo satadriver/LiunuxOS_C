@@ -17,7 +17,7 @@
 #include "window.h"
 #include "systemService.h"
 #include "cmosExactTimer.h"
-#include "timer8254.h"
+#include "apictimer.h"
 
 
 
@@ -95,7 +95,7 @@ void initSquareVector() {
 
 	gVectorGraphBuf = (char*)g_sqaure_window.backBuf;
 	gVectorGraphWid = g_sqaure_window.id;
-	gVectorGraphTid = __kAdd8254Timer((DWORD)SqaureAnimation, TASK_TIME_SLICE , 0, 0, 0, 0);
+	gVectorGraphTid = __kAddApicTimer((DWORD)SqaureAnimation, TASK_TIME_SLICE , 0, 0, 0, 0);
 
 	gBaseColor = 0;
 }

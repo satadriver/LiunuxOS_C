@@ -13,7 +13,7 @@
 #include "hardware.h"
 #include "device.h"
 #include "math.h"
-#include "timer8254.h"
+#include "apictimer.h"
 
 #define SCREENPROTECT_BACKGROUND_COLOR 0		//0XBBFFFF		0X87CEEB
 
@@ -775,7 +775,7 @@ extern "C" __declspec(dllexport) int __kPrintScreen() {
 		(char*)gGraphBase, screensize);
 
 	char filename[256];
-	__printf(filename, "c:\\%x.bmp", *(unsigned int*)TIMER0_TICK_COUNT);
+	__printf(filename, "c:\\%x.bmp", *(unsigned int*)APICTIMER_TICK_COUNT);
 	int ret = writeFile(filename, (char*)data, screensize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), FILE_WRITE_APPEND);
 
 	__kFree((DWORD)data);
@@ -811,7 +811,7 @@ void stopTrajectory() {
 #ifdef USE_CMOS_EXACT_TIMER
 	__kRemoveExactTimer(gTrajectTid);
 #else
-	__kRemove8254Timer(gTrajectTid);
+	__kRemoveApicTimer(gTrajectTid);
 #endif
 
 	RemoveWindow(gTrajectWid);
@@ -1085,7 +1085,7 @@ void initTrajectory() {
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
 	g_frame_delay = (double)TASK_TIME_SLICE * 2.0;
-	gTrajectTid = __kAdd8254Timer((DWORD)TrajectoryVideo, (int)g_frame_delay, 0, 0, 0, 0);
+	gTrajectTid = __kAddApicTimer((DWORD)TrajectoryVideo, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 
 	double max_speed = ((double)1000.0 / (double)g_frame_delay) * GRAVITY_ACC * 10.0;

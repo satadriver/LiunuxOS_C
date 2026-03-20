@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -270,7 +270,7 @@
     <ClCompile Include="soundBlaster\sbPlay.cpp" />
     <ClCompile Include="speaker.cpp" />
     <ClCompile Include="TextMode.cpp" />
-    <ClCompile Include="timer8254.cpp" />
+    <ClCompile Include="apicTimer.cpp" />
     <ClCompile Include="task.cpp" />
     <ClCompile Include="thread.cpp" />
     <ClCompile Include="process.cpp" />
@@ -344,7 +344,7 @@
     <ClInclude Include="soundBlaster\sbPlay.h" />
     <ClInclude Include="speaker.h" />
     <ClInclude Include="TextMode.h" />
-    <ClInclude Include="timer8254.h" />
+    <ClInclude Include="apicTimer.h" />
     <ClInclude Include="task.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="process.h" />

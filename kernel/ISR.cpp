@@ -16,7 +16,7 @@
 #include "coprocessor.h"
 #include "apic.h"
 
-#include "timer8254.h"
+#include "apictimer.h"
 
 
 __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
@@ -1160,6 +1160,9 @@ __declspec(naked) void SecurityException(LIGHT_ENVIRONMENT* stack) {
 }
 
 
+
+
+
 /*
 naked函数用自己的参数作为参数，调用其他函数，编译器会把自己的第一个参数默认为ss:[ebp+8]
 
@@ -1263,9 +1266,15 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 		//clts
 	}
 
-	//__k8254TimerProc();
+	{
+		//in both c and c++ language,the * priority is lower than ++
+		DWORD* lptickcnt = (DWORD*)(TIMER_TICK_COUNT);
+		(*lptickcnt)++;
 
-	EOICommand(INTR_8259_MASTER + 0);
+		__k8254TimerProc();
+
+		EOICommand(INTR_8259_MASTER + 0);
+	}
 
 	__asm {
 		mov esp, ebp
