@@ -379,7 +379,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	else {
 		tss->slice = TASK_SLICE_USER;
 	}
-	tss->delta = 32;
+	tss->delta = 0;
 	tss->priority = 0;
 	tss->frac_slice = 0;
 	tss->tick = 0;

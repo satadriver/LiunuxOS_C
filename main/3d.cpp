@@ -15,6 +15,7 @@
 #include "apic.h"
 #include "task.h"
 
+/*
 #pragma pack(1)
 // 三维点结构
 typedef struct {
@@ -36,16 +37,7 @@ typedef struct {
 // 深度缓冲
 float* zbuffer = 0;
 
-// 屏幕分辨率
-//#define SCREEN_WIDTH 1024
-//#define SCREEN_HEIGHT 768
-//#define SCREEN_SIZE (SCREEN_WIDTH * SCREEN_HEIGHT)
 
-// 显存地址（假设使用线性帧缓冲）
-//#define FRAMEBUFFER_ADDR 0xFD000000
-
-// 帧缓冲指针（模拟显存）
-//unsigned int* framebuffer = (unsigned int*)FRAMEBUFFER_ADDR;
 
 // 球体参数
 #define SPHERE_RADIUS       200
@@ -64,7 +56,7 @@ void drawDot(unsigned char* framebuffer,int x, int y, Color color) {
 
         framebuffer[idx + 0] = color.b;
         framebuffer[idx + 1] = color.g;
-        framebuffer[idx + 2] = color.b;     
+        framebuffer[idx + 2] = color.r;     
     }
 }
 
@@ -72,10 +64,11 @@ void drawDot(unsigned char* framebuffer,int x, int y, Color color) {
 void drawDotWithZ(unsigned char* framebuffer,int x, int y, float z, Color color) {
     if (x >= 0 && x < gVideoWidth && y >= 0 && y < gVideoHeight) {
         int idx = y * gBytesPerLine + x * gBytesPerPixel;
-        if (z < zbuffer[idx]) {
+        int zidx = idx / gBytesPerPixel;
+        if (z < zbuffer[idx/ gBytesPerPixel]) {
             framebuffer[idx + 0] = color.b;
             framebuffer[idx + 1] = color.g;
-            framebuffer[idx + 2] = color.b;
+            framebuffer[idx + 2] = color.r;
 
             zbuffer[idx/ gBytesPerPixel] = z;
         }
@@ -85,6 +78,7 @@ void drawDotWithZ(unsigned char* framebuffer,int x, int y, float z, Color color)
 // 清屏
 void clearScreen(unsigned char* framebuffer) {
     int screenSize = gVideoHeight * gVideoWidth*gBytesPerPixel ;
+
     for (int i = 0; i < screenSize; i++) {
         framebuffer[i] = 0;  // 黑色
         zbuffer[i/ gBytesPerPixel] = 999999.0; // 重置深度缓冲
@@ -366,5 +360,157 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
     }
 
     __kFree((DWORD)zbuffer);
+    return 0;
+}
+*/
+
+
+
+#include "video.h"
+#include "libc.h"
+#include "math.h"
+
+// 简单的3D点结构
+typedef struct { float x, y, z; } Point3D;
+
+// 配置
+#define POINT_COUNT 50
+#define SPHERE_RADIUS 150
+#define VIEW_DISTANCE 600
+
+
+
+// 预生成球体点坐标
+Point3D pts[POINT_COUNT];
+
+// 初始化点 (在球面上随机分布或规则分布)
+void initPoints() {
+    for (int i = 0; i < POINT_COUNT; i++) {
+        // 简单的斐波那契球面分布算法，让点均匀分布
+        float phi = __acos(1 - 2 * (i + 0.5) / POINT_COUNT);
+        float theta = 3.1415926 * (1 + 1.6180339887) * i;
+
+        pts[i].x = SPHERE_RADIUS * sin(phi) * cos(theta);
+        pts[i].y = SPHERE_RADIUS * sin(phi) * sin(theta);
+        pts[i].z = SPHERE_RADIUS * cos(phi);
+    }
+}
+
+// 32位画点 (BGRA格式)
+void putPixel(unsigned char* fb, int x, int y, unsigned int color) {
+    if (x >= 0 && x < gVideoWidth && y >= 0 && y < gVideoHeight) {
+        int offset = y * gBytesPerLine + x * gBytesPerPixel; // 32位 = 4字节
+        ((unsigned int*)fb)[offset / gBytesPerPixel] = color;
+        // 或者按字节写:
+        // fb[offset] = (color >> 0) & 0xFF;     // B
+        // fb[offset+1] = (color >> 8) & 0xFF;   // G
+        // fb[offset+2] = (color >> 16) & 0xFF;  // R
+        // fb[offset+3] = (color >> 24) & 0xFF;  // A
+    }
+}
+
+// 入口函数 (简化参数以适配最小化需求)
+// 注意：实际调用需匹配你的系统启动约定，这里保留原签名但忽略无用参数
+extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+
+    // 如果需要窗口环境，添加这段最小化初始化
+    WINDOWCLASS window;
+    __memset((char*) & window, 0, sizeof(window));
+    __strcpy(window.caption, "3D Points");
+    initFullWindow(&window, "3D Points", tid, 1);
+    // 然后在循环里用 window.id 读取键盘退出
+    // 
+    // 1. 初始化点
+    initPoints();
+
+    float angleX = 0, angleY = 0, angleZ = 0;
+
+    // 获取显存基址 (假设系统提供了全局变量或需要通过特定方式获取)
+    // 如果原代码中的 process->videoBase 是必须的，这里简化为假设有一个全局 gVideoBase
+    // 若没有全局变量，需保留原代码获取 process 的逻辑，此处为了极简假设可以直接访问或通过简单宏获取
+    // 这里为了代码能编译通过，沿用你原代码获取 framebuffer 的方式，但放在循环内
+
+    while (1) {
+        // 获取当前任务显存地址 (保留原逻辑以确保兼容性)
+        PROCESS_INFO* process = (PROCESS_INFO*)GetCurrentTaskTssBase();
+        unsigned char* framebuffer = (unsigned char*)process->videoBase;
+
+        // 2. 清屏 (黑色)
+        // 优化：使用 memset 清空整个屏幕内存
+        __memset((char*)framebuffer, 0, gVideoHeight * gBytesPerLine);
+
+        // 3. 更新角度
+        angleY += 0.02f;
+        angleX += 0.01f;
+        angleZ += 0.005f;
+
+        // 预计算三角函数
+        float cx = cos(angleX), sx = sin(angleX);
+        float cy = cos(angleY), sy = sin(angleY);
+        float cz = cos(angleZ), sz = sin(angleZ);
+
+        // 4. 遍历所有点，旋转并绘制
+        for (int i = 0; i < POINT_COUNT; i++) {
+            Point3D p = pts[i];
+
+            // --- 3D 旋转 (绕 X, Y, Z) ---
+            // 绕 Y
+            float x1 = p.x * cy + p.z * sy;
+            float z1 = -p.x * sy + p.z * cy;
+            // 绕 X
+            float y2 = p.y * cx - z1 * sx;
+            float z2 = p.y * sx + z1 * cx;
+            // 绕 Z
+            float x3 = x1 * cz - y2 * sz;
+            float y3 = x1 * sz + y2 * cz;
+
+            // 此时 (x3, y3, z2) 是旋转后的坐标
+
+            // --- 透视投影 ---
+            float zDepth = z2 + VIEW_DISTANCE;
+
+            // 剔除摄像机后面的点
+            if (zDepth > 0) {
+                float factor = VIEW_DISTANCE / zDepth;
+                int px = (int)(x3 * factor) + gVideoWidth / 2;
+                int py = (int)(y3 * factor) + gVideoHeight / 2;
+
+                // --- 绘制 ---
+                // 根据深度产生简单的颜色变化 (越远越暗/蓝)
+                // 格式：0xAARRGGBB (小端序下内存为 BB GG RR AA)
+                unsigned int color = 0xFF00FFFF; // 默认青色 (Cyan)
+
+                // 简单的深度着色：距离越远，红色分量越少，蓝色越多
+                unsigned char r = (unsigned char)(255 * (1.0f - (z2 + SPHERE_RADIUS) / (2 * SPHERE_RADIUS)));
+                unsigned char b = 255;
+                unsigned char g = (unsigned char)(255 * (y3 + SPHERE_RADIUS) / (2 * SPHERE_RADIUS));
+
+                // 组合颜色 (ARGB -> 0xAARRGGBB)
+                color = (0xFF << 24) | (r << 16) | (g << 8) | b;
+
+                putPixel(framebuffer, px, py, color);
+            }
+        }
+
+        // 5. 简单延时/等待输入 (防止跑太快)
+        // 检测退出 (ESC = 0x1B)
+        // 注意：原代码有窗口ID，这里简化处理，如果无法获取键盘可能需要依赖系统中断退出
+        // 尝试兼容原系统的键盘读取
+        MOUSEINFO mouseinfo;
+        // 如果没有窗口系统，这部分可能不需要，但为了安全保留非阻塞检查
+        // 假设 __kGetKbd 需要窗口句柄，若无窗口系统可注释掉
+
+        // 简易退出检测：如果系统支持全局键盘缓冲
+        // 这里为了最小化，假设用户通过外部手段终止，或者保留原窗口逻辑的最小集
+        // 如果必须保留窗口关闭逻辑，需保留原代码的 window 初始化部分。
+        // **为了真正的“最小化”，这里假设这是一个裸机循环，依靠重启或外部中断停止**
+        // 若需按键退出，请取消下面注释并确保 window 初始化存在
+        /*
+        if (__kGetKbd(0) == 0x1B) break;
+        */
+
+        __sleep(10); // 延时约10-20ms，控制帧率
+    }
+
     return 0;
 }

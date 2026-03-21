@@ -1487,9 +1487,8 @@ int IsBspProcessor() {
 #ifdef _DEBUG
 #include <stdio.h>
 #include <stdlib.h>
+
 LPPROCESS_INFO g_proc_info = 0;
-
-
 
 LPPROCESS_INFO DebugCreateProcess() {
 	if (g_proc_info == 0) {
@@ -1552,7 +1551,6 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 		for (int i = 0; i < cnt; i++) {
 			if (apids[i] == id)
 			{
-
 				LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * id);
 				return process;
 			}
@@ -1734,49 +1732,98 @@ int GetIdleProcessor() {
 int g_debug_tag = 0;
 
 PROCESS_INFO * GetReadyProcess() {
-	int id = 0;
+
 	char szout[256];
+
 	PROCESS_INFO* tss = GetTaskTssBase();
-	PROCESS_INFO* current = GetCurrentTaskTssBase();
+	PROCESS_INFO* process = GetCurrentTaskTssBase();
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	AlgorithmModel idle[TASK_LIMIT_TOTAL];
+	AlgorithmModel tickp[TASK_LIMIT_TOTAL];
+	AlgorithmModel window[TASK_LIMIT_TOTAL];
+
+	AlgorithmModel user[TASK_LIMIT_TOTAL];
+
+	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
 	int count = 0;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (tss[i].status == TASK_RUN && tss->tid != current->tick) {
-			//proc[i].delta += proc[i].slice;
-			tss[i].priority = (tss[i].tick) ;
-			if (tss[i].priority < 0) {
-				tss[i].priority = 0;
-			}
-			idle[count].id = tss[i].tid;
-			idle[count].v = tss[i].priority;
+		if (tss[i].status == TASK_RUN ) {
+			tickp[count].id = tss[i].tid;
+			tickp[count].v = tss[i].tick;
+
+			window[count].id = tss[i].tid;
+			window[count].v = tss[i].window == 0 ? 0:1;
+
+			user[count].id = tss[i].tid;
+			user[count].v = tss[i].level == 0? 1:0;
+
+			level[count].id = tss[i].tid;
+			level[count].v = 0;
 			count++;
 		}
 	}
 
 	if (count) {
+		AlgorithmModel tickc[TASK_LIMIT_TOTAL];
+		__memcpy((char*)tickc, (char*)tickp, sizeof(AlgorithmModel)*count);
 
-		QuickSort(idle, 0, count - 1);
+		QuickSort(tickc, 0, count - 1);
 
 		if ((g_debug_tag++) % 100 == 0) {
 			for (int i = 0; i < count; i++) {
-				int pid = (int)idle[i].id;
-				int priority = (int)idle[i].v;
-				__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n",
-					__FUNCTION__, __LINE__, cpu, pid,
-					priority, tss[id].delta, tss[id].counter, tss[id].sleep_total, tss[i].slice);
+				int pid = (int)tickp[i].id;
+				int priority = (int)tickp[i].v;
+				//__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n",
+				//	__FUNCTION__, __LINE__, cpu, pid,priority, tss[id].delta, tss[id].counter, tss[id].sleep_total, tss[i].slice);
 			}
 		}
 
-		id = idle[0].id;
+		int tickc_tid = tickc[0].id;
+		for (int i = 0; i < count; i++) {
+			if (tickp[i].id == tickc_tid) {
+				tickp[i].v = HIGH_PRIORITY / 2;
+			}
+			else {
+				tickp[i].v = 0;
+			}
+
+			level[i].v +=( window[i].v + tickp[i].v + user[i].v);
+		}
+
+		QuickSort(level, 0, count - 1);
+
+		int selected_pid = level[count - 1].id;
+
+		PROCESS_INFO* next = GetNextProcess();
+		if (next) {
+			if (next->tid == selected_pid) {
+				next->delta = 0;
+				return next;
+			}
+			else {
+				if (next->priority + next->delta >= tss[selected_pid].priority + tss[selected_pid].delta + level[count-1].v) {
+					next->delta = 0;
+					return next;
+				}
+				else {
+					next->delta += 1;
+					
+					return tss + selected_pid;
+				}
+			}
+		}
+		else {
+			return current;
+		}
 	}
 	else {
-		id = current->tid;
+		return current;
 	}
 
-	return tss + id;
+	return 0;
 }
 
 

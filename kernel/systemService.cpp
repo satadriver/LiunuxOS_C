@@ -244,7 +244,7 @@ void sleep(DWORD * params) {
 
 	if (g_pm_enable == 0) {
 		if (g_cpu_prev_tick[id]) {
-			g_cpu_tick[id] += (g_cpu_prev_tick[id] - tick1);
+			g_cpu_tick[id] += (tick1- g_cpu_prev_tick[id] );
 			g_cpu_prev_tick[id] = 0;
 		}
 	}

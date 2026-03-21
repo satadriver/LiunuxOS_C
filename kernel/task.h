@@ -96,7 +96,7 @@ int __initTask0(char* filename, char* funcname,int showx,int showy);
 int __getFreeTask(LPTASKRESULT ret);
 
 
-
+PROCESS_INFO* GetNextProcess();
 
 
 #ifdef DLL_EXPORT

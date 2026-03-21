@@ -193,16 +193,17 @@ extern "C"  __declspec(dllexport) double __acos(double x)
 
 	while (1)
 	{
-		if (__fabs(__cos(Mid) - x) < DBL_EPSILON) //近似值相等
+		double var = __cos(Mid);
+		if (__fabs(var - x) < DBL_EPSILON) //近似值相等
 		{
 			break;
 		}
 
-		else if (x< __cos(Mid)) {
+		else if (x< var) {
 
 			L = Mid;
 		}
-		else if (x > __cos(Mid)) { //x在左侧
+		else if (x > var) { //x在左侧
 
 			R = Mid;
 		}
@@ -231,16 +232,17 @@ extern "C"  __declspec(dllexport) double __asin(double x)
 
 	while (1)
 	{
-		if (__fabs(__sin(Mid) - x) < DBL_EPSILON) //近似值相等
+		double var = __sin(Mid);
+		if (__fabs(var - x) < DBL_EPSILON) //近似值相等
 		{
 			break;
 		}
 
-		else if (x < __sin(Mid)) {
+		else if (x > var) {
 
 			L = Mid;
 		}
-		else if (x > __sin(Mid)) { //x在左侧
+		else if (x < var) { //x在左侧
 
 			R = Mid;
 		}

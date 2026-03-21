@@ -311,7 +311,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->sleep_total = 0;
 	tss->errorno = 0;
 
-	tss->delta = 32;
+	tss->delta = 0;
 	tss->priority = 0;
 	tss->tick = 0;
 	tss->prev_tick = 0;

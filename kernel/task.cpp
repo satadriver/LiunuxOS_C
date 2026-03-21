@@ -1396,6 +1396,14 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			g_cpu_prev_tick[id] = 0;
 		}
 	}
+	else {
+		DWORD high = 0;
+		DWORD low = 0;
+		readmsr(0xe7, &low, &high);
+		unsigned long long ul = ((unsigned long long)high << 32) + low;
+		g_cpu_tick[id] += time1 - ul;
+		g_cpu_prev_tick[id] = 0;
+	}
 
 	__kApicTimerProc();
 
@@ -1536,7 +1544,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->large_heap_size = 0;
 	process0->fast_heap_large = 0;
 
-	process0->delta = 32;
+	process0->delta = 0;
 	process0->priority = 0;
 	process0->tick = 0;
 	process0->prev_tick = __krdtsc();
@@ -1739,6 +1747,53 @@ void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {
 	}
 }
 
+
+PROCESS_INFO* GetNextProcess() {
+	char szout[256];
+	int ret = 0;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+	LPPROCESS_INFO next = current;
+
+	do {
+		next++;
+		if (next - tss >= TASK_LIMIT_TOTAL) {
+			next = tss;
+		}
+
+		if (next == current) {
+			return 0;
+		}
+
+		if (id != next->cpuid) {
+			continue;
+		}
+
+		if (next->status == TASK_TERMINATE) {
+			next->status = TASK_OVER;
+			continue;
+		}
+		else if (next->status == TASK_RUN) {
+			if (next->sleep) {
+				next->sleep--;
+			}
+			else {
+				break;
+			}
+			continue;
+		}
+		else if (next->status == TASK_OVER) {
+			continue;
+		}
+		else if (next->status == TASK_SUSPEND) {
+			continue;
+		}
+	} while (TRUE);
+
+	return next;
+}
 
 
 
