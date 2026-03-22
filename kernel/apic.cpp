@@ -1772,14 +1772,15 @@ PROCESS_INFO * GetReadyProcess() {
 
 		QuickSort(tickc, 0, count - 1);
 
+		/*
 		if ((g_debug_tag++) % 100 == 0) {
 			for (int i = 0; i < count; i++) {
 				int pid = (int)tickp[i].id;
 				int priority = (int)tickp[i].v;
-				//__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n",
-				//	__FUNCTION__, __LINE__, cpu, pid,priority, tss[id].delta, tss[id].counter, tss[id].sleep_total, tss[i].slice);
+				__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n",
+					__FUNCTION__, __LINE__, cpu, pid,priority, tss[id].delta, tss[id].counter, tss[id].sleep_total, tss[i].slice);
 			}
-		}
+		}*/
 
 		int tickc_tid = tickc[0].id;
 		for (int i = 0; i < count; i++) {
