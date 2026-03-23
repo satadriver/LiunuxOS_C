@@ -35,8 +35,8 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(TASK_LIMIT_TOTAL*1024)
-#define		TASK_PREDICTION_TEST	(TASK_LIMIT_TOTAL*1024)
+#define		TASK_PREDICTION_TRAIN	(1024)
+#define		TASK_PREDICTION_TEST	(1024)
 #define		TASK_PREDICTION_COUNT	(TASK_PREDICTION_TRAIN+TASK_PREDICTION_TEST)
 
 TaskPredictParam* g_ml_data = 0;
@@ -45,21 +45,30 @@ int g_ml_data_cnt = 0;
 
 
 
-int SaveMlData(float tick, float user, float window, float delta, float priority,float status,float result)
+int SaveMlData(float tick, float user, float window, float delta, float priority,
+	float ntick, float nuser, float nwindow, float ndelta, float npriority, float result)
 {
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
 		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_COUNT *sizeof(TaskPredictParam));
 	}
+	if (g_ml_data != 0) {
+		if (g_ml_data_cnt < TASK_PREDICTION_COUNT) {
+			g_ml_data[g_ml_data_cnt].tick = tick;
+			g_ml_data[g_ml_data_cnt].user = user;
+			g_ml_data[g_ml_data_cnt].window = window;
+			g_ml_data[g_ml_data_cnt].delta = delta;
+			g_ml_data[g_ml_data_cnt].priority = priority;
 
-	if (g_ml_data_cnt < TASK_PREDICTION_COUNT) {
-		g_ml_data[g_ml_data_cnt].tick = tick;
-		g_ml_data[g_ml_data_cnt].user = user;
-		g_ml_data[g_ml_data_cnt].window = window;
-		g_ml_data[g_ml_data_cnt].delta = delta;
-		g_ml_data[g_ml_data_cnt].priority = priority;
-		g_ml_data[g_ml_data_cnt].result = result;
-		g_ml_data[ g_ml_data_cnt].status = status;
-		g_ml_data_cnt++;
+			g_ml_data[g_ml_data_cnt].result = result;
+
+			g_ml_data[g_ml_data_cnt].ntick = ntick;
+			g_ml_data[g_ml_data_cnt].nuser = nuser;
+			g_ml_data[g_ml_data_cnt].nwindow = nwindow;
+			g_ml_data[g_ml_data_cnt].ndelta = ndelta;
+			g_ml_data[g_ml_data_cnt].npriority = npriority;
+
+			g_ml_data_cnt++;
+		}
 	}
 
 	return g_ml_data_cnt;
@@ -69,7 +78,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 	while (g_ml_data_cnt < TASK_PREDICTION_COUNT) {
-		__sleep(1000);
+		__sleep(100);
 	}
 
 	char szout[256];
@@ -77,16 +86,16 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
 	int i = 0;
-	int max_bit = ( sizeof(TaskPredictParam) / sizeof(g_ml_data[0]) - 1) * TASK_LIMIT_TOTAL;
+	int inSize = ( sizeof(TaskPredictParam) / sizeof(g_ml_data[0]) - 1) ;
 	int n_samples = TASK_PREDICTION_TRAIN;
-	int out = TASK_LIMIT_TOTAL;
+	int outSize = 1;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
 	kann_t* ann;
 	// construct an MLP with one hidden layers
-	t = kann_layer_input(max_bit);
+	t = kann_layer_input(inSize);
 
-	t = kad_relu(kann_layer_dense(t, TASK_LIMIT_TOTAL));
+	t = kad_relu(kann_layer_dense(t, 64));
 
 	t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 
@@ -97,36 +106,28 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	y = (float**)calloc(n_samples, sizeof(float*));
 	for (i = 0; i < n_samples; ++i) {
 
-		x[i] = (float*)calloc(max_bit, sizeof(float));
+		x[i] = (float*)calloc(inSize, sizeof(float));
 		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
-		y[i] = (float*)calloc(max_bit, sizeof(float));
-		int pos = (int)g_ml_data[i].result;
-		y[i][pos] = 1.0;		
+		y[i] = (float*)calloc(outSize, sizeof(float));
+		float v = (int)g_ml_data[i].result;
+		y[i][0] = v;		
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, TASK_LIMIT_TOTAL, 10, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 10, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_COUNT;
-	x1 = (float*)calloc(max_bit, sizeof(float));
+	x1 = (float*)calloc(inSize, sizeof(float));
 	int n_err = 0;
 	for (i = TASK_PREDICTION_TEST; i < n_samples; ++i) {
 		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		const float* y1;
 		y1 = kann_apply1(ann, x1);
-		float max = -1.0f;
-		int idx = 0;
-		for (i = 0; i < TASK_LIMIT_TOTAL; i++) {
-			if(max < y1[i]) {
-				max = y1[i];
-				idx = i;
-			}
-		}
 
-		if (idx != g_ml_data[i].result) 
+		if (*y1 - g_ml_data[i].result >= 1e-6)
 			++n_err;
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);

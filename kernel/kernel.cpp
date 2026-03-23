@@ -172,7 +172,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 
 		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning");
-		//__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning");
+		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning");
 	}
 
 	//imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);

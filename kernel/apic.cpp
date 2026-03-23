@@ -1750,6 +1750,14 @@ PROCESS_INFO * GetReadyProcess() {
 
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
+	int target_idx = 0;
+
+	int next_idx = 0;
+
+	float result = 0.0;
+
+	int old_delta = 0;
+
 	int count = 0;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN) {
@@ -1812,66 +1820,97 @@ PROCESS_INFO * GetReadyProcess() {
 
 			QuickSort(level, 0, count - 1);
 
-			int target_tid = level[count - 1].id;
+			target_idx = level[count - 1].id;
 
-			int next_idx = 0;
+			next_idx = 0;
 			for (int i = 0; i < count; i++) {
 				if (next->tid == level[i].id) {
 					next_idx = i;
 				}
 			}
 
-			if (next->tid == target_tid) {
+			if (next->tid == target_idx) {
+				old_delta = next->delta;
 				next->delta = 0;
 				target_tss = next;
 			}
 			else {
 				if (next->priority + next->delta + level[next_idx].v >
-					tss[target_tid].priority + tss[target_tid].delta + level[count - 1].v) {
+					tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v) 
+				{
+					old_delta = next->delta;
 					next->delta = 0;
 					target_tss = next;
+					result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
+						next->priority + next->delta + level[next_idx].v;
 				}
 				else {
 					next->delta += 1;
 					if(next->delta > HIGH_PRIORITY) {
 						next->delta = HIGH_PRIORITY;
 					}
-					target_tss = tss + target_tid;
+					old_delta = next->delta;
+
+					target_tss = tss + target_idx;
+
+					result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
+						next->priority + next->delta + level[next_idx].v;
 				}
 			}
 		}
 		else {
+			next = current;
 			target_tss = current;
 			__memset((char*)tickc, 0, TASK_LIMIT_TOTAL * sizeof(float));
 		}
 	}
 	else {
+		next = current;
 		target_tss = current;
 		__memset((char*)tickc, 0, TASK_LIMIT_TOTAL * sizeof(float));
 	}
 
-	float tids[TASK_LIMIT_TOTAL];
-	int target_tid = target_tss - tss;
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (i == target_tid) {
-			tids[i] = (float)1;
-		}
-		else {
-			tids[i] = (float)0;
-		}
+	int target_tid = target_tss->tid;
+
+	int next_pid = next->tid;
+
+	float tick_ratio = (float)tickc[target_idx].v;
+	float ntick = (float)tickc[next_idx].v;
+	if(next == current) {
+		tick_ratio = 0;
+		ntick = 0;
 	}
+	else {
 
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		float tick_ratio = (float)tickc[i].v;
-		tick_ratio = tick_ratio / (HIGH_PRIORITY );
-
-		float priority = (float)tss[i].priority;
-		priority = priority / (HIGH_PRIORITY);
-
-		float delta = (float)tss[i].delta;
-		delta = delta / (HIGH_PRIORITY);
-		SaveMlData((float)tick_ratio, (float)user[i], (float)window[i], (float)delta, (float)priority,status[i], (float)tids[i]);
 	}
+	
+	tick_ratio = tick_ratio / (HIGH_PRIORITY );
+
+	float priority = (float)tss[target_tid].priority;
+	priority = priority / (HIGH_PRIORITY);
+
+	float delta = (float)tss[target_tid].delta;
+	delta = delta / (HIGH_PRIORITY);
+
+	float user_ = tss[target_tid].level == 0 ? (float)1.0 : (float)0.0;
+
+	float window_ = tss[target_tid].window ? (float)1.0 : (float)0.0;
+
+	
+	ntick = ntick / (HIGH_PRIORITY);
+
+	float npriority = (float)tss[next_pid].priority;
+	npriority = npriority / (HIGH_PRIORITY);
+
+	float ndelta = (float)tss[next_pid].delta;
+	ndelta = ndelta / (HIGH_PRIORITY);
+
+	float nuser = tss[next_pid].level == 0 ? (float)1.0 : (float)0.0;
+
+	float nwindow = tss[next_pid].window ? (float)1.0 : (float)0.0;
+
+	SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)delta, (float)priority,
+		ntick,nuser,nwindow,ndelta,npriority,result);
 
 	return target_tss;
 }
