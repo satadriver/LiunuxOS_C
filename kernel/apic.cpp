@@ -1746,7 +1746,7 @@ PROCESS_INFO * GetReadyProcess() {
 
 	int user[TASK_LIMIT_TOTAL];
 
-	DWORD status[TASK_LIMIT_TOTAL];
+	int delta[TASK_LIMIT_TOTAL];
 
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
@@ -1755,8 +1755,6 @@ PROCESS_INFO * GetReadyProcess() {
 	int next_idx = 0;
 
 	float result = 0.0;
-
-	int old_delta = 0;
 
 	int count = 0;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
@@ -1768,24 +1766,13 @@ PROCESS_INFO * GetReadyProcess() {
 
 			user[count] = tss[i].level == 0 ? 1 : 0;
 
+			delta[count] = tss[i].delta;
+
 			level[count].id = tss[i].tid;
 			level[count].v = 0;
 
-			status[count] = 1;
+			count++;
 		}
-		else {
-			tickc[count].id = 0;
-			tickc[count].v = 0;
-
-			window[count] = 0;
-			user[count] = 0;
-
-			level[count].id = 0;
-			level[count].v = 0;
-
-			status[count] = 0;
-		}
-		count++;
 	}
 
 	PROCESS_INFO* next = GetNextProcess();
@@ -1805,7 +1792,7 @@ PROCESS_INFO * GetReadyProcess() {
 			}*/
 
 			for (int i = 0; i < count; i++) {
-				tickc[i].v = HIGH_PRIORITY / (i + 1);
+				tickc[i].v = HIGH_PRIORITY/2 / (i + 1);
 			}
 
 			for (int i = 0; i < count; i++) {
@@ -1830,7 +1817,6 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 
 			if (next->tid == target_idx) {
-				old_delta = next->delta;
 				next->delta = 0;
 				target_tss = next;
 			}
@@ -1838,7 +1824,6 @@ PROCESS_INFO * GetReadyProcess() {
 				if (next->priority + next->delta + level[next_idx].v >
 					tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v) 
 				{
-					old_delta = next->delta;
 					next->delta = 0;
 					target_tss = next;
 					result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
@@ -1849,7 +1834,6 @@ PROCESS_INFO * GetReadyProcess() {
 					if(next->delta > HIGH_PRIORITY) {
 						next->delta = HIGH_PRIORITY;
 					}
-					old_delta = next->delta;
 
 					target_tss = tss + target_idx;
 
@@ -1889,27 +1873,26 @@ PROCESS_INFO * GetReadyProcess() {
 	float priority = (float)tss[target_tid].priority;
 	priority = priority / (HIGH_PRIORITY);
 
-	float delta = (float)tss[target_tid].delta;
-	delta = delta / (HIGH_PRIORITY);
+	float del = (float)delta[target_idx];
+	del = del / (HIGH_PRIORITY);
 
 	float user_ = tss[target_tid].level == 0 ? (float)1.0 : (float)0.0;
 
 	float window_ = tss[target_tid].window ? (float)1.0 : (float)0.0;
 
-	
 	ntick = ntick / (HIGH_PRIORITY);
 
 	float npriority = (float)tss[next_pid].priority;
 	npriority = npriority / (HIGH_PRIORITY);
 
-	float ndelta = (float)tss[next_pid].delta;
+	float ndelta = (float)delta[next_idx];
 	ndelta = ndelta / (HIGH_PRIORITY);
 
 	float nuser = tss[next_pid].level == 0 ? (float)1.0 : (float)0.0;
 
 	float nwindow = tss[next_pid].window ? (float)1.0 : (float)0.0;
 
-	SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)delta, (float)priority,
+	SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)del, (float)priority,
 		ntick,nuser,nwindow,ndelta,npriority,result);
 
 	return target_tss;
