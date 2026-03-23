@@ -10,6 +10,7 @@ struct TaskPredictParam {
 	float window;
 	float delta;
 	float priority;
+	float status;
 	float result;
 };
 
@@ -17,6 +18,7 @@ struct TaskPredictParam {
 
 extern "C" __declspec(dllexport) TaskPredictParam * g_ml_data ;
 
-int SaveData(float tick, float user, float window, float delta, float priority);
+
+int SaveMlData(float tick, float user, float window, float delta, float priority, float status,float result);
 
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);

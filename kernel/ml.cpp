@@ -35,8 +35,8 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	1000
-#define		TASK_PREDICTION_TEST	1000
+#define		TASK_PREDICTION_TRAIN	(TASK_LIMIT_TOTAL*1024)
+#define		TASK_PREDICTION_TEST	(TASK_LIMIT_TOTAL*1024)
 #define		TASK_PREDICTION_COUNT	(TASK_PREDICTION_TRAIN+TASK_PREDICTION_TEST)
 
 TaskPredictParam* g_ml_data = 0;
@@ -45,7 +45,7 @@ int g_ml_data_cnt = 0;
 
 
 
-int SaveData(float tick, float user, float window, float delta, float priority,float result) 
+int SaveMlData(float tick, float user, float window, float delta, float priority,float status,float result)
 {
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
 		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_COUNT *sizeof(TaskPredictParam));
@@ -58,6 +58,7 @@ int SaveData(float tick, float user, float window, float delta, float priority,f
 		g_ml_data[g_ml_data_cnt].delta = delta;
 		g_ml_data[g_ml_data_cnt].priority = priority;
 		g_ml_data[g_ml_data_cnt].result = result;
+		g_ml_data[ g_ml_data_cnt].status = status;
 		g_ml_data_cnt++;
 	}
 
@@ -66,19 +67,26 @@ int SaveData(float tick, float user, float window, float delta, float priority,f
 
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
+	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+	while (g_ml_data_cnt < TASK_PREDICTION_COUNT) {
+		__sleep(1000);
+	}
+
 	char szout[256];
 
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
-	int i, k, max_bit = 5, n_samples = TASK_PREDICTION_TRAIN;
-	int out = 1;
+	int i = 0;
+	int max_bit = ( sizeof(TaskPredictParam) / sizeof(g_ml_data[0]) - 1) * TASK_LIMIT_TOTAL;
+	int n_samples = TASK_PREDICTION_TRAIN;
+	int out = TASK_LIMIT_TOTAL;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
 	kann_t* ann;
 	// construct an MLP with one hidden layers
 	t = kann_layer_input(max_bit);
 
-	t = kad_relu(kann_layer_dense(t, 64));
+	t = kad_relu(kann_layer_dense(t, TASK_LIMIT_TOTAL));
 
 	t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 
@@ -93,11 +101,12 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		y[i] = (float*)calloc(max_bit, sizeof(float));
-		y[i][0] = g_ml_data[i].result;		
+		int pos = (int)g_ml_data[i].result;
+		y[i][pos] = 1.0;		
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, TASK_LIMIT_TOTAL, 10, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_COUNT;
@@ -108,8 +117,16 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 		const float* y1;
 		y1 = kann_apply1(ann, x1);
+		float max = -1.0f;
+		int idx = 0;
+		for (i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if(max < y1[i]) {
+				max = y1[i];
+				idx = i;
+			}
+		}
 
-		if (*y1 != g_ml_data[i].result) 
+		if (idx != g_ml_data[i].result) 
 			++n_err;
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
