@@ -813,10 +813,11 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 		}
 		else if ( (format[spos] == '%' && format[spos + 1] == 'f' ) )
 		{
+			//according to the x86 calling convention, float parameters are passed as double, so we read 8 bytes and convert to double
 			spos += 2;
 
-			float f = *(float*)params;
-			params+=1;
+			double f = *(double*)params;
+			params+=2;
 			
 			int len = strlf2lf(f, dst + dpos);
 			dpos += len;
@@ -872,12 +873,11 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 
 
 int __printf(char* buf,const char* format, ...) {
-#ifdef _DEBUG
-	return 0;
-#endif
+#ifndef _DEBUG
 	if (g_ScreenMode == 0) {
 		return 0;
 	}
+#endif
 
 	if (format == 0 || buf == 0) {
 		return FALSE;

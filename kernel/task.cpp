@@ -1387,6 +1387,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	if (current->prev_tick && prev->prev_tick) {
 		current->tick += time1 - current->prev_tick;
 		prev->tick += time1 - prev->prev_tick;
+
+		//__printf(szout, "%s %d current tick:%I64x prev tick:%I64x\r\n",__FUNCTION__, __LINE__, current->tick, prev->tick);
 	}
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -1430,6 +1432,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	
 	__int64 time2 = __krdtsc();
 
+	/*
 	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
 		__int64 deltaTime = time2 - time1;
 
@@ -1444,11 +1447,15 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			prev->tss.link, current->tss.link, next->tss.link, env->eflags, prev->tss.eflags, current->tss.eflags, next->tss.eflags,
 			current->pid, current->tid, next->pid, next->tid, deltaTime, cpurate);
 	}
-	
+	*/
+
 	current->prev_tick = time2;
 	if (next) {
 		next->prev_tick = time2;
 	}
+
+	//__printf(szout, "%s %d current prev tick:%I64x next prev tick:%I64x\r\n", __FUNCTION__,__LINE__,current->prev_tick,next->prev_tick);
+
 	if (g_pm_enable == 0) {
 		g_cpu_prev_tick[id] = time2;
 	}
@@ -1547,7 +1554,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->delta = 0;
 	process0->priority = 0;
 	process0->tick = 0;
-	process0->prev_tick = __krdtsc();
+	process0->prev_tick = 0;
 
 	int bsp = IsBspProcessor();
 	if (bsp) {

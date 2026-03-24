@@ -232,11 +232,12 @@ void sleep(DWORD * params) {
 	proc->sleep_total += times;
 
 	unsigned long long tick1 = __krdtsc();
-	current->tick += (tick1 - current->prev_tick);
-	proc->tick += (tick1 - proc->prev_tick);
-
-	current->prev_tick = 0;
-	proc->prev_tick = 0;
+	if (current->prev_tick && proc->prev_tick) {
+		current->tick += (tick1 - current->prev_tick);
+		proc->tick += (tick1 - proc->prev_tick);
+		current->prev_tick = 0;
+		proc->prev_tick = 0;
+	}
 
 	leave_task_array_lock();
 

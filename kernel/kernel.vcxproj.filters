@@ -261,14 +261,14 @@
     <ClCompile Include="libc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ml.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="kann-master\kann.cpp">
       <Filter>kann</Filter>
     </ClCompile>
     <ClCompile Include="kann-master\kautodiff.cpp">
       <Filter>kann</Filter>
-    </ClCompile>
-    <ClCompile Include="ml.cpp">
-      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

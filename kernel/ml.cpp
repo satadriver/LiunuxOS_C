@@ -67,6 +67,12 @@ int SaveMlData(float tick, float user, float window, float delta, float priority
 			g_ml_data[g_ml_data_cnt].ndelta = ndelta;
 			g_ml_data[g_ml_data_cnt].npriority = npriority;
 
+			if(g_ml_data_cnt % 100 == 0) {
+				printf("%s %d cnt:%d tick:%f user:%f window:%f delta:%f priority:%f ntick:%f nuser:%f nwindow:%f ndelta:%f npriority:%f result:%f\r\n", 
+					__FUNCTION__, __LINE__, g_ml_data_cnt, tick, user, window, delta, priority, 
+					ntick, nuser, nwindow, ndelta, npriority, result);
+			}
+
 			g_ml_data_cnt++;
 		}
 	}

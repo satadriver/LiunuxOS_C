@@ -280,7 +280,14 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 }
 #elif defined _CONSOLE
 int main() {
-	__kMachineLearning(0, 0, "test", "test", 0);
+	//__kMachineLearning(0, 0, "test", "test", 0);
+
+	int a = 3;
+	double b = a * 1.0;
+	float c = (float) b / 2;
+	int d = (int)c;
+	char szout[256];
+	__printf(szout, "a:%d b:%lf c:%f d:%d\r\n", a, b, c,d);
 	return 0;
 }
 

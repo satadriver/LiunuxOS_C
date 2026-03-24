@@ -1168,7 +1168,8 @@ int InitLocalApicTimer() {
 	unsigned long long lv = APICTIMER_FREQ;
 
 	//lv = lv /16 / (1000 / TASK_TIME_SLICE);
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)lv;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0x40000000;
 
 	unsigned long long freq = 0;
 	int times = 3;
@@ -1730,6 +1731,15 @@ int GetIdleProcessor() {
 }
 
 
+unsigned long GetValueFromArray(AlgorithmModel* array,int size,int key) {
+	for(int i = 0; i < size; i++) {
+		if(array[i].id == key) {
+			return (unsigned long)array[i].v;
+		}
+	}
+	return 0;
+}
+
 int g_debug_tag = 0;
 
 PROCESS_INFO * GetReadyProcess() {
@@ -1746,13 +1756,11 @@ PROCESS_INFO * GetReadyProcess() {
 
 	int user[TASK_LIMIT_TOTAL];
 
-	int delta[TASK_LIMIT_TOTAL];
+	AlgorithmModel delta[TASK_LIMIT_TOTAL];
 
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
-	int target_idx = 0;
-
-	int next_idx = 0;
+	int target_id = 0;
 
 	float result = 0.0;
 
@@ -1762,15 +1770,16 @@ PROCESS_INFO * GetReadyProcess() {
 			tickc[count].id = tss[i].tid;
 			tickc[count].v = tss[i].tick;
 
-			window[count] = tss[i].window == 0 ? 0 : 1;
+			window[count] = (tss[i].window == 0 ? 0 : 1);
 
-			user[count] = tss[i].level == 0 ? 1 : 0;
+			user[count] = (tss[i].level == 0 ? 1 : 0);
 
-			delta[count] = tss[i].delta;
+			delta[count].v = tss[i].delta;
+			delta[count].id = tss[i].tid;
 
 			level[count].id = tss[i].tid;
 			level[count].v = 0;
-
+				
 			count++;
 		}
 	}
@@ -1780,16 +1789,6 @@ PROCESS_INFO * GetReadyProcess() {
 		//int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		if (count) {
 			QuickSort(tickc, 0, count - 1);
-
-			/*
-			if ((g_debug_tag++) % 100 == 0) {
-				for (int i = 0; i < count; i++) {
-					int pid = (int)tickp[i].id;
-					int priority = (int)tickp[i].v;
-					__printf(szout, "%s %d cpu[%d] pid[%d] priority:%x,delta:%x,counter:%x,sleep_total:%x,slice:%x\r\n",
-						__FUNCTION__, __LINE__, cpu, pid,priority, tss[id].delta, tss[id].counter, tss[id].sleep_total, tss[i].slice);
-				}
-			}*/
 
 			for (int i = 0; i < count; i++) {
 				tickc[i].v = STATIC_PRIORITY / (i + 1);
@@ -1807,22 +1806,23 @@ PROCESS_INFO * GetReadyProcess() {
 
 			QuickSort(level, 0, count - 1);
 
-			target_idx = level[count - 1].id;
+			target_id = level[count - 1].id;
 
-			next_idx = 0;
-			for (int i = 0; i < count; i++) {
-				if (next->tid == level[i].id) {
-					next_idx = i;
-				}
-			}
-
-			if (next->tid == target_idx) {
+			if (next->tid == target_id) {
 				next->delta = 0;
 				target_tss = next;
 			}
 			else {
+				int next_idx = 0;
+				for (int i = 0; i < count; i++) {
+					if (next->tid == level[i].id) {
+						next_idx = i;
+						break;
+					}
+				}
+
 				if (next->priority + next->delta + level[next_idx].v >
-					tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v) 
+					tss[target_id].priority + tss[target_id].delta + level[count - 1].v)
 				{
 					next->delta = 0;
 					target_tss = next;
@@ -1833,64 +1833,80 @@ PROCESS_INFO * GetReadyProcess() {
 						next->delta = DYNAMIC_PRIORITY;
 					}
 
-					target_tss = tss + target_idx;
+					target_tss = tss + target_id;
 				}
-				result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
+				result = tss[target_id].priority + tss[target_id].delta + level[count - 1].v -
 					next->priority + next->delta + level[next_idx].v;
+
+				if (next == current) {
+
+				}
+				else {
+					int next_tid = next->tid;
+
+					//for (int i = 0; i < count; i++) {
+					//	__printf(szout, "[%d]. next id:%d target id:%d,tickc sort tid:%I64x value:%I64x\r\n",
+					//		i,next_tid,target_id,	tickc[i].id, tickc[i].v);
+					//}
+
+					int v = 0;
+
+					double tick_ratio = 0.0;
+					float ntick = 0.0;
+					v = GetValueFromArray(tickc, count, target_id);
+					tick_ratio = (float)v * 1.0;
+
+					v = GetValueFromArray(tickc, count, next_tid);
+					ntick = (float)v * 1.0;
+
+					tick_ratio = tick_ratio / (STATIC_PRIORITY);
+					ntick = ntick / (STATIC_PRIORITY);
+
+					float priority = (float)tss[target_id].priority;
+					priority = priority / (STATIC_PRIORITY);
+
+					v = GetValueFromArray(delta, count, target_id);
+					float del = v * 1.0;
+					del = del / (DYNAMIC_PRIORITY);
+
+					float user_ = tss[target_id].level == 0 ? (float)1.0 : (float)0.0;
+
+					float window_ = tss[target_id].window ? (float)1.0 : (float)0.0;
+
+					float npriority = (float)tss[next_tid].priority;
+					npriority = npriority / (STATIC_PRIORITY);
+					v = GetValueFromArray(delta, count, next_tid);
+					float ndelta = (float)v * 1.0;
+					ndelta = ndelta / (DYNAMIC_PRIORITY);
+
+					float nuser = (tss[next_tid].level == 0 ? (float)1.0 : (float)0.0);
+
+					float nwindow = (tss[next_tid].window ? (float)1.0 : (float)0.0);
+#ifndef _DEBUG
+					SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)del, (float)priority,
+						ntick, nuser, nwindow, ndelta, npriority, result/(STATIC_PRIORITY*2+DYNAMIC_PRIORITY));
+#endif
+				}
 			}
 		}
 		else {
+			target_id = current->tid;
 			next = current;
 			target_tss = current;
 			__memset((char*)tickc, 0, TASK_LIMIT_TOTAL * sizeof(float));
 		}
 	}
 	else {
+		target_id = current->tid;
 		next = current;
 		target_tss = current;
 		__memset((char*)tickc, 0, TASK_LIMIT_TOTAL * sizeof(float));
 	}
 
-	int target_tid = target_tss->tid;
-
-	int next_tid = next->tid;
-
-	float tick_ratio = (float)tickc[target_idx].v;
-	float ntick = (float)tickc[next_idx].v;
-	if(next == current) {
-		tick_ratio = 0;
-		ntick = 0;
-	}
-	else {
-
-	}
 	
-	tick_ratio = tick_ratio / (STATIC_PRIORITY );
 
-	float priority = (float)tss[target_tid].priority;
-	priority = priority / (STATIC_PRIORITY);
 
-	float del = (float)delta[target_idx];
-	del = del / (DYNAMIC_PRIORITY);
 
-	float user_ = tss[target_tid].level == 0 ? (float)1.0 : (float)0.0;
-
-	float window_ = tss[target_tid].window ? (float)1.0 : (float)0.0;
-
-	ntick = ntick / (STATIC_PRIORITY);
-
-	float npriority = (float)tss[next_tid].priority;
-	npriority = npriority / (STATIC_PRIORITY);
-
-	float ndelta = (float)delta[next_idx];
-	ndelta = ndelta / (DYNAMIC_PRIORITY);
-
-	float nuser = tss[next_tid].level == 0 ? (float)1.0 : (float)0.0;
-
-	float nwindow = tss[next_tid].window ? (float)1.0 : (float)0.0;
-
-	SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)del, (float)priority,
-		ntick,nuser,nwindow,ndelta,npriority,result);
 
 	return target_tss;
 }
