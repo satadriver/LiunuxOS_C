@@ -12,6 +12,9 @@ struct AlgorithmModel {
 
 #pragma pack()
 
+void swap(unsigned long* a, unsigned long* b);
+
+void BubbleSort(unsigned int* arr, int count);
 
 void BubbleSort_ull(AlgorithmModel* arr, int count);
 

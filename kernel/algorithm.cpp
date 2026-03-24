@@ -24,10 +24,19 @@ void BubbleSort_ull(AlgorithmModel* arr, int count) {
 	}
 }
 
-
-
-
-
+void BubbleSort(unsigned int* arr, int count) {
+	for (int i = count - 1; i > 0 ; i--) {
+		for (int j = 0; j < i; j++) {
+			unsigned int low = arr[j] & 0x00ffffff;
+			unsigned int high = arr[j + 1] & 0x00ffffff;
+			if (low > high) {
+				unsigned int temp = arr[j];
+				arr[j] = arr[j + 1];
+				arr[j + 1] = temp;
+			}
+		}
+	}
+}
 
 int partition(AlgorithmModel* data, int low, int high) {
 	unsigned long long  pivot = data[low].v;

@@ -102,8 +102,11 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	t = kann_layer_input(inSize);
 
 	t = kad_relu(kann_layer_dense(t, 64));
+	t = kad_relu(kann_layer_dense(t, 64));
+	t = kad_relu(kann_layer_dense(t, 64));
 
-	t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
+	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
+	t = kann_layer_cost(t, 1, KANN_C_CEB); // output uses 1-hot encoding
 
 	ann = kann_new(t, 0);
 
@@ -133,7 +136,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		const float* y1;
 		y1 = kann_apply1(ann, x1);
 
-		if (*y1 - g_ml_data[i].result >= 1e-6)
+		if (*y1 - g_ml_data[i].result >= 1e-6 || *y1 - g_ml_data[i].result <= -1e-6)
 			++n_err;
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
@@ -175,7 +178,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_old(unsigned int retaddr
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 20, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	x1 = (float*)calloc(max_bit, sizeof(float));

@@ -1622,19 +1622,7 @@ int GetCpu(int* out, int size) {
 }
 
 
-void BubbleSort(unsigned int* arr, int count) {
-	for (int i = 0; i < count - 1; i++) {
-		for (int j = 0; j < count - i - 1; j++) {
-			unsigned int low = arr[j] & 0x00ffffff;
-			unsigned int high = arr[j + 1] & 0x00ffffff;
-			if (low > high) {
-				unsigned int temp = arr[j];
-				arr[j] = arr[j + 1];
-				arr[j + 1] = temp;
-			}
-		}
-	}
-}
+
 
 
 
@@ -1902,11 +1890,6 @@ PROCESS_INFO * GetReadyProcess() {
 		target_tss = current;
 		__memset((char*)tickc, 0, TASK_LIMIT_TOTAL * sizeof(float));
 	}
-
-	
-
-
-
 
 	return target_tss;
 }

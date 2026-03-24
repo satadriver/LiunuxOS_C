@@ -96,19 +96,17 @@ void EOICommand(int pin);
 
 void BPCodeStart();
 
-
-
 int InitLocalApicTimer();
 int InitApicPerformMonitor();
 int InitApicThermalMonitor();
 int DisableLocalApicLVT();
 
-extern "C" void __declspec(dllexport) __kApInitProc();
-
 int AllocateApTask(int vn);
 int ActiveApTask(int intnum);
 
 void WaitIcrFree();
+
+extern "C" void __declspec(dllexport) __kApInitProc();
 
 extern "C" void __declspec(dllexport) HpetTimerHandler(LIGHT_ENVIRONMENT* stack);
 
