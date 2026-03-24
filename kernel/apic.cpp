@@ -1182,7 +1182,7 @@ int InitLocalApicTimer() {
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq /16 /(1000 / TASK_TIME_SLICE);
+	freq = freq  /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
@@ -1792,7 +1792,7 @@ PROCESS_INFO * GetReadyProcess() {
 			}*/
 
 			for (int i = 0; i < count; i++) {
-				tickc[i].v = HIGH_PRIORITY/2 / (i + 1);
+				tickc[i].v = STATIC_PRIORITY / (i + 1);
 			}
 
 			for (int i = 0; i < count; i++) {
@@ -1826,20 +1826,17 @@ PROCESS_INFO * GetReadyProcess() {
 				{
 					next->delta = 0;
 					target_tss = next;
-					result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
-						next->priority + next->delta + level[next_idx].v;
 				}
 				else {
 					next->delta += 1;
-					if(next->delta > HIGH_PRIORITY) {
-						next->delta = HIGH_PRIORITY;
+					if(next->delta > DYNAMIC_PRIORITY) {
+						next->delta = DYNAMIC_PRIORITY;
 					}
 
 					target_tss = tss + target_idx;
-
-					result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
-						next->priority + next->delta + level[next_idx].v;
 				}
+				result = tss[target_idx].priority + tss[target_idx].delta + level[count - 1].v -
+					next->priority + next->delta + level[next_idx].v;
 			}
 		}
 		else {
@@ -1856,7 +1853,7 @@ PROCESS_INFO * GetReadyProcess() {
 
 	int target_tid = target_tss->tid;
 
-	int next_pid = next->tid;
+	int next_tid = next->tid;
 
 	float tick_ratio = (float)tickc[target_idx].v;
 	float ntick = (float)tickc[next_idx].v;
@@ -1868,29 +1865,29 @@ PROCESS_INFO * GetReadyProcess() {
 
 	}
 	
-	tick_ratio = tick_ratio / (HIGH_PRIORITY );
+	tick_ratio = tick_ratio / (STATIC_PRIORITY );
 
 	float priority = (float)tss[target_tid].priority;
-	priority = priority / (HIGH_PRIORITY);
+	priority = priority / (STATIC_PRIORITY);
 
 	float del = (float)delta[target_idx];
-	del = del / (HIGH_PRIORITY);
+	del = del / (DYNAMIC_PRIORITY);
 
 	float user_ = tss[target_tid].level == 0 ? (float)1.0 : (float)0.0;
 
 	float window_ = tss[target_tid].window ? (float)1.0 : (float)0.0;
 
-	ntick = ntick / (HIGH_PRIORITY);
+	ntick = ntick / (STATIC_PRIORITY);
 
-	float npriority = (float)tss[next_pid].priority;
-	npriority = npriority / (HIGH_PRIORITY);
+	float npriority = (float)tss[next_tid].priority;
+	npriority = npriority / (STATIC_PRIORITY);
 
 	float ndelta = (float)delta[next_idx];
-	ndelta = ndelta / (HIGH_PRIORITY);
+	ndelta = ndelta / (DYNAMIC_PRIORITY);
 
-	float nuser = tss[next_pid].level == 0 ? (float)1.0 : (float)0.0;
+	float nuser = tss[next_tid].level == 0 ? (float)1.0 : (float)0.0;
 
-	float nwindow = tss[next_pid].window ? (float)1.0 : (float)0.0;
+	float nwindow = tss[next_tid].window ? (float)1.0 : (float)0.0;
 
 	SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)del, (float)priority,
 		ntick,nuser,nwindow,ndelta,npriority,result);

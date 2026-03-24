@@ -983,7 +983,7 @@ int kann_train_fnn1b(kann_t *ann, float lr, int mini_size, int max_epoch, int mi
 		if (n_val > 0) val_cost /= n_val;
 		if (kann_verbose >= 3) {
 			printf( "epoch: %d; training cost: %g", i+1, train_cost);
-			if (n_train_base) printf( " (class error: %.2f%%)", 100.0f * n_train_err / n_train);
+			if (n_train_base) printf( " (class error: %.2f%%)\r\n", 100.0f * n_train_err / n_train);
 			if (n_val > 0) {
 				printf( "; validation cost: %g", val_cost);
 				if (n_val_base) printf( " (class error: %.2f%%)\r\n", 100.0f * n_val_err / n_val);

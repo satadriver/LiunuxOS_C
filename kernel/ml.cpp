@@ -86,7 +86,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
 	int i = 0;
-	int inSize = ( sizeof(TaskPredictParam) / sizeof(g_ml_data[0]) - 1) ;
+	int inSize = ( sizeof(TaskPredictParam) / sizeof(float) - 1) ;
 	int n_samples = TASK_PREDICTION_TRAIN;
 	int outSize = 1;
 	float** x, ** y, max, * x1;
@@ -115,7 +115,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 10, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_COUNT;
