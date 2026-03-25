@@ -494,7 +494,11 @@ void clear_screen(uint32_t color) {
     for (i = 0; i < total_pixels; i++) {
         DWORD cc = color;
         for (int j = 0; j < gBytesPerPixel; j++) {
-            video_mem[i * gBytesPerPixel + j] = (cc) & 0xFF;
+            unsigned char c = (cc) & 0xFF;
+            if (video_mem[i * gBytesPerPixel + j] != c) {
+                video_mem[i * gBytesPerPixel + j] = c;
+            }
+            
             cc >>= 8;
         }
     }
@@ -539,7 +543,7 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
         if (frameCnt % 1024 == 0) {
             DWORD tmp = __random(0) % 100;
             g_x_speed = ((double)tmp);
-            g_x_speed = g_x_speed / 2000.0;
+            g_x_speed = g_x_speed / 1000.0;
             if (g_x_speed < 0.005) {
                 g_x_speed = 0.005;
             }
@@ -549,7 +553,7 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
 
             tmp = __random(0) % 100;
             g_y_speed = ((double)tmp);
-            g_y_speed = g_y_speed / 2000.0;
+            g_y_speed = g_y_speed / 1000.0;
             if (g_y_speed < 0.005) {
                 g_y_speed = 0.005;
             }
@@ -559,7 +563,7 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
 
             tmp = __random(0) % 100;
             g_z_speed = ((double)tmp);
-            g_z_speed = g_z_speed / 2000.0;
+            g_z_speed = g_z_speed / 1000.0;
             if (g_z_speed < 0.005) {
                 g_z_speed = 0.005;
             }

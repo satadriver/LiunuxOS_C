@@ -1849,11 +1849,11 @@ PROCESS_INFO * GetReadyProcess() {
 					v = GetValueFromArray(tickc, count, next_tid);
 					ntick = (float)v * 1.0;
 
-					tick_ratio = tick_ratio / (STATIC_PRIORITY);
-					ntick = ntick / (STATIC_PRIORITY);
+					tick_ratio = tick_ratio / (DYNAMIC_PRIORITY);
+					ntick = ntick / (DYNAMIC_PRIORITY);
 
 					float priority = (float)tss[target_id].priority;
-					priority = priority / (STATIC_PRIORITY);
+					priority = priority / (DYNAMIC_PRIORITY);
 
 					v = GetValueFromArray(delta, count, target_id);
 					float del = v * 1.0;
@@ -1864,7 +1864,7 @@ PROCESS_INFO * GetReadyProcess() {
 					float window_ = tss[target_id].window ? (float)1.0 : (float)0.0;
 
 					float npriority = (float)tss[next_tid].priority;
-					npriority = npriority / (STATIC_PRIORITY);
+					npriority = npriority / (DYNAMIC_PRIORITY);
 					v = GetValueFromArray(delta, count, next_tid);
 					float ndelta = (float)v * 1.0;
 					ndelta = ndelta / (DYNAMIC_PRIORITY);
@@ -1873,8 +1873,8 @@ PROCESS_INFO * GetReadyProcess() {
 
 					float nwindow = (tss[next_tid].window ? (float)1.0 : (float)0.0);
 #ifndef _DEBUG
-					SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)del, (float)priority,
-						ntick, nuser, nwindow, ndelta, npriority, result);
+					SaveMlData((float)tick_ratio, (float)user_/ DYNAMIC_PRIORITY, (float)window_/ DYNAMIC_PRIORITY, (float)del, (float)priority,
+						ntick, nuser/ DYNAMIC_PRIORITY, nwindow/ DYNAMIC_PRIORITY, ndelta, npriority, result);
 #endif
 				}
 			}

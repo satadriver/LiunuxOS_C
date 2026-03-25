@@ -106,7 +106,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	//t = kad_relu(kann_layer_dense(t, 64));
 
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
-	t = kann_layer_cost(t, 1, KANN_C_CEB); // output uses 1-hot encoding
+	t = kann_layer_cost(t, 1, KANN_C_MSE); // output uses 1-hot encoding
 
 	ann = kann_new(t, 0);
 
