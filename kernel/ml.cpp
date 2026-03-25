@@ -90,7 +90,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	char szout[256];
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
-
+	int cnt = 0;
 	int i = 0;
 	int inSize = ( sizeof(TaskPredictParam) / sizeof(float) - 1) ;
 	int n_samples = TASK_PREDICTION_TRAIN;
@@ -102,8 +102,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	t = kann_layer_input(inSize);
 
 	t = kad_relu(kann_layer_dense(t, 64));
-	t = kad_relu(kann_layer_dense(t, 64));
-	t = kad_relu(kann_layer_dense(t, 64));
+	//t = kad_relu(kann_layer_dense(t, 64));
+	//t = kad_relu(kann_layer_dense(t, 64));
 
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 	t = kann_layer_cost(t, 1, KANN_C_CEB); // output uses 1-hot encoding
@@ -124,7 +124,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 10, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_COUNT;
@@ -138,6 +138,10 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 		if (*y1 - g_ml_data[i].result >= 1e-6 || *y1 - g_ml_data[i].result <= -1e-6)
 			++n_err;
+
+		if (cnt++ % 10 == 0) {
+			printf("predict:%f, truth:%f\r\n", *y1, g_ml_data[i].result);
+		}
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
 	kann_delete(ann); // TODO: also to free x, y and x1
