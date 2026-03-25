@@ -3,6 +3,22 @@
   "WorkspaceRootPath": "D:\\Project\\LiunuxOS_C\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\ml.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\kann-master\\kann.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\kann-master\\kann.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\Project\\LiunuxOS_C\\main\\3d.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\3d.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -21,10 +37,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\utils.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\utils.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\ml.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\kernel.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -46,16 +58,8 @@
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\kann-master\\kautodiff.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\kann-master\\kann.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\algorithm.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\algorithm.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\def.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -68,10 +72,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\apic.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apic.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\kann-master\\kann.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\Project\\LiunuxOS_C\\kernel\\task.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -217,7 +217,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Document",
@@ -234,44 +234,108 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "3d.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\main\\3d.cpp",
               "RelativeDocumentMoniker": "main\\3d.cpp",
               "ToolTip": "D:\\Project\\LiunuxOS_C\\main\\3d.cpp",
               "RelativeToolTip": "main\\3d.cpp",
-              "ViewState": "AgIAACgCAAAAAAAAAAAAADwCAAAfAAAAAAAAAA==",
+              "ViewState": "AgIAAFgAAAAAAAAAAAAAAGwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-03-25T02:35:29.287Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "math.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\math.cpp",
-              "RelativeDocumentMoniker": "kernel\\math.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\math.cpp",
-              "RelativeToolTip": "kernel\\math.cpp",
-              "ViewState": "AgIAABQAAAAAAAAAAAAvwCMAAAArAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-09T09:43:23.633Z"
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 6,
-              "Title": "kernel.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kernel.cpp",
-              "RelativeDocumentMoniker": "kernel\\kernel.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\kernel.cpp",
-              "RelativeToolTip": "kernel\\kernel.cpp",
-              "ViewState": "AgIAAOQAAAAAAAAAAAAAABoBAAAjAAAAAAAAAA==",
+              "Title": "apicTimer.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apicTimer.cpp",
+              "RelativeDocumentMoniker": "kernel\\apicTimer.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\apicTimer.cpp",
+              "RelativeToolTip": "kernel\\apicTimer.cpp",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAvwBkAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-05T01:34:39.65Z"
+              "WhenOpened": "2026-03-20T06:27:52.773Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
+              "Title": "process.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\process.cpp",
+              "RelativeDocumentMoniker": "kernel\\process.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\process.cpp",
+              "RelativeToolTip": "kernel\\process.cpp",
+              "ViewState": "AgIAAHIBAAAAAAAAAAAvwIEBAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-06T02:25:07.465Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ml.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp",
+              "RelativeDocumentMoniker": "kernel\\ml.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp",
+              "RelativeToolTip": "kernel\\ml.cpp",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAswIIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-24T07:40:52.347Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "kann.h",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.h",
+              "RelativeDocumentMoniker": "kernel\\kann-master\\kann.h",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.h",
+              "RelativeToolTip": "kernel\\kann-master\\kann.h",
+              "ViewState": "AgIAACYAAAAAAAAAAAAvwC8AAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-03-09T06:32:08.064Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "kann.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.cpp",
+              "RelativeDocumentMoniker": "kernel\\kann-master\\kann.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.cpp",
+              "RelativeToolTip": "kernel\\kann-master\\kann.cpp",
+              "ViewState": "AgIAADkDAAAAAAAAAAAvwD8DAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-24T09:25:56.805Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "apic.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp",
+              "RelativeDocumentMoniker": "kernel\\apic.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp",
+              "RelativeToolTip": "kernel\\apic.cpp",
+              "ViewState": "AgIAACkHAAAAAAAAAAAAABkHAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-06T02:23:43.51Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "systemService.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\systemService.cpp",
+              "RelativeDocumentMoniker": "kernel\\systemService.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\systemService.cpp",
+              "RelativeToolTip": "kernel\\systemService.cpp",
+              "ViewState": "AgIAABIBAAAAAAAAAAAvwCcBAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-06T02:23:15.143Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
               "Title": "utils.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\Utils.cpp",
               "RelativeDocumentMoniker": "kernel\\Utils.cpp",
@@ -283,46 +347,31 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "systemService.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\systemService.cpp",
-              "RelativeDocumentMoniker": "kernel\\systemService.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\systemService.cpp",
-              "RelativeToolTip": "kernel\\systemService.cpp",
-              "ViewState": "AgIAABIBAAAAAAAAAAAvwCcBAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-06T02:23:15.143Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "apicTimer.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apicTimer.cpp",
-              "RelativeDocumentMoniker": "kernel\\apicTimer.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\apicTimer.cpp",
-              "RelativeToolTip": "kernel\\apicTimer.cpp",
-              "ViewState": "AgIAAAoAAAAAAAAAAAAvwBkAAAAKAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-20T06:27:52.773Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "process.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\process.cpp",
-              "RelativeDocumentMoniker": "kernel\\process.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\process.cpp",
-              "RelativeToolTip": "kernel\\process.cpp",
-              "ViewState": "AgIAAHIBAAAAAAAAAAAvwIEBAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-06T02:25:07.465Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 9,
+              "Title": "kernel.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kernel.cpp",
+              "RelativeDocumentMoniker": "kernel\\kernel.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\kernel.cpp",
+              "RelativeToolTip": "kernel\\kernel.cpp",
+              "ViewState": "AgIAAOQAAAAAAAAAAAAAABoBAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-05T01:34:39.65Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "math.cpp",
+              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\math.cpp",
+              "RelativeDocumentMoniker": "kernel\\math.cpp",
+              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\math.cpp",
+              "RelativeToolTip": "kernel\\math.cpp",
+              "ViewState": "AgIAABQAAAAAAAAAAAAvwCMAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-03-09T09:43:23.633Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "stdint.h",
               "DocumentMoniker": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\include\\stdint.h",
               "ToolTip": "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.44.35207\\include\\stdint.h",
@@ -332,7 +381,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 13,
               "Title": "kautodiff.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kautodiff.h",
               "RelativeDocumentMoniker": "kernel\\kann-master\\kautodiff.h",
@@ -344,19 +393,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ml.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp",
-              "RelativeDocumentMoniker": "kernel\\ml.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp",
-              "RelativeToolTip": "kernel\\ml.cpp",
-              "ViewState": "AgIAAHAAAAAAAAAAAAAswIoAAABOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-24T07:40:52.347Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "kautodiff.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kautodiff.cpp",
               "RelativeDocumentMoniker": "kernel\\kann-master\\kautodiff.cpp",
@@ -368,7 +405,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 14,
               "Title": "algorithm.cpp",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\algorithm.cpp",
               "RelativeDocumentMoniker": "kernel\\algorithm.cpp",
@@ -380,7 +417,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "def.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\def.h",
               "RelativeDocumentMoniker": "kernel\\def.h",
@@ -392,7 +429,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "apic.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apic.h",
               "RelativeDocumentMoniker": "kernel\\apic.h",
@@ -404,7 +441,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "algorithm.h",
               "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\algorithm.h",
               "RelativeDocumentMoniker": "kernel\\algorithm.h",
@@ -413,30 +450,6 @@
               "ViewState": "AgIAAAEAAAAAAAAAAAAvwBAAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-03-19T01:13:03.14Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "kann.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.cpp",
-              "RelativeDocumentMoniker": "kernel\\kann-master\\kann.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.cpp",
-              "RelativeToolTip": "kernel\\kann-master\\kann.cpp",
-              "ViewState": "AgIAADYCAAAAAAAAAAAAAJoDAAAUAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-24T09:25:56.805Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "apic.cpp",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp",
-              "RelativeDocumentMoniker": "kernel\\apic.cpp",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp",
-              "RelativeToolTip": "kernel\\apic.cpp",
-              "ViewState": "AgIAAJwDAAAAAAAAAAAvwKUDAAASAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-06T02:23:43.51Z"
             },
             {
               "$type": "Document",
@@ -449,18 +462,6 @@
               "ViewState": "AgIAAOwAAAAAAAAAAAAvwPoAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-03-09T06:25:48.249Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "kann.h",
-              "DocumentMoniker": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.h",
-              "RelativeDocumentMoniker": "kernel\\kann-master\\kann.h",
-              "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\kann-master\\kann.h",
-              "RelativeToolTip": "kernel\\kann-master\\kann.h",
-              "ViewState": "AgIAACIAAAAAAAAAAAAQwC8AAAASAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-03-09T06:32:08.064Z"
             },
             {
               "$type": "Document",

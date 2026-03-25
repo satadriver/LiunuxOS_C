@@ -137,9 +137,9 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		y1 = kann_apply1(ann, x1);
 
 		if (*y1 - g_ml_data[i].result >= 1e-6 || *y1 - g_ml_data[i].result <= -1e-6)
-			++n_err;
+			//++n_err;
 
-		if (cnt++ % 10 == 0) {
+		if (cnt++ % 10 == 0 || *y1 < 1e-6f || g_ml_data[i].result < 1e-6f) {
 			printf("predict:%f, truth:%f\r\n", *y1, g_ml_data[i].result);
 		}
 	}

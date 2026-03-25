@@ -13,6 +13,10 @@ ipch/
 *.1.tlog
 *.VC.db-shm
 *.VC.db-wal
+.db-wal
+.db-shm
+.bin
+.json
 
 # Object files
 *.o

@@ -1814,6 +1814,7 @@ PROCESS_INFO * GetReadyProcess() {
 				{
 					next->delta = 0;
 					target_tss = next;
+					result = 0.0;
 				}
 				else {
 					next->delta += 1;
@@ -1822,9 +1823,10 @@ PROCESS_INFO * GetReadyProcess() {
 					}
 
 					target_tss = tss + target_id;
+					result = 1.0;
 				}
-				result = tss[target_id].priority + tss[target_id].delta + level[count - 1].v -
-					next->priority + next->delta + level[next_idx].v;
+				//result = tss[target_id].priority + tss[target_id].delta + level[count - 1].v -
+					//next->priority + next->delta + level[next_idx].v;
 
 				if (next == current) {
 
@@ -1872,7 +1874,7 @@ PROCESS_INFO * GetReadyProcess() {
 					float nwindow = (tss[next_tid].window ? (float)1.0 : (float)0.0);
 #ifndef _DEBUG
 					SaveMlData((float)tick_ratio, (float)user_, (float)window_, (float)del, (float)priority,
-						ntick, nuser, nwindow, ndelta, npriority, result/(STATIC_PRIORITY*2+DYNAMIC_PRIORITY));
+						ntick, nuser, nwindow, ndelta, npriority, result);
 #endif
 				}
 			}
