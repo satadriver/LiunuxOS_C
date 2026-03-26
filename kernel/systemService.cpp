@@ -9,6 +9,9 @@
 #include "VM86.h"
 #include "apic.h"
 
+
+DWORD g_random_seed = 0;
+
 DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
@@ -279,9 +282,9 @@ void sleep(DWORD * params) {
 
 
 
-DWORD g_random_seed = 0;
 
-DWORD __random(DWORD r) {
+
+extern "C" __declspec(dllexport) DWORD __random(DWORD r) {
 
 	const int u = 65537;
 	const int v = 997;

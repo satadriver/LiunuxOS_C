@@ -2,6 +2,7 @@
 #include "ml.h"
 #include "kann-master/kann.h"
 #ifdef _DEBUG
+#include "Utils.h"
 
 #include "math.h"
 #include "libc.h"
@@ -9,6 +10,11 @@
 #include "math.h"
 #endif
 //#include <windows.h>
+#include "systemService.h"
+#include "task.h"
+#include "Pe.h"
+#include "Thread.h"
+#include "process.h"
 
 #include "math.h"
 #include "libc.h"
@@ -36,44 +42,56 @@
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
 #define		TASK_PREDICTION_TRAIN	(1024)
-#define		TASK_PREDICTION_TEST	(1024)
-#define		TASK_PREDICTION_COUNT	(TASK_PREDICTION_TRAIN+TASK_PREDICTION_TEST)
+
+
 
 TaskPredictParam* g_ml_data = 0;
 
 int g_ml_data_cnt = 0;
 
+int g_ml_tag1 = 0;
 
+int g_ml_tag0 = 0;
 
 int SaveMlData(float tick, float user, float window, float delta, float priority,
 	float ntick, float nuser, float nwindow, float ndelta, float npriority, float result)
 {
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_COUNT *sizeof(TaskPredictParam));
+		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
 	}
 	if (g_ml_data != 0) {
-		if (g_ml_data_cnt < TASK_PREDICTION_COUNT) {
-			g_ml_data[g_ml_data_cnt].tick = tick;
-			g_ml_data[g_ml_data_cnt].user = user;
-			g_ml_data[g_ml_data_cnt].window = window;
-			g_ml_data[g_ml_data_cnt].delta = delta;
-			g_ml_data[g_ml_data_cnt].priority = priority;
+		if (result != 0.0) {
+			g_ml_tag1++;
+		}
+		else {
+			g_ml_tag0++;
+		}
 
-			g_ml_data[g_ml_data_cnt].result = result;
+		if ( (result != 0 && g_ml_tag1 <= TASK_PREDICTION_TRAIN / 2) ||
+			( result == 0 && g_ml_tag0 <= TASK_PREDICTION_TRAIN / 2)) {
+			if (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
+				g_ml_data[g_ml_data_cnt].tick = tick;
+				g_ml_data[g_ml_data_cnt].user = user;
+				g_ml_data[g_ml_data_cnt].window = window;
+				g_ml_data[g_ml_data_cnt].delta = delta;
+				g_ml_data[g_ml_data_cnt].priority = priority;
 
-			g_ml_data[g_ml_data_cnt].ntick = ntick;
-			g_ml_data[g_ml_data_cnt].nuser = nuser;
-			g_ml_data[g_ml_data_cnt].nwindow = nwindow;
-			g_ml_data[g_ml_data_cnt].ndelta = ndelta;
-			g_ml_data[g_ml_data_cnt].npriority = npriority;
+				g_ml_data[g_ml_data_cnt].result = result;
 
-			if(g_ml_data_cnt % 100 == 0) {
-				printf("%s %d cnt:%d tick:%f user:%f window:%f delta:%f priority:%f ntick:%f nuser:%f nwindow:%f ndelta:%f npriority:%f result:%f\r\n", 
-					__FUNCTION__, __LINE__, g_ml_data_cnt, tick, user, window, delta, priority, 
-					ntick, nuser, nwindow, ndelta, npriority, result);
+				g_ml_data[g_ml_data_cnt].ntick = ntick;
+				g_ml_data[g_ml_data_cnt].nuser = nuser;
+				g_ml_data[g_ml_data_cnt].nwindow = nwindow;
+				g_ml_data[g_ml_data_cnt].ndelta = ndelta;
+				g_ml_data[g_ml_data_cnt].npriority = npriority;
+
+				if (g_ml_data_cnt % 100 == 0) {
+					printf("%s %d cnt:%d tick:%f user:%f window:%f delta:%f priority:%f ntick:%f nuser:%f nwindow:%f ndelta:%f npriority:%f result:%f\r\n",
+						__FUNCTION__, __LINE__, g_ml_data_cnt, tick, user, window, delta, priority,
+						ntick, nuser, nwindow, ndelta, npriority, result);
+				}
+
+				g_ml_data_cnt++;
 			}
-
-			g_ml_data_cnt++;
 		}
 	}
 
@@ -83,7 +101,20 @@ int SaveMlData(float tick, float user, float window, float delta, float priority
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
-	while (g_ml_data_cnt < TASK_PREDICTION_COUNT) {
+
+	TASKCMDPARAMS cmd;
+	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+	for(int i = 0; i < 8; ++i) {
+		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
+		__ipiCreateThread((unsigned int)ml_addr,(char*) KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread2");
+	}
+
+	for (int i = 0; i < 8; ++i) {
+		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
+		__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread1");
+	}
+
+	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
 		__sleep(100);
 	}
 
@@ -119,27 +150,27 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		y[i] = (float*)calloc(outSize, sizeof(float));
-		float v = (int)g_ml_data[i].result;
+		float v = g_ml_data[i].result;
 		y[i][0] = v;		
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 10, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 20, 10, 0.1f, n_samples, x, y);
 
 	// predict
-	n_samples = TASK_PREDICTION_COUNT;
+	n_samples = TASK_PREDICTION_TRAIN;
 	x1 = (float*)calloc(inSize, sizeof(float));
 	int n_err = 0;
-	for (i = TASK_PREDICTION_TEST; i < n_samples; ++i) {
+	for (i = 0; i < n_samples; ++i) {
 		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		const float* y1;
 		y1 = kann_apply1(ann, x1);
 
-		if (*y1 - g_ml_data[i].result >= 1e-6 || *y1 - g_ml_data[i].result <= -1e-6)
+		//if (*y1 - g_ml_data[i].result >= 1e-6 || *y1 - g_ml_data[i].result <= -1e-6)
 			//++n_err;
 
-		if (cnt++ % 10 == 0 || *y1 < 1e-6f || g_ml_data[i].result < 1e-6f) {
+		if (cnt++ % 10 == 0 ) {
 			printf("predict:%f, truth:%f\r\n", *y1, g_ml_data[i].result);
 		}
 	}
@@ -148,7 +179,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	return 0;
 }
 
-extern "C" __declspec(dllexport) int __kMachineLearning_old(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char szout[256];
 	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 
@@ -202,3 +233,34 @@ extern "C" __declspec(dllexport) int __kMachineLearning_old(unsigned int retaddr
 }
 
 
+extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	
+	while (1) {
+		__asm {
+			hlt
+		}
+	}
+
+	return 0;
+}
+extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+{
+	float f1 = PI;
+	while (1) {
+		f1 = sinf(f1/3);
+		if(f1 < 0.00001f && f1 > -0.00001f) {
+			f1 = PI;
+		}
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+	}
+	return 0;
+}

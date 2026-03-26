@@ -578,7 +578,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 			int level = subparam->level;
 			char* p = (char*)subparam->params;
 			
-			//__printf(szout, "%s module:%s addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
+			//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
 
 			if (__findProcessFileName(subparam->funcname) == FALSE)
 			{
@@ -595,7 +595,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 			char* funcname = subparam->funcname;
 			char* p = (char*)subparam->params;
 
-			__printf(szout, "%s module:%s function:%s\r\n", __FUNCTION__, module, funcname);
+			//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
 
 			if (__findProcessFileName(funcname) == FALSE)
 			{
@@ -1873,8 +1873,10 @@ PROCESS_INFO * GetReadyProcess() {
 
 					float nwindow = (tss[next_tid].window ? (float)1.0 : (float)0.0);
 #ifndef _DEBUG
-					SaveMlData((float)tick_ratio, (float)user_/ DYNAMIC_PRIORITY, (float)window_/ DYNAMIC_PRIORITY, (float)del, (float)priority,
-						ntick, nuser/ DYNAMIC_PRIORITY, nwindow/ DYNAMIC_PRIORITY, ndelta, npriority, result);
+
+					SaveMlData((float)tick_ratio, (float)user_ / DYNAMIC_PRIORITY, (float)window_ / DYNAMIC_PRIORITY, (float)del, (float)priority,
+						ntick, nuser / DYNAMIC_PRIORITY, nwindow / DYNAMIC_PRIORITY, ndelta, npriority, result);
+					
 #endif
 				}
 			}

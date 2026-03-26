@@ -17,7 +17,7 @@ ipch/
 .db-shm
 .bin
 .json
-
+.recipe
 # Object files
 *.o
 *.ko

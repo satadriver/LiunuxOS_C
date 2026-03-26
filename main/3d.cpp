@@ -49,7 +49,7 @@ typedef struct {
 } point2d_t;
 
 // 8个立方体顶点
-static const point3d_t cube_vertices[] = {
+static point3d_t cube_vertices[] = {
     {-1.0f, -1.0f, -1.0f},  // 0: 前下左
     { 1.0f, -1.0f, -1.0f},  // 1: 前下右
     { 1.0f,  1.0f, -1.0f},  // 2: 前上右
@@ -61,7 +61,7 @@ static const point3d_t cube_vertices[] = {
 };
 
 
-static const point3d_t cube_vertices2[] = {
+static point3d_t cube_vertices2[] = {
     {-2.0f, -2.0f, -2.0f},  // 0: 前下左
     { 2.0f, -2.0f, -2.0f},  // 1: 前下右
     { 2.0f,  2.0f, -2.0f},  // 2: 前上右
@@ -514,6 +514,21 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
     // 清屏为黑色
     //clear_screen(0x000000);
 
+    const point3d_t std_vertices[8] = {
+    {-1.0f, -1.0f, -1.0f},  // 0: 前下左
+    { 1.0f, -1.0f, -1.0f},  // 1: 前下右
+    { 1.0f,  1.0f, -1.0f},  // 2: 前上右
+    {-1.0f,  1.0f, -1.0f},  // 3: 前上左
+    {-1.0f, -1.0f,  1.0f},  // 4: 后下左
+    { 1.0f, -1.0f,  1.0f},  // 5: 后下右
+    { 1.0f,  1.0f,  1.0f},  // 6: 后上右
+    {-1.0f,  1.0f,  1.0f}   // 7: 后上左
+    };
+	__memcpy((char*)cube_vertices, (char*)std_vertices, sizeof(std_vertices));
+
+    int frameCnt = 0;
+	float direction = 1.0;  // 1: 正向，-1: 反向
+
     // 主循环
     while (1) {
         unsigned int ck = __kGetKbd(window.id);
@@ -539,7 +554,33 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
             }
         }
 
-        int frameCnt = 0;
+        for(int i = 0;i < 8; i++) {
+			float delta = 1.0f;
+            if (cube_vertices[i].x * delta > 0) {
+                cube_vertices[i].x += direction * 0.01;
+            }
+            else {
+                cube_vertices[i].x -= direction * 0.01;
+            }
+            
+            if (cube_vertices[i].y * delta > 0) {
+                cube_vertices[i].y += direction * 0.01;
+            }
+            else {
+                cube_vertices[i].y -= direction * 0.01;
+            }
+
+            if (cube_vertices[i].z * delta > 0) {
+                cube_vertices[i].z += direction * 0.01;
+            }
+            else {
+                cube_vertices[i].z -= direction * 0.01;
+            }  
+		}
+        if(cube_vertices[0].x <= -2.0|| cube_vertices[0].x >= -1.0) {
+            direction = -direction;
+		}
+        
         if (frameCnt % 1024 == 0) {
             DWORD tmp = __random(0) % 100;
             g_x_speed = ((double)tmp);

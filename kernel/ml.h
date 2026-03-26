@@ -29,3 +29,8 @@ int SaveMlData(float tick, float user, float window, float delta, float priority
 	float tick_n, float user_n, float window_n, float delta_n, float priority_n,float result);
 
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+
+extern "C" __declspec(dllexport) int TestThread3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+
+extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
