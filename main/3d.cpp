@@ -37,6 +37,10 @@
 // 数学常量
 #define PI 3.14159265358979323846f
 
+#define MAX_COORDINATE   2.0f
+#define MIN_COORDINATE   0.5f
+     
+
 // 3D点结构
 typedef struct {
     float x, y, z;
@@ -115,6 +119,8 @@ static point2d_t g_project2[8];
 float g_x_speed2 = 1.0;
 float g_y_speed2 = 1.0;
 float g_z_speed2 = 1.0;
+
+float* g_zbuffer = NULL;
 
 // 改进的正弦函数（使用更多项，精度更高）
 float mysin(float x) {
@@ -281,26 +287,31 @@ void project_point_old(point3d_t* p, point2d_t* out) {
 
 // 修改 project_point 函数，使用更宽松的裁剪
 void project_point(point3d_t* p, point2d_t* out) {
-    float scale = 400.0f;
+    float scale = 80.0;
     float distance = 5.0f;  // 增加距离，让立方体远离相机
     float near_plane = 1.0f;  // 更宽松的近平面
 
     // 扩大有效范围，只剔除真正在相机后面的点
-    if (p->z <= -distance - 0.001f) {
+    if (p->z < -distance + 1.0) {
         out->valid = 0;
         out->x = 0;
         out->y = 0;
         return;
     }
 
-    // 安全计算
-    float denominator = distance + p->z;
-    if (denominator < 0.001f) {
-        // 对于非常接近相机的点，使用一个小的正值
-        denominator = 0.001f;
+	int pos = p->y * gVideoWidth + p->x;
+    if (g_zbuffer != NULL && p->z > g_zbuffer[pos]) {
+        g_zbuffer[pos] = p->z;  // 更新Z-buffer
     }
 
-    float factor = scale / denominator;
+    // 安全计算
+    float denominator = distance + p->z;
+    if (denominator < 1.0) {
+        // 对于非常接近相机的点，使用一个小的正值
+        denominator = 1.0;
+    }
+
+    float factor = scale * distance / denominator;
 
     out->x = gVideoWidth / 2 + (int)(p->x * factor);
     out->y = gVideoHeight / 2 - (int)(p->y * factor);
@@ -501,7 +512,10 @@ void clear_screen(uint32_t color) {
             
             cc >>= 8;
         }
+
+        g_zbuffer[i] = -99999.0;
     }
+
 }
 
 // 主函数
@@ -529,12 +543,15 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
     int frameCnt = 0;
 	float direction = 1.0;  // 1: 正向，-1: 反向
 
+	g_zbuffer = (float*)malloc(gVideoWidth * gVideoHeight * sizeof(float));
+
     // 主循环
     while (1) {
         unsigned int ck = __kGetKbd(window.id);
         unsigned int asc = ck & 0xff;
         if (asc == 0x1b) {
             __DestroyWindow(&window);
+            free(g_zbuffer);
             return 0;
         }
 
@@ -546,6 +563,7 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
             if (mouseinfo.x >= window.shutdownx && mouseinfo.x <= window.shutdownx + window.capHeight &&
                 mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight) {
                 __DestroyWindow(&window);
+                free(g_zbuffer);
                 return 0;
             }
             if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight &&
@@ -577,7 +595,7 @@ extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid,
                 cube_vertices[i].z -= direction * 0.01;
             }  
 		}
-        if(cube_vertices[0].x <= -2.0|| cube_vertices[0].x >= -1.0) {
+        if(cube_vertices[0].x <= -MAX_COORDINATE || cube_vertices[0].x >= - MIN_COORDINATE) {
             direction = -direction;
 		}
         

@@ -27,16 +27,10 @@ float h(float x, float z) {
 
 void sphere(int x,int y,int raduis,DWORD color,unsigned char * backup) {
 
-// 	__asm {
-// 		clts
-// 		fwait
-// 		fninit
-// 	}
 	unsigned int pos = __getpos(x - raduis, y - raduis);
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 	unsigned char * showpos = pos + (unsigned char *)videoBase;
 	unsigned char * keepy = showpos;
-
 
 	DWORD r = 0;
 
@@ -77,11 +71,7 @@ void sphere(int x,int y,int raduis,DWORD color,unsigned char * backup) {
 
 
 void sphere7(int x, int y, int raduis,DWORD color,unsigned char *backup) {
- 	__asm {
- 		//clts
- 		//fwait
- 		//fninit
- 	}
+
 	unsigned int pos = __getpos(x-raduis, y-raduis);
 	char* vb = GetVideoBase();
 	unsigned char * showpos = pos + (unsigned char *)vb;
