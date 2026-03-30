@@ -232,6 +232,7 @@
     <ClCompile Include="fileWindow.cpp" />
     <ClCompile Include="mainUtils.cpp" />
     <ClCompile Include="guiHelper.cpp" />
+    <ClCompile Include="render.cpp" />
     <ClCompile Include="ScreenVector.cpp" />
     <ClCompile Include="SpiralBall.cpp" />
     <ClCompile Include="SquareVector.cpp" />
@@ -261,6 +262,7 @@
     <ClInclude Include="NTFS\ntfsDirs.h" />
     <ClInclude Include="mainUtils.h" />
     <ClInclude Include="guiHelper.h" />
+    <ClInclude Include="render.h" />
     <ClInclude Include="ScreenVector.h" />
     <ClInclude Include="SpiralBall.h" />
     <ClInclude Include="SquareVector.h" />

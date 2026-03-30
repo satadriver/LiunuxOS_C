@@ -499,13 +499,27 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	return 0;
 }
 
-
+#include "Pe.h"
 
 int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p)
 {
 	__enterSpinlock(&g_ipi_lock);
 	int ret = 0;
-	int id = GetIdleProcessor();
+	int id = 0;
+	if (base) {
+		int petype = getPeType(base);
+		if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
+		{
+			id = 0;
+		}
+		else {
+			id = GetIdleProcessor();
+		}
+	}
+	else {
+		id = GetIdleProcessor();
+	}
+	
 	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
 
 	msg[id].cmd = IPI_CREATEPROCESS;

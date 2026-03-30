@@ -111,6 +111,13 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	return x1;
 }
 
+extern "C"  __declspec(dllexport) double __tan(double x) {
+	return __sin(x) / __cos(x);
+}
+
+extern "C"  __declspec(dllexport) float __tanf(float x) {
+	return __sin(x) / __cos(x);
+}
 
 //period range : [-pi , pi]
 

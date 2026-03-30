@@ -139,7 +139,9 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 		__printf(szout, "doFileAction filename:%s size:%I64x error\n", files->pathname, files->filesize);
 		return FALSE;
 	}
-
+	if (files->filesize == 0) {
+		files->filesize = 0x4000000;
+	}
 	char* buffer = (char*)__kMalloc((DWORD)files->filesize);
 	int readsize = readFileData(partitionType,files->secno, files->filesize, (char*)buffer, files->filesize);
 	if (readsize <= 0)

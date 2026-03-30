@@ -126,6 +126,9 @@
     <ClCompile Include="3d.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="render.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gdi\jpeg.h">
@@ -207,6 +210,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="3d.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="render.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

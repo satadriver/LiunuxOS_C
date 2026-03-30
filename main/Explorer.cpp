@@ -166,8 +166,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 			if (__findProcessFileName("Rotate3DBall") == FALSE)
 			{
+				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Rotate3DCube", 3, 0);
 				
-				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Rotate3DBall", 3, 0);
+				//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Rotate3DCube", 3, 0);
 				//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "ScreenVector", 3, 0);
 			}
 			continue;

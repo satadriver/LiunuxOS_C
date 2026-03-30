@@ -519,7 +519,7 @@ void clear_screen(uint32_t color) {
 }
 
 // Ö÷º¯Êý
-extern "C" __declspec(dllexport) int Rotate3DBall(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
+extern "C" __declspec(dllexport) int Rotate3DCube(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD runparam) {
     WINDOWCLASS window;
     __memset((char*)&window, 0, sizeof(WINDOWCLASS));
     __strcpy(window.caption, funcname);
