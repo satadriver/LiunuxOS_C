@@ -49,50 +49,21 @@ TaskPredictParam* g_ml_data = 0;
 
 int g_ml_data_cnt = 0;
 
-int g_ml_tag1 = 0;
 
-int g_ml_tag0 = 0;
-
-int SaveMlData(float tick, float user, float window, float delta, float priority,
-	float ntick, float nuser, float nwindow, float ndelta, float npriority, float result)
+int SaveMlData(TaskPredictParam * tp)
 {
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
 		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
 	}
-	if (g_ml_data != 0) {
-		if (result != 0.0) {
-			g_ml_tag1++;
+
+	if (g_ml_data != 0 && g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
+		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictParam));
+
+		if (g_ml_data_cnt % 100 == 0) {
+
 		}
-		else {
-			g_ml_tag0++;
-		}
 
-		if ( (result != 0 && g_ml_tag1 <= TASK_PREDICTION_TRAIN / 2) ||
-			( result == 0 && g_ml_tag0 <= TASK_PREDICTION_TRAIN / 2)) {
-			if (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
-				g_ml_data[g_ml_data_cnt].tick = tick;
-				g_ml_data[g_ml_data_cnt].user = user;
-				g_ml_data[g_ml_data_cnt].window = window;
-				g_ml_data[g_ml_data_cnt].delta = delta;
-				g_ml_data[g_ml_data_cnt].priority = priority;
-
-				g_ml_data[g_ml_data_cnt].result = result;
-
-				g_ml_data[g_ml_data_cnt].ntick = ntick;
-				g_ml_data[g_ml_data_cnt].nuser = nuser;
-				g_ml_data[g_ml_data_cnt].nwindow = nwindow;
-				g_ml_data[g_ml_data_cnt].ndelta = ndelta;
-				g_ml_data[g_ml_data_cnt].npriority = npriority;
-
-				if (g_ml_data_cnt % 100 == 0) {
-					printf("%s %d cnt:%d tick:%f user:%f window:%f delta:%f priority:%f ntick:%f nuser:%f nwindow:%f ndelta:%f npriority:%f result:%f\r\n",
-						__FUNCTION__, __LINE__, g_ml_data_cnt, tick, user, window, delta, priority,
-						ntick, nuser, nwindow, ndelta, npriority, result);
-				}
-
-				g_ml_data_cnt++;
-			}
-		}
+		g_ml_data_cnt++;
 	}
 
 	return g_ml_data_cnt;
@@ -105,17 +76,29 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	TASKCMDPARAMS cmd;
 	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 	for(int i = 0; i < 8; ++i) {
-		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
-		__ipiCreateThread((unsigned int)ml_addr,(char*) KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread2");
+		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
+		//__ipiCreateThread((unsigned int)ml_addr,(char*) KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread2");
+		int imageSize = 0x100000;
+		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
+		//if (addr) 
+		{
+			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
+		}
 	}
 
 	for (int i = 0; i < 8; ++i) {
-		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
-		__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread1");
+		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
+		//__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread1");
+		int imageSize = 0x100000;
+		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
+		//if (addr) 
+		{
+			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
+		}
 	}
 
 	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
-		__sleep(100);
+		__sleep(1000);
 	}
 
 	char szout[256];
@@ -123,9 +106,9 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	int cnt = 0;
 	int i = 0;
-	int inSize = ( sizeof(TaskPredictParam) / sizeof(float) - 1) ;
+	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
 	int n_samples = TASK_PREDICTION_TRAIN;
-	int outSize = 1;
+	int outSize = 16;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
 	kann_t* ann;
@@ -137,7 +120,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	//t = kad_relu(kann_layer_dense(t, 64));
 
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
-	t = kann_layer_cost(t, 1, KANN_C_MSE); // output uses 1-hot encoding
+	t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 
 	ann = kann_new(t, 0);
 
@@ -150,8 +133,11 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		y[i] = (float*)calloc(outSize, sizeof(float));
-		float v = g_ml_data[i].result;
-		y[i][0] = v;		
+		for (int j = 0; j < outSize; j++) {
+			y[i][j] = 0.0;
+		}
+		int idx  = g_ml_data[i].result;
+		y[i][idx] = 1.0;
 	}
 
 	// train
@@ -164,14 +150,21 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	for (i = 0; i < n_samples; ++i) {
 		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
-		const float* y1;
-		y1 = kann_apply1(ann, x1);
+		const float* y1 = kann_apply1(ann, x1);
 
-		//if (*y1 - g_ml_data[i].result >= 1e-6 || *y1 - g_ml_data[i].result <= -1e-6)
-			//++n_err;
-
-		if (cnt++ % 10 == 0 ) {
-			printf("predict:%f, truth:%f\r\n", *y1, g_ml_data[i].result);
+		float max = -1.0;
+		int num = 0;
+		for (int j = 0; j < outSize; j++) {
+			if (y1[j] > max) {
+				max = y1[j];
+				num = j;
+			}
+		}
+		for (int j = 0; j < 16; j++) {
+			printf("%d y:%lf tick:%f user:%f window:%f delta:%f priority:%f result:%f\r\n",
+				j,y1[j],
+				g_ml_data[i].task[j].tick, g_ml_data[i].task[j].user, g_ml_data[i].task[j].window,
+				g_ml_data[i].task[j].delta, g_ml_data[i].task[j].priority, g_ml_data[i].result);
 		}
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);

@@ -1865,53 +1865,45 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 		}
 
-		result = 1.0;
+		TaskPredictParam tp;
 		
-		int next_tid = next->tid;
+		for (int i = 0; i < count; i++) {
+			int pid = tickc[i].id;
+			float tick_ratio = (float)GetValueFromArray(tickc, count, pid)/ (float)DYNAMIC_PRIORITY;
+			float user_ratio = (float)(tss[pid].level == 3 ? 0 : 1) / (float)DYNAMIC_PRIORITY;
+			float window_ratio = (float)(tss[pid].window ? 1 : 0) / (float)DYNAMIC_PRIORITY;
+			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
+			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
 
-		int v = 0;
+			if (pid == target_id) {
+				tp.result = i;
+			}
+			tp.task[i].tick = tick_ratio;
+			tp.task[i].user = user_ratio;
+			tp.task[i].window = window_ratio;
+			tp.task[i].delta = delta_ratio;
+			tp.task[i].priority = priority_ratio;			
+		}
 
-		double tick_ratio = 0.0;
-		float ntick = 0.0;
-		v = GetValueFromArray(tickc, count, target_id);
-		tick_ratio = (float)v * 1.0;
-
-		v = GetValueFromArray(tickc, count, next_tid);
-		ntick = (float)v * 1.0;
-
-		tick_ratio = tick_ratio / (DYNAMIC_PRIORITY);
-		ntick = ntick / (DYNAMIC_PRIORITY);
-
-		float priority = (float)tss[target_id].priority;
-		priority = priority / (DYNAMIC_PRIORITY);
-
-		v = GetValueFromArray(delta, count, target_id);
-		float del = v * 1.0;
-		del = del / (DYNAMIC_PRIORITY);
-
-		float user_ = tss[target_id].level == 0 ? (float)1.0 : (float)0.0;
-
-		float window_ = tss[target_id].window ? (float)1.0 : (float)0.0;
-
-		float npriority = (float)tss[next_tid].priority;
-		npriority = npriority / (DYNAMIC_PRIORITY);
-		v = GetValueFromArray(delta, count, next_tid);
-		float ndelta = (float)v * 1.0;
-		ndelta = ndelta / (DYNAMIC_PRIORITY);
-
-		float nuser = (tss[next_tid].level == 0 ? (float)1.0 : (float)0.0);
-
-		float nwindow = (tss[next_tid].window ? (float)1.0 : (float)0.0);
+		for (int i = count; i < 16; i++) {
+			tp.task[i].tick = 0.0;
+			tp.task[i].user = 0.0;
+			tp.task[i].window = 0.0;
+			tp.task[i].delta = 0.0;
+			tp.task[i].priority = 0.0;
+		}
 #ifndef _DEBUG
-		SaveMlData((float)tick_ratio, (float)user_ / DYNAMIC_PRIORITY, (float)window_ / DYNAMIC_PRIORITY, (float)del, (float)priority,
-			ntick, nuser / DYNAMIC_PRIORITY, nwindow / DYNAMIC_PRIORITY, ndelta, npriority, result);
-#endif			
+		if (g_debug_tag++ < 10) {
+			for (int i = 0; i < 16; i++) {
+				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
+					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
+			}
+		}
+		SaveMlData(&tp);
+#endif
 	}
 	else {
-		//target_id = current->tid;
-		//next = current;
 		target_tss = current;
-		//__memset((char*)tickc, 0, TASK_LIMIT_TOTAL * sizeof(float));
 	}
 
 	return target_tss;

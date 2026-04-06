@@ -54,7 +54,3 @@ typedef struct  {
 #define APIC_TYPE_LOCAL_APIC         0x0
 #define APIC_TYPE_IO_APIC            0x1
 #define APIC_TYPE_INTERRUPT_OVERRIDE 0x2
-
-void initHPET();
-
-extern "C"  __declspec(dllexport) DWORD getRCBA();

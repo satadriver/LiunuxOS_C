@@ -51,6 +51,9 @@
 #include "elf.h"
 #include "guihelper.h"
 #include "coprocessor.h"
+#include "utils.h"
+#include "systemservice.h"
+#include "math.h"
 
 #define ALARMER_SECOND_INTERVAL		60
 
@@ -92,34 +95,38 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 	return;
 }
 
-int g_test1Cnt = 0;
 
-int g_test2Cnt = 0;
 
-int g_test3Cnt = 0;
+extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 
-extern "C" __declspec(dllexport) void __taskTest1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test1Cnt++ < 10) {
-		__printf(szout, "__taskTest1 tid:%d running %d!\r\n", tid, g_test1Cnt);
-		__sleep(100);
+	while (1) {
+		__asm {
+			hlt
+		}
 	}
+
+	return 0;
+}
+extern "C" __declspec(dllexport) int TestThread2_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+{
+	float f1 = PI;
+	while (1) {
+		f1 = __sinf(f1 / 3);
+		if (f1 < 0.00001f && f1 > -0.00001f) {
+			f1 = PI;
+		}
+	}
+	return 0;
 }
 
-extern "C" __declspec(dllexport) void __taskTest2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test2Cnt++ < 10) {
-		__printf(szout, "__taskTest2 tid:%d running %d!\r\n", tid, g_test2Cnt);
-		__sleep(100);
-	}
-}
+extern "C" __declspec(dllexport) int TestThread3_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
 
-extern "C" __declspec(dllexport) void __taskTest3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char szout[1024];
-	while (g_test3Cnt++ < 10) {
-		__printf(szout, "__taskTest3 tid:%d running %d!\r\n", tid, g_test3Cnt);
-		__sleep(100);
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
 	}
+	return 0;
 }
 
 
@@ -136,31 +143,9 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 	__strcpy(window.caption, funcname);
 	initFullWindow(&window, funcname, tid,0);
 
-	DWORD address = getAddrFromName(MAIN_DLL_BASE, "__taskTest1");
-	//__kCreateThread((DWORD)address, MAIN_DLL_BASE, (DWORD)0, "__taskTest1");
-	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest1", 3, 0);
-	DWORD address2 = getAddrFromName(MAIN_DLL_BASE, "__taskTest2");
-	//__kCreateThread((DWORD)address2, MAIN_DLL_BASE, (DWORD)0, "__taskTest2");
-	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest2", 3, 0);
-	DWORD address3 = getAddrFromName(MAIN_DLL_BASE, "__taskTest3");
-	//__kCreateThread((DWORD)address3, MAIN_DLL_BASE, (DWORD)0, "__taskTest3");
-	//__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, "__taskTest3", 3, 0);
-
 	readAtapiSector((char*)FLOPPY_DMA_BUFFER, 16, 1);
 	__dump((char*)FLOPPY_DMA_BUFFER, 512, 1, (unsigned char*)FLOPPY_DMA_BUFFER + 0x1000);
 	__printf(szout,(char*)FLOPPY_DMA_BUFFER + 0x1000);
-
-	for (int i = 0; i < 0x20; i++) {
-		int size = 0x10 * i + 8;
-		char* buf =(char*) __malloc(size);
-		__printf(szout,"buf :%x,size:%x\r\n", buf, size);
-	}
-
-	for (int i = 0; i < 0x20; i++) {
-		int size = 0x10000 * i + 8;
-		char* buf = (char*)__malloc(size);
-		__printf(szout,"buf :%x,size:%x\r\n", buf, size);
-	}
 
 	while (1)
 	{
