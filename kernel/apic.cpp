@@ -1865,7 +1865,7 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 		}
 
-		TaskPredictionSample tp;
+		TaskPredictParam tp;
 		
 		for (int i = 0; i < count; i++) {
 			int pid = tickc[i].id;
@@ -1876,30 +1876,31 @@ PROCESS_INFO * GetReadyProcess() {
 			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
 
 			if (pid == target_id) {
-				tp.result = (float)1.0;
+				tp.result = i;
 			}
-			else {
-				tp.result = 0.0;
-			}
-			tp.tick = tick_ratio;
-			tp.user = user_ratio;
-			tp.window = window_ratio;
-			tp.delta = delta_ratio;
-			tp.priority = priority_ratio;			
-
-#ifndef _DEBUG
-			if (g_debug_tag++ < 100) {
-				//for (int i = 0; i < 16; i++) 
-				{
-					__printf(szout, "%d:  %f   %f   %f   %f  %f result:%f\r\n",
-						i, tp.tick, tp.user, tp.window, tp.delta, tp.priority, tp.result);
-				}
-			}
-			SaveMlData(&tp);
-#endif
+			tp.task[i].tick = tick_ratio;
+			tp.task[i].user = user_ratio;
+			tp.task[i].window = window_ratio;
+			tp.task[i].delta = delta_ratio;
+			tp.task[i].priority = priority_ratio;			
 		}
 
-
+		for (int i = count; i < 16; i++) {
+			tp.task[i].tick = 0.0;
+			tp.task[i].user = 0.0;
+			tp.task[i].window = 0.0;
+			tp.task[i].delta = 0.0;
+			tp.task[i].priority = 0.0;
+		}
+#ifndef _DEBUG
+		if (g_debug_tag++ < 10) {
+			for (int i = 0; i < 16; i++) {
+				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
+					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
+			}
+		}
+		SaveMlData(&tp);
+#endif
 	}
 	else {
 		target_tss = current;
