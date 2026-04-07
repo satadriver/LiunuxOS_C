@@ -45,19 +45,19 @@
 
 
 
-TaskPredictParam* g_ml_data = 0;
+TaskPredictionSample* g_ml_data = 0;
 
 int g_ml_data_cnt = 0;
 
 
-int SaveMlData(TaskPredictParam * tp)
+int SaveMlData(TaskPredictionSample* tp)
 {
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
+		g_ml_data = (TaskPredictionSample*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictionSample));
 	}
 
 	if (g_ml_data != 0 && g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
-		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictParam));
+		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictionSample));
 
 		if (g_ml_data_cnt % 100 == 0) {
 
@@ -106,8 +106,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	int cnt = 0;
 	int i = 0;
-	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
-	int n_samples = TASK_PREDICTION_TRAIN;
+	int inSize = 16*(sizeof(TaskPredictionSample) / sizeof(float) - 1);
+	int n_samples = TASK_PREDICTION_TRAIN/16;
 	int outSize = 16;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
@@ -120,35 +120,44 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	//t = kad_relu(kann_layer_dense(t, 64));
 
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
-	t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
+	t = kann_layer_cost(t, outSize, KANN_C_CEM); // output uses 1-hot encoding
 
 	ann = kann_new(t, 0);
+
+	int blocksize = sizeof(TaskPredictionSample) - sizeof(float);
 
 	// generate training data
 	x = (float**)calloc(n_samples, sizeof(float*));
 	y = (float**)calloc(n_samples, sizeof(float*));
-	for (i = 0; i < n_samples; ++i) {
+	for (i = 0; i < n_samples; i=i*16) {
 
 		x[i] = (float*)calloc(inSize, sizeof(float));
-		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
-
+		char* buf = (char*)x[i];
+		for (int j = 0; j < 16; j++) {
+			__memcpy(buf + j * blocksize, (char*)&g_ml_data[i  + j], blocksize);
+		}
+		
+		//__memcpy((char*)x[i], (char*)&g_ml_data[i], blocksize);
+			
 		y[i] = (float*)calloc(outSize, sizeof(float));
 		for (int j = 0; j < outSize; j++) {
-			y[i][j] = 0.0;
+			y[i][j] = g_ml_data[i+j].result;
 		}
-		int idx  = g_ml_data[i].result;
-		y[i][idx] = 1.0;
 	}
 
 	// train
 	kann_train_fnn1(ann, 0.001f, 64, 20, 10, 0.1f, n_samples, x, y);
 
 	// predict
-	n_samples = TASK_PREDICTION_TRAIN;
+	n_samples = TASK_PREDICTION_TRAIN/16;
 	x1 = (float*)calloc(inSize, sizeof(float));
 	int n_err = 0;
-	for (i = 0; i < n_samples; ++i) {
-		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
+	for (i = 0; i < n_samples; i=i*16) {
+		//__memcpy((char*)x1, (char*)&g_ml_data[i], blocksize);
+		char* buf = (char*)x[i];
+		for (int j = 0; j < 16; j++) {
+			__memcpy(buf + j * blocksize, (char*)&g_ml_data[i + j], blocksize);
+		}
 
 		const float* y1 = kann_apply1(ann, x1);
 
@@ -163,8 +172,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		for (int j = 0; j < 16; j++) {
 			printf("%d y:%lf tick:%f user:%f window:%f delta:%f priority:%f result:%f\r\n",
 				j,y1[j],
-				g_ml_data[i].task[j].tick, g_ml_data[i].task[j].user, g_ml_data[i].task[j].window,
-				g_ml_data[i].task[j].delta, g_ml_data[i].task[j].priority, g_ml_data[i].result);
+				g_ml_data[i].tick, g_ml_data[i].user, g_ml_data[i].window,
+				g_ml_data[i].delta, g_ml_data[i].priority, g_ml_data[i].result);
 		}
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
