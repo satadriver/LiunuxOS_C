@@ -41,23 +41,23 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(4096)
+#define		TASK_PREDICTION_TRAIN	(1024)
 
 
 
-TaskPredictionSample* g_ml_data = 0;
+TaskPredictParam* g_ml_data = 0;
 
 int g_ml_data_cnt = 0;
 
 
-int SaveMlData(TaskPredictionSample* tp)
+int SaveMlData(TaskPredictParam * tp)
 {
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictionSample*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictionSample));
+		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
 	}
 
 	if (g_ml_data != 0 && g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
-		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictionSample));
+		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictParam));
 
 		if (g_ml_data_cnt % 100 == 0) {
 
@@ -83,6 +83,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		//if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
+			//__sleep(100);
 		}
 	}
 
@@ -94,6 +95,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		//if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
+			//__sleep(100);
 		}
 	}
 
@@ -106,8 +108,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	int cnt = 0;
 	int i = 0;
-	int inSize = 16*(sizeof(TaskPredictionSample) - sizeof(float) )/sizeof(float);
-	int n_samples = TASK_PREDICTION_TRAIN/16;
+	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
+	int n_samples = TASK_PREDICTION_TRAIN;
 	int outSize = 16;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
@@ -124,40 +126,31 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 	ann = kann_new(t, 0);
 
-	int blocksize = sizeof(TaskPredictionSample) - sizeof(float);
-
 	// generate training data
 	x = (float**)calloc(n_samples, sizeof(float*));
 	y = (float**)calloc(n_samples, sizeof(float*));
-	for (i = 0; i < n_samples; i++) {
+	for (i = 0; i < n_samples; ++i) {
 
 		x[i] = (float*)calloc(inSize, sizeof(float));
-		char* buf = (char*)x[i];
-		for (int j = 0; j < 16; j++) {
-			__memcpy(buf + j * blocksize, (char*)&g_ml_data[i*16  + j], blocksize);
-		}
-		
-		//__memcpy((char*)x[i], (char*)&g_ml_data[i], blocksize);
-			
+		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
+
 		y[i] = (float*)calloc(outSize, sizeof(float));
 		for (int j = 0; j < outSize; j++) {
-			y[i][j] = g_ml_data[i*16+j].result;
+			y[i][j] = 0.0;
 		}
+		int idx  = g_ml_data[i].result;
+		y[i][idx] = 1.0;
 	}
 
 	// train
 	kann_train_fnn1(ann, 0.001f, 64, 20, 10, 0.1f, n_samples, x, y);
 
 	// predict
-	n_samples = TASK_PREDICTION_TRAIN/16;
+	n_samples = TASK_PREDICTION_TRAIN;
 	x1 = (float*)calloc(inSize, sizeof(float));
 	int n_err = 0;
-	for (i = 0; i < n_samples; i++) {
-		//__memcpy((char*)x1, (char*)&g_ml_data[i], blocksize);
-		char* buf = (char*)x[i];
-		for (int j = 0; j < 16; j++) {
-			__memcpy(buf + j * blocksize, (char*)&g_ml_data[i*16 + j], blocksize);
-		}
+	for (i = 0; i < n_samples; ++i) {
+		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		const float* y1 = kann_apply1(ann, x1);
 
@@ -170,10 +163,14 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 			}
 		}
 		for (int j = 0; j < 16; j++) {
-			printf("%d y:%lf tick:%f user:%f window:%f delta:%f priority:%f max:%f num:%d result:%f\r\n",
+			printf("%d y:%lf tick:%f user:%f window:%f delta:%f priority:%f max:%f result:%d num:%d\r\n",
 				j,y1[j],
-				g_ml_data[i*16+j].tick, g_ml_data[i * 16 + j].user, g_ml_data[i * 16 + j].window,
-				g_ml_data[i * 16 + j].delta, g_ml_data[i * 16 + j].priority,max,num, g_ml_data[i * 16 + j].result);
+				g_ml_data[i].task[j].tick, g_ml_data[i].task[j].user, g_ml_data[i].task[j].window,
+				g_ml_data[i].task[j].delta, g_ml_data[i].task[j].priority,max, g_ml_data[i].result,num);
+		}
+
+		if(num != g_ml_data[i].result) {
+			n_err++;
 		}
 	}
 	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);

@@ -30,7 +30,7 @@ int g_lvt_timer = 0;
 
 int g_allocate_ap_lock = 0;
 
-int g_ipi_lock = 0;
+int g_ipi_lock[256] = { 0 };
 
 int g_apic_int_tag = 0;
 
@@ -473,26 +473,41 @@ int InitIoApicRte() {
 
 int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 {
-	__enterSpinlock(&g_ipi_lock);
 	int ret = 0;
+
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	__enterSpinlock(&g_ipi_lock[cpu]);
+	
 	int id = GetIdleProcessor();
-	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
 
-	msg[id].cmd = IPI_CREATETHREAD;
-
-	msg[id].pc = 4;
-	IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[id].param;
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)0;
+	IPI_MSG_PARAM* ptr = (IPI_MSG_PARAM*)IPI_MSG_BASE;
+	int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
+	for (int i = 0; i < cnt; i++) {
+		if (ptr[i].valid == 0) {
+			msg = &ptr[i];
+			break;
+		}
+	}
+	if (msg == 0) {
+		__leaveSpinlock(&g_ipi_lock[cpu]);
+		return -1;
+	}
+	msg->cmd = IPI_CREATETHREAD;
+	msg->valid = 1;
+	msg->id = id;
+	IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg->param;
 	subparam->addr = (DWORD)addr;
 	subparam->module = module;
-
 	__strcpy(subparam->funcname, funname);
-
-	//subparam->params = (DWORD)p;
 	__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
+
+#ifdef _DEBUG
 	char szout[256];
-	//__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
-	
-	__leaveSpinlock(&g_ipi_lock);
+	__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
+#endif
+
+	__leaveSpinlock(&g_ipi_lock[cpu]);
 
 	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
@@ -503,7 +518,10 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p)
 {
-	__enterSpinlock(&g_ipi_lock);
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	__enterSpinlock(&g_ipi_lock[cpu]);
+
 	int ret = 0;
 	int id = 0;
 	if (base) {
@@ -519,27 +537,40 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 	else {
 		id = GetIdleProcessor();
 	}
+
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)0;
+	IPI_MSG_PARAM* ptr = (IPI_MSG_PARAM*)IPI_MSG_BASE;
+	int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
+	for (int i = 0; i < cnt; i++) {
+		if (ptr[i].valid == 0) {
+			msg = &ptr[i];
+			break;
+		}
+	}
+
+	if(msg == 0) {
+		__leaveSpinlock(&g_ipi_lock[cpu]);
+		return -1;
+	}
 	
-	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
-
-	msg[id].cmd = IPI_CREATEPROCESS;
-
-	msg[id].pc = 6;
-	IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[id].param;
+	msg->cmd = IPI_CREATEPROCESS;
+	msg->valid = 1;
+	msg->id = id;
+	IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg->param;
 	subparam->base = (DWORD)base;
 	subparam->size = size;
-
 	__strcpy((char*)subparam->module, module);
-
 	__strcpy(subparam->funcname, func);
 	subparam->level = level;
-	//subparam->params = (DWORD)p;
 	__memcpy(subparam->params,(char*)p,sizeof(TASKCMDPARAMS));
+	
+#ifdef _DEBUG
 	char szout[256];
-	//__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
+	__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
+#endif
 
-	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
-	__leaveSpinlock(&g_ipi_lock);
+	__leaveSpinlock(&g_ipi_lock[cpu]);
+
 	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
 	return 0;
@@ -572,58 +603,66 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 	{
 		char szout[256];
+		int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		__enterSpinlock(&g_ipi_lock[cpu]);
 
-		__enterSpinlock(&g_ipi_lock);
-
-		IPI_MSG_PARAM* msg =(IPI_MSG_PARAM * )IPI_MSG_BASE;
-		int id = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		int cmd = msg[id].cmd;
-		
-		//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
-
-		if (cmd == IPI_CREATEPROCESS) {
-			msg[id].cmd = 0;
-
-			IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[id].param;
-			DWORD base = (DWORD)subparam->base;
-			DWORD size = subparam->size;
-			char *  module =subparam->module;
-			char* funcname = subparam->funcname;
-			int level = subparam->level;
-			char* p = (char*)subparam->params;
-			
-			//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
-
-			if (__findProcessFileName(subparam->funcname) == FALSE)
-			{
-				//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
-				__kCreateProcess(subparam->base, subparam->size, (subparam->module), (subparam->funcname), subparam->level, (unsigned long)subparam->params);
+		IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)0;
+		IPI_MSG_PARAM* ptr = (IPI_MSG_PARAM*)IPI_MSG_BASE;
+		int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
+		for (int i = 0; i < cnt; i++) {
+			if (ptr[i].valid && cpu == ptr[i].id) {
+				msg = &ptr[i];
+				break;
 			}
 		}
-		else if (cmd == IPI_CREATETHREAD) {
-			msg[id].cmd = 0;
 
-			IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[id].param;
-			DWORD module = (DWORD)subparam->module;
-			DWORD addr = subparam->addr;
-			char* funcname = subparam->funcname;
-			char* p = (char*)subparam->params;
+		if (msg != 0) {
+			int cmd = msg->cmd;
 
-			//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
+			msg->valid = 0;
 
-			if (__findProcessFileName(funcname) == FALSE)
-			{
-				__kCreateThread((DWORD)addr, (DWORD)subparam->module,(unsigned long)p ,subparam->funcname );
+			//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+
+			if (cmd == IPI_CREATEPROCESS) {
+				IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg->param;
+				DWORD base = (DWORD)subparam->base;
+				DWORD size = subparam->size;
+				char* module = subparam->module;
+				char* funcname = subparam->funcname;
+				int level = subparam->level;
+				char* p = (char*)subparam->params;
+
+				//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
+
+				if (__findProcessFileName(subparam->funcname) == FALSE)
+				{
+					//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
+					__kCreateProcess(subparam->base, subparam->size, (subparam->module), (subparam->funcname), subparam->level, (unsigned long)subparam->params);
+				}
+			}
+			else if (cmd == IPI_CREATETHREAD) {
+
+				IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg->param;
+				DWORD module = (DWORD)subparam->module;
+				DWORD addr = subparam->addr;
+				char* funcname = subparam->funcname;
+				char* p = (char*)subparam->params;
+
+				//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
+
+				if (__findProcessFileName(funcname) == FALSE)
+				{
+					__kCreateThread((DWORD)addr, (DWORD)subparam->module, (unsigned long)p, subparam->funcname);
+				}
+			}
+			else if (cmd == IPI_TASKSWITCH) {
+				//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+			}
+			else {
+
 			}
 		}
-		else if (cmd == IPI_TASKSWITCH) {
-			//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-		}
-		else {
-
-		}
-
-		__leaveSpinlock(&g_ipi_lock);
+		__leaveSpinlock(&g_ipi_lock[cpu]);
 		
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
 	}
@@ -1865,7 +1904,7 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 		}
 
-		TaskPredictionSample tp;
+		TaskPredictParam tp;
 		
 		for (int i = 0; i < count; i++) {
 			int pid = tickc[i].id;
@@ -1876,29 +1915,31 @@ PROCESS_INFO * GetReadyProcess() {
 			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
 
 			if (pid == target_id) {
-				tp.result = (float)1.0;
+				tp.result = i;
 			}
-			else {
-				tp.result = 0.0;
-			}
-			tp.tick = tick_ratio;
-			tp.user = user_ratio;
-			tp.window = window_ratio;
-			tp.delta = delta_ratio;
-			tp.priority = priority_ratio;			
-
-#ifndef _DEBUG
-			if (g_debug_tag++ < 100) {
-
-					__printf(szout, "%d:  %f   %f   %f   %f  %f result:%f\r\n",
-						i, tp.tick, tp.user, tp.window, tp.delta, tp.priority, tp.result);
-				
-			}
-			SaveMlData(&tp);
-#endif
+			tp.task[i].tick = tick_ratio;
+			tp.task[i].user = user_ratio;
+			tp.task[i].window = window_ratio;
+			tp.task[i].delta = delta_ratio;
+			tp.task[i].priority = priority_ratio;			
 		}
 
-
+		for (int i = count; i < 16; i++) {
+			tp.task[i].tick = 0.0;
+			tp.task[i].user = 0.0;
+			tp.task[i].window = 0.0;
+			tp.task[i].delta = 0.0;
+			tp.task[i].priority = 0.0;
+		}
+#ifndef _DEBUG
+		if (g_debug_tag++ < 10) {
+			for (int i = 0; i < 16; i++) {
+				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
+					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
+			}
+		}
+		SaveMlData(&tp);
+#endif
 	}
 	else {
 		target_tss = current;

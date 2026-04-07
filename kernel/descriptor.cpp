@@ -433,3 +433,30 @@ int GetCpuRate() {
 
 //IA32_APERF	//0xe8
 //IA32_MPERF	//0xe7
+
+
+IPI_MSG_PARAM* GetIpiMsg() {
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
+
+	int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
+	for(int i = 0; i < cnt; i++) {
+		if (msg[i].valid == 0) {
+			return &msg[i];
+		}
+	}
+	return 0;
+}
+
+
+IPI_MSG_PARAM* SetIpiMsg() {
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
+
+	int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
+	for (int i = 0; i < cnt; i++) {
+		if (msg[i].valid == 0) {
+			msg[i].valid = 1;
+			return &msg[i];
+		}
+	}
+	return 0;
+}

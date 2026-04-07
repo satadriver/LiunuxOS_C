@@ -210,14 +210,14 @@
 
 #define GDT64_BASE_ADDR				0X5a0000
 
-#define IDT64_BASE_ADDR				0X5b0000
+#define IDT64_BASE_ADDR				0X590000
 
 //#define LDT_BASE					0x5c0000
 
 #define LIB_INFO_SIZE				0X10000
-#define LIB_INFO_BASE				0X5d0000
+#define LIB_INFO_BASE				0X5c0000
 
-#define IPI_MSG_BASE				0X5e0000
+#define IPI_MSG_BASE				0X5d0000
 
 #define TSSEXP_STACK0_ADDRESS 		0x5f0000
 #define TSSEXP_STACK0_TOP 			(TSSEXP_STACK0_ADDRESS + TASK_STACK0_SIZE - STACK_TOP_DUMMY)
@@ -476,7 +476,8 @@ typedef struct {
 
 typedef struct  {
 	int cmd;
-	int pc;
+	int valid;
+	int id;
 	char param[1024];
 }IPI_MSG_PARAM;
 
