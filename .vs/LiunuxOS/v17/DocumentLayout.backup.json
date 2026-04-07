@@ -68,7 +68,7 @@
               "RelativeDocumentMoniker": "kernel\\ml.h",
               "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\ml.h",
               "RelativeToolTip": "kernel\\ml.h",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAYwBEAAAALAAAAAAAAAA==",
+              "ViewState": "AgIAAAsAAAAAAAAAAAArwAwAAAAOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-04-07T01:42:06.989Z",
               "EditorCaption": ""
@@ -107,8 +107,7 @@
               "RelativeToolTip": "kernel\\keyboard.cpp",
               "ViewState": "AgIAAGsAAAAAAAAAAAAQwHUAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-04-03T05:00:29.476Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-03T05:00:29.476Z"
             },
             {
               "$type": "Document",
@@ -166,7 +165,7 @@
               "RelativeDocumentMoniker": "kernel\\ml.cpp",
               "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\ml.cpp",
               "RelativeToolTip": "kernel\\ml.cpp",
-              "ViewState": "AgIAAJYAAAAAAAAAAAAlwJkAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACQAAAAAAAAAAAAYwCgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-04-03T04:24:17.447Z",
               "EditorCaption": ""
@@ -179,7 +178,7 @@
               "RelativeDocumentMoniker": "kernel\\apic.cpp",
               "ToolTip": "D:\\Project\\LiunuxOS_C\\kernel\\apic.cpp",
               "RelativeToolTip": "kernel\\apic.cpp",
-              "ViewState": "AgIAAFcHAAAAAAAAAAAUwGoHAABIAAAAAAAAAA==",
+              "ViewState": "AgIAAFQHAAAAAAAAAAAUwGgHAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-04-03T01:23:08.365Z",
               "EditorCaption": ""

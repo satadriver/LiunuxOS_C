@@ -4,26 +4,29 @@
 
 #pragma pack(1)
 
-struct TaskSwitchSample {
+struct TaskPredictionSample {
 	float tick;
 	float user;
 	float window;
 	float delta;
 	float priority;
+	float result;
 };
 
+/*
 struct TaskPredictParam {
 
 	TaskSwitchSample task[16];
 	int result;
 };
+*/
 
 #pragma pack()
 
-extern "C" __declspec(dllexport) TaskPredictParam * g_ml_data ;
+extern "C" __declspec(dllexport) TaskPredictionSample* g_ml_data ;
 
 
-int SaveMlData(TaskPredictParam*);
+int SaveMlData(TaskPredictionSample*);
 
 extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
 
