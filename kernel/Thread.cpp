@@ -8,6 +8,7 @@
 #include "apic.h"
 #include "window.h"
 #include "core.h"
+#include "systemService.h"
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -264,6 +265,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->priority = process->priority;
 	tss->tick = 0;
 	tss->prev_tick = 0;
+	tss->tick_start = __krdtsc();
 
 	tss->slice = process->slice;
 	tss->frac_slice = 0;

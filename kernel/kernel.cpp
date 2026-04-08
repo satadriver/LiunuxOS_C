@@ -195,8 +195,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
-	//va_test_fun();
-
 	while (1)
 	{
 		//break;

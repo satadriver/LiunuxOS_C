@@ -384,6 +384,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->frac_slice = 0;
 	tss->tick = 0;
 	tss->prev_tick = 0;
+	tss->tick_start = __krdtsc();
 
 	tss->sleep = 0;
 	tss->sleep_total = 0;

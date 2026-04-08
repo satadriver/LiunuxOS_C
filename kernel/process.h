@@ -43,6 +43,9 @@ typedef struct {
 typedef struct 
 {
 	TSS tss;
+	char filename[256];
+	char funcname[64];
+
 	char level;
 	char fpu;
 	char copyMap;
@@ -73,6 +76,7 @@ typedef struct
 	int priority;
 	int delta;
 
+	unsigned long long tick_start;
 	unsigned long long tick;
 	unsigned long long prev_tick;
 
@@ -98,10 +102,6 @@ typedef struct
 	DWORD dr3;
 	DWORD dr6;
 	DWORD dr7;
-
-	char filename[256];
-
-	char funcname[64];
 
 	char* fast_heap_large;
 	int large_heap_size;

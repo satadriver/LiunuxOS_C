@@ -529,7 +529,7 @@ int __i64ToStrd64( __int64 v, char* strd) {
 
 
 int __i2strd( int h, char* strd) {
-	int n = h;
+	unsigned long n = h;
 	int len = 0;
 	if (h < 0) {
 		strd[0] = '-';
@@ -659,9 +659,9 @@ int __strd2i(char * istr) {
 
 
 int strlf2lf(double f,char * buf) {
-	int i = (int)f;
+	unsigned long long i = (unsigned long long)f;
 
-	int len = __i2strd(i, buf);
+	int len = __i64ToStrd64(i, buf);
 	buf[len] = '.';
 	len++;
 
@@ -674,7 +674,7 @@ int strlf2lf(double f,char * buf) {
 	int pos = 0;
 	for (int p = 0; p < 4; p++) {
 		tf = tf * 10;
-		int ti = (int)tf;
+		unsigned long long ti = (unsigned long long)tf;
 		if (ti) {
 			tf = tf - ti;
 			pos = p;
@@ -683,9 +683,9 @@ int strlf2lf(double f,char * buf) {
 
 	for (int k = 0; k < pos+1; k++) {
 		s = s * 10;
-		int t = (int)s;
+		unsigned long long t = (unsigned long long)s;
 		s = s - t;
-		int sublen = __i2strd(t, buf + len);
+		int sublen = __i64ToStrd64(t, buf + len);
 		len += sublen;	
 	}	
 

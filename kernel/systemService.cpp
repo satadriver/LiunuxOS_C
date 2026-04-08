@@ -251,14 +251,18 @@ void sleep(DWORD * params) {
 			g_cpu_tick[id] += (tick1- g_cpu_prev_tick[id] );
 			g_cpu_prev_tick[id] = 0;
 		}
+		else {
+			//task switch set the g_cpu_prev_tick
+			__printf("%s %d cpu:%d g_cpu_prev_tick null!\r\n",__FUNCTION__,__LINE__,id);
+		}
 	}
 	else {
 		DWORD low2 = 0;
 		DWORD high2 = 0;
-		readmsr(0xe7, &low2, &high2);
-		unsigned long long delta = high2;
-		delta = (delta << 32) + low2;
-		g_cpu_tick[id] = tick1 - delta;
+		readmsr(MSR_IA32_MPERF, &low2, &high2);
+		unsigned long long aperf = high2;
+		aperf = (aperf << 32) + low2;
+		g_cpu_tick[id] = tick1 - aperf;
 		g_cpu_prev_tick[id] = 0;
 	}
 
@@ -469,13 +473,13 @@ unsigned __int64 getCpuFreq() {
 
 	__asm {
 		; read MPERF
-		mov ecx, 0xe7
+		mov ecx, MSR_IA32_MPERF
 		rdmsr
 		mov mperf_var_lo, eax
 		mov mperf_var_hi, edx
 
 		; read APERF
-		mov ecx, 0xe8
+		mov ecx, MSR_IA32_APERF
 		rdmsr
 		mov aperf_var_lo, eax
 		mov aperf_var_hi, edx

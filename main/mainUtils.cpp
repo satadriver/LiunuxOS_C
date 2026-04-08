@@ -7,7 +7,7 @@
 #include "malloc.h"
 #include "core.h"
 #include "apic.h"
-
+#include "systemService.h"
 int getcrs(char * szout) {
 
 	if (szout)
@@ -57,7 +57,7 @@ int getmemmap(int pid, char* szout) {
 	return getProcMemory(pid,cpu, szout);
 }
 
-int getpids(char * szout) {
+int GetAllProcesses(char * szout) {
 	int outlen = 0;
 	int len = 0;
 
@@ -68,8 +68,12 @@ int getpids(char * szout) {
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
-				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
-					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid, tss[i].pid, tss[i].tid, tss[i].level);
+				double diff = __krdtsc() - tss[i].tick_start;
+				double tick = tss[i].tick ;
+				double usage = tick /diff;
+				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid, 
+					tss[i].pid, tss[i].ppid,tss[i].tid, tss[i].level, usage,tss[i].sleep,tss[i].counter,tss[i].slice, tss[i].priority, tss[i].delta,*tss[i].lpvasize,*tss[i].lpHeapCnt);
 				outlen += len;
 			}
 		}
@@ -91,22 +95,44 @@ int CpuUsage(char * buf) {
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];
 		
-		//unsigned long long t = g_cpu_active[id];
+		double diff = __krdtsc() - g_cpu_start_tick[id];
 
-		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,sleep:%i64x;", id, g_cpu_tick[id], g_cpu_prev_tick[id]);
+		double usage = g_cpu_tick[id] / diff;
+
+		double load = 100.0;
+
+		if (g_pm_enable) {
+			unsigned long long e7low = 0;
+			unsigned long long e7high = 0;
+			readmsr(MSR_IA32_MPERF,(unsigned long*) & e7low, (unsigned long*)&e7high);
+
+			unsigned long long e8low = 0;
+			unsigned long long e8high = 0;
+			readmsr(MSR_IA32_APERF, (unsigned long*)&e8low, (unsigned long*)&e8high);
+
+			load = ((double)((e8high << 32) + e8low)) / ((double)((e7high << 32) + e7low) ) ;
+		}
+
+		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,alive:%i64x,rate:%lf,load:%lf,g_pm_enable:%d\r\n", 
+			id, g_cpu_tick[id],(unsigned long long)diff, usage,load, g_pm_enable);
 		offset += len;
 	}
 	return offset;
 }
 
 
-int getpid(int pid,char * szout) {
+int GetProcess(int pid,char * szout) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN && tss[i].pid == pid)
 		{
-			int len = __sprintf(szout, "filename:%s, funcname:%s, address:%x,cpu:%d, pid:%d,tid:%d,level:%d\r\n",
-				tss[i].filename, tss[i].funcname, tss[i].moduleBase,tss[i].cpuid,tss[i].pid, tss[i].tid, tss[i].level);
+			double diff = __krdtsc() - tss[i].tick_start;
+			double tick = tss[i].tick;
+			double usage = tick / diff;
+
+			int len = __sprintf(szout, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+				tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
+				tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, usage, tss[i].sleep, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 			return len;
 		}
 	}

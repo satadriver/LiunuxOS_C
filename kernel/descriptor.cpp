@@ -359,13 +359,23 @@ int GetPmVersion() {
 
 	DWORD low = 0;
 	DWORD high = 0;
-	readmsr(0xe7, &low, &high);
+	readmsr(MSR_IA32_MPERF, &low, &high);
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long long tick = __krdtsc();
+
 	if(low || high ) {
 		g_pm_enable = g_pm_enable| TRUE;
+		unsigned long long aprf = ((unsigned long long)high << 32) + low;
+		
+		g_cpu_tick[id] = tick - aprf;
+		g_cpu_prev_tick[id] = tick;
+		g_cpu_start_tick[id] = tick;
 	}
 	else {
-		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		g_cpu_prev_tick[id] = __krdtsc();
+		g_cpu_tick[id] = 0;
+		g_cpu_prev_tick[id] = tick;
+		g_cpu_start_tick[id] = tick;
 	}
 
 	int ver = 0;
@@ -410,12 +420,12 @@ int GetCpuRate() {
 	unsigned long e7low = 0;
 	unsigned long e7high = 0;
 
-	readmsr(0xe7, &e7low,& e7high);
+	readmsr(MSR_IA32_MPERF, &e7low,& e7high);
 
 	unsigned long e8low = 0;
 	unsigned long e8high = 0;
 
-	readmsr(0xe8, &e8low, &e8high);
+	readmsr(MSR_IA32_APERF, &e8low, &e8high);
 
 	unsigned long long tick = __krdtsc();
 

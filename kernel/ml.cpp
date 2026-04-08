@@ -41,7 +41,7 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(1024)
+#define		TASK_PREDICTION_TRAIN	(4096)
 
 
 
@@ -75,7 +75,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 	TASKCMDPARAMS cmd;
 	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
-	for(int i = 0; i < 8; ++i) {
+	for(int i = 0; i < 4; ++i) {
 		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
 		//__ipiCreateThread((unsigned int)ml_addr,(char*) KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread2");
 		int imageSize = 0x100000;
@@ -87,7 +87,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		}
 	}
 
-	for (int i = 0; i < 8; ++i) {
+	for (int i = 0; i < 4; ++i) {
 		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
 		//__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread1");
 		int imageSize = 0x100000;

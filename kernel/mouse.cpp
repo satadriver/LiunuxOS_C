@@ -461,6 +461,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 		{
 			data->mouseBufTail = 0;
 		}
+		
 		extern int g_task_array_lock[256];
 		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		__enterSpinlock(&g_task_array_lock[id]);
@@ -473,7 +474,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 		}
 		current->delta = proc->delta;
 		__leaveSpinlock(&g_task_array_lock[id]);
-
+		
 		return TRUE;
 	}
 	else {

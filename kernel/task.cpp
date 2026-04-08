@@ -26,6 +26,7 @@ int g_last_task_tid[TASK_LIMIT_TOTAL];
 
 unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
 unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
+unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
 
 int g_tagMsg = 0;
 
@@ -1397,13 +1398,16 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			g_cpu_tick[id] += time1 - g_cpu_prev_tick[id];
 			g_cpu_prev_tick[id] = 0;
 		}
+		else {
+			//sleep clear the g_cpu_prev_tick
+		}
 	}
 	else {
 		DWORD high = 0;
 		DWORD low = 0;
-		readmsr(0xe7, &low, &high);
-		unsigned long long ul = ((unsigned long long)high << 32) + low;
-		g_cpu_tick[id] += time1 - ul;
+		readmsr(MSR_IA32_MPERF, &low, &high);
+		unsigned long long aperf = ((unsigned long long)high << 32) + low;
+		g_cpu_tick[id] = time1 - aperf;
 		g_cpu_prev_tick[id] = 0;
 	}
 
@@ -1555,6 +1559,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->priority = 0;
 	process0->tick = 0;
 	process0->prev_tick = 0;
+	process0->tick_start = __krdtsc();
 
 	int bsp = IsBspProcessor();
 	if (bsp) {

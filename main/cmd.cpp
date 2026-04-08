@@ -178,7 +178,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "threads") == 0)
 	{
 		*szout = 0;
-		getpids(szout);
+		GetAllProcesses(szout);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "thread") == 0)
@@ -187,7 +187,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		{
 			int i = __strd2i(params[1]);
 			*szout = 0;
-			getpid(i, szout);
+			GetProcess(i, szout);
 			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}
@@ -440,6 +440,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);
 	}
+	ret = __drawWindowChars((char*)"\r\n", CONSOLE_FONT_COLOR, window);
 	return 0;
 }
 
