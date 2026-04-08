@@ -100,8 +100,10 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 
 	while (1) {
+		__sleep(0);
+		Halt();
 		__asm {
-			hlt
+			//hlt
 		}
 	}
 

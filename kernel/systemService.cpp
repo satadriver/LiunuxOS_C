@@ -172,6 +172,27 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			r = CpuTemperature(&tj);
 			break;
 		}
+		case SVC_RDMSR: {
+			DWORD* low =(DWORD * )params[1];
+			DWORD* high =(DWORD * )params[2];
+			readmsr(params[0], low, high);
+			r = 0;
+			break;
+		}
+		case SVC_WRMSR: {
+			DWORD low = (DWORD)params[1];
+			DWORD high = (DWORD)params[2];
+			writemsr(params[0], low, high);
+			r = 0;
+			break;
+		}
+		case SVC_HALT: 
+		{
+			__asm {
+				hlt
+			}
+			break;
+		}
 		default: {
 			break;
 		}
@@ -179,8 +200,31 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	return r;
 }
 
+extern "C"  __declspec(dllexport)void Halt()
+{
+	__asm {
+		mov eax, SVC_HALT
+		int 0x80
+	}
+}
 
+extern "C"  __declspec(dllexport)void RdMsr(DWORD num, DWORD* low,DWORD * high)
+{
+	__asm {
+		mov eax, SVC_RDMSR
+		lea edi, num
+		int 0x80
+	}
+}
 
+extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high)
+{
+	__asm {
+		mov eax, SVC_WRMSR
+		lea edi, num
+		int 0x80
+	}
+}
 
 extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
 
@@ -259,7 +303,7 @@ void sleep(DWORD * params) {
 	else {
 		DWORD low2 = 0;
 		DWORD high2 = 0;
-		readmsr(MSR_IA32_MPERF, &low2, &high2);
+		readmsr(MSR_IA32_APERF, &low2, &high2);
 		unsigned long long aperf = high2;
 		aperf = (aperf << 32) + low2;
 		g_cpu_tick[id] = tick1 - aperf;
@@ -533,14 +577,14 @@ int CpuTemperature(DWORD* lptj) {
 	DWORD low = 0;
 	DWORD high = 0;
 	int result = 0;
-	readmsr(0x1a2, &low, &high);
+	RdMsr(0x1a2, &low, &high);
 
 	tjmax = (low & 0xff0000) >> 16;
 
 	DWORD low2 = 0;
 	DWORD high2 = 0;
 
-	readmsr(0x19c, &low2, &high2);
+	RdMsr(0x19c, &low2, &high2);
 	temp_offset = (low2 & 0x7f0000) >> 16;
 
 	int temp = tjmax - temp_offset;

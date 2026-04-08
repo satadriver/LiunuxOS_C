@@ -50,6 +50,10 @@ void initPaging() {
 
 	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
 	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	int cnt = 0x100000 / sizeof(MEMALLOCINFO);
+	for (int i = 0; i < cnt; i++) {
+		__memset((char*)&pageList[i], 0, sizeof(MEMALLOCINFO));
+	}
 	InitListEntry(&pageList->list);
 	pageList->addr = 0;
 	pageList->size = 0;

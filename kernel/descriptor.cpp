@@ -359,7 +359,7 @@ int GetPmVersion() {
 
 	DWORD low = 0;
 	DWORD high = 0;
-	readmsr(MSR_IA32_MPERF, &low, &high);
+	readmsr(MSR_IA32_APERF, &low, &high);
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	unsigned long long tick = __krdtsc();

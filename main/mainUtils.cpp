@@ -95,26 +95,30 @@ int CpuUsage(char * buf) {
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];
 		
-		double diff = __krdtsc() - g_cpu_start_tick[id];
+		unsigned long long alive = __krdtsc() - g_cpu_start_tick[id];
 
-		double usage = g_cpu_tick[id] / diff;
+		double diff = alive;
 
-		double load = 100.0;
+		double usage = g_cpu_tick[id];
+
+		usage = usage / diff;
+
+		double load = 1.0;
 
 		if (g_pm_enable) {
 			unsigned long long e7low = 0;
 			unsigned long long e7high = 0;
-			readmsr(MSR_IA32_MPERF,(unsigned long*) & e7low, (unsigned long*)&e7high);
+			RdMsr(MSR_IA32_MPERF,(unsigned long*) & e7low, (unsigned long*)&e7high);
 
 			unsigned long long e8low = 0;
 			unsigned long long e8high = 0;
-			readmsr(MSR_IA32_APERF, (unsigned long*)&e8low, (unsigned long*)&e8high);
+			RdMsr(MSR_IA32_APERF, (unsigned long*)&e8low, (unsigned long*)&e8high);
 
 			load = ((double)((e8high << 32) + e8low)) / ((double)((e7high << 32) + e7low) ) ;
 		}
 
 		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,alive:%i64x,rate:%lf,load:%lf,g_pm_enable:%d\r\n", 
-			id, g_cpu_tick[id],(unsigned long long)diff, usage,load, g_pm_enable);
+			id, g_cpu_tick[id], alive, usage,load, g_pm_enable);
 		offset += len;
 	}
 	return offset;

@@ -492,7 +492,8 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 			subparam->module = module;
 			__strcpy(subparam->funcname, funname);
 			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
-
+			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+			break;
 			
 		}
 	}
@@ -503,10 +504,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 #endif
 
 	__leaveSpinlock(&g_ipi_lock);
-
-	if(msg)
-		SetIcr(id, APIC_IPI_VECTOR, 0, 0);
-
+		
 	return 0;
 }
 
@@ -549,8 +547,8 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 			__strcpy(subparam->funcname, func);
 			subparam->level = level;
 			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
-
-			
+			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+			break;
 		}
 	}
 #ifdef _DEBUG
@@ -559,8 +557,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 #endif
 
 	__leaveSpinlock(&g_ipi_lock);
-	if (msg)
-		SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+		
 	return 0;
 }
 
@@ -1393,6 +1390,7 @@ void BPCodeStart() {
 	if(ret == 0){
 		return;
 	}
+	__memset((char*)IPI_MSG_BASE, 0, 0x10000);
 
 	__asm {cli}
 
@@ -1868,7 +1866,7 @@ PROCESS_INFO * GetReadyProcess() {
 		QuickSort(tickc, 0, count - 1);
 
 		for (int i = 0; i < count; i++) {
-			tickc[i].v = STATIC_PRIORITY / (count + 1 - i);
+			tickc[i].v = STATIC_PRIORITY / (i + 1 );
 		}
 
 		for (int i = 0; i < count; i++) {

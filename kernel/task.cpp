@@ -1383,7 +1383,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	LPPROCESS_INFO current  = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
 
-	__int64 time1 = __krdtsc();
+	unsigned __int64 time1 = __krdtsc();
 
 	if (current->prev_tick && prev->prev_tick) {
 		current->tick += time1 - current->prev_tick;
@@ -1405,7 +1405,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	else {
 		DWORD high = 0;
 		DWORD low = 0;
-		readmsr(MSR_IA32_MPERF, &low, &high);
+		readmsr(MSR_IA32_APERF, &low, &high);
 		unsigned long long aperf = ((unsigned long long)high << 32) + low;
 		g_cpu_tick[id] = time1 - aperf;
 		g_cpu_prev_tick[id] = 0;
@@ -1434,7 +1434,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
 	
-	__int64 time2 = __krdtsc();
+	unsigned __int64 time2 = __krdtsc();
 
 	/*
 	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {

@@ -277,11 +277,11 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 	{
 		for (int n = factor/2 ; n && n < factor; )
 		{
-			DWORD addr = MEMMORY_ALLOC_BASE + size * n;
-			if ( addr + size > gAvailableBase + gAvailableSize)
+			unsigned long addr = MEMMORY_ALLOC_BASE + size * n;
+			if ( (unsigned long long)addr + size > gAvailableBase + gAvailableSize)
 			{
 				res = -1;
-				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%x,size:%x\r\n", 
+				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%I64x,size:%I64x\r\n", 
 					addr, size, gAvailableBase, gAvailableSize);
 				break;
 			}

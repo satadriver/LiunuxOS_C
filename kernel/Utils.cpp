@@ -777,6 +777,15 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 
 			params += 2;
 		}
+		else if (format[spos] == '%' && (__memcmp(format + spos + 1, (char*)"lld", 3) == 0) ) {
+			spos += 4;
+
+			__int64 li = *(__int64*)params;
+			int len = __i64ToStrd64(li, dst + dpos);
+			dpos += len;
+
+			params += 2;
+		}
 		else if (format[spos] == '%' && (__memcmp(format + spos + 1, (char*)"i64x", 4) == 0 ||
 			__memcmp(format + spos + 1, (char*)"I64x", 4) == 0 ||
 			__memcmp(format + spos + 1, (char*)"I64X", 4) == 0 ||
@@ -793,6 +802,29 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 				len = __i2strh(numl, 1, (unsigned char*)numstr);
 				__memcpy(dst + dpos, numstr , len );
 				dpos += (len );
+			}
+			else {
+				__memcpy(dst + dpos, numstr, len);
+				dpos += len;
+
+				len = __i2strh(numl, 1, (unsigned char*)numstr);
+				__memcpy(dst + dpos, numstr + 2, len - 2);
+				dpos += (len - 2);
+			}
+		}
+		else if (format[spos] == '%' && __memcmp(format + spos + 1, (char*)"llx", 3) == 0 ) {
+			spos += 4;
+
+			DWORD numl = *params;
+			params++;
+			DWORD numh = *params;
+			params++;
+
+			len = __i2strh(numh, 1, (unsigned char*)numstr);
+			if (len == 3 && numstr[2] == '0') {
+				len = __i2strh(numl, 1, (unsigned char*)numstr);
+				__memcpy(dst + dpos, numstr, len);
+				dpos += (len);
 			}
 			else {
 				__memcpy(dst + dpos, numstr, len);
