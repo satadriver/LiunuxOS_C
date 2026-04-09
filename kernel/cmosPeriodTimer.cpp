@@ -10,7 +10,7 @@
 #include "apictimer.h"
 #include "apic.h"
 
-DATETIME g_startup_timer ;
+DATETIME g_startup_timer;
 
 void EnableCmos() {
 	__asm {cli}
@@ -155,7 +155,6 @@ void initTimer() {
 
 	outportb(0x70, 0x0c | 0x80);
 	inportb(0x71);
-
 	__getDateTime(&g_startup_timer);
 }
 

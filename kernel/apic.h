@@ -9,6 +9,8 @@
 
 #define APIC_CORE_MAX_COUNT		256
 
+#define IPI_MSG_LIMIT			64
+
 
 #pragma pack(1)
 
@@ -29,7 +31,7 @@ typedef struct {
 	DWORD base;
 	int size;
 	char module[256];
-	char funcname[256];
+	char funcname[64];
 	int level;
 	char params[256];
 }IPI_CREATEPROCESS_PARAM;

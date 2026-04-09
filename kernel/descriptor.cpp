@@ -356,18 +356,16 @@ int SysenterInit(DWORD entryaddr) {
 int g_pm_enable = FALSE;
 
 int GetPmVersion() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long long tick = __krdtsc();
 
 	DWORD low = 0;
 	DWORD high = 0;
 	readmsr(MSR_IA32_APERF, &low, &high);
-
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	unsigned long long tick = __krdtsc();
-
 	if(low || high ) {
 		g_pm_enable = g_pm_enable| TRUE;
 		unsigned long long aprf = ((unsigned long long)high << 32) + low;
-		
+
 		g_cpu_tick[id] = tick - aprf;
 		g_cpu_prev_tick[id] = tick;
 		g_cpu_start_tick[id] = tick;
@@ -420,12 +418,12 @@ int GetCpuRate() {
 	unsigned long e7low = 0;
 	unsigned long e7high = 0;
 
-	readmsr(MSR_IA32_MPERF, &e7low,& e7high);
+	readmsr(0xe7, &e7low,& e7high);
 
 	unsigned long e8low = 0;
 	unsigned long e8high = 0;
 
-	readmsr(MSR_IA32_APERF, &e8low, &e8high);
+	readmsr(0xe8, &e8low, &e8high);
 
 	unsigned long long tick = __krdtsc();
 

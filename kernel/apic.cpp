@@ -26,9 +26,12 @@ char * gRcbaBase = 0;
 
 DWORD* gHpetBase = 0;
 
+int g_lvt_timer = 0;
+
 int g_allocate_ap_lock = 0;
 
-int g_ipi_lock = 0;
+int g_ipi_lock[256] = { 0 };
+char* g_ipi_buf[256] = { 0 };
 
 int g_apic_int_tag = 0;
 
@@ -472,29 +475,26 @@ int InitIoApicRte() {
 int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 {
 	int ret = 0;
-
-	__enterSpinlock(&g_ipi_lock);
-	
 	int id = GetIdleProcessor();
 
-	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)0;
-	IPI_MSG_PARAM* ptr = (IPI_MSG_PARAM*)IPI_MSG_BASE;
-	int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
-	for (int i = 0; i < cnt; i++) {
-		if (ptr[i].valid == 0) {
-			msg = &ptr[i];
+	//int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	__enterSpinlock(&g_ipi_lock[id]);
 
-			msg->cmd = IPI_CREATETHREAD;
-			msg->valid = 1;
-			msg->id = id;
-			IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg->param;
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[id];
+	for (int i = 0; i < IPI_MSG_LIMIT; i++) {
+		if (msg[i].valid == 0) {
+
+			msg[i].cmd = IPI_CREATETHREAD;
+			msg[i].valid = 1;
+			msg[i].id = id;
+			IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
 			subparam->addr = (DWORD)addr;
 			subparam->module = module;
 			__strcpy(subparam->funcname, funname);
 			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
-			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
-			break;
+
 			
+			break;
 		}
 	}
 
@@ -503,8 +503,8 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
 #endif
 
-	__leaveSpinlock(&g_ipi_lock);
-		
+	__leaveSpinlock(&g_ipi_lock[id]);
+	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 	return 0;
 }
 
@@ -512,9 +512,10 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p)
 {
-	__enterSpinlock(&g_ipi_lock);
-
 	int ret = 0;
+
+	//int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
 	int id = 0;
 	if (base) {
 		int petype = getPeType(base);
@@ -530,34 +531,34 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 		id = GetIdleProcessor();
 	}
 
-	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)0;
-	IPI_MSG_PARAM* ptr = (IPI_MSG_PARAM*)IPI_MSG_BASE;
-	int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
-	for (int i = 0; i < cnt; i++) {
-		if (ptr[i].valid == 0) {
-			msg = &ptr[i];
+	__enterSpinlock(&g_ipi_lock[id]);
 
-			msg->cmd = IPI_CREATEPROCESS;
-			msg->valid = 1;
-			msg->id = id;
-			IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg->param;
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[id];
+	for (int i = 0; i < IPI_MSG_LIMIT; i++) {
+		if (msg[i].valid == 0) {
+			msg[i].cmd = IPI_CREATEPROCESS;
+			msg[i].valid = 1;
+			msg[i].id = id;
+			IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
 			subparam->base = (DWORD)base;
 			subparam->size = size;
 			__strcpy((char*)subparam->module, module);
 			__strcpy(subparam->funcname, func);
 			subparam->level = level;
 			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
-			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+
+			
 			break;
 		}
 	}
+	
 #ifdef _DEBUG
 	char szout[256];
 	__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 #endif
 
-	__leaveSpinlock(&g_ipi_lock);
-		
+	__leaveSpinlock(&g_ipi_lock[id]);
+	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 	return 0;
 }
 
@@ -588,25 +589,21 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 	{
 		char szout[256];
-		
-		__enterSpinlock(&g_ipi_lock);
-
 		int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		__enterSpinlock(&g_ipi_lock[cpu]);
+		
+		IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[cpu];
+		for (int i = 0; i < IPI_MSG_LIMIT; i++) {
+			if (msg[i].valid && msg[i].id == cpu ) {
 
-		IPI_MSG_PARAM* ptr = (IPI_MSG_PARAM*)IPI_MSG_BASE;
-		int cnt = 0x10000 / sizeof(IPI_MSG_PARAM);
-		for (int seq = 0; seq < cnt; seq++) {
-			if (ptr[seq].valid && cpu == ptr[seq].id) {
+				int cmd = msg[i].cmd;
 
-				IPI_MSG_PARAM* msg = &ptr[seq];
-				int cmd = msg->cmd;
-
-				msg->valid = 0;
+				msg[i].valid = 0;
 
 				//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
 
 				if (cmd == IPI_CREATEPROCESS) {
-					IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg->param;
+					IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
 					DWORD base = (DWORD)subparam->base;
 					DWORD size = subparam->size;
 					char* module = subparam->module;
@@ -643,11 +640,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 				else {
 
 				}
-
-				//break;
 			}
 		}
-		__leaveSpinlock(&g_ipi_lock);
+		__leaveSpinlock(&g_ipi_lock[cpu]);
 		
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
 	}
@@ -702,8 +697,9 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-
-		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);	
+		if (g_lvt_timer++ % 0x10 == 0) {
+			//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
+		}
 		
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
@@ -1257,6 +1253,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	unsigned int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
+	g_cpu_start_tick[cpuid] = __krdtsc();
+
+	g_ipi_buf[cpuid] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
+
 	//__enterLock(&g_allocate_ap_lock);
 	__enterSpinlock(&g_allocate_ap_lock);
 
@@ -1360,11 +1360,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
-	g_cpu_start_tick[cpuid] = __krdtsc();
-
 	while (1) {
+		__sleep(0);
 		__asm {
-			hlt
+			//hlt
 		}
 #if 0
 		uint32_t irr4 = *(DWORD*)(LOCAL_APIC_BASE+0x140);
@@ -1391,7 +1390,6 @@ void BPCodeStart() {
 		return;
 	}
 	__memset((char*)IPI_MSG_BASE, 0, 0x10000);
-
 	__asm {cli}
 
 	enableLocalApic();
@@ -1407,11 +1405,10 @@ void BPCodeStart() {
 	__asm {sti}
 
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set
-	int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
-	*(DWORD*)CPU_ID_ADDRESS = cpuid;
-
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	*(DWORD*)CPU_ID_ADDRESS = cpu;
 	*(int*)(CPU_TOTAL_ADDRESS) = 1;
+	g_ipi_buf[cpu] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -1474,8 +1471,6 @@ void BPCodeStart() {
 
 	//ret = DisableLocalApicLVT();
 
-	g_cpu_start_tick[cpuid] = __krdtsc();
-
 #ifdef IO_APIC_ENABLE
 	enableIoApic();
 
@@ -1492,6 +1487,8 @@ void BPCodeStart() {
 #endif
 
 	//ret = InitLocalApicTimer();
+
+	g_cpu_start_tick[cpu] = __krdtsc();
 
 	__sleep(100);
 
@@ -1510,8 +1507,8 @@ void BPCodeStart() {
 		__emit 0x22
 		__emit 0xe0
 	}
-	__printf(szout, "bsp id:%d cr0:%x cr4:%x local apic version:%x init complete. lint0:%x lint1:%x ioapic id:%x ioapic version:%x\r\n", 
-		cpuid,reg_cr0,reg_cr4, localapic_ver, lint0,lint1, ioapic_id, ioapic_ver);
+	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x ipi:%d apic timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
+		cpu,reg_cr0,reg_cr4, localapic_ver, g_ipi_lock, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1690,6 +1687,7 @@ int GetIdleProcessor() {
 	gAllocateAp++;
 	if (gAllocateAp >= counter) {
 		gAllocateAp = 0;
+
 	}
 	int cpuid = ids[gAllocateAp];
 	return cpuid;
@@ -1822,24 +1820,25 @@ PROCESS_INFO * GetReadyProcess() {
 					next = ptr;
 				}
 				tickc[count].id = ptr->tid;
+				//tickc[count].v = ptr->tick;
+
 				double diff = (double)(__krdtsc() - ptr->tick_start);
 				double ratio = 0.0;
-				if(ptr->tick == 0) {
+				if (ptr->tick == 0) {
 					ratio = 1.0;
 				}
 				else {
 					ratio = ((double)ptr->tick) / diff;
-					if(ratio >= 1.0 ) {
+					if (ratio >= 1.0) {
 						ratio = 1.0;
 					}
 				}
-				if (g_debug_tag++ < 8) {
+				if (g_debug_tag++ %0x1000 == 0) {
 					__printf(szout, "tick_start:%I64x, diff:%lf,tick:%I64x, ratio:%lf\r\n",
 						ptr->tick_start, diff, ptr->tick, ratio);
 				}
 
-				__memcpy((char*) &tickc[count].v, (char*)&ratio, sizeof(double));
-				//tickc[count].v = ratio;
+				__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
 
 				window[count] = (ptr->window == 0 ? 0 : 1);
 
@@ -1866,7 +1865,7 @@ PROCESS_INFO * GetReadyProcess() {
 		QuickSort(tickc, 0, count - 1);
 
 		for (int i = 0; i < count; i++) {
-			tickc[i].v = STATIC_PRIORITY / (i + 1 );
+			tickc[i].v = STATIC_PRIORITY / (count - i);
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -1937,7 +1936,7 @@ PROCESS_INFO * GetReadyProcess() {
 			tp.task[i].priority = 0.0;
 		}
 #ifndef _DEBUG
-		if (g_debug_tag++ < 10) {
+		if (g_debug_tag++ % 0x1000 == 0) {
 			for (int i = 0; i < 16; i++) {
 				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
 					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);

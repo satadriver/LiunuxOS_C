@@ -173,8 +173,8 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			break;
 		}
 		case SVC_RDMSR: {
-			DWORD* low =(DWORD * )params[1];
-			DWORD* high =(DWORD * )params[2];
+			DWORD* low = (DWORD*)params[1];
+			DWORD* high = (DWORD*)params[2];
 			readmsr(params[0], low, high);
 			r = 0;
 			break;
@@ -186,45 +186,24 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			r = 0;
 			break;
 		}
-		case SVC_HALT: 
+		case SVC_HALT:
 		{
 			__asm {
 				hlt
 			}
+			r = 0;
 			break;
 		}
 		default: {
+			r = 0;
 			break;
 		}
 	}
 	return r;
 }
 
-extern "C"  __declspec(dllexport)void Halt()
-{
-	__asm {
-		mov eax, SVC_HALT
-		int 0x80
-	}
-}
 
-extern "C"  __declspec(dllexport)void RdMsr(DWORD num, DWORD* low,DWORD * high)
-{
-	__asm {
-		mov eax, SVC_RDMSR
-		lea edi, num
-		int 0x80
-	}
-}
 
-extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high)
-{
-	__asm {
-		mov eax, SVC_WRMSR
-		lea edi, num
-		int 0x80
-	}
-}
 
 extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
 
@@ -249,7 +228,7 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module
 
 
 
-
+int g_tagMsg2 = 0;
 
 void sleep(DWORD * params) {
 	int sleeptime = params[0];
@@ -288,8 +267,8 @@ void sleep(DWORD * params) {
 
 	leave_task_array_lock();
 
+	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
 	if (g_pm_enable == 0) {
 		if (g_cpu_prev_tick[id]) {
 			g_cpu_tick[id] += (tick1- g_cpu_prev_tick[id] );
@@ -297,19 +276,29 @@ void sleep(DWORD * params) {
 		}
 		else {
 			//task switch set the g_cpu_prev_tick
-			__printf("%s %d cpu:%d g_cpu_prev_tick null!\r\n",__FUNCTION__,__LINE__,id);
+			__printf("%s %d cpu:%d g_cpu_prev_tick null!\r\n", __FUNCTION__, __LINE__, id);
 		}
 	}
 	else {
-		DWORD low2 = 0;
-		DWORD high2 = 0;
-		readmsr(MSR_IA32_APERF, &low2, &high2);
-		unsigned long long aperf = high2;
-		aperf = (aperf << 32) + low2;
-		g_cpu_tick[id] = tick1 - aperf;
+		DWORD low = 0;
+		DWORD high = 0;
+		readmsr(MSR_IA32_MPERF, &low, &high);
+		unsigned long long aperf = high;
+		aperf = (aperf << 32) + low;
+		if (aperf > tick1) {
+			g_cpu_tick[id] = aperf - tick1;
+		}
+		else {
+			g_cpu_tick[id] = tick1 - aperf;
+		}
+		
 		g_cpu_prev_tick[id] = 0;
+		if ((g_tagMsg2++) % 0x100 == 0) {
+			char szout[256];
+			__printf(szout, "cpu%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf, tick1);
+		}
 	}
-
+	
 	while(1)
 	{	
 		__asm {
@@ -468,6 +457,33 @@ DWORD __cpuinfo(unsigned long* params) {
 	}
 }
 
+
+extern "C"  __declspec(dllexport)void RdMsr(DWORD num, DWORD* low, DWORD* high)
+{
+	__asm {
+		mov eax, SVC_RDMSR
+		lea edi, num
+		int 0x80
+	}
+}
+
+extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high)
+{
+	__asm {
+		mov eax, SVC_WRMSR
+		lea edi, num
+		int 0x80
+	}
+}
+
+extern "C"  __declspec(dllexport)void Halt()
+{
+	__asm {
+		mov eax, SVC_HALT
+		int 0x80
+	}
+}
+
 unsigned int getcpuFreq() {
 	unsigned int f1 = 0;
 	unsigned int f2 = 0;
@@ -517,13 +533,13 @@ unsigned __int64 getCpuFreq() {
 
 	__asm {
 		; read MPERF
-		mov ecx, MSR_IA32_MPERF
+		mov ecx, 0xe7
 		rdmsr
 		mov mperf_var_lo, eax
 		mov mperf_var_hi, edx
 
 		; read APERF
-		mov ecx, MSR_IA32_APERF
+		mov ecx, 0xe8
 		rdmsr
 		mov aperf_var_lo, eax
 		mov aperf_var_hi, edx
@@ -577,14 +593,14 @@ int CpuTemperature(DWORD* lptj) {
 	DWORD low = 0;
 	DWORD high = 0;
 	int result = 0;
-	RdMsr(0x1a2, &low, &high);
+	readmsr(0x1a2, &low, &high);
 
 	tjmax = (low & 0xff0000) >> 16;
 
 	DWORD low2 = 0;
 	DWORD high2 = 0;
 
-	RdMsr(0x19c, &low2, &high2);
+	readmsr(0x19c, &low2, &high2);
 	temp_offset = (low2 & 0x7f0000) >> 16;
 
 	int temp = tjmax - temp_offset;

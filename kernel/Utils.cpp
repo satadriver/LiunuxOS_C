@@ -529,7 +529,7 @@ int __i64ToStrd64( __int64 v, char* strd) {
 
 
 int __i2strd( int h, char* strd) {
-	unsigned long n = h;
+	int n = h;
 	int len = 0;
 	if (h < 0) {
 		strd[0] = '-';
@@ -765,6 +765,38 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			spos += 2;
 			dpos += len;
 		}
+		else if (format[spos] == '%' && (__memcmp(format + spos + 1, (char*)"lld", 3) == 0)) {
+			spos += 4;
+
+			__int64 li = *(__int64*)params;
+			int len = __i64ToStrd64(li, dst + dpos);
+			dpos += len;
+
+			params += 2;
+		}
+		else if (format[spos] == '%' && __memcmp(format + spos + 1, (char*)"llx", 3) == 0) {
+			spos += 4;
+
+			DWORD numl = *params;
+			params++;
+			DWORD numh = *params;
+			params++;
+
+			len = __i2strh(numh, 1, (unsigned char*)numstr);
+			if (len == 3 && numstr[2] == '0') {
+				len = __i2strh(numl, 1, (unsigned char*)numstr);
+				__memcpy(dst + dpos, numstr, len);
+				dpos += (len);
+			}
+			else {
+				__memcpy(dst + dpos, numstr, len);
+				dpos += len;
+
+				len = __i2strh(numl, 1, (unsigned char*)numstr);
+				__memcpy(dst + dpos, numstr + 2, len - 2);
+				dpos += (len - 2);
+			}
+		}
 		else if (format[spos] == '%' && ((__memcmp(format + spos + 1, (char*)"i64d", 4) == 0) ||
 			__memcmp(format + spos + 1, (char*)"I64d", 4) == 0||
 			__memcmp(format + spos + 1, (char*)"I64D", 4) == 0||
@@ -772,15 +804,6 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			spos += 5;
 
 			__int64 li = *( __int64*)params;
-			int len = __i64ToStrd64(li, dst + dpos);
-			dpos += len;
-
-			params += 2;
-		}
-		else if (format[spos] == '%' && (__memcmp(format + spos + 1, (char*)"lld", 3) == 0) ) {
-			spos += 4;
-
-			__int64 li = *(__int64*)params;
 			int len = __i64ToStrd64(li, dst + dpos);
 			dpos += len;
 
@@ -802,29 +825,6 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 				len = __i2strh(numl, 1, (unsigned char*)numstr);
 				__memcpy(dst + dpos, numstr , len );
 				dpos += (len );
-			}
-			else {
-				__memcpy(dst + dpos, numstr, len);
-				dpos += len;
-
-				len = __i2strh(numl, 1, (unsigned char*)numstr);
-				__memcpy(dst + dpos, numstr + 2, len - 2);
-				dpos += (len - 2);
-			}
-		}
-		else if (format[spos] == '%' && __memcmp(format + spos + 1, (char*)"llx", 3) == 0 ) {
-			spos += 4;
-
-			DWORD numl = *params;
-			params++;
-			DWORD numh = *params;
-			params++;
-
-			len = __i2strh(numh, 1, (unsigned char*)numstr);
-			if (len == 3 && numstr[2] == '0') {
-				len = __i2strh(numl, 1, (unsigned char*)numstr);
-				__memcpy(dst + dpos, numstr, len);
-				dpos += (len);
 			}
 			else {
 				__memcpy(dst + dpos, numstr, len);

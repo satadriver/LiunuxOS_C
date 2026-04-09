@@ -103,7 +103,8 @@ PROCESS_INFO* GetNextProcess();
 
 extern "C" __declspec(dllexport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
 extern "C" __declspec(dllexport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllexport)unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
+
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
 extern "C"  __declspec(dllexport) int __terminateTid(int tid);
@@ -140,7 +141,8 @@ extern "C" __declspec(dllexport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack)
 #else
 extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
 extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllimport)unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
+
 extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
 extern "C"  __declspec(dllimport) int __terminateTid(int tid);

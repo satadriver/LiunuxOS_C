@@ -64,6 +64,12 @@ extern "C" __declspec(dllexport) DWORD __timestamp(unsigned long* params);
 
 extern "C"  __declspec(dllexport) DWORD __kServicesProc(DWORD no, DWORD * params, LIGHT_ENVIRONMENT * stack);
 
+extern "C"  __declspec(dllexport)void RdMsr(DWORD num, DWORD* low, DWORD* high);
+
+extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high);
+
+extern "C"  __declspec(dllexport)void Halt();
+
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllexport) unsigned __int64 __cpuFreq(DWORD* cpu, DWORD* max, DWORD* bus);
 
@@ -74,12 +80,6 @@ extern "C" __declspec(dllexport) unsigned __int64 getCpuFreq();
 extern "C"  __declspec(dllexport) void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
 extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p, char* func);
-
-extern "C"  __declspec(dllexport)void RdMsr(DWORD num, DWORD* low, DWORD* high);
-
-extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high);
-
-extern "C"  __declspec(dllexport)void Halt();
 #else
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) int CpuTemperature(DWORD * temp);
@@ -107,6 +107,12 @@ extern "C" __declspec(dllimport) DWORD __timestamp(unsigned long* params);
 
 extern "C"  __declspec(dllimport) DWORD __kServicesProc(DWORD no, DWORD * params, LIGHT_ENVIRONMENT * stack);
 
+extern "C"  __declspec(dllimport)void RdMsr(DWORD num, DWORD* low, DWORD* high);
+
+extern "C"  __declspec(dllimport)void WrMsr(DWORD num, DWORD low, DWORD high);
+
+extern "C"  __declspec(dllimport)void Halt();
+
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllimport) unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);
 
@@ -117,10 +123,4 @@ extern "C" __declspec(dllimport) unsigned __int64 getCpuFreq();
 extern "C"  __declspec(dllimport) int __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
 extern "C"  __declspec(dllimport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p, char* func);
-
-extern "C"  __declspec(dllimport)void RdMsr(DWORD num, DWORD* low, DWORD* high);
-
-extern "C"  __declspec(dllimport)void WrMsr(DWORD num, DWORD low, DWORD high);
-
-extern "C"  __declspec(dllimport)void Halt();
 #endif

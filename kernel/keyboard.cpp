@@ -107,7 +107,6 @@ unsigned int __kGetKbd(int wid) {
 			ch -= 0x20;
 		}
 	}
-	
 	extern int g_task_array_lock[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_task_array_lock[id]);
@@ -120,7 +119,6 @@ unsigned int __kGetKbd(int wid) {
 	}
 	current->delta = proc->delta;
 	__leaveSpinlock(&g_task_array_lock[id]);
-	
 	return ch;
 }
 

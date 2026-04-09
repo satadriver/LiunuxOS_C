@@ -85,6 +85,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gKernel32 = kernel32;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	*(int*)(CPU_TOTAL_ADDRESS) = 1;
 	*(int*)CPU_ID_ADDRESS = id;
 	
 	gGraphBase =(DWORD)( vesa->PhyBasePtr + vesa->OffScreenMemOffset);
@@ -172,7 +173,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 
 		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning");
-		//__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning");
+		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning");
 	}
 
 	//imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
@@ -195,6 +196,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
+	//va_test_fun();
+
 	while (1)
 	{
 		//break;
@@ -215,8 +218,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	while (1)
 	{
+		__sleep(0);
 		__asm {
-			hlt
+			//hlt
 		}
 	}
 

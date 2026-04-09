@@ -28,6 +28,7 @@ unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
 unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
 unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
 
+
 int g_tagMsg = 0;
 
 
@@ -1383,12 +1384,14 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	LPPROCESS_INFO current  = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
 
-	unsigned __int64 time1 = __krdtsc();
+	unsigned long long time1 = __krdtsc();
 
 	if (current->prev_tick && prev->prev_tick) {
 		current->tick += time1 - current->prev_tick;
 		prev->tick += time1 - prev->prev_tick;
 
+		prev->prev_tick = 0;
+		current->prev_tick = 0;
 		//__printf(szout, "%s %d current tick:%I64x prev tick:%I64x\r\n",__FUNCTION__, __LINE__, current->tick, prev->tick);
 	}
 
@@ -1398,17 +1401,23 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			g_cpu_tick[id] += time1 - g_cpu_prev_tick[id];
 			g_cpu_prev_tick[id] = 0;
 		}
-		else {
-			//sleep clear the g_cpu_prev_tick
-		}
 	}
 	else {
 		DWORD high = 0;
 		DWORD low = 0;
-		readmsr(MSR_IA32_APERF, &low, &high);
+		readmsr(MSR_IA32_MPERF, &low, &high);
 		unsigned long long aperf = ((unsigned long long)high << 32) + low;
-		g_cpu_tick[id] = time1 - aperf;
+		if(aperf > time1) {
+			g_cpu_tick[id] = aperf - time1;
+		}
+		else {
+			g_cpu_tick[id] = time1 - aperf;
+		}
+		
 		g_cpu_prev_tick[id] = 0;
+		if ((g_tagMsg++) % 0x100 == 0) {
+			__printf(szout, "cpu%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf,time1);
+		}
 	}
 
 	__kApicTimerProc();
@@ -1434,7 +1443,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
 	
-	unsigned __int64 time2 = __krdtsc();
+	__int64 time2 = __krdtsc();
 
 	/*
 	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
@@ -1462,6 +1471,9 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	if (g_pm_enable == 0) {
 		g_cpu_prev_tick[id] = time2;
+	}
+	else {
+		g_cpu_prev_tick[id] = 0;
 	}
 	return TRUE;
 }

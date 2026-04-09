@@ -342,13 +342,15 @@ void initDll() {
 	int ks = dl->_kdllSecCnt * BYTES_PER_SECTOR;
 	//__memcpy((char*)KERNEL_DLL_SOURCE_BASE, (char*)VSKDLL_LOAD_ADDRESS, ks);
 
+
 	int cnt = 0x10000 / sizeof(DLLMODULEINFO);
 	DLLMODULEINFO* dllptr = (DLLMODULEINFO*)LIB_INFO_BASE;
-	for(int i = 0; i < cnt; i++)
+	for (int i = 0; i < cnt; i++)
 	{
 		dllptr[i].addr = 0;
 		dllptr[i].name[0] = 0;
 	}
+
 	__kStoreModule((char*)LIUNUX_KERNEL32_DLL, KERNEL_DLL_BASE);
 
 	if (*(WORD*)MAIN_DLL_SOURCE_BASE != 0x5a4d)

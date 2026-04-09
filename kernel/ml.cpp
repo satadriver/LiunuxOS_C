@@ -75,24 +75,24 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 	TASKCMDPARAMS cmd;
 	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
-	for(int i = 0; i < 4; ++i) {
+	for(int i = 0; i < 1; ++i) {
 		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
 		//__ipiCreateThread((unsigned int)ml_addr,(char*) KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread2");
 		int imageSize = 0x100000;
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
-		//if (addr) 
+		if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
 			//__sleep(100);
 		}
 	}
 
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
 		//__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread1");
 		int imageSize = 0x100000;
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
-		//if (addr) 
+		if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
 			//__sleep(100);
@@ -162,13 +162,14 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 				num = j;
 			}
 		}
+#ifdef _DEBUG
 		for (int j = 0; j < 16; j++) {
 			printf("%d y:%lf tick:%f user:%f window:%f delta:%f priority:%f max:%f result:%d num:%d\r\n",
 				j,y1[j],
 				g_ml_data[i].task[j].tick, g_ml_data[i].task[j].user, g_ml_data[i].task[j].window,
 				g_ml_data[i].task[j].delta, g_ml_data[i].task[j].priority,max, g_ml_data[i].result,num);
 		}
-
+#endif
 		if(num != g_ml_data[i].result) {
 			n_err++;
 		}

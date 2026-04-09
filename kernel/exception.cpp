@@ -16,7 +16,7 @@ int g_ExceptionCounter = 0;
 
 void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 
-	char showinfo[256];
+	char showinfo[1024];
 
 	DWORD rcr0 = 0;
 	DWORD rcr2 = 0;
@@ -40,7 +40,9 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 		mov rcr4, eax
 	}
 
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO process = tss + current->tid;
 	int tid = process->tid;
 	int pid = process->pid;
 	int level = process->level;
@@ -55,10 +57,10 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = tss->eip;
 
 			len = __sprintf(showinfo,
-				"VM86 Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"VM86 Exception code:%d,module:%s,function:%s,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,ds_v86:%x,es_v86:%x,fs_v86:%x,gs_v86:%x,\
 				cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num, tid,pid, cpu,tss->errcode, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num, process->filename,process->funcname, tid,pid, cpu,tss->errcode, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				tss->ds_v86, tss->es_v86, tss->fs_v86, tss->gs_v86, rcr0, rcr2, rcr3, rcr4);
 		}
@@ -67,9 +69,9 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"Exception code:%d,module:%s,function:%s,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, pid, cpu, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num, process->filename, process->funcname, tid, pid, cpu, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0,rcr2,rcr3, rcr4);
 		}
@@ -77,9 +79,9 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception code:%d,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
+				"Exception code:%d,module:%s,function:%s,tid:%d,pid:%d,cpu:%d,CODE:%x,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, pid, cpu, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
+				num, process->filename, process->funcname, tid, pid, cpu, tss->errcode,rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0, rcr2, rcr3, rcr4);
 		}
@@ -92,10 +94,10 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = tss->eip;
 
 			len = __sprintf(showinfo,
-				"VM86 Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"VM86 Exception code:%d,module:%s,function:%s,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,ds_v86:%x,es_v86:%x,fs_v86:%x,gs_v86:%x,\
 			cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num, tid, pid, cpu, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num, process->filename, process->funcname, tid, pid, cpu, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				tss->ds_v86, tss->es_v86, tss->fs_v86, tss->gs_v86, rcr0, rcr2, rcr3, rcr4);
 		}
@@ -105,9 +107,9 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
+				"Exception code:%d,module:%s,function:%s,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,esp3:%x,ss3:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, pid, cpu, rva,tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
+				num, process->filename, process->funcname, tid, pid, cpu, rva,tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags, tss->esp3, tss->ss3,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0, rcr2, rcr3, rcr4);
 		}
@@ -115,9 +117,9 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 			DWORD rva = rvaInFile(process->moduleBase, tss->eip );
 
 			len = __sprintf(showinfo,
-				"Exception code:%d,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
+				"Exception code:%d,module:%s,function:%s,tid:%d,pid:%d,cpu:%d,RVA:%x,esp0:%x,ss0:%x,eip:%x,cs:%x,eflags:%x,"
 				"ds:%x,es:%x,fs:%x,gs:%x,eax:%x,ecx:%x,edx:%x,ebx:%x,ebp:%x,esi:%x,edi:%x,cr0:%x,cr2:%x,cr3:%x,cr4:%x\r\n",
-				num,tid, pid, cpu, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
+				num, process->filename, process->funcname, tid, pid, cpu, rva, tss->esp0, tss->ss0, tss->eip, tss->cs, tss->eflags,
 				tss->ds, tss->es, tss->fs, tss->gs, tss->eax, tss->ecx, tss->edx, tss->ebx, tss->ebp, tss->esi, tss->edi,
 				rcr0, rcr2, rcr3, rcr4);
 		}

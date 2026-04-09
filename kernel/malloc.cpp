@@ -125,7 +125,7 @@ int initMemory() {
 				
 				//gAllocLimitSize = pageAlignmentSize(gAllocLimitSize, 0);
 
-				int len = __printf(szout, "available memory address:%x,size:%x,alloc limit size:%x\n",
+				int len = __printf(szout, "available memory address:%I64x,size:%I64x,alloc limit size:%I64x\n",
 					gAvailableBase,gAvailableSize, gAllocLimitSize);
 			}
 		}
