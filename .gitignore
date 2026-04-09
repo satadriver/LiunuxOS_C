@@ -13,8 +13,8 @@ ipch/
 *.1.tlog
 *.VC.db-shm
 *.VC.db-wal
-.db-wal
-.db-shm
+*.db-wal
+*.db-shm
 .bin
 .json
 .recipe

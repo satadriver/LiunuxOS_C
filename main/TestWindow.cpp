@@ -98,10 +98,12 @@ extern "C" __declspec(dllexport) void __MyTestTask(unsigned int retaddr, int tid
 
 
 extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-
+	char buf[1024];
 	while (1) {
-		__sleep(0);
-		Halt();
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+		//Halt();
 		__asm {
 			//hlt
 		}

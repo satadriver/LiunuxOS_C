@@ -440,7 +440,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);
 	}
-	ret = __drawWindowChars((char*)"\r\n", CONSOLE_FONT_COLOR, window);
 	return 0;
 }
 

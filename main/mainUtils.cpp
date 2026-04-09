@@ -8,6 +8,7 @@
 #include "core.h"
 #include "apic.h"
 #include "systemService.h"
+
 int getcrs(char * szout) {
 
 	if (szout)
@@ -57,7 +58,7 @@ int getmemmap(int pid, char* szout) {
 	return getProcMemory(pid,cpu, szout);
 }
 
-int GetAllProcesses(char * szout) {
+int GetAllProcesses(char* szout) {
 	int outlen = 0;
 	int len = 0;
 
@@ -69,63 +70,20 @@ int GetAllProcesses(char * szout) {
 			if (tss[i].status == TASK_RUN)
 			{
 				double diff = __krdtsc() - tss[i].tick_start;
-				double tick = tss[i].tick ;
-				double usage = tick /diff;
+				double tick = tss[i].tick;
+				double usage = tick / diff;
 				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
-					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid, 
-					tss[i].pid, tss[i].ppid,tss[i].tid, tss[i].level, usage,tss[i].sleep,tss[i].counter,tss[i].slice, tss[i].priority, tss[i].delta,*tss[i].lpvasize,*tss[i].lpHeapCnt);
+					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
+					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, usage, tss[i].sleep, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 				outlen += len;
 			}
 		}
 	}
 
-
-
 	return outlen;
 }
 
-
-
-int CpuUsage(char * buf) {
-	int* ids = (int*)CPU_ID_ADDRESS;
-	int counter = *(int*)(CPU_TOTAL_ADDRESS);
-	int len = 0;
-	int offset = 0;
-	
-	for (int i = 0; i < counter; i++) {
-		int id = ids[i];
-		
-		unsigned long long alive = __krdtsc() - g_cpu_start_tick[id];
-
-		double diff = alive;
-
-		double usage = g_cpu_tick[id];
-
-		usage = usage / diff;
-
-		double load = 1.0;
-
-		if (g_pm_enable) {
-			unsigned long long e7low = 0;
-			unsigned long long e7high = 0;
-			RdMsr(MSR_IA32_MPERF,(unsigned long*) & e7low, (unsigned long*)&e7high);
-
-			unsigned long long e8low = 0;
-			unsigned long long e8high = 0;
-			RdMsr(MSR_IA32_APERF, (unsigned long*)&e8low, (unsigned long*)&e8high);
-
-			load = ((double)((e8high << 32) + e8low)) / ((double)((e7high << 32) + e7low) ) ;
-		}
-
-		len = __sprintf(buf + offset, "cpu:%d,active:%i64x,alive:%i64x,rate:%lf,load:%lf,g_pm_enable:%d\r\n", 
-			id, g_cpu_tick[id], alive, usage,load, g_pm_enable);
-		offset += len;
-	}
-	return offset;
-}
-
-
-int GetProcess(int pid,char * szout) {
+int GetProcess(int pid, char* szout) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (tss[i].status == TASK_RUN && tss[i].pid == pid)
@@ -144,6 +102,54 @@ int GetProcess(int pid,char * szout) {
 	*szout = 0;
 	return 0;
 }
+
+int CpuUsage(char* buf) {
+	int* ids = (int*)CPU_ID_ADDRESS;
+	int counter = *(int*)(CPU_TOTAL_ADDRESS);
+	int len = 0;
+	int offset = 0;
+
+	for (int i = 0; i < counter; i++) {
+		int id = ids[i];
+
+		unsigned long long alive = __krdtsc() - g_cpu_start_tick[id];
+
+		double diff = alive;
+
+		double usage = g_cpu_tick[id];
+
+		usage = usage / diff;
+
+		double load = 1.0;
+		unsigned long long aperf = 0;
+		unsigned long long mperf = 0;
+
+		if (g_pm_enable) {
+			unsigned long long e7low = 0;
+			unsigned long long e7high = 0;
+			RdMsr(MSR_IA32_MPERF, (unsigned long*)&e7low, (unsigned long*)&e7high);
+
+			mperf = (e7high << 32) + e7low;
+
+			unsigned long long e8low = 0;
+			unsigned long long e8high = 0;
+			RdMsr(MSR_IA32_APERF, (unsigned long*)&e8low, (unsigned long*)&e8high);
+			aperf = (e8high << 32) + e8low;
+
+			load = (e8high << 32) + e8low;
+			load = load / ((e7high << 32) + e7low);
+		}
+
+		len = __sprintf(buf + offset, 
+			"cpu:%d,active:%i64x,alive:%i64x,rate:%lf,aperf:%i64x,mperf:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
+			id, g_cpu_tick[id], alive, usage, aperf, mperf, load, g_pm_enable);
+		offset += len;
+	}
+	return offset;
+}
+
+
+
 
 int getGeneralRegs(char * szout) {
 	DWORD reax;
