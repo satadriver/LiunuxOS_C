@@ -72,9 +72,10 @@ int GetAllProcesses(char* szout) {
 				double diff = __krdtsc() - tss[i].tick_start;
 				double tick = tss[i].tick;
 				double usage = tick / diff;
-				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x, usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
-					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, usage, tss[i].sleep, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick,tss[i].tick_start,
+					usage, tss[i].sleep, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 				outlen += len;
 			}
 		}

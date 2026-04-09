@@ -1833,7 +1833,7 @@ PROCESS_INFO * GetReadyProcess() {
 						ratio = 1.0;
 					}
 				}
-				if (g_debug_tag++ %0x1000 == 0) {
+				if (g_debug_tag++ %0x1000 == 0x1000) {
 					__printf(szout, "tick_start:%I64x, diff:%lf,tick:%I64x, ratio:%lf\r\n",
 						ptr->tick_start, diff, ptr->tick, ratio);
 				}
@@ -1936,7 +1936,7 @@ PROCESS_INFO * GetReadyProcess() {
 			tp.task[i].priority = 0.0;
 		}
 #ifndef _DEBUG
-		if (g_debug_tag++ % 0x1000 == 0) {
+		if (g_debug_tag++ % 0x1000 == 0x1000) {
 			for (int i = 0; i < 16; i++) {
 				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
 					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);

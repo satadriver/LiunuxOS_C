@@ -771,7 +771,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)proc, off);
-		off = OFFSETOF(TSS, iomapEnd);
+		off = OFFSETOF(PROCESS_INFO, level);
 		int lsize = sizeof(PROCESS_INFO) - off;
 		__memcpy((char*)prev + off, (char*)proc + off, lsize);
 	}
@@ -781,7 +781,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (next->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)proc, (char*)next, off);
-		off = OFFSETOF(TSS, iomapEnd);
+		off = OFFSETOF(PROCESS_INFO, level);
 		int lsize = sizeof(PROCESS_INFO) - off;
 		__memcpy((char*)proc + off, (char*)next + off, lsize);
 	}
@@ -1415,8 +1415,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		}
 		
 		g_cpu_prev_tick[id] = 0;
-		if ((g_tagMsg++) % 0x100 == 0) {
-			__printf(szout, "cpu%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf,time1);
+		if ((g_tagMsg++) % 0x100 == 0x100) {
+			__printf(szout, "cpu:%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf,time1);
 		}
 	}
 

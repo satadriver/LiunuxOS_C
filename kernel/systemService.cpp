@@ -293,9 +293,9 @@ void sleep(DWORD * params) {
 		}
 		
 		g_cpu_prev_tick[id] = 0;
-		if ((g_tagMsg2++) % 0x100 == 0) {
+		if ((g_tagMsg2++) % 0x100 == 0x100) {
 			char szout[256];
-			__printf(szout, "cpu%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf, tick1);
+			__printf(szout, "cpu:%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf, tick1);
 		}
 	}
 	
