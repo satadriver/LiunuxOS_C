@@ -138,6 +138,7 @@ extern "C" __declspec(dllimport) void myfree(void* buf);
 extern "C" __declspec(dllexport) void __abort(void);
 #endif
 
+
 #ifndef _DEBUG
 
 #ifdef DLL_EXPORT
@@ -170,12 +171,6 @@ extern "C" __declspec(dllexport) wchar_t* wcscat(wchar_t* dest, const wchar_t* s
 
 extern "C" __declspec(dllexport) int printf(const char* format, ...);
 
-
-
-
-
-
-
 extern "C" __declspec(dllexport) FILE* fopen(const char* filename, const char* mode);
 extern "C" __declspec(dllexport) int fclose(FILE * stream);
 extern "C" __declspec(dllexport) int fwrite(const void* buf, int cnt, int size, FILE* fp);
@@ -186,7 +181,6 @@ extern "C" __declspec(dllexport) int fputc(int character, FILE * stream);
 extern "C" __declspec(dllexport) int fputs(const char* str, FILE * stream);
 
 extern "C" __declspec(dllexport) char* fgets(char* str, int n, FILE * stream);
-
 
 
 #else
@@ -218,11 +212,6 @@ extern "C" __declspec(dllimport) wchar_t* wcscat(wchar_t* dest, const wchar_t* s
 
 extern "C" __declspec(dllimport) int printf(const char* format, ...);
 
-
-
-
-
-
 extern "C" __declspec(dllimport) FILE * fopen(const char* filename, const char* mode);
 extern "C" __declspec(dllimport) int fclose(FILE * stream);
 extern "C" __declspec(dllimport) int fwrite(const void* buf, int cnt, int size, FILE * fp);
@@ -238,5 +227,7 @@ extern "C" __declspec(dllimport) char* fgets(char* str, int n, FILE * stream);
 #endif
 
 #endif
+
+
 
 #endif

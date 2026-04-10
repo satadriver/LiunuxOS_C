@@ -648,7 +648,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 #ifdef TASK_SWITCH_PRIORITY
 	next = GetReadyProcess();
-	if(next == prev) {
+	if(next == prev || next == proc) {
 		goto __SingleTssSchedule_end;
 	}
 #else

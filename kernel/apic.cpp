@@ -1779,7 +1779,7 @@ PROCESS_INFO * GetReadyProcess() {
 	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
 	LPPROCESS_INFO ptr = current;
 	LPPROCESS_INFO next = 0;
-	int target_id = 0;
+	
 	AlgorithmModel tickc[TASK_LIMIT_TOTAL];
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
@@ -1791,7 +1791,6 @@ PROCESS_INFO * GetReadyProcess() {
 
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
-	float result = 0.0;
 	int count = 0;
 	do {
 		ptr++;
@@ -1861,7 +1860,14 @@ PROCESS_INFO * GetReadyProcess() {
 		}
 	} while (TRUE);
 
-	if (count ) {
+	if (count == 1) {
+		return next;
+	}
+	else if (count <= 0) {
+		target_tss = current;
+		//__printf(szout, "%s %d count:%d\r\n", __FUNCTION__, __LINE__);
+	}
+	else if (count > 1) {
 		QuickSort(tickc, 0, count - 1);
 
 		for (int i = 0; i < count; i++) {
@@ -1883,11 +1889,9 @@ PROCESS_INFO * GetReadyProcess() {
 
 		QuickSort(level, 0, count - 1);
 
-		target_id = level[count - 1].id;
+		int target_id = level[count - 1].id;
 
 		target_tss = tss + target_id;
-
-		target_tss->delta = 0;
 
 		for(int i = 0;i < count; i++) {
 			int tid = level[i].id;
@@ -1896,7 +1900,7 @@ PROCESS_INFO * GetReadyProcess() {
 					tss[tid].delta += 2;
 				}
 				else {
-					tss[tid].delta += 1;
+					tss[tid].delta += 2;
 				}
 						
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
@@ -1946,8 +1950,9 @@ PROCESS_INFO * GetReadyProcess() {
 #endif
 	}
 	else {
-		target_tss = current;
+		
 	}
+	target_tss->delta = 0;
 
 	return target_tss;
 }
