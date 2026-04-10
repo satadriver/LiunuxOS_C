@@ -1859,7 +1859,7 @@ PROCESS_INFO * GetReadyProcess() {
 				tickc[count].id = ptr->tid;
 				//tickc[count].v = ptr->tick;
 
-				double diff = (double)(__krdtsc() - ptr->tick_start);
+				double diff = (double)(__krdtsc() - ptr->tick_total);
 				double ratio = 0.0;
 				if (ptr->tick == 0) {
 					ratio = 1.0;
@@ -1877,9 +1877,9 @@ PROCESS_INFO * GetReadyProcess() {
 
 				__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
 
-				window[count] = (ptr->window == 0 ? 0 : STATIC_PRIORITY/2);
+				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
 
-				user[count] = (ptr->level == 0 ? STATIC_PRIORITY/4 : 0);
+				user[count] = (ptr->level == 0 ? AUTHORITY_PRIORITY : 0);
 
 				delta[count].v = ptr->delta;
 				delta[count].id = ptr->tid;
@@ -1909,7 +1909,7 @@ PROCESS_INFO * GetReadyProcess() {
 		QuickSort(tickc, 0, count - 1);
 
 		for (int i = 0; i < count; i++) {
-			tickc[i].v = STATIC_PRIORITY / (count - i);
+			tickc[i].v = STATIC_PRIORITY / (count + 1 - i);
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -1955,8 +1955,8 @@ PROCESS_INFO * GetReadyProcess() {
 		for (int i = 0; i < count; i++) {
 			int pid = tickc[i].id;
 			float tick_ratio = (float)GetValueFromArray(tickc, count, pid)/ (float)DYNAMIC_PRIORITY;
-			float user_ratio = (float)(tss[pid].level == 3 ? 0 : STATIC_PRIORITY / 4) / (float)DYNAMIC_PRIORITY;
-			float window_ratio = (float)(tss[pid].window ? STATIC_PRIORITY / 2 : 0) / (float)DYNAMIC_PRIORITY;
+			float user_ratio = (float)(tss[pid].level == 3 ? 0 : AUTHORITY_PRIORITY) / (float)DYNAMIC_PRIORITY;
+			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
 			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
 

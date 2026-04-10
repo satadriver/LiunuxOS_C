@@ -61,6 +61,7 @@ int InitPm();
 
 int GetCpuRate();
 
+int IncreaseDelta(int v);
 
 void EnableNXE();
 

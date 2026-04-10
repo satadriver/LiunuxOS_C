@@ -621,7 +621,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		proc->counter++;
-		
 
 		proc->frac_slice++;
 		if (proc->frac_slice >= proc->slice) {
@@ -838,8 +837,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			process->sleep--;
 		}
 
-		process->counter++;
-		
+		process->counter++;		
 	}
 
 	if (prev->status == TASK_RUN)
@@ -849,7 +847,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		prev->counter++;
-		
 	}
 
 	if (process->status == TASK_SUSPEND) {
@@ -1044,7 +1041,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 		process->counter++;
 		
-
 		process->frac_slice++;
 		if (process->frac_slice >= process->slice) {
 			process->frac_slice = 0;
@@ -1218,8 +1214,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			proc->sleep--;
 		}
 
-		proc->counter++;
-		
+		proc->counter++;	
 	}
 
 	if (prev->status == TASK_RUN)
@@ -1228,8 +1223,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			prev->sleep--;
 		}
 
-		prev->counter++;
-		
+		prev->counter++;	
 	}
 
 	if (proc->status == TASK_SUSPEND) {

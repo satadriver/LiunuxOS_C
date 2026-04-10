@@ -5,6 +5,9 @@
 #include "task.h"
 #include "process.h"
 
+#define WINDOW_PRIORITY			(STATIC_PRIORITY/2)
+
+#define AUTHORITY_PRIORITY		(STATIC_PRIORITY/8)
 
 
 #define APIC_CORE_MAX_COUNT		256
