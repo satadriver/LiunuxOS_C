@@ -62,23 +62,24 @@ int GetAllProcesses(char* szout) {
 	int outlen = 0;
 	int len = 0;
 
+	unsigned long long tick = __krdtsc();
+
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
 	for (int i = 0; i < cnt; i++) {
 		int cpu = cpus[i];
-		unsigned long long cpu_alive = g_cpu_start_tick[cpus[i]];
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpus[i]);
+		double cpu_diff = tick - g_cpu_start_tick[cpu];
+		double cpu_ratio = g_cpu_tick[cpu] / cpu_diff;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
-				//double diff = __krdtsc() - tss[i].tick_start;
-				double diff = __krdtsc() - cpu_alive;
-				double tick = tss[i].tick;
-				double usage = tick / diff;
-				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x, usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+				double proc_diff = tss[i].tick_total;
+				double proc_ratio = (double)tss[i].tick / proc_diff;
+				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x,cpu usage:%lf£¬task usage:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
 					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick,tss[i].tick_start,
-					usage, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+					cpu_ratio,proc_ratio, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 				outlen += len;
 			}
 		}
@@ -90,22 +91,26 @@ int GetAllProcesses(char* szout) {
 int GetProcess(int cpuid,int pid, char* szout) {
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+
+	unsigned long long tick = __krdtsc();
+
 	for (int i = 0; i < cnt; i++) {
 		
 		int cpu = cpus[i];
 		if (cpu == cpuid) {
-			unsigned long long cpu_alive = g_cpu_start_tick[cpus[i]];
+			double cpu_diff = tick - g_cpu_start_tick[cpu];
+			double cpu_ratio = g_cpu_tick[cpu] / cpu_diff;
+
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 				if (tss[i].status == TASK_RUN && tss[i].pid == pid)
 				{
-					double diff = __krdtsc() - cpu_alive;
-					double tick = tss[i].tick;
-					double usage = tick / diff;
-					int len = __sprintf(szout, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x, usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+					double proc_diff = tss[i].tick_total;
+					double proc_ratio = (double)tss[i].tick / proc_diff;
+					int len = __sprintf(szout, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x,cpu usage:%lf,task usage:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 						tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
 						tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_start,
-						usage, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+						cpu_ratio, proc_ratio, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 					return len;
 				}
 			}

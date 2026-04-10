@@ -1795,7 +1795,7 @@ int GetCongestion(int * procs) {
 					max_tid = tss[i].tid;
 				}
 
-				double proc_diff = tick - tss[i].tick_start;
+				double proc_diff = tss[i].tick_total;
 				double proc_ratio = (double)tss[i].tick / proc_diff;
 				if (proc_ratio > 0.5) {
 					procs[cnt++] = tss[i].tid;
@@ -1955,8 +1955,8 @@ PROCESS_INFO * GetReadyProcess() {
 		for (int i = 0; i < count; i++) {
 			int pid = tickc[i].id;
 			float tick_ratio = (float)GetValueFromArray(tickc, count, pid)/ (float)DYNAMIC_PRIORITY;
-			float user_ratio = (float)(tss[pid].level == 3 ? 0 : 1) / (float)DYNAMIC_PRIORITY;
-			float window_ratio = (float)(tss[pid].window ? 1 : 0) / (float)DYNAMIC_PRIORITY;
+			float user_ratio = (float)(tss[pid].level == 3 ? 0 : STATIC_PRIORITY / 4) / (float)DYNAMIC_PRIORITY;
+			float window_ratio = (float)(tss[pid].window ? STATIC_PRIORITY / 2 : 0) / (float)DYNAMIC_PRIORITY;
 			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
 

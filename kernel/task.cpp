@@ -593,10 +593,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	LPPROCESS_INFO next = prev;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		return prev;
-	}
 
 	if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
@@ -623,9 +619,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			prev->sleep--;
 			proc->sleep = prev->sleep;
 		}
-		else {
-			proc->counter++;
-		}
+
+		proc->counter++;
+		
 
 		proc->frac_slice++;
 		if (proc->frac_slice >= proc->slice) {
@@ -804,7 +800,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->ss = proc->tss.ss;
 
 __SingleTssSchedule_end:
-	ret = __leaveSpinlock(&g_task_array_lock[id]);
 	return next;
 }
 #else
@@ -820,11 +815,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	ret = __GetSpinlock(&g_task_list_lock[id]);
 	if (ret == 0) {
-		return prev;
-	}
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		__leaveSpinlock(&g_task_list_lock[id]);
 		return prev;
 	}
 
@@ -847,9 +837,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		if (process->sleep) {
 			process->sleep--;
 		}
-		else {
-			process->counter++;
-		}
+
+		process->counter++;
+		
 	}
 
 	if (prev->status == TASK_RUN)
@@ -857,9 +847,9 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		if (prev->sleep) {
 			prev->sleep--;
 		}
-		else {
-			prev->counter++;
-		}
+
+		prev->counter++;
+		
 	}
 
 	if (process->status == TASK_SUSPEND) {
@@ -1011,7 +1001,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->ss = process->tss.ss;
 
 __SingleTssSchedule_end:
-	ret = __leaveSpinlock(&g_task_array_lock[id]);
 	ret = __leaveSpinlock(&g_task_list_lock[id]);
 	return next->node;
 }
@@ -1026,10 +1015,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
 	LPPROCESS_INFO next = current;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		return current;
-	}
 
 	if (current->status == TASK_TERMINATE || process->status == TASK_TERMINATE) {
 		current->status = TASK_OVER;
@@ -1056,9 +1041,9 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			current->sleep--;
 			process->sleep = current->sleep;
 		}
-		else {
-			process->counter++;
-		}
+
+		process->counter++;
+		
 
 		process->frac_slice++;
 		if (process->frac_slice >= process->slice) {
@@ -1196,7 +1181,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	//tasktest();
 
 	__MultipleTssSchedule_end:
-	__leaveSpinlock(&g_task_array_lock[id]);
 	return next;
 }
 #else
@@ -1211,11 +1195,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	ret = __GetSpinlock(&g_task_list_lock[id]);
 	if (ret == 0) {
-		return prev;
-	}
-	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret == 0) {
-		__leaveSpinlock(&g_task_list_lock[id]);
 		return prev;
 	}
 
@@ -1238,9 +1217,9 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		if (proc->sleep) {
 			proc->sleep--;
 		}
-		else {
-			proc->counter++;
-		}
+
+		proc->counter++;
+		
 	}
 
 	if (prev->status == TASK_RUN)
@@ -1248,9 +1227,9 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		if (prev->sleep) {
 			prev->sleep--;
 		}
-		else {
-			prev->counter++;
-		}
+
+		prev->counter++;
+		
 	}
 
 	if (proc->status == TASK_SUSPEND) {
@@ -1367,7 +1346,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 
 __MultipleTssSchedule_end:
-	ret = __leaveSpinlock(&g_task_array_lock[id]);
 	ret = __leaveSpinlock(&g_task_list_lock[id]);
 	return next->node;
 }
@@ -1379,102 +1357,94 @@ __MultipleTssSchedule_end:
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
 
 	char szout[256];
-	
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO current  = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
-
-	unsigned long long time1 = __krdtsc();
-
-	if (current->prev_tick && prev->prev_tick) {
-		current->tick += time1 - current->prev_tick;
-		prev->tick += time1 - prev->prev_tick;
-
-		prev->prev_tick = 0;
-		current->prev_tick = 0;
-		//__printf(szout, "%s %d current tick:%I64x prev tick:%I64x\r\n",__FUNCTION__, __LINE__, current->tick, prev->tick);
-	}
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (g_pm_enable == 0 || g_pm_enable_INVALID) {
-		if (g_cpu_prev_tick[id]) {
-			g_cpu_tick[id] += time1 - g_cpu_prev_tick[id];
-			g_cpu_prev_tick[id] = 0;
+
+	int ret = __GetSpinlock(&g_task_array_lock[id]);
+	if (ret) {
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
+
+		unsigned long long time1 = __krdtsc();
+
+		if (g_tagMsg++ < 16) {
+			//__printf(szout, "eip:%x,g_hlt_addr:%x\r\n", env->eip, g_hlt_addr);
 		}
-	}
-	else {
-		DWORD high = 0;
-		DWORD low = 0;
-		readmsr(MSR_IA32_MPERF, &low, &high);
-		unsigned long long aperf = ((unsigned long long)high << 32) + low;
-		if(aperf > time1) {
-			g_cpu_tick[id] = aperf - time1;
+
+		if (env->eip == (DWORD)g_hlt_addr) {
+
 		}
 		else {
-			g_cpu_tick[id] = time1 - aperf;
+			if (current->prev_tick) {
+				current->tick += (time1 - current->prev_tick);
+			}
+			if (prev->prev_tick) {
+				prev->tick += (time1 - prev->prev_tick);
+			}
+			if (g_cpu_prev_tick[id]) {
+				g_cpu_tick[id] += (time1 - g_cpu_prev_tick[id]);
+			}
 		}
-		
-		g_cpu_prev_tick[id] = 0;
-		if ((g_tagMsg++) % 0x100 == 0x100) {
-			__printf(szout, "cpu:%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf,time1);
+		if (current->prev_tick) {
+			current->tick_total += time1 - current->prev_tick;
 		}
-	}
+		if (prev->prev_tick) {
+			prev->tick_total += time1 - prev->prev_tick;
+		}
 
-	__kApicTimerProc();
+		__kApicTimerProc();
 
-	ActiveApTask(TASK_SWITCH_VECTOR);
-	
+		ActiveApTask(TASK_SWITCH_VECTOR);
+
 #ifndef SINGLE_TASK_TSS
-	__asm {
-		clts			//multiple tss for task switch,must to do this
-	}
+		__asm {
+			clts			//multiple tss for task switch,must to do this
+		}
 #endif
 
-	if (prev->tid != current->tid) {
-		__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", prev->tid, current->tid);
-		return 0;
-	}
+		if (prev->tid != current->tid) {
+			__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", prev->tid, current->tid);
+			//return 0;
+		}
 
-	V86ProcessCheck(env,current,prev);
+		V86ProcessCheck(env, current, prev);
 
 #ifdef SINGLE_TASK_TSS
-	LPPROCESS_INFO next = SingleTssSchedule(env);
+		LPPROCESS_INFO next = SingleTssSchedule(env);
 #else
-	LPPROCESS_INFO next = MultipleTssSchedule(env);
+		LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
-	
-	__int64 time2 = __krdtsc();
 
-	/*
-	if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
-		__int64 deltaTime = time2 - time1;
+		__int64 time2 = __krdtsc();
 
-		DWORD cpureq;
-		DWORD maxreq;
-		DWORD busreq;
-		__cpuFreq(&cpureq, &maxreq, &busreq);
-		__int64 cpurate = cpureq;
+		/*
+		if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
+			__int64 deltaTime = time2 - time1;
 
-		__printf(szout,
-			"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
-			prev->tss.link, current->tss.link, next->tss.link, env->eflags, prev->tss.eflags, current->tss.eflags, next->tss.eflags,
-			current->pid, current->tid, next->pid, next->tid, deltaTime, cpurate);
-	}
-	*/
+			DWORD cpureq;
+			DWORD maxreq;
+			DWORD busreq;
+			__cpuFreq(&cpureq, &maxreq, &busreq);
+			__int64 cpurate = cpureq;
 
-	current->prev_tick = time2;
-	if (next) {
-		next->prev_tick = time2;
-	}
+			__printf(szout,
+				"current link:%x,prev link:%x,next link:%x,stack eflags:%x,current eflags:%x,prev eflags:%x,next eflags:%x,new task pid:%d, tid:%d, old task pid:%d, tid:%d, timestamp:%i64x, cpurate:%i64x\r\n",
+				prev->tss.link, current->tss.link, next->tss.link, env->eflags, prev->tss.eflags, current->tss.eflags, next->tss.eflags,
+				current->pid, current->tid, next->pid, next->tid, deltaTime, cpurate);
+		}
+		*/
 
-	//__printf(szout, "%s %d current prev tick:%I64x next prev tick:%I64x\r\n", __FUNCTION__,__LINE__,current->prev_tick,next->prev_tick);
+		current->prev_tick = time2;
+		if (next) {
+			next->prev_tick = time2;
+		}
 
-	if (g_pm_enable == 0 || g_pm_enable_INVALID) {
 		g_cpu_prev_tick[id] = time2;
+
+		ret = __leaveSpinlock(&g_task_array_lock[id]);
 	}
-	else {
-		g_cpu_prev_tick[id] = 0;
-	}
+
 	return TRUE;
 }
 
@@ -1572,6 +1542,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->tick = 0;
 	process0->prev_tick = 0;
 	process0->tick_start = __krdtsc();
+	process0->tick_total = 0;
 
 	int bsp = IsBspProcessor();
 	if (bsp) {

@@ -12,6 +12,8 @@
 
 DWORD g_random_seed = 0;
 
+extern "C" __declspec(dllexport)char* g_hlt_addr = 0;
+
 DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
@@ -74,6 +76,12 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	DWORD r = 0;
 	switch (num)
 	{
+		case SVC_SLEEP:
+		{
+			sleep(params);
+
+			break;
+		}
 		case SVC_KBD_OUTPUT:
 		{
 			r = __kGetKbd(params[0]);
@@ -99,12 +107,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			r = __random((unsigned long)params[0]);
 			break;
 		}
-		case SVC_SLEEP:
-		{
-			sleep(params);
 
-			break;
-		}
 		case SVC_TURNON_SCREEN:
 		{
 			__turnonScreen();
@@ -144,7 +147,6 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		}
 		case SVC_RESTORE_MOUSE:
 		{
-
 			__kRestoreMouse();
 			break;
 		}
@@ -192,6 +194,10 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 				hlt
 			}
 			r = 0;
+			break;
+		}
+		case SVC_SLEEP_ADDR:
+		{
 			break;
 		}
 		default: {
@@ -258,51 +264,29 @@ void sleep(DWORD * params) {
 	proc->sleep_total += times;
 
 	unsigned long long tick1 = __krdtsc();
-	if (current->prev_tick && proc->prev_tick) {
+	if (current->prev_tick ) {
 		current->tick += (tick1 - current->prev_tick);
-		proc->tick += (tick1 - proc->prev_tick);
-		current->prev_tick = 0;
-		proc->prev_tick = 0;
 	}
-
+	if (proc->prev_tick) {
+		proc->tick += (tick1 - proc->prev_tick);
+	}
 	leave_task_array_lock();
-
 	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (g_pm_enable == 0 || g_pm_enable_INVALID) {
-		if (g_cpu_prev_tick[id]) {
-			g_cpu_tick[id] += (tick1- g_cpu_prev_tick[id] );
-			g_cpu_prev_tick[id] = 0;
-		}
-		else {
-			//task switch set the g_cpu_prev_tick
-			__printf("%s %d cpu:%d g_cpu_prev_tick null!\r\n", __FUNCTION__, __LINE__, id);
-		}
+	if (g_cpu_prev_tick[id]) {
+		g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
 	}
-	else {
-		DWORD low = 0;
-		DWORD high = 0;
-		readmsr(MSR_IA32_MPERF, &low, &high);
-		unsigned long long aperf = high;
-		aperf = (aperf << 32) + low;
-		if (aperf > tick1) {
-			g_cpu_tick[id] = aperf - tick1;
-		}
-		else {
-			g_cpu_tick[id] = tick1 - aperf;
-		}
 		
-		g_cpu_prev_tick[id] = 0;
-		if ((g_tagMsg2++) % 0x100 == 0x100) {
-			char szout[256];
-			__printf(szout, "cpu:%d tick:%I64x,aperf:%i64x,timer:%i64x\r\n", id, g_cpu_tick[id], aperf, tick1);
-		}
-	}
-	
 	while(1)
 	{	
 		__asm {
 			hlt
+			__hlt_addr:
+			cmp dword ptr ds : [g_hlt_addr],0
+			jnz __hlt_addr_end
+			lea eax, __hlt_addr
+			mov	ds:[g_hlt_addr],eax
+			__hlt_addr_end:
 		}
 
 		if (current->sleep == 0)

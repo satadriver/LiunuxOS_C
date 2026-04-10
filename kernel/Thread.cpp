@@ -266,6 +266,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tick = 0;
 	tss->prev_tick = 0;
 	tss->tick_start = __krdtsc();
+	tss->tick_total = 0;
 
 	tss->slice = process->slice;
 	tss->frac_slice = 0;

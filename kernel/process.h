@@ -79,6 +79,7 @@ typedef struct
 	int delta;
 
 	unsigned long long tick;
+	unsigned long long tick_total;
 	unsigned long long prev_tick;
 	unsigned long long tick_start;
 
