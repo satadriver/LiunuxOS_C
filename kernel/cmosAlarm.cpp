@@ -13,7 +13,7 @@
 #include "Thread.h"
 #include "memory.h"
 #include "cmosPeriodTimer.h"
-#include "screenProtect.h"
+#include "Animation.h"
 
 CMOSALARM_PROCESS_LIST gCmosAlarmProc;
 

@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -209,6 +209,7 @@
   <ItemGroup>
     <ClCompile Include="aes.cpp" />
     <ClCompile Include="algorithm.cpp" />
+    <ClCompile Include="Animation.cpp" />
     <ClCompile Include="apic.cpp" />
     <ClCompile Include="atapi.cpp" />
     <ClCompile Include="base64.cpp" />
@@ -258,7 +259,6 @@
     <ClCompile Include="rc4.cpp" />
     <ClCompile Include="rtl8139.cpp" />
     <ClCompile Include="serialUART.cpp" />
-    <ClCompile Include="screenProtect.cpp" />
     <ClCompile Include="ATA.cpp" />
     <ClCompile Include="kernel.cpp" />
     <ClCompile Include="keyboard.cpp" />
@@ -284,6 +284,7 @@
   <ItemGroup>
     <ClInclude Include="aes.h" />
     <ClInclude Include="algorithm.h" />
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="apic.h" />
     <ClInclude Include="atapi.h" />
     <ClInclude Include="base64.h" />

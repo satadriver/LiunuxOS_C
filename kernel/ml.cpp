@@ -145,7 +145,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 20, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_TRAIN;

@@ -2,7 +2,7 @@
 #include "window.h"
 #include "hardware.h"
 #include "Utils.h"
-#include "screenProtect.h"
+#include "Animation.h"
 #include "process.h"
 #include "task.h"
 #include "device.h"

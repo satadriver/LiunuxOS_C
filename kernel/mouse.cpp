@@ -8,7 +8,7 @@
 #include "keyboard.h"
 #include "hardware.h"
 #include "systemService.h"
-#include "screenProtect.h"
+#include "Animation.h"
 #include "device.h"
 #include "apic.h"
 

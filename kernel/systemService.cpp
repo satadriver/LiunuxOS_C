@@ -347,7 +347,7 @@ extern "C" __declspec(dllexport) DWORD __random(DWORD r) {
 
 }
 
-DWORD __random_old(DWORD init) {
+DWORD __random2(DWORD init) {
 	unsigned __int64 t = init;
 	if (t == 0) {
 		DWORD dt = *((DWORD*)APICTIMER_TICK_COUNT);

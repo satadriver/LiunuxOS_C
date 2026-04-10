@@ -31,7 +31,7 @@ int gTrajectTid = 0;
 
 double g_x_s = 0;
 double g_y_s = 0;
-double GRAVITY_ACC = 9.80 * 4;
+double GRAVITY_ACC = 9.80 * 8;
 double g_centerX = 0;
 double g_centerY = 0;
 double g_radius = 32.0;

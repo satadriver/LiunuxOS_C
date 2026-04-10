@@ -1769,6 +1769,44 @@ unsigned long GetValueFromArray(AlgorithmModel* array,int size,int key) {
 
 int g_debug_tag = 0;
 
+
+int GetCongestion(int * procs) {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long long tick = __krdtsc();
+	double cpu_diff = tick - g_cpu_start_tick[id];
+	double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
+
+	int max_tid = -1;
+	double max_ratio = 0.0;
+
+	int n = 0;
+
+	int cnt = 0;
+
+	if (cpu_ratio > 0.5) {
+		LPPROCESS_INFO tss = GetTaskTssBase();
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN) {
+				n++;
+
+				double proc_cpu_ratio = (double)tss[i].tick / cpu_diff;
+				if (proc_cpu_ratio > max_ratio) {
+					max_ratio = proc_cpu_ratio;
+					max_tid = tss[i].tid;
+				}
+
+				double proc_diff = tick - tss[i].tick_start;
+				double proc_ratio = (double)tss[i].tick / proc_diff;
+				if (proc_ratio > 0.5) {
+					procs[cnt++] = tss[i].tid;
+				}
+			}
+		}
+	}
+
+	return cnt;
+}
+
 PROCESS_INFO * GetReadyProcess() {
 
 	char szout[256];
@@ -1839,9 +1877,9 @@ PROCESS_INFO * GetReadyProcess() {
 
 				__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
 
-				window[count] = (ptr->window == 0 ? 0 : 1);
+				window[count] = (ptr->window == 0 ? 0 : STATIC_PRIORITY/2);
 
-				user[count] = (ptr->level == 0 ? 1 : 0);
+				user[count] = (ptr->level == 0 ? STATIC_PRIORITY/4 : 0);
 
 				delta[count].v = ptr->delta;
 				delta[count].id = ptr->tid;

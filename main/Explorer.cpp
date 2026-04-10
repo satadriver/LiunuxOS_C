@@ -101,7 +101,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			//__printf(szout, "click key:%x\r\n", ck);
 		}
 
-		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d||ck == 0x0a) {
+		if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || ck == 0x0d||ck == 0x020) {
 			if (ck == VK_RIGHT) {
 				mouseinfo.status = 0;
 				mouseinfo.x = MOUSE_GRANULARITY;
@@ -132,7 +132,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 				mouseinfo.y = 0;
 				insertMouse(&mouseinfo);
 			}
-			else if (ck == 0x0a) {
+			else if (ck == 0x20) {
 				mouseinfo.status = 2;
 				mouseinfo.x = 0;
 				mouseinfo.y = 0;

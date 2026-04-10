@@ -1,4 +1,5 @@
-#include "screenProtect.h"
+
+#include "Animation.h"
 #include "video.h"
 #include "Utils.h"
 #include "file.h"
@@ -22,7 +23,48 @@
 #define OUTPUT_INFO_COLOR	0Xff0000
 
 
+int g_PauseBreakFlag = 0;
 
+void pauseBreak() {
+	g_PauseBreakFlag ^= g_PauseBreakFlag;
+	return;
+}
+
+
+extern "C" __declspec(dllexport) int __kPrintScreen() {
+
+	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
+
+	char* data = (char*)__kMalloc(gWindowSize);
+	BITMAPFILEHEADER* hdr = (BITMAPFILEHEADER*)data;
+	hdr->bfType = 0x4d42;
+	hdr->bfSize = screensize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+	hdr->bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+	hdr->bfReserved1 = 0;
+	hdr->bfReserved2 = 0;
+
+	BITMAPINFOHEADER* info = (BITMAPINFOHEADER*)(data + sizeof(BITMAPFILEHEADER));
+	info->biBitCount = gBytesPerPixel * 8;
+	info->biHeight = -gVideoHeight;
+	info->biWidth = -gVideoWidth;
+	info->biSize = 40;
+	info->biSizeImage = gBytesPerPixel * gVideoWidth * gVideoHeight;
+	info->biClrImportant = 0;
+	info->biClrUsed = 0;
+	info->biCompression = 0;
+	info->biXPelsPerMeter = 0;
+	info->biYPelsPerMeter = 0;
+
+	__memcpy((char*)(data + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER)),
+		(char*)gGraphBase, screensize);
+
+	char filename[256];
+	__printf(filename, "c:\\%x.bmp", *(unsigned int*)APICTIMER_TICK_COUNT);
+	int ret = writeFile(filename, (char*)data, screensize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), FILE_WRITE_APPEND);
+
+	__kFree((DWORD)data);
+	return 0;
+}
 
 
 int gCircleColor = 0xffffff;
@@ -76,8 +118,8 @@ int initScreenProtect() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, SCREENPROTECT_BACKGROUND_COLOR, dst);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
-		gRadius|0x0000000, (gRadius/2)|0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY,
+		gRadius | 0x0000000, (gRadius / 2) | 0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 
 	gScreenProtectWindowID = InsertWindow(0, (char*) __FUNCTION__);
 
@@ -173,8 +215,8 @@ extern "C" __declspec(dllexport) void __kScreenProtect(int p1, int p2, int p3, i
 	ret = __restoreCircle(oldx, oldy, gRadius, gRadius / 2, (unsigned char*)videoBase + screensize * 2);
 
 	//sphere7(gCircleCenterX, gCircleCenterY, gRadius, SCREENPROTECT_BACKGROUND_COLOR, (unsigned char*)gGraphBase + screensize * 2);
-	ret = __drawCircle(gCircleCenterX, gCircleCenterY, 
-		gRadius|0x0000000, (gRadius / 2)| 0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
+	ret = __drawCircle(gCircleCenterX, gCircleCenterY,
+		gRadius | 0x0000000, (gRadius / 2) | 0x0000000, gCircleColor, (unsigned char*)videoBase + screensize * 2);
 	return;
 }
 
@@ -246,7 +288,7 @@ void SquareVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) - gBaseColor * gBaseColor * gBaseColor;
 
 #elif defined VECTOR_GRAPH_VIDEO_2
-			DWORD c = ((x - cx) * (x - cx)*0x1) + ((y - cy)* (y - cy)*0x1) + gBaseColor * gBaseColor;
+			DWORD c = ((x - cx) * (x - cx) * 0x1) + ((y - cy) * (y - cy) * 0x1) + gBaseColor * gBaseColor;
 			DWORD high = (c >> 24);
 			c = c + high;
 #else
@@ -333,13 +375,13 @@ void EllipseVideo() {
 		int cy2 = gVideoHeight / 2 + 100;
 		for (int y = 0; y < gVideoHeight; y++) {
 			for (int x = 0; x < gVideoWidth; x++) {
-				DWORD c = (A * A * (x - cx) * (x - cx)*0x1) + (B * B * (y - cy) * (y - cy) * 0x1) + baseColor * baseColor * A * A * B * B ;
-				if (c == A * A * B * B*0x1000) {
+				DWORD c = (A * A * (x - cx) * (x - cx) * 0x1) + (B * B * (y - cy) * (y - cy) * 0x1) + baseColor * baseColor * A * A * B * B;
+				if (c == A * A * B * B * 0x1000) {
 
 				}
 				DWORD high = c >> 24;
 				c = c + high;
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD) videoBase;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = c & 0xff;
 					c = c >> 8;
@@ -384,32 +426,32 @@ void SpiralBallVideo() {
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, 0xffffff, (unsigned char*)backGround);
 
 	DWORD windowid = InsertWindow(FALSE, (char*)__FUNCTION__);
-	
+
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
 
-	__drawLine(0, cy, gVideoWidth - 1, cy,0, AXIS_COLOR,0);
+	__drawLine(0, cy, gVideoWidth - 1, cy, 0, AXIS_COLOR, 0);
 
-	__drawLine(cx, 0, cx, gVideoHeight -1, 0, AXIS_COLOR, 0);
+	__drawLine(cx, 0, cx, gVideoHeight - 1, 0, AXIS_COLOR, 0);
 
 	unsigned char* videoBase = (unsigned char*)GetVideoBase();
 
 	int color_cos = 0xff00;
 	for (int x = 0; x < gVideoWidth; x++)
 	{
-		int y = cy - (int)( __cos(1.0*((int)x - (int)cx)/100.0) * 100.0);
+		int y = cy - (int)(__cos(1.0 * ((int)x - (int)cx) / 100.0) * 100.0);
 		int c = color_cos;
 		unsigned char* p = (unsigned char*)__getpos((int)x, y) + (DWORD)videoBase;
 		for (int k = 0; k < gBytesPerPixel; k++) {
-				
-			p[k] = c &0xff;
+
+			p[k] = c & 0xff;
 			c = c >> 8;
 		}
 
 		if (x - cx == 100) {
 			int pos = __getpos((int)x, y);
 			__drawGraphChar((char*)"y=cos(x)", AXIS_COLOR, pos, 0);
-		}	
+		}
 	}
 
 
@@ -417,8 +459,8 @@ void SpiralBallVideo() {
 	for (int x = 0; x < gVideoWidth; x++)
 	{
 		int c = color_sin;
-		int y = cy -  (int)(__sin(1.0 * ((int)x - (int)cx)/100.0)  * 100.0);
-		
+		int y = cy - (int)(__sin(1.0 * ((int)x - (int)cx) / 100.0) * 100.0);
+
 		unsigned char* p = (unsigned char*)__getpos((int)x, y) + (DWORD)videoBase;
 		for (int k = 0; k < gBytesPerPixel; k++) {
 
@@ -433,7 +475,7 @@ void SpiralBallVideo() {
 	}
 
 	for (int x = 0; x < gVideoWidth; x++) {
-		DWORD y = cy - 100.0 * ((float)(x - cx)*1.0 / 100.0) * (((float)(x - cx)*1.0) / 100.0);
+		DWORD y = cy - 100.0 * ((float)(x - cx) * 1.0 / 100.0) * (((float)(x - cx) * 1.0) / 100.0);
 		if (y >= 0) {
 			DWORD c = 0xff0000;
 			unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
@@ -444,12 +486,12 @@ void SpiralBallVideo() {
 			}
 		}
 
-		if (x  == 100) {
+		if (x == 100) {
 			int pos = __getpos((int)x, y);
 			__drawGraphChar((char*)"y=x*x", AXIS_COLOR, pos, 0);
 		}
 	}
-	
+
 	double A = 1.0;
 	double B = 1.0;
 	double A2 = 1.5;
@@ -465,10 +507,10 @@ void SpiralBallVideo() {
 	int color2 = 0x800000;
 	int color3 = 0x80;
 
-	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE*4;
-	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE*4;
-	int oldx2 = cx - SPIRAL_SMALL_CIRCLE_SIZE2*4;
-	int oldy2 = cy - SPIRAL_SMALL_CIRCLE_SIZE2*4;
+	int oldx = cx + SPIRAL_SMALL_CIRCLE_SIZE * 4;
+	int oldy = cy + SPIRAL_SMALL_CIRCLE_SIZE * 4;
+	int oldx2 = cx - SPIRAL_SMALL_CIRCLE_SIZE2 * 4;
+	int oldy2 = cy - SPIRAL_SMALL_CIRCLE_SIZE2 * 4;
 	int oldx3 = cx;
 	int oldy3 = cy;
 	__drawCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, color, (unsigned char*)buf);
@@ -476,7 +518,7 @@ void SpiralBallVideo() {
 	__drawCircle(oldx2, oldy2, SPIRAL_SMALL_CIRCLE_SIZE2, 0, color2, (unsigned char*)buf2);
 
 	__drawCircle(oldx3, oldy3, SPIRAL_SMALL_CIRCLE_SIZE3, 0, color3, (unsigned char*)buf3);
-	
+
 	while (1)
 	{
 		unsigned int ck = __kGetKbd(windowid);
@@ -530,20 +572,20 @@ void SpiralBallVideo() {
 		color3 += 1;
 
 		int px = cx + (int)((A + B * theta) * __cos(theta));
-		int py = cy - (int)( (A + B * theta) * __sin(theta));
+		int py = cy - (int)((A + B * theta) * __sin(theta));
 
 		int px2 = cx + (int)((A2 + B2 * theta2) * __cos(theta2));
 		int py2 = cy - (int)((A2 + B2 * theta2) * __sin(theta2));
 
 		int px3 = cx + (int)((A3 + B3 * theta3) * __cos(theta3));
 		int py3 = cy - (int)((A3 + B3 * theta3) * __sin(theta3));
-		
+
 		__restoreCircle(oldx3, oldy3, SPIRAL_SMALL_CIRCLE_SIZE3, 0, (unsigned char*)buf3);
 		__restoreCircle(oldx2, oldy2, SPIRAL_SMALL_CIRCLE_SIZE2, 0, (unsigned char*)buf2);
 		__restoreCircle(oldx, oldy, SPIRAL_SMALL_CIRCLE_SIZE, 0, (unsigned char*)buf);
 
-		if ((px >= SPIRAL_SMALL_CIRCLE_SIZE && px <= gVideoWidth- SPIRAL_SMALL_CIRCLE_SIZE) &&
-			(py >= SPIRAL_SMALL_CIRCLE_SIZE && py <= gVideoHeight- SPIRAL_SMALL_CIRCLE_SIZE) ) {
+		if ((px >= SPIRAL_SMALL_CIRCLE_SIZE && px <= gVideoWidth - SPIRAL_SMALL_CIRCLE_SIZE) &&
+			(py >= SPIRAL_SMALL_CIRCLE_SIZE && py <= gVideoHeight - SPIRAL_SMALL_CIRCLE_SIZE)) {
 
 		}
 		else {
@@ -583,7 +625,7 @@ void SpiralBallVideo() {
 		__drawCircle(px3, py3, SPIRAL_SMALL_CIRCLE_SIZE3, 0, color3, (unsigned char*)buf3);
 
 		oldx = px;
-		oldy = py;	
+		oldy = py;
 		oldx2 = px2;
 		oldy2 = py2;
 		oldx3 = px3;
@@ -640,7 +682,7 @@ void CubeVideo() {
 				//#define VECTOR_GRAPH_VIDEO_2
 
 #ifdef VECTOR_GRAPH_VIDEO_3
-				DWORD c = ((x - cx) * (x - cx) * (x - cx)*0x1) + ((y - cy) * (y - cy) * (y - cy) * 0x1) + color * color * color;
+				DWORD c = ((x - cx) * (x - cx) * (x - cx) * 0x1) + ((y - cy) * (y - cy) * (y - cy) * 0x1) + color * color * color;
 				DWORD high = c >> 24;
 				c = c + high;
 #elif defined VECTOR_GRAPH_VIDEO_2
@@ -648,7 +690,7 @@ void CubeVideo() {
 #else
 
 #endif
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) +(DWORD) videoBase;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = c & 0xff;
 					c = c >> 8;
@@ -713,7 +755,7 @@ void DiamondVideo() {
 					color = 0;
 				}
 
-				unsigned char* ptr = (unsigned char*)__getpos(x, y) +(DWORD) videoBase;
+				unsigned char* ptr = (unsigned char*)__getpos(x, y) + (DWORD)videoBase;
 				for (int k = 0; k < gBytesPerPixel; k++) {
 					*ptr = color & 0xff;
 					color = color >> 8;
@@ -722,7 +764,7 @@ void DiamondVideo() {
 			}
 		}
 
-		__diamond(gVideoWidth/2, gVideoHeight/2, POLYGON_RADIUS, POLYGON_SIZE, 0);
+		__diamond(gVideoWidth / 2, gVideoHeight / 2, POLYGON_RADIUS, POLYGON_SIZE, 0);
 	}
 }
 
@@ -739,48 +781,7 @@ void DiamondVideo() {
 
 
 
-int g_PauseBreakFlag = 0;
 
-void pauseBreak() {
-	g_PauseBreakFlag ^= g_PauseBreakFlag;
-	return;
-}
-
-
-extern "C" __declspec(dllexport) int __kPrintScreen() {
-
-	int screensize = gVideoHeight * gVideoWidth * gBytesPerPixel;
-
-	char* data = (char*)__kMalloc(gWindowSize);
-	BITMAPFILEHEADER* hdr = (BITMAPFILEHEADER*)data;
-	hdr->bfType = 0x4d42;
-	hdr->bfSize = screensize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-	hdr->bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-	hdr->bfReserved1 = 0;
-	hdr->bfReserved2 = 0;
-
-	BITMAPINFOHEADER* info = (BITMAPINFOHEADER*)(data + sizeof(BITMAPFILEHEADER));
-	info->biBitCount = gBytesPerPixel * 8;
-	info->biHeight = -gVideoHeight;
-	info->biWidth = -gVideoWidth;
-	info->biSize = 40;
-	info->biSizeImage = gBytesPerPixel * gVideoWidth * gVideoHeight;
-	info->biClrImportant = 0;
-	info->biClrUsed = 0;
-	info->biCompression = 0;
-	info->biXPelsPerMeter = 0;
-	info->biYPelsPerMeter = 0;
-
-	__memcpy((char*)(data + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER)),
-		(char*)gGraphBase, screensize);
-
-	char filename[256];
-	__printf(filename, "c:\\%x.bmp", *(unsigned int*)APICTIMER_TICK_COUNT);
-	int ret = writeFile(filename, (char*)data, screensize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), FILE_WRITE_APPEND);
-
-	__kFree((DWORD)data);
-	return 0;
-}
 
 
 
@@ -1008,7 +1009,7 @@ void TrajectoryVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 
 	}
 
-	ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius/2, (unsigned char*)g_circle_buf);
+	ret = __restoreCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, (unsigned char*)g_circle_buf);
 	g_centerX = x;
 	g_centerY = y;
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
@@ -1055,7 +1056,7 @@ void TrajectoryVideo(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	}
 
 	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)        ", g_centerX, g_centerY, g_x_s, g_y_s);
-	int showPos = __getpos(0 , gVideoHeight - TASKBAR_HEIGHT*2);
+	int showPos = __getpos(0, gVideoHeight - TASKBAR_HEIGHT * 2);
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 
 }
@@ -1124,7 +1125,7 @@ void initTrajectory() {
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
 	__sprintf(szout, "(X:%f,Y:%f) (XS:%f,YS:%f)        ", g_centerX, g_centerY, g_x_s, g_y_s);
-	int showPos = __getpos(0 , gVideoHeight - TASKBAR_HEIGHT*2);
+	int showPos = __getpos(0, gVideoHeight - TASKBAR_HEIGHT * 2);
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_circle_color);
 }
 
