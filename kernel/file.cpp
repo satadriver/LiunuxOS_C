@@ -6,6 +6,8 @@
 #include "NTFS/ntfs.h"
 #include "video.h"
 #include "NTFS/ntfsFile.h"
+#include "apic.h"
+#include "task.h"
 
 
 
@@ -30,6 +32,20 @@ int readFileTo(char * filename) {
 	if (buf == 0) {
 		return 0;
 	}
+
+	extern int g_task_array_lock[256];
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	__enterSpinlock(&g_task_array_lock[id]);
+	PROCESS_INFO* tss = GetTaskTssBase();
+	PROCESS_INFO* current = GetCurrentTaskTssBase();
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + current->tid);
+	proc->delta++;
+	if (proc->delta > DYNAMIC_PRIORITY) {
+		proc->delta = DYNAMIC_PRIORITY;
+	}
+	current->delta = proc->delta;
+	__leaveSpinlock(&g_task_array_lock[id]);
+
 	return readFile(filename, &buf);
 }
 

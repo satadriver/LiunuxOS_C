@@ -97,6 +97,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
 			//__sleep(100);
 		}
+
+		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
 	}
 
 	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {

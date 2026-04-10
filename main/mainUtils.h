@@ -18,6 +18,6 @@ int CpuUsage(char* buf);
 
 int GetAllProcesses(char* szout);
 
-int GetProcess(int pid, char* szout);
+int GetProcess(int cpuid,int pid, char* szout);
 
 int getmemmap(int pid, char * szout);

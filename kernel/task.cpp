@@ -1396,7 +1396,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	}
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (g_pm_enable == 0) {	
+	if (g_pm_enable == 0 || g_pm_enable_INVALID) {
 		if (g_cpu_prev_tick[id]) {
 			g_cpu_tick[id] += time1 - g_cpu_prev_tick[id];
 			g_cpu_prev_tick[id] = 0;
@@ -1469,7 +1469,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	//__printf(szout, "%s %d current prev tick:%I64x next prev tick:%I64x\r\n", __FUNCTION__,__LINE__,current->prev_tick,next->prev_tick);
 
-	if (g_pm_enable == 0) {
+	if (g_pm_enable == 0 || g_pm_enable_INVALID) {
 		g_cpu_prev_tick[id] = time2;
 	}
 	else {

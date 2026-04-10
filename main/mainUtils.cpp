@@ -65,17 +65,20 @@ int GetAllProcesses(char* szout) {
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
 	for (int i = 0; i < cnt; i++) {
+		int cpu = cpus[i];
+		unsigned long long cpu_alive = g_cpu_start_tick[cpus[i]];
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpus[i]);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
-				double diff = __krdtsc() - tss[i].tick_start;
+				//double diff = __krdtsc() - tss[i].tick_start;
+				double diff = __krdtsc() - cpu_alive;
 				double tick = tss[i].tick;
 				double usage = tick / diff;
 				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x, usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
 					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick,tss[i].tick_start,
-					usage, tss[i].sleep, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+					usage, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 				outlen += len;
 			}
 		}
@@ -84,22 +87,30 @@ int GetAllProcesses(char* szout) {
 	return outlen;
 }
 
-int GetProcess(int pid, char* szout) {
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (tss[i].status == TASK_RUN && tss[i].pid == pid)
-		{
-			double diff = __krdtsc() - tss[i].tick_start;
-			double tick = tss[i].tick;
-			double usage = tick / diff;
-
-			int len = __sprintf(szout, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
-				tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
-				tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, usage, tss[i].sleep, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
-			return len;
+int GetProcess(int cpuid,int pid, char* szout) {
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+	for (int i = 0; i < cnt; i++) {
+		
+		int cpu = cpus[i];
+		if (cpu == cpuid) {
+			unsigned long long cpu_alive = g_cpu_start_tick[cpus[i]];
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+				if (tss[i].status == TASK_RUN && tss[i].pid == pid)
+				{
+					double diff = __krdtsc() - cpu_alive;
+					double tick = tss[i].tick;
+					double usage = tick / diff;
+					int len = __sprintf(szout, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x, usage:%lf£¬sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+						tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
+						tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_start,
+						usage, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+					return len;
+				}
+			}
 		}
 	}
-
 	*szout = 0;
 	return 0;
 }
@@ -110,10 +121,12 @@ int CpuUsage(char* buf) {
 	int len = 0;
 	int offset = 0;
 
+	unsigned long long tick = __krdtsc();
+
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];
 
-		unsigned long long alive = __krdtsc() - g_cpu_start_tick[id];
+		unsigned long long alive = tick - g_cpu_start_tick[id];
 
 		double diff = alive;
 
@@ -142,8 +155,8 @@ int CpuUsage(char* buf) {
 		}
 
 		len = __sprintf(buf + offset, 
-			"cpu:%d,active:%i64x,alive:%i64x,rate:%lf,aperf:%i64x,mperf:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
-			id, g_cpu_tick[id], alive, usage, aperf, mperf, load, g_pm_enable);
+			"cpu:%d,active:%i64x,alive:%i64x,rate:%lf,aperf:%i64x,mperf:%i64x,tick:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
+			id, g_cpu_tick[id], alive, usage, aperf, mperf, tick,load, g_pm_enable);
 		offset += len;
 	}
 	return offset;

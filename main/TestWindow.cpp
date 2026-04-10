@@ -102,7 +102,7 @@ extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int 
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 		//Halt();
 		__asm {
 			//hlt
@@ -119,6 +119,7 @@ extern "C" __declspec(dllexport) int TestThread2_main(unsigned int retaddr, int 
 		if (f1 < 0.00001f && f1 > -0.00001f) {
 			f1 = PI;
 		}
+		__sleep(0);
 	}
 	return 0;
 }
@@ -129,6 +130,7 @@ extern "C" __declspec(dllexport) int TestThread3_main(unsigned int retaddr, int 
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
 	}
 	return 0;
 }

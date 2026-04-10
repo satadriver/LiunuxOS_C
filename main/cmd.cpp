@@ -185,9 +185,19 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	{
 		if (paramcnt >= 2)
 		{
-			int i = __strd2i(params[1]);
+			int pid = 0;
+			int cpu = 0;
+			if (paramcnt >= 3) {
+				cpu = __strd2i(params[1]);
+				pid = __strd2i(params[2]);
+			}
+			else {
+				cpu = 0;
+				pid = __strd2i(params[1]);
+			}
+
 			*szout = 0;
-			GetProcess(i, szout);
+			GetProcess(cpu,pid, szout);
 			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 	}

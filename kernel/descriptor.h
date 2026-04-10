@@ -52,7 +52,7 @@ typedef struct
 #pragma pack()
 
 
-
+#define g_pm_enable_INVALID		1
 
 
 int GetPmVersion();
