@@ -39,8 +39,8 @@ void logInMem(char* data, int len);
 
 int __kFormat(char* buf, const char* format, DWORD* params);
 
-extern "C" __declspec(dllexport) int strlf2lf(double f, char* buf);
-extern "C" __declspec(dllexport) int strf2f(float f, char* buf);
+extern "C" __declspec(dllexport) int lf2strlf(double f, char* buf);
+extern "C" __declspec(dllexport) int f2strf(float f, char* buf);
 
 extern "C" __declspec(dllexport) int __i64ToStrd64( __int64 v, char* strd);
 

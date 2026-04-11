@@ -658,7 +658,7 @@ int __strd2i(char * istr) {
 
 
 
-int strlf2lf(double f,char * buf) {
+int lf2strlf(double f,char * buf) {
 	unsigned long long i = (unsigned long long)f;
 
 	int len = __i64ToStrd64(i, buf);
@@ -694,8 +694,8 @@ int strlf2lf(double f,char * buf) {
 }
 
 
-int strf2f(float d,char * buf) {
-	return strlf2lf(d, buf);
+int f2strf(float d,char * buf) {
+	return lf2strlf(d, buf);
 }
 
 int __kFormat(char* buf,const char* format, DWORD* params) {
@@ -851,7 +851,7 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			double f = *(double*)params;
 			params+=2;
 			
-			int len = strlf2lf(f, dst + dpos);
+			int len = lf2strlf(f, dst + dpos);
 			dpos += len;
 		}
 		else if ( (format[spos] == '%' && format[spos + 1] == 'l' && format[spos + 2] == 'f') ) {
@@ -860,7 +860,7 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			double f = *(double*)params;
 			params += 2;
 
-			int len = strlf2lf(f, dst + dpos);
+			int len = lf2strlf(f, dst + dpos);
 			dpos += len;
 		}
 		else if (format[spos] == '%' && format[spos + 1] == 'g')  {
@@ -869,7 +869,7 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			double f = *(double*)params;
 			params += 2;
 
-			int len = strlf2lf(f, dst + dpos);
+			int len = lf2strlf(f, dst + dpos);
 			dpos += len;
 		}
 		else if (format[spos] == '%' && format[spos + 1] == '.' && format[spos + 3] == 'f' && format[spos + 2] >= '0' && format[spos + 2] <= '9') 
@@ -879,7 +879,7 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			double f = *(double*)params;
 			params += 2;
 
-			int len = strlf2lf(f, dst + dpos);
+			int len = lf2strlf(f, dst + dpos);
 			dpos += len;
 		}
 		else if (format[spos] == '%' && format[spos + 1] == 'c') {

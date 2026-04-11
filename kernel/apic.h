@@ -10,9 +10,9 @@
 #define AUTHORITY_PRIORITY		(STATIC_PRIORITY/8)
 
 
-#define APIC_CORE_MAX_COUNT		256
 
-#define IPI_MSG_LIMIT			64
+
+#define IPI_MSG_LIMIT			16
 
 
 #pragma pack(1)
@@ -36,6 +36,7 @@ typedef struct {
 	char filename[256];
 	char funcname[64];
 	int level;
+	char* lpparam;
 	char params[256];
 }IPI_CREATEPROCESS_PARAM;
 
@@ -43,7 +44,11 @@ typedef struct {
 	DWORD addr;
 	char *module;
 	char funcname[256];
+
+	char* lpparam;
+
 	char params[256];
+
 }IPI_CREATETHREAD_PARAM;
 
 

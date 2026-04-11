@@ -496,7 +496,14 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 			subparam->addr = (DWORD)addr;
 			subparam->module = module;
 			__strcpy(subparam->funcname, funname);
-			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
+			if (p) {
+				subparam->lpparam = subparam->params;
+				__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
+			}
+			else {
+				subparam->lpparam = 0;
+				__memcpy(subparam->params, 0, sizeof(TASKCMDPARAMS));
+			}
 
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
@@ -551,7 +558,14 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 			__strcpy((char*)subparam->filename, fn);
 			__strcpy(subparam->funcname, func);
 			subparam->level = level;
-			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
+			if (p) {
+				subparam->lpparam = subparam->params;
+				__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
+			}
+			else {
+				subparam->lpparam = 0;
+				__memcpy(subparam->params, 0, sizeof(TASKCMDPARAMS));
+			}
 
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
@@ -616,7 +630,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 					char* fn = subparam->filename;
 					char* funcname = subparam->funcname;
 					int level = subparam->level;
-					char* p = (char*)subparam->params;
+					char* p = (char*)subparam->lpparam;
 
 					//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
 
@@ -628,11 +642,11 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 				}
 				else if (cmd == IPI_CREATETHREAD) {
 
-					IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg->param;
+					IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
 					DWORD module = (DWORD)subparam->module;
 					DWORD addr = subparam->addr;
 					char* funcname = subparam->funcname;
-					char* p = (char*)subparam->params;
+					char* p = (char*)subparam->lpparam;
 
 					//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
 
@@ -1451,7 +1465,7 @@ void BPCodeStart() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 	__sleep(0);
 #else
-	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
+	//SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
 	__sleep(0);
 
@@ -1459,7 +1473,8 @@ void BPCodeStart() {
 	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < cnt; i++) {
 #if 1
-		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
+		//SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
+
 		//v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 		//__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 #else
