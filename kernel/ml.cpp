@@ -3,7 +3,6 @@
 #include "kann-master/kann.h"
 #ifdef _DEBUG
 #include "Utils.h"
-
 #include "math.h"
 #include "libc.h"
 #else
@@ -16,7 +15,6 @@
 #include "Thread.h"
 #include "process.h"
 
-#include "math.h"
 #include "libc.h"
 #include "malloc.h"
 #define sqrt __sqrt
@@ -33,11 +31,39 @@
 #define logf __logf
 
 
-#include <stdlib.h>
-#define malloc mymalloc
-#define free myfree
-#define realloc __realloc
-#define calloc __calloc
+#define malloc my_malloc
+#define free my_free
+#define realloc my_realloc
+#define calloc my_calloc
+
+#define memcpy my_memcpy
+#define memset	my_memset
+
+#define abort my_abort
+
+#define printf my_printf
+#define fprintf my_fprintf
+
+#define fread my_fread
+#define fopen my_fopen
+#define fwrite my_fwrite
+#define fclose my_fclose
+#define strcmp my_strcmp
+#define strcat my_strcat
+#define strlen my_strlen
+#define strcpy my_strcpy
+#define strncmp my_strncmp
+
+#define wcslen my_wcslen
+#define wcscmp my_wcscmp
+#define wcscat my_wcscat
+#define wcsstr my_wcsstr
+#define wcscpy my_wcscpy
+
+#define fputc my_fputc
+#define fgetc my_fgetc
+#define fgets my_fgets
+#define fputs my_fputs
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
@@ -73,11 +99,24 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	TASKCMDPARAMS cmd;
-	__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
+	TASKCMDPARAMS cmd2;
+	__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
+
+	DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
+	__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
+
+	TASKCMDPARAMS cmd1;
+	__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
+	ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
+	__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
+
+	TASKCMDPARAMS cmd3;
+	__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
+	ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
+	__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
+
 	for(int i = 0; i < 1; ++i) {
-		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
-		//__ipiCreateThread((unsigned int)ml_addr,(char*) KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread2");
+
 		int imageSize = 0x100000;
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
 		if (addr) 
@@ -88,8 +127,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	}
 
 	for (int i = 0; i < 1; ++i) {
-		//DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
-		//__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd, "TestThread1");
+
 		int imageSize = 0x100000;
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
 		if (addr) 
@@ -238,8 +276,9 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	
 	while (1) {
+		__sleep(0);
 		__asm {
-			hlt
+			//hlt
 		}
 	}
 
@@ -263,6 +302,7 @@ extern "C" __declspec(dllexport) int TestThread3(unsigned int retaddr, int tid, 
 	while (1) {
 		DWORD tick = __random(0);
 		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
 	}
 	return 0;
 }

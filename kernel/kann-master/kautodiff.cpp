@@ -27,10 +27,8 @@
 #include "../math.h"
 #endif
 
-
-#include "../math.h"
-#include "../libc.h"
 #include "../malloc.h"
+
 #define sqrt __sqrt
 #define sqrtf __sqrtf
 #define exp __exp
@@ -44,21 +42,42 @@
 #define fabsf __fabsf
 #define logf __logf
 
-#define malloc mymalloc
-#define free myfree
-#define realloc __realloc
-#define calloc __calloc
+#define malloc my_malloc
+#define free my_free
+#define realloc my_realloc
+#define calloc my_calloc
 
-#define abort __abort
+#define memcpy my_memcpy
+#define memset	my_memset
 
-#pragma intrinsic(printf)  // 启用内部函数
-#pragma function(printf)   // 强制使用函数调用而不是内部函数
+#define abort my_abort
 
-#pragma intrinsic(fprintf)  // 启用内部函数
-#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
+#define printf my_printf
+#define fprintf my_fprintf
 
-#pragma intrinsic(_iob)  // 启用内部函数
-#pragma function(_iob)   // 强制使用函数调用而不是内部函数
+#define fread my_fread
+#define fopen my_fopen
+#define fwrite my_fwrite
+#define fclose my_fclose
+#define strcmp my_strcmp
+#define strcat my_strcat
+#define strlen my_strlen
+#define strcpy my_strcpy
+#define strncmp my_strncmp
+
+#define wcslen my_wcslen
+#define wcscmp my_wcscmp
+#define wcscat my_wcscat
+#define wcsstr my_wcsstr
+#define wcscpy my_wcscpy
+
+#define fputc my_fputc
+#define fgetc my_fgetc
+#define fgets my_fgets
+#define fputs my_fputs
+
+
+
 
 typedef struct {
 	uint64_t s[2];

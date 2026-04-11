@@ -47,8 +47,6 @@ void stopSqaureAnimation() {
 
 void SqaureAnimation() {
 
-
-
 	int cx = gVideoWidth / 2;
 	int cy = gVideoHeight / 2;
 
@@ -63,7 +61,7 @@ void SqaureAnimation() {
 
 #elif defined VECTOR_GRAPH_VIDEO_2
 			DWORD c = ((x - cx) * (x - cx) * 0x1) + ((y - cy) * (y - cy) * 0x1) + gBaseColor * gBaseColor;
-			DWORD high = (c >> 24);
+			DWORD high = (c >> 16);
 			c = c + high;
 #else
 

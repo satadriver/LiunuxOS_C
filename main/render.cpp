@@ -12,7 +12,7 @@
 #include "systemService.h"
 #include "apic.h"
 #include "task.h"
-#include "math.h"
+
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
@@ -26,15 +26,41 @@
 #define fabs __fabs
 #define fabsf __fabsf
 #define logf __logf
-
 #define tanf __tanf
 
-#define malloc mymalloc
-#define free myfree
-#define realloc __realloc
-#define calloc __calloc
+#define malloc my_malloc
+#define free my_free
+#define realloc my_realloc
+#define calloc my_calloc
 
-#define abort __abort
+#define memcpy my_memcpy
+#define memset	my_memset
+
+#define abort my_abort
+
+#define printf my_printf
+#define fprintf my_fprintf
+
+#define fread my_fread
+#define fopen my_fopen
+#define fwrite my_fwrite
+#define fclose my_fclose
+#define strcmp my_strcmp
+#define strcat my_strcat
+#define strlen my_strlen
+#define strcpy my_strcpy
+#define strncmp my_strncmp
+
+#define wcslen my_wcslen
+#define wcscmp my_wcscmp
+#define wcscat my_wcscat
+#define wcsstr my_wcsstr
+#define wcscpy my_wcscpy
+
+#define fputc my_fputc
+#define fgetc my_fgetc
+#define fgets my_fgets
+#define fputs my_fputs
 
 
 // ================= 1. 硬件抽象层配置 (请根据内核修改这里) =================

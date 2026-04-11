@@ -8,13 +8,11 @@
 #include "malloc.h"
 #include "math.h"
 
+FILE _iob[3];
 
-
-
-
+/*
 #pragma intrinsic(memcpy)  // 启用内部函数
 #pragma function(memcpy)   // 强制使用函数调用而不是内部函数
-
 
 #pragma intrinsic(memset)  // 启用内部函数
 #pragma function(memset)   // 强制使用函数调用而不是内部函数
@@ -34,14 +32,11 @@
 #pragma intrinsic(wcscat)  // 启用内部函数
 #pragma function(wcscat)   // 强制使用函数调用而不是内部函数
 
-
 #pragma intrinsic(strlen)  // 启用内部函数
 #pragma function(strlen)   // 强制使用函数调用而不是内部函数
 
-
 #pragma intrinsic(strcpy)  // 启用内部函数
 #pragma function(strcpy)   // 强制使用函数调用而不是内部函数
-
 
 #pragma intrinsic(strcmp)  // 启用内部函数
 #pragma function(strcmp)   // 强制使用函数调用而不是内部函数
@@ -57,130 +52,128 @@
 
 #pragma intrinsic(_iob)  // 启用内部函数
 #pragma function(_iob)   // 强制使用函数调用而不是内部函数
-
-#ifndef _DEBUG
-
+*/
 
 
 
 
-void* memcpy(void* dest, const void* src, size_t n) {
+extern "C" __declspec(dllexport)void* my_memcpy(void* dest, const void* src, size_t n) {
 	int len = __memcpy((char*)dest, (char*)src, n);
 	return dest;
 }
 
-void* memmove(void* dest, const void* src, size_t n) {
+extern "C" __declspec(dllexport)void* my_memmove(void* dest, const void* src, size_t n) {
 	int len = __memmove((char*)dest, (char*)src, n);
 	return dest;
 }
 
-void* memset(void* ptr, int value, size_t num) {
+extern "C" __declspec(dllexport)void* my_memset(void* ptr, int value, size_t num) {
 	int len = __memset((char*)ptr, value, num);
 	return ptr;
 }
 
-int memcmp(const void* ptr1, const void* ptr2, size_t num) {
+extern "C" __declspec(dllexport)int my_memcmp(const void* ptr1, const void* ptr2, size_t num) {
 	return __memcmp((const char*)ptr1, (const char*)ptr2, num);
 }
 
-char* strcpy(char* destination, const char* source) {
+extern "C" __declspec(dllexport)char* my_strcpy(char* destination, const char* source) {
 	int len = __strcpy(destination, (char* )source);
 	return destination;
 }
-size_t strlen(const char* str) {
+extern "C" __declspec(dllexport)size_t my_strlen(const char* str) {
 	return __strlen(str);
 }
 
-int strcmp(const char* str1, const char* str2) {
+extern "C" __declspec(dllexport)int my_strcmp(const char* str1, const char* str2) {
 	return __strcmp(str1, str2);
 }
-int strncmp(const char* str1, const char* str2, size_t n) {
-
+extern "C" __declspec(dllexport)int my_strncmp(const char* str1, const char* str2, size_t n) {
 	return __strncmp(str1, str2, n);
 }
-char* strcat(char* destination, const char* source) {
+extern "C" __declspec(dllexport)char* my_strcat(char* destination, const char* source) {
 	int len = __strcat(destination, (char* )source);
 	return destination;
 }
-char* strstr(const char* haystack, const char* needle) {
+extern "C" __declspec(dllexport)char* my_strstr(const char* haystack, const char* needle) {
 	return __strstr((char* )haystack, (char*)needle);
 }
-wchar_t* wmemcpy(wchar_t* dest, const wchar_t* src, size_t n) {
+extern "C" __declspec(dllexport)wchar_t* my_wmemcpy(wchar_t* dest, const wchar_t* src, size_t n) {
 	int len = __wmemcpy(dest, (wchar_t*)src, n);
 	return dest;
 }
-wchar_t* wcsstr(const wchar_t* haystack, const wchar_t* needle) {
+extern "C" __declspec(dllexport)wchar_t* my_wcsstr(const wchar_t* haystack, const wchar_t* needle) {
 	return __wcsstr((wchar_t*)haystack, (wchar_t*)needle);
 }
-size_t wcslen(const wchar_t* str) {
+extern "C" __declspec(dllexport)size_t my_wcslen(const wchar_t* str) {
 	return __wcslen((wchar_t*)str);
 }
-int wcscmp(const wchar_t* str1, const wchar_t* str2) {
+extern "C" __declspec(dllexport)int my_wcscmp(const wchar_t* str1, const wchar_t* str2) {
 	return __wcscmp((wchar_t*)str1, (wchar_t*)str2);
 }
-wchar_t* wcscat(wchar_t* dest, const wchar_t* src) {
+extern "C" __declspec(dllexport)wchar_t* my_wcscat(wchar_t* dest, const wchar_t* src) {
 	int len = __wcscat(dest,(wchar_t* )src);
 	return dest;
 }
 
-
-
-
-FILE _iob[3];
-
-
-
-
-
-FILE* fopen(const char* filename, const char* mode) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
-	return 0;
+extern "C" __declspec(dllexport)wchar_t* my_wcscpy(wchar_t* dest, const wchar_t* src) {
+	int len = my_wcslen(src);
+	my_wmemcpy(dest, src,len);
+	return dest;
 }
 
 
-int fclose(FILE* fp) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+extern "C" __declspec(dllexport)FILE* my_fopen(const char* filename, const char* mode) {
+	my_printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
-int fwrite(const void* buf, int cnt, int size,  FILE* fp) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+extern "C" __declspec(dllexport)int my_fclose(FILE* fp) {
+	my_printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
-int fread( void* buf, int cnt, int size, FILE* fp) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+extern "C" __declspec(dllexport)int my_fwrite(const void* buf, int cnt, int size,  FILE* fp) {
+	my_printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
-int fprintf(FILE* stream, const char* format, ...) {
+extern "C" __declspec(dllexport)int my_fread( void* buf, int cnt, int size, FILE* fp) {
+	my_printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	return 0;
+}
+
+extern "C" __declspec(dllexport)int my_fprintf(FILE* stream, const char* format, ...) {
 	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
-int fputc(int character, FILE* stream) {
+extern "C" __declspec(dllexport)int my_fputc(int character, FILE* stream) {
 	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
 
-int fputs(const char* str, FILE* stream) {
+extern "C" __declspec(dllexport)int my_fputs(const char* str, FILE* stream) {
 	//printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return 0;
 }
-char* fgets(char* str, int n, FILE* stream) {
-	printf("%s %d\r\n", __FUNCTION__, __LINE__);
+extern "C" __declspec(dllexport)char* my_fgetc(char* str, int n, FILE* stream) {
+	my_printf("%s %d\r\n", __FUNCTION__, __LINE__);
 	return str;
 }
-#endif
+
+extern "C" __declspec(dllexport)char* my_fgets(char* str, int n, FILE* stream) {
+	my_printf("%s %d\r\n", __FUNCTION__, __LINE__);
+	return str;
+}
 
 
-void __abort(void) {
+
+extern "C" __declspec(dllexport)void my_abort(void) {
 	char szout[256];
 	__printf(szout,"%s %d\r\n", __FUNCTION__, __LINE__);
 }
 
-
-void* mymalloc(int size) {
+extern "C" __declspec(dllexport)void* my_malloc(int size) {
 	char * buf = (char*)__malloc(size);
 	//__memset(buf, 0, size );
 	if (buf == 0) {
@@ -189,14 +182,12 @@ void* mymalloc(int size) {
 	return buf;
 }
 
-
-
-void myfree(void* buf) {
+extern "C" __declspec(dllexport)void my_free(void* buf) {
 	__free((unsigned long)buf);
 	return;
 }
 
-void* __calloc(int cnt, int size) {
+extern "C" __declspec(dllexport)void* my_calloc(int cnt, int size) {
 	char* buf = (char*)__malloc(size * cnt);
 	if (buf) {
 		__memset(buf, 0, size * cnt);
@@ -206,7 +197,7 @@ void* __calloc(int cnt, int size) {
 	return 0;
 }
 
-void* __realloc(void* buf, int size) {
+extern "C" __declspec(dllexport)void* my_realloc(void* buf, int size) {
 	char* buffer = (char*)__malloc(size);
 	if (buffer) {
 		if (buf) {
@@ -223,9 +214,7 @@ void* __realloc(void* buf, int size) {
 }
 
 
-
-#ifndef _DEBUG
-int printf(const char* format, ...) {
+extern "C" __declspec(dllexport)int my_printf(const char* format, ...) {
 	char buf[1024];
 	if (g_ScreenMode == 0) {
 		return 0;
@@ -269,8 +258,6 @@ int printf(const char* format, ...) {
 }
 
 
-
-
 int average(int count, ...) {
 	va_list args;
 	int sum = 0;
@@ -280,7 +267,7 @@ int average(int count, ...) {
 	for (int i = 0; i < count; i++) {
 		int num = va_arg(args, int);  
 		sum += num;
-		printf("param %d: %d\n", i + 1, num);
+		my_printf("param %d: %d\n", i + 1, num);
 	}
 
 	va_end(args);
@@ -290,9 +277,8 @@ int average(int count, ...) {
 
 int va_test_fun() {
 	int value = average(5, 1, 2, 3, 4, 5);
-	printf("%s %d: %d\n\n", __FUNCTION__,__LINE__, value);
+	my_printf("%s %d: %d\n\n", __FUNCTION__,__LINE__, value);
 
 	return 0;
 }
 
-#endif

@@ -1586,7 +1586,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es
@@ -1648,8 +1648,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 }
 
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
-	
-	//__asm{cli}
+
 	int ret = IsBspProcessor();
 	if (ret) {
 #ifdef SINGLE_TASK_TSS
@@ -1715,7 +1714,6 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
 		iretd
 	}
-
 }
 
 void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr) {

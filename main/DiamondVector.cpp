@@ -12,7 +12,7 @@
 #include "window.h"
 #include "systemService.h"
 
-#define POLYGON_SIZE	0x10
+#define POLYGON_SIZE	0x100
 
 #define POLYGON_RADIUS	0x100
 

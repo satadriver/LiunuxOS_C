@@ -669,7 +669,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
-		cli
+
 		pushad
 		push ds
 		push es
@@ -733,9 +733,6 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, dword ptr ss : [esp - 20]
 #endif	
-		//mov dword ptr ds:[LOCAL_APIC_BASE +0xb0],0
-
-		//clts
 
 		iretd
 
@@ -1856,26 +1853,30 @@ PROCESS_INFO * GetReadyProcess() {
 				if (next == 0) {
 					next = ptr;
 				}
-				tickc[count].id = ptr->tid;
+				
 				//tickc[count].v = ptr->tick;
-
-				double diff = (double)(__krdtsc() - ptr->tick_total);
-				double ratio = 0.0;
 				if (ptr->tick == 0) {
-					ratio = 1.0;
+					double ratio = 1.0;
+					tickc[count].id = ptr->tid;
+					__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
 				}
 				else {
-					ratio = ((double)ptr->tick) / diff;
-					if (ratio >= 1.0) {
-						ratio = 1.0;
+					double diff = (double)(ptr->tick_total);
+					double ratio = ((double)ptr->tick) / diff;
+					tickc[count].id = ptr->tid;
+					__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
+					if (ratio < 0.9) 
+					{
+
+					}
+					else {
+						//continue;
+					}
+					if (g_debug_tag++ % 0x1000 == 0x1000) {
+						__printf(szout, "tick_start:%I64x, diff:%lf,tick:%I64x, ratio:%lf\r\n",
+							ptr->tick_start, diff, ptr->tick, ratio);
 					}
 				}
-				if (g_debug_tag++ %0x1000 == 0x1000) {
-					__printf(szout, "tick_start:%I64x, diff:%lf,tick:%I64x, ratio:%lf\r\n",
-						ptr->tick_start, diff, ptr->tick, ratio);
-				}
-
-				__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
 
 				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
 

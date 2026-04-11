@@ -309,7 +309,7 @@ extern "C" __declspec(dllexport) int SysenterProc(char * params,int cnt) {
 		_emit 0x0f
 		_emit 0x34
 
-		__sysEntryExit :	
+		__sysEntryExit :
 
 		//sti
 

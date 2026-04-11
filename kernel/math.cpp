@@ -9,28 +9,43 @@
 #include "def.h"
 #endif
 
-
 #include "math.h"
 
 
+#define malloc my_malloc
+#define free my_free
+#define realloc my_realloc
+#define calloc my_calloc
 
-#ifndef _DEBUG
-#pragma intrinsic(abs)  // 启用内部函数
-#pragma function(abs)   // 强制使用函数调用而不是内部函数
+#define memcpy my_memcpy
+#define memset	my_memset
 
-#pragma intrinsic(fprintf)  // 启用内部函数
-#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
+#define abort my_abort
 
-#pragma intrinsic(printf)  // 启用内部函数
-#pragma function(printf)   // 强制使用函数调用而不是内部函数
+#define printf my_printf
+#define fprintf my_fprintf
 
-#pragma intrinsic(printf)  // 启用内部函数
-#pragma function(printf)   // 强制使用函数调用而不是内部函数
+#define fread my_fread
+#define fopen my_fopen
+#define fwrite my_fwrite
+#define fclose my_fclose
+#define strcmp my_strcmp
+#define strcat my_strcat
+#define strlen my_strlen
+#define strcpy my_strcpy
+#define strncmp my_strncmp
 
-#pragma intrinsic(fprintf)  // 启用内部函数
-#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
+#define wcslen my_wcslen
+#define wcscmp my_wcscmp
+#define wcscat my_wcscat
+#define wcsstr my_wcsstr
+#define wcscpy my_wcscpy
 
-#endif
+#define fputc my_fputc
+#define fgetc my_fgetc
+#define fgets my_fgets
+#define fputs my_fputs
+
 
 
 extern "C"  __declspec(dllexport) int __abs(int x)

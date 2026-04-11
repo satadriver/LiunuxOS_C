@@ -32,7 +32,6 @@ DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	__asm {
-
 		push dword ptr ss:[ebp + 8]
 		push edi
 		push eax
@@ -48,7 +47,7 @@ DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 		add esp, 12
 
 		mov edx,stack
-		mov [edx + LIGHT_ENVIRONMENT.eax],eax		//may be error?  warning: "."应用于非 UDT 类型
+		mov [edx + LIGHT_ENVIRONMENT.eax],eax		//? warning: "."应用于非 UDT 类型
 	}
 
 	__asm {
@@ -80,6 +79,11 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		{
 			sleep(params);
 
+			break;
+		}
+		case SVC_YIELD:
+		{
+			yield(stack);
 			break;
 		}
 		case SVC_KBD_OUTPUT:
@@ -154,11 +158,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		{
 			break;
 		}
-		case SVC_YIELD:
-		{
-			yield(stack);
-			break;
-		}
+
 		case SVC_IPI_CREATEPROC:
 		{
 			IpiCreateProcess(params[0], params[1], (char*)params[2], (char*)params[3], params[4], params[5]);
@@ -234,7 +234,6 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module
 
 
 
-int g_tagMsg2 = 0;
 
 void sleep(DWORD * params) {
 	int sleeptime = params[0];

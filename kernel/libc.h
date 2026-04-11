@@ -24,12 +24,6 @@ typedef char* va_list;
 
 // Visual Studio 中的定义
 
-#ifdef _iobuf
-#undef _iobuf
-#endif
-
-#ifndef _DEBUG
-
 #pragma pack(1)
 
 struct _iobuf {
@@ -47,7 +41,7 @@ struct _iobuf {
 
 typedef struct _iobuf FILE;
 
-#endif
+
 
 // Visual Studio 中的 <stdio.h> 核心定义
 
@@ -62,8 +56,6 @@ typedef struct _iobuf FILE;
 #else
 #define _CRTIMP __declspec(dllimport)  // 使用 CRT DLL 时
 #endif
-
-// _iob 数组声明
 
 
 
@@ -121,25 +113,7 @@ int va_test_fun();
 
 int average(int count, ...);
 
-#ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) void* __calloc(int cnt, int size);
-extern "C" __declspec(dllexport) void* __realloc(void* buf, int size);
-extern "C" __declspec(dllexport) void* mymalloc(int size);
 
-extern "C" __declspec(dllexport) void myfree(void* buf);
-extern "C" __declspec(dllimport) void __abort(void);
-#else
-extern "C" __declspec(dllimport) void* __calloc(int cnt, int size);
-extern "C" __declspec(dllimport) void* __realloc(void* buf, int size);
-extern "C" __declspec(dllimport) void* mymalloc(int size);
-
-extern "C" __declspec(dllimport) void myfree(void* buf);
-
-extern "C" __declspec(dllexport) void __abort(void);
-#endif
-
-
-#ifndef _DEBUG
 
 #ifdef DLL_EXPORT
 
@@ -149,40 +123,43 @@ extern "C" __declspec(dllexport) FILE _iob[3];
 #define stdin   (&_iob[0])
 #define stdout  (&_iob[1])
 #define stderr  (&_iob[2])
+extern "C" __declspec(dllexport) void* my_calloc(int cnt, int size);
+extern "C" __declspec(dllexport) void* my_realloc(void* buf, int size);
+extern "C" __declspec(dllexport) void* my_malloc(int size);
+extern "C" __declspec(dllexport) void my_free(void* buf);
+extern "C" __declspec(dllexport) void my_abort(void);
 
-extern "C" __declspec(dllexport) void* memcpy(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllexport) void* my_memcpy(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllexport) void* my_memmove(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllexport) void* my_memset(void* ptr, int value, size_t num);
+extern "C" __declspec(dllexport) int my_memcmp(const void* ptr1, const void* ptr2, size_t num);
 
-extern "C" __declspec(dllexport) void* memmove(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllexport) int my_strncmp(const char* str1, const char* str2, size_t n);
+extern "C" __declspec(dllexport) char* my_strcpy(char* destination, const char* source);
+extern "C" __declspec(dllexport) size_t my_strlen(const char* str);
+extern "C" __declspec(dllexport) int my_strcmp(const char* str1, const char* str2);
+extern "C" __declspec(dllexport) char* my_strcat(char* destination, const char* source);
+extern "C" __declspec(dllexport) char* my_strstr(const char* haystack, const char* needle);
 
-extern "C" __declspec(dllexport) void* memset(void* ptr, int value, size_t num);
+extern "C" __declspec(dllexport) wchar_t* my_wmemcpy(wchar_t* dest, const wchar_t* src, size_t n);
+extern "C" __declspec(dllexport) wchar_t* my_wcsstr(const wchar_t* haystack, const wchar_t* needle);
+extern "C" __declspec(dllexport) size_t my_wcslen(const wchar_t* str);
+extern "C" __declspec(dllexport) int my_wcscmp(const wchar_t* str1, const wchar_t* str2);
+extern "C" __declspec(dllexport) wchar_t* my_wcscat(wchar_t* dest, const wchar_t* src);
+extern "C" __declspec(dllexport) wchar_t* my_wcscpy(wchar_t* dest, const wchar_t* src);
 
-extern "C" __declspec(dllexport) int memcmp(const void* ptr1, const void* ptr2, size_t num);
-extern "C" __declspec(dllexport) int strncmp(const char* str1, const char* str2, size_t n);
-extern "C" __declspec(dllexport) char* strcpy(char* destination, const char* source);
-extern "C" __declspec(dllexport) size_t strlen(const char* str);
-extern "C" __declspec(dllexport) int strcmp(const char* str1, const char* str2);
-extern "C" __declspec(dllexport) char* strcat(char* destination, const char* source);
-extern "C" __declspec(dllexport) char* strstr(const char* haystack, const char* needle);
-extern "C" __declspec(dllexport) wchar_t* wmemcpy(wchar_t* dest, const wchar_t* src, size_t n);
-extern "C" __declspec(dllexport) wchar_t* wcsstr(const wchar_t* haystack, const wchar_t* needle);
-extern "C" __declspec(dllexport) size_t wcslen(const wchar_t* str);
-extern "C" __declspec(dllexport) int wcscmp(const wchar_t* str1, const wchar_t* str2);
-extern "C" __declspec(dllexport) wchar_t* wcscat(wchar_t* dest, const wchar_t* src);
+extern "C" __declspec(dllexport) FILE* my_fopen(const char* filename, const char* mode);
+extern "C" __declspec(dllexport) int my_fclose(FILE * stream);
+extern "C" __declspec(dllexport) int my_fwrite(const void* buf, int cnt, int size, FILE* fp);
+extern "C" __declspec(dllexport) int my_fread(void* buf, int cnt, int size, FILE* fp);
 
-extern "C" __declspec(dllexport) int printf(const char* format, ...);
+extern "C" __declspec(dllexport) int my_printf(const char* format, ...);
+extern "C" __declspec(dllexport) int my_fprintf(FILE* stream, const char* format, ...);
 
-extern "C" __declspec(dllexport) FILE* fopen(const char* filename, const char* mode);
-extern "C" __declspec(dllexport) int fclose(FILE * stream);
-extern "C" __declspec(dllexport) int fwrite(const void* buf, int cnt, int size, FILE* fp);
-extern "C" __declspec(dllexport) int fread(void* buf, int cnt, int size, FILE* fp);
-extern "C" __declspec(dllexport) int fprintf(FILE* stream, const char* format, ...);
-
-extern "C" __declspec(dllexport) int fputc(int character, FILE * stream);
-extern "C" __declspec(dllexport) int fputs(const char* str, FILE * stream);
-
-extern "C" __declspec(dllexport) char* fgets(char* str, int n, FILE * stream);
-
-
+extern "C" __declspec(dllexport) int my_fputc(int character, FILE * stream);
+extern "C" __declspec(dllexport) int my_fputs(const char* str, FILE * stream);
+extern "C" __declspec(dllexport) char* my_fgets(char* str, int n, FILE * stream);
+extern "C" __declspec(dllexport) char* my_fgetc(char* str, int n, FILE * stream);
 #else
 extern "C" __declspec(dllimport) FILE _iob[];
 
@@ -191,42 +168,48 @@ extern "C" __declspec(dllimport) FILE _iob[];
 #define stdout  (&_iob[1])
 #define stderr  (&_iob[2])
 
-extern "C" __declspec(dllimport) void* memcpy(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllimport) void* my_calloc(int cnt, int size);
+extern "C" __declspec(dllimport) void* my_realloc(void* buf, int size);
+extern "C" __declspec(dllimport) void* my_malloc(int size);
 
-extern "C" __declspec(dllimport) void* memmove(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllimport) void my_free(void* buf);
 
-extern "C" __declspec(dllimport) void* memset(void* ptr, int value, size_t num);
+extern "C" __declspec(dllimport) void my_abort(void);
 
-extern "C" __declspec(dllimport) int memcmp(const void* ptr1, const void* ptr2, size_t num);
-extern "C" __declspec(dllimport) int strncmp(const char* str1, const char* str2, size_t n);
-extern "C" __declspec(dllimport) char* strcpy(char* destination, const char* source);
-extern "C" __declspec(dllimport) size_t strlen(const char* str);
-extern "C" __declspec(dllimport) int strcmp(const char* str1, const char* str2);
-extern "C" __declspec(dllimport) char* strcat(char* destination, const char* source);
-extern "C" __declspec(dllimport) char* strstr(const char* haystack, const char* needle);
-extern "C" __declspec(dllimport) wchar_t* wmemcpy(wchar_t* dest, const wchar_t* src, size_t n);
-extern "C" __declspec(dllimport) wchar_t* wcsstr(const wchar_t* haystack, const wchar_t* needle);
-extern "C" __declspec(dllimport) size_t wcslen(const wchar_t* str);
-extern "C" __declspec(dllimport) int wcscmp(const wchar_t* str1, const wchar_t* str2);
-extern "C" __declspec(dllimport) wchar_t* wcscat(wchar_t* dest, const wchar_t* src);
+extern "C" __declspec(dllimport) void* my_memcpy(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllimport) void* my_memmove(void* dest, const void* src, size_t n);
+extern "C" __declspec(dllimport) void* my_memset(void* ptr, int value, size_t num);
+extern "C" __declspec(dllimport) int my_memcmp(const void* ptr1, const void* ptr2, size_t num);
 
-extern "C" __declspec(dllimport) int printf(const char* format, ...);
+extern "C" __declspec(dllimport) char* my_strcpy(char* destination, const char* source);
+extern "C" __declspec(dllimport) size_t my_strlen(const char* str);
+extern "C" __declspec(dllimport) int my_strcmp(const char* str1, const char* str2);
+extern "C" __declspec(dllimport) int my_strncmp(const char* str1, const char* str2, size_t n);
+extern "C" __declspec(dllimport) char* my_strcat(char* destination, const char* source);
+extern "C" __declspec(dllimport) char* my_strstr(const char* haystack, const char* needle);
 
-extern "C" __declspec(dllimport) FILE * fopen(const char* filename, const char* mode);
-extern "C" __declspec(dllimport) int fclose(FILE * stream);
-extern "C" __declspec(dllimport) int fwrite(const void* buf, int cnt, int size, FILE * fp);
-extern "C" __declspec(dllimport) int fread(void* buf, int cnt, int size, FILE * fp);
-extern "C" __declspec(dllimport) int fprintf(FILE * stream, const char* format, ...);
+extern "C" __declspec(dllimport) wchar_t* my_wmemcpy(wchar_t* dest, const wchar_t* src, size_t n);
+extern "C" __declspec(dllimport) wchar_t* my_wcsstr(const wchar_t* haystack, const wchar_t* needle);
+extern "C" __declspec(dllimport) size_t my_wcslen(const wchar_t* str);
+extern "C" __declspec(dllimport) int my_wcscmp(const wchar_t* str1, const wchar_t* str2);
+extern "C" __declspec(dllimport) wchar_t* my_wcscat(wchar_t* dest, const wchar_t* src);
+extern "C" __declspec(dllimport) wchar_t* my_wcscpy(wchar_t* dest, const wchar_t* src);
 
-extern "C" __declspec(dllimport) int fputc(int character, FILE * stream);
-extern "C" __declspec(dllimport) int fputs(const char* str, FILE * stream);
+extern "C" __declspec(dllimport) FILE * my_fopen(const char* filename, const char* mode);
+extern "C" __declspec(dllimport) int my_fclose(FILE * stream);
+extern "C" __declspec(dllimport) int my_fwrite(const void* buf, int cnt, int size, FILE * fp);
+extern "C" __declspec(dllimport) int my_fread(void* buf, int cnt, int size, FILE * fp);
 
-extern "C" __declspec(dllimport) char* fgets(char* str, int n, FILE * stream);
+extern "C" __declspec(dllimport) int my_printf(const char* format, ...);
+extern "C" __declspec(dllimport) int my_fprintf(FILE * stream, const char* format, ...);
 
+extern "C" __declspec(dllimport) int my_fputc(int character, FILE * stream);
+extern "C" __declspec(dllimport) int my_fputs(const char* str, FILE * stream);
+extern "C" __declspec(dllimport) char* my_fgets(char* str, int n, FILE * stream);
+extern "C" __declspec(dllimport) char* my_fgetc(char* str, int n, FILE * stream);
 
 #endif
 
-#endif
 
 
 
