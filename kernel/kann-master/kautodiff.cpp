@@ -20,13 +20,10 @@
 #include <stdarg.h>
 #include <string.h>
 #include <float.h>
-//#include <math.h>
 #else
 #include "../libc.h"
 #include "../def.h"
 #include "../math.h"
-#endif
-
 #include "../malloc.h"
 
 #define sqrt __sqrt
@@ -75,6 +72,9 @@
 #define fgetc my_fgetc
 #define fgets my_fgets
 #define fputs my_fputs
+#endif
+
+
 
 
 

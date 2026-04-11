@@ -7,8 +7,6 @@
 #include "libc.h"
 #else
 #include "math.h"
-#endif
-//#include <windows.h>
 #include "systemService.h"
 #include "task.h"
 #include "Pe.h"
@@ -17,6 +15,11 @@
 
 #include "libc.h"
 #include "malloc.h"
+
+#endif
+
+//#include <windows.h>
+
 #define sqrt __sqrt
 #define sqrtf __sqrtf
 #define exp __exp
@@ -64,6 +67,7 @@
 #define fgetc my_fgetc
 #define fgets my_fgets
 #define fputs my_fputs
+
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 

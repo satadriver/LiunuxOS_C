@@ -31,6 +31,8 @@ char* getComports();
 
 char* getKeyboardBuf();
 
+char* swapStr(char* dst, char* src);
+
 extern "C" __declspec(dllexport) char* getVGAInfo();
 
 void logInMem(char* data, int len);

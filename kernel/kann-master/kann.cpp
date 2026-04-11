@@ -22,8 +22,6 @@
 #include <stdarg.h>
 #else
 #include "../math.h"
-#endif
-
 #include "../libc.h"
 #include "../malloc.h"
 
@@ -75,6 +73,9 @@
 #define fputs my_fputs
 
 //#pragma comment(lib,"kernel.lib")
+#endif
+
+
 
 int kann_verbose = 3;
 

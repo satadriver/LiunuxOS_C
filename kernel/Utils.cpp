@@ -406,7 +406,90 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 }
 
 
-int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
+
+
+int lf2strlf(double f, char* buf) {
+	unsigned long long i = (unsigned long long)f;
+
+	int len = __i64ToStrd64(i, buf);
+	buf[len] = '.';
+	len++;
+
+	double s = f - i;
+	if (s < 0) {
+		s = -s;
+	}
+
+	double tf = s;
+	int pos = 0;
+
+	for (int p = 0; p < 4; p++) {
+		tf = tf * 10;
+		unsigned long long ti = (unsigned long long)tf;
+		if (ti) {
+			tf = tf - ti;
+			pos = p;
+		}
+	}
+
+	for (int k = 0; k < pos + 1; k++) {
+		s = s * 10;
+		unsigned long long t = (unsigned long long)s;
+		s = s - t;
+		int sublen = __i64ToStrd64(t, buf + len);
+		len += sublen;
+	}
+
+	buf[len] = 0;
+	return len;
+}
+
+
+char* swapStr(char* dst, char* src) {
+	int len = __strlen(src);
+
+	for (int i = len - 1,j = 0; i >= 0; i--,j++) {
+		dst[j] = src[i];
+	}
+	dst[len] = 0;
+	return dst;
+}
+
+int f2strf(float d, char* buf) {
+	return lf2strlf(d, buf);
+}
+
+int __i64ToStrd64( __int64 v, char* buf) {
+	char strd[256];
+	*strd = 0;
+	
+	int start = 0;
+	if (v < 0) {
+		v = -v;
+		buf[0] = '-';
+		start = 1;
+	}
+
+	int len = 0;
+	__int64 h = v;
+	do {
+		__int64 i = h % 10;
+
+		h = h / 10;
+		
+		strd[len] = (unsigned char)i + '30';
+		len++;
+
+	} while (h);
+
+	strd[len] = 0;
+
+	swapStr(buf+ start, strd);
+
+	return len+start;
+}
+
+int __i2strh(unsigned int n, int lowercase, unsigned char* buf) {
 	buf[0] = 0x30;
 	buf[1] = 'X';
 
@@ -419,11 +502,11 @@ int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
 
 	int b = 24;
 
-	int tag = 0;
+	int empty = 0;
 
 	unsigned char* dst = buf + 2;
 
-	for (int i = 0; i < 4; i ++)
+	for (int i = 0; i < 4; i++)
 	{
 		unsigned char c = n >> b;
 
@@ -435,18 +518,19 @@ int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
 		if (h >= 0 && h <= 9)
 		{
 			h += 48;
-		}else if (h >= 10 && h <= 15)
+		}
+		else if (h >= 10 && h <= 15)
 		{
 			h += no;
 		}
 
-		if (tag) {
+		if (empty) {
 			*dst = h;
 			dst++;
 		}
 		else {
 			if (tmp) {
-				tag = TRUE;
+				empty = TRUE;
 				*dst = h;
 				dst++;
 			}
@@ -465,13 +549,13 @@ int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
 			l += no;
 		}
 
-		if (tag) {
+		if (empty) {
 			*dst = l;
 			dst++;
 		}
 		else {
 			if (tmp) {
-				tag = TRUE;
+				empty = TRUE;
 				*dst = l;
 				dst++;
 			}
@@ -494,40 +578,6 @@ int __i2strh(unsigned int n,int lowercase,unsigned char * buf) {
 	}
 }
 
-
-
-int __i64ToStrd64( __int64 v, char* strd) {
-	*strd = 0;
-	__int64 h = v;
-	__int64 i = v;
-	int len = 0;
-	if (v < 0) {
-		v = -v;
-		strd[0] = '-';
-		len = 1;
-	}
-
-	do {
-		i = h % 10;
-
-		h = h / 10;
-		
-		strd[len] = (unsigned char)i + '30';
-		len++;
-
-		if (h ) {
-
-		}
-		else {
-			break;
-		}
-	} while (h);
-
-	strd[len] = 0;
-	return len;
-}
-
-
 int __i2strd( int h, char* strd) {
 	int n = h;
 	int len = 0;
@@ -539,11 +589,8 @@ int __i2strd( int h, char* strd) {
 	else {
 	}
 	int sublen = __i2stru(n, strd + len);
-
 	return len + sublen;
 }
-
-
 
 int __i2stru(unsigned int h, char * strd) {
 
@@ -551,13 +598,10 @@ int __i2stru(unsigned int h, char * strd) {
 
 	unsigned int divid = 1000000000;
 
-	int flag = FALSE;
-
 	int cnt = 0;
 
 	for (int i = 0; i < 10; i++)
 	{
-
 		unsigned int d = h / divid;
 		if (d)
 		{
@@ -567,11 +611,9 @@ int __i2stru(unsigned int h, char * strd) {
 
 			cnt++;
 
-			h = h % divid;;
-
-			flag = TRUE;
+			h = h % divid;
 		}
-		else if (flag) {
+		else if (cnt) {
 			*strd = 0x30;
 			strd++;
 			cnt++;
@@ -658,45 +700,7 @@ int __strd2i(char * istr) {
 
 
 
-int lf2strlf(double f,char * buf) {
-	unsigned long long i = (unsigned long long)f;
 
-	int len = __i64ToStrd64(i, buf);
-	buf[len] = '.';
-	len++;
-
-	double s = f - i;
-	if (s < 0) {
-		s = -s;
-	}
-
-	double tf = s;
-	int pos = 0;
-	for (int p = 0; p < 4; p++) {
-		tf = tf * 10;
-		unsigned long long ti = (unsigned long long)tf;
-		if (ti) {
-			tf = tf - ti;
-			pos = p;
-		}
-	}
-
-	for (int k = 0; k < pos+1; k++) {
-		s = s * 10;
-		unsigned long long t = (unsigned long long)s;
-		s = s - t;
-		int sublen = __i64ToStrd64(t, buf + len);
-		len += sublen;	
-	}	
-
-	buf[len] = 0;
-	return len;
-}
-
-
-int f2strf(float d,char * buf) {
-	return lf2strlf(d, buf);
-}
 
 int __kFormat(char* buf,const char* format, DWORD* params) {
 	
