@@ -1931,7 +1931,7 @@ PROCESS_INFO * GetReadyProcess() {
 		QuickSort(tickc, 0, count - 1);
 
 		for (int i = 0; i < count; i++) {
-			tickc[i].v = STATIC_PRIORITY / (count + 1 - i);
+			tickc[i].v = TASK_USAGE_PRIORITY / (count - i);
 		}
 
 		for (int i = 0; i < count; i++) {

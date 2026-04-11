@@ -119,7 +119,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
 		if (addr) 
 		{
-			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
+			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
 			__sleep(1000);
 		}
 	}
@@ -128,7 +128,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
 		if (addr) 
 		{
-			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
+			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
 			__sleep(1000);
 		}	
 	}
@@ -136,7 +136,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
 	if (addr)
 	{
-		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
+		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
 		__sleep(1000);
 	}
 
