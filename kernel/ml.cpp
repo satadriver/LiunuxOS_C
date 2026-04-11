@@ -101,42 +101,43 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 
 	TASKCMDPARAMS cmd2;
 	__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
-
-	DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
-	__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
+	DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
+	__kCreateThread((unsigned int)ml_addr2,KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
 
 	TASKCMDPARAMS cmd1;
 	__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
-	ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
-	__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
+	DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
+	__kCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
 
 	TASKCMDPARAMS cmd3;
 	__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
-	ml_addr = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
-	__ipiCreateThread((unsigned int)ml_addr, (char*)KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
+	DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
+	__kCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
 
+	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
 	for(int i = 0; i < 1; ++i) {
-
-		int imageSize = 0x100000;
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
 		if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
-			//__sleep(100);
+			__sleep(1000);
 		}
 	}
 
 	for (int i = 0; i < 1; ++i) {
-
-		int imageSize = 0x100000;
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
 		if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
-			//__sleep(100);
-		}
+			__sleep(1000);
+		}	
+	}
 
+	DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
+	if (addr)
+	{
 		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
+		__sleep(1000);
 	}
 
 	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
@@ -292,6 +293,7 @@ extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, 
 		if(f1 < 0.00001f && f1 > -0.00001f) {
 			f1 = PI;
 		}
+		__sleep(0);
 	}
 	return 0;
 }

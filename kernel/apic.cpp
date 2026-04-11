@@ -18,7 +18,7 @@
 #include "systemService.h"
 #include "ml.h"
 
-int gAllocateAp = 0;
+
 
 DWORD * gOicBase = 0;
 
@@ -26,7 +26,7 @@ char * gRcbaBase = 0;
 
 DWORD* gHpetBase = 0;
 
-int g_lvt_timer = 0;
+int g_ini_cmd_lock = 0;
 
 int g_allocate_ap_lock = 0;
 
@@ -371,6 +371,8 @@ extern "C" void __declspec(naked) HpetTimerHandler(LIGHT_ENVIRONMENT * stack) {
 
 void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
+	static int gAllocateAp;
+
 	int cpuid = 0;
 	if (cpu == -1) {
 		//__enterSpinlock(&g_allocate_ap_lock);
@@ -397,6 +399,8 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 
 void SetIcr(int cpu,int vector,int mode,int destType) {
+
+	__enterSpinlock(&g_ini_cmd_lock);
 
 	WaitIcrFree();
 
@@ -426,8 +430,9 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 	char szout[256];
 	//__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
 
-	return;
+	__leaveSpinlock(&g_ini_cmd_lock);
 
+	return;
 }
 
 int InitIoApicRte() {
@@ -493,8 +498,9 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 			__strcpy(subparam->funcname, funname);
 			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
 
-			
-			break;
+			__leaveSpinlock(&g_ipi_lock[id]);
+			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+			return TRUE;
 		}
 	}
 
@@ -504,13 +510,13 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 #endif
 
 	__leaveSpinlock(&g_ipi_lock[id]);
-	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+	
 	return 0;
 }
 
 
 
-int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p)
+int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p)
 {
 	int ret = 0;
 
@@ -542,13 +548,14 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 			IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
 			subparam->base = (DWORD)base;
 			subparam->size = size;
-			__strcpy((char*)subparam->module, module);
+			__strcpy((char*)subparam->filename, fn);
 			__strcpy(subparam->funcname, func);
 			subparam->level = level;
 			__memcpy(subparam->params, (char*)p, sizeof(TASKCMDPARAMS));
 
-			
-			break;
+			__leaveSpinlock(&g_ipi_lock[id]);
+			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+			return TRUE;
 		}
 	}
 	
@@ -558,7 +565,7 @@ int IpiCreateProcess(DWORD base, int size, char* module, char* func, int level, 
 #endif
 
 	__leaveSpinlock(&g_ipi_lock[id]);
-	SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+	
 	return 0;
 }
 
@@ -606,7 +613,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 					IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
 					DWORD base = (DWORD)subparam->base;
 					DWORD size = subparam->size;
-					char* module = subparam->module;
+					char* fn = subparam->filename;
 					char* funcname = subparam->funcname;
 					int level = subparam->level;
 					char* p = (char*)subparam->params;
@@ -616,8 +623,8 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 					if (__findProcessFileName(subparam->funcname) == FALSE)
 					{
 						//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
-						__kCreateProcess(subparam->base, subparam->size, (subparam->module), (subparam->funcname), subparam->level, (unsigned long)subparam->params);
 					}
+					__kCreateProcess(base, size, (fn), (funcname), level, (unsigned long)p);
 				}
 				else if (cmd == IPI_CREATETHREAD) {
 
@@ -631,8 +638,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 					if (__findProcessFileName(funcname) == FALSE)
 					{
-						__kCreateThread((DWORD)addr, (DWORD)subparam->module, (unsigned long)p, subparam->funcname);
+						
 					}
+					__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
 				}
 				else if (cmd == IPI_TASKSWITCH) {
 					//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
@@ -697,10 +705,9 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		if (g_lvt_timer++ % 0x10 == 0) {
-			//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
-		}
-		
+
+		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
+
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
 		//LPPROCESS_INFO next = SingleTssSchedule(stack);
@@ -962,6 +969,7 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 
 
 int AllocateApTask(int intnum) {
+	static int gAllocateAp = 0;
 
 	if(intnum < 0 || intnum > 255) {
 		return -1;
@@ -1253,6 +1261,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	g_cpu_start_tick[cpuid] = __krdtsc();
 
 	g_ipi_buf[cpuid] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
+	__memset(g_ipi_buf[cpuid], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 
 	//__enterLock(&g_allocate_ap_lock);
 	__enterSpinlock(&g_allocate_ap_lock);
@@ -1406,6 +1415,7 @@ void BPCodeStart() {
 	*(DWORD*)CPU_ID_ADDRESS = cpu;
 	*(int*)(CPU_TOTAL_ADDRESS) = 1;
 	g_ipi_buf[cpu] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
+	__memset(g_ipi_buf[cpu], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
@@ -1504,8 +1514,8 @@ void BPCodeStart() {
 		__emit 0x22
 		__emit 0xe0
 	}
-	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x ipi:%d apic timer:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		cpu,reg_cr0,reg_cr4, localapic_ver, g_ipi_lock, g_lvt_timer,lint0,lint1, ioapic_id, ioapic_ver);
+	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
+		cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1850,32 +1860,24 @@ PROCESS_INFO * GetReadyProcess() {
 				ptr->sleep--;
 			}
 			else {
-				if (next == 0) {
-					next = ptr;
-				}
-				
-				//tickc[count].v = ptr->tick;
+				double ratio = 0.0;
 				if (ptr->tick == 0) {
-					double ratio = 1.0;
-					tickc[count].id = ptr->tid;
-					__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
+					ratio = 1.0;
 				}
 				else {
 					double diff = (double)(ptr->tick_total);
-					double ratio = ((double)ptr->tick) / diff;
-					tickc[count].id = ptr->tid;
-					__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
-					if (ratio < 0.9) 
+					ratio = ((double)ptr->tick) / diff;
+					if (ratio > 0.9) 
 					{
+						//ratio = 0.01;
+					}
+				}
+				tickc[count].id = ptr->tid;
+				__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
 
-					}
-					else {
-						//continue;
-					}
-					if (g_debug_tag++ % 0x1000 == 0x1000) {
-						__printf(szout, "tick_start:%I64x, diff:%lf,tick:%I64x, ratio:%lf\r\n",
-							ptr->tick_start, diff, ptr->tick, ratio);
-					}
+				if (g_debug_tag++ % 0x1000 == 0x1000) {
+					__printf(szout, "tick_start:%lf, diff:%i64x,tick:%I64x, ratio:%lf\r\n",
+						tickc[count].v, ptr->tick_total, ptr->tick, ratio);
 				}
 
 				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
@@ -1889,6 +1891,10 @@ PROCESS_INFO * GetReadyProcess() {
 				level[count].v = 0;
 
 				count++;
+
+				if (next == 0) {
+					next = ptr;
+				}
 			}
 		}
 		else if (ptr->status == TASK_OVER) {
