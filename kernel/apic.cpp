@@ -37,7 +37,9 @@ int g_apic_int_tag = 0;
 
 LPPROCESS_INFO g_ap_tss_base[256];
 
+unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
+unsigned long long g_unit_cost[TASK_LIMIT_TOTAL];
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -1189,7 +1191,7 @@ int InitLocalApicErr() {
 	return 0;
 }
 
-unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+
 
 
 unsigned long long ApicTimerFreq() {
@@ -1225,13 +1227,18 @@ int InitLocalApicTimer() {
 
 	unsigned long long freq = 0;
 	int times = 3;
+	unsigned  long long ticks = 0;
+	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {
-		freq += GetApicTimerFreq();
+		freq += GetApicTimerFreq(&tick);
+		ticks += tick;
 	}
 	freq = freq / times;
+	ticks = ticks / times;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
+	g_unit_cost[id] = ticks;
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
@@ -1957,10 +1964,10 @@ PROCESS_INFO * GetReadyProcess() {
 			int tid = level[i].id;
 			if (target_id != level[i].id) {
 				if (tid == next->tid) {
-					tss[tid].delta += 2;
+					tss[tid].delta += 1;
 				}
 				else {
-					tss[tid].delta += 2;
+					tss[tid].delta += 1;
 				}
 						
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {

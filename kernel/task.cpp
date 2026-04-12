@@ -1356,40 +1356,36 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	int ret = __GetSpinlock(&g_task_array_lock[id]);
 	if (ret) {
+		unsigned long long tick1 = __krdtsc();
+
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
-
-		unsigned long long time1 = __krdtsc();
-
-		if (g_tagMsg++ < 16) {
-			//__printf(szout, "eip:%x,g_hlt_addr:%x\r\n", env->eip, g_hlt_addr);
-		}
 
 		if (env->eip == (DWORD)g_hlt_addr) {
 
 		}
 		else {
 			if (current->prev_tick) {
-				current->tick += (time1 - current->prev_tick);
+				current->tick += (tick1 - current->prev_tick);
 			}
 			if (prev->prev_tick) {
-				prev->tick += (time1 - prev->prev_tick);
+				prev->tick += (tick1 - prev->prev_tick);
 			}
 			if (g_cpu_prev_tick[id]) {
-				g_cpu_tick[id] += (time1 - g_cpu_prev_tick[id]);
+				g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
 			}
 		}
 		if (current->prev_tick) {
-			current->tick_total += time1 - current->prev_tick;
+			current->tick_total += tick1 - current->prev_tick;
 		}
 		if (prev->prev_tick) {
-			prev->tick_total += time1 - prev->prev_tick;
+			prev->tick_total += tick1 - prev->prev_tick;
 		}
 
 		__kApicTimerProc();
 
-		ActiveApTask(TASK_SWITCH_VECTOR);
+		//ActiveApTask(TASK_SWITCH_VECTOR);
 
 #ifndef SINGLE_TASK_TSS
 		__asm {
@@ -1410,7 +1406,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
 
-		__int64 time2 = __krdtsc();
+		__int64 tick2 = __krdtsc();
 
 		/*
 		if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
@@ -1429,12 +1425,14 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		}
 		*/
 
-		current->prev_tick = time2;
+		current->tick_cost = (current->tick_cost + (tick2 - tick1)) / 2;
+
+		current->prev_tick = tick2;
 		if (next) {
-			next->prev_tick = time2;
+			next->prev_tick = tick2;
 		}
 
-		g_cpu_prev_tick[id] = time2;
+		g_cpu_prev_tick[id] = tick2;
 
 		ret = __leaveSpinlock(&g_task_array_lock[id]);
 	}
@@ -1537,6 +1535,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->prev_tick = 0;
 	process0->tick_start = __krdtsc();
 	process0->tick_total = 0;
+	process0->tick_cost = 0;
 
 	int bsp = IsBspProcessor();
 	if (bsp) {

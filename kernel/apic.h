@@ -9,10 +9,17 @@
 
 #define AUTHORITY_PRIORITY		(STATIC_PRIORITY/8)
 
-#define TASK_USAGE_PRIORITY		(STATIC_PRIORITY/4)
+#define TASK_USAGE_PRIORITY		(STATIC_PRIORITY/2)
 
+#define FILE_PRIORITY			4
+
+#define MOUSE_PRIORITY			2
+
+#define KEYBOARD_PRIORITY		1
 
 #define IPI_MSG_LIMIT			16
+
+
 
 
 #pragma pack(1)
@@ -130,6 +137,10 @@ extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+
+extern "C" __declspec(dllexport) unsigned long long g_unit_cost[TASK_LIMIT_TOTAL];
+
 extern "C"  __declspec(dllexport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllexport) int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p);
 extern "C" __declspec(dllexport) LPPROCESS_INFO GetTaskTssBaseId(int id);
@@ -140,6 +151,10 @@ extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
 
 extern "C" __declspec(dllexport)  unsigned long long ApicTimerFreq();
 #else
+extern "C" __declspec(dllimport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+
+extern "C" __declspec(dllimport) unsigned long long g_unit_cost[TASK_LIMIT_TOTAL];
+
 extern "C"  __declspec(dllimport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllimport) int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p);
 extern "C" __declspec(dllimport) LPPROCESS_INFO GetTaskTssBaseId(int id);

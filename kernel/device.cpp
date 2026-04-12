@@ -7,7 +7,7 @@
 #include "serialUART.h"
 
 #include "mouse.h"
-#include "Utils.h"
+#include "systemservice.h"
 
 #define TIMER1_DIVIDE_FREQ  1193
 #define TIMER2_DIVIDE_FREQ  1193
@@ -429,21 +429,27 @@ int Read8254Counter(int num) {
 	return low + (high << 8);
 }
 
-unsigned long GetApicTimerFreq() {
+unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	
 	int v0 = Read8254Counter(0);
 	int v1 = v0;
 	while(v1 == v0){
 		v1= Read8254Counter(0);
 	}
-
+	unsigned long long tick1 = __krdtsc();
 	unsigned long cnt0 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+
+	while (v1 == v0) {
+		v1 = Read8254Counter(0);
+	}
 
 	while (v1 != v0) {
 		v0 = Read8254Counter(0);
 	}
-
+	unsigned long long tick2 = __krdtsc();
 	unsigned long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+
+	tick[0] = tick2 - tick1;
 
 	unsigned long slice = TASK_TIME_SLICE;
 	unsigned long circle = 1000 / slice;

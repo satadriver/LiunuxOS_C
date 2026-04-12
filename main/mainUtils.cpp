@@ -76,10 +76,13 @@ int GetAllProcesses(char* szout) {
 			{
 				double proc_diff = tss[i].tick_total;
 				double proc_ratio = (double)tss[i].tick / proc_diff;
-				len = __sprintf(szout + outlen, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x,cpu usage:%lf£¬task usage:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+				double cost = tss[i].tick_cost;
+				double switch_cost = cost / g_unit_cost[cpu];
+				len = __sprintf(szout + outlen, 
+					"filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf£¬task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
-					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick,tss[i].tick_start,
-					cpu_ratio,proc_ratio, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_cost, tss[i].tick_start,
+					cpu_ratio,proc_ratio, switch_cost,tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 				outlen += len;
 			}
 		}
@@ -107,10 +110,13 @@ int GetProcess(int cpuid,int pid, char* szout) {
 				{
 					double proc_diff = tss[i].tick_total;
 					double proc_ratio = (double)tss[i].tick / proc_diff;
-					int len = __sprintf(szout, "filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,start:%i64x,cpu usage:%lf,task usage:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+					double cost = tss[i].tick_cost;
+					double switch_cost = cost / g_unit_cost[cpu];	
+					int len = __sprintf(szout, 
+						"filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 						tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
-						tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_start,
-						cpu_ratio, proc_ratio, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
+						tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_cost,tss[i].tick_start,
+						cpu_ratio, proc_ratio, switch_cost, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 					return len;
 				}
 			}
@@ -158,10 +164,10 @@ int CpuUsage(char* buf) {
 			load = (e8high << 32) + e8low;
 			load = load / ((e7high << 32) + e7low);
 		}
-
+		
 		len = __sprintf(buf + offset, 
-			"cpu:%d,active:%i64x,alive:%i64x,rate:%lf,aperf:%i64x,mperf:%i64x,tick:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
-			id, g_cpu_tick[id], alive, usage, aperf, mperf, tick,load, g_pm_enable);
+			"cpu:%d,active:%i64x,alive:%i64x,rate:%lf,g_unit_cost:%i64x,g_apic_freq:%i64x,aperf:%i64x,mperf:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
+			id, g_cpu_tick[id], alive, usage, g_unit_cost[id], g_apic_freq[id], aperf, mperf,load, g_pm_enable);
 		offset += len;
 	}
 	return offset;

@@ -318,6 +318,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->prev_tick = 0;
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
+	tss->tick_cost = 0;
 
 	//tss->cpuid = cpuid;
 	tss->lpvasize = &tss->va_size;

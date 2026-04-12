@@ -82,6 +82,7 @@ typedef struct
 	unsigned long long tick_total;
 	unsigned long long prev_tick;
 	unsigned long long tick_start;
+	unsigned long long tick_cost;
 
 	DWORD sleep;
 

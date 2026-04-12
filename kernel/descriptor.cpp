@@ -480,6 +480,8 @@ int IncreaseDelta(int v) {
 	PROCESS_INFO* tss = GetTaskTssBase();
 	PROCESS_INFO* current = GetCurrentTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + current->tid);
+	proc->priority = proc->priority | v;
+	current->priority = proc->priority;
 	proc->delta+=v;
 	if (proc->delta > DYNAMIC_PRIORITY) {
 		proc->delta = DYNAMIC_PRIORITY;
