@@ -8,7 +8,13 @@
 #include "malloc.h"
 #include "math.h"
 
-FILE _iob[3];
+extern "C" __declspec(dllexport)  FILE _iob[3];
+
+#ifndef _DEBUG
+
+
+
+#endif
 
 /*
 #pragma intrinsic(memcpy)  // 启用内部函数

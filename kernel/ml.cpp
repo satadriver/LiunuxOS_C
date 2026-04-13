@@ -1,10 +1,18 @@
 
 #include "ml.h"
 #include "kann-master/kann.h"
+
 #ifdef _DEBUG
-#include "Utils.h"
+#include "process.h"
 #include "math.h"
+#include "systemService.h"
+#include "task.h"
+#include "Pe.h"
+#include "Thread.h"
+
+
 #include "libc.h"
+#include "malloc.h"
 #else
 #include "math.h"
 #include "systemService.h"

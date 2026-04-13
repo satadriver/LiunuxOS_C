@@ -26,6 +26,7 @@ typedef char* va_list;
 
 #pragma pack(1)
 
+#ifndef _DEBUG
 struct _iobuf {
     char* _ptr;      // 缓冲区当前指针
     int _cnt;        // 缓冲区剩余字符数
@@ -37,6 +38,7 @@ struct _iobuf {
     char* _tmpfname; // 临时文件名
 };
 
+#endif
 #pragma pack()
 
 typedef struct _iobuf FILE;

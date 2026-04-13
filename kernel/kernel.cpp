@@ -255,23 +255,39 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 
+#include <time.h>
+#include <stdlib.h>
 
+#pragma intrinsic(malloc)  // 启用内部函数
+#pragma function(malloc)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(free)  // 启用内部函数
+#pragma function(free)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(realloc)  // 启用内部函数
+#pragma function(realloc)   // 强制使用函数调用而不是内部函数
 
+#pragma intrinsic(calloc)  // 启用内部函数
+#pragma function(calloc)   // 强制使用函数调用而不是内部函数
 
+#define malloc my_malloc
+#define free my_free
+#define realloc my_realloc
+#define calloc my_calloc
 
+void testalloc() {
+	char** p = (char**)malloc(0x10000);
+	srand(time(0));
+	for (int i = 0; i < 0x10000; i++) {
+		int size = rand() % 0x10000;
+		p[i] = (char*)malloc(size);
+	}
 
-
-
-#ifdef _DEBUG
-//#include <math.h>
-//#include <stdio.h>
-void mytest(LIGHT_ENVIRONMENT  * stack) {
-
-	return;
+	for (int i = 0; i < 0x10000; i++) {
+		free(p[i]);
+	}
 }
-#endif
+
 
 
 #ifdef _USRDLL
@@ -280,14 +296,7 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 }
 #elif defined _CONSOLE
 int main() {
-	//__kMachineLearning(0, 0, "test", "test", 0);
-
-	int a = 3;
-	double b = a * 1.0;
-	float c = (float) b / 2;
-	int d = (int)c;
-	char szout[256];
-	__printf(szout, "a:%d b:%lf c:%f d:%d\r\n", a, b, c,d);
+	testalloc();
 	return 0;
 }
 
@@ -317,9 +326,6 @@ int __stdcall WinMain(  HINSTANCE hInstance,  HINSTANCE hPrevInstance,  LPSTR lp
 	MD5Update(&ctx,(unsigned char*) "hello", 5);
 	MD5Final(&ctx, output);
 
-#ifdef _DEBUG
-	mytest(0);
-#endif
 	return TRUE;
 }
 #endif

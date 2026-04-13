@@ -508,14 +508,13 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+#ifdef _DEBUG
+			char szout[256];
+			__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
+#endif
 			return TRUE;
 		}
 	}
-
-#ifdef _DEBUG
-	char szout[256];
-	__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
-#endif
 
 	__leaveSpinlock(&g_ipi_lock[id]);
 	
@@ -568,14 +567,16 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+
+#ifdef _DEBUG
+			char szout[256];
+			__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", 
+				__FUNCTION__, id, subparam->base, subparam->size, subparam->base, &subparam->base, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
+#endif
+
 			return TRUE;
 		}
 	}
-	
-#ifdef _DEBUG
-	char szout[256];
-	__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", __FUNCTION__,id, subparam->base, subparam->size, subparam->module, &subparam->module, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
-#endif
 
 	__leaveSpinlock(&g_ipi_lock[id]);
 	

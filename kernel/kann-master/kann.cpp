@@ -8,6 +8,7 @@
 */
 
 
+
 #include "kann.h"
 
 #ifdef _DEBUG
@@ -20,6 +21,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdarg.h>
+
+FILE _iob[3];
+
 #else
 #include "../math.h"
 #include "../libc.h"
