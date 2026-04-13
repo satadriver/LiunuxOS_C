@@ -77,6 +77,7 @@ typedef struct
 
 	int priority;
 	int delta;
+	int authority;
 
 	unsigned long long tick;
 	unsigned long long tick_total;

@@ -484,7 +484,6 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	int ret = 0;
 	int id = GetIdleProcessor();
 
-	//int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_ipi_lock[id]);
 
 	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[id];
@@ -504,7 +503,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 			}
 			else {
 				subparam->lpparam = 0;
-				__memcpy(subparam->params, 0, sizeof(TASKCMDPARAMS));
+				__memset(subparam->params, 0, sizeof(TASKCMDPARAMS));
 			}
 
 			__leaveSpinlock(&g_ipi_lock[id]);
@@ -528,8 +527,6 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p)
 {
 	int ret = 0;
-
-	//int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	int id = 0;
 	if (base) {
@@ -566,7 +563,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 			}
 			else {
 				subparam->lpparam = 0;
-				__memcpy(subparam->params, 0, sizeof(TASKCMDPARAMS));
+				__memset(subparam->params, 0, sizeof(TASKCMDPARAMS));
 			}
 
 			__leaveSpinlock(&g_ipi_lock[id]);
@@ -640,7 +637,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 					{
 						//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
 					}
-					__kCreateProcess(base, size, (fn), (funcname), level, (unsigned long)p);
+					__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
 				}
 				else if (cmd == IPI_CREATETHREAD) {
 
@@ -1935,10 +1932,11 @@ PROCESS_INFO * GetReadyProcess() {
 		//__printf(szout, "%s %d count:%d\r\n", __FUNCTION__, __LINE__);
 	}
 	else if (count > 1) {
-		QuickSort(tickc, 0, count - 1);
+		int target_id = 0;
 
+		QuickSort(tickc, 0, count - 1);
 		for (int i = 0; i < count; i++) {
-			tickc[i].v = TASK_USAGE_PRIORITY / (count - i);
+			tickc[i].v = TASK_USER_PRIORITY / (count - i);
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -1952,17 +1950,23 @@ PROCESS_INFO * GetReadyProcess() {
 			int pid = level[i].id;
 			level[i].v += tss[pid].delta;
 			level[i].v += tss[pid].priority;
+			level[i].v += tss[pid].authority;
 		}
 
 		QuickSort(level, 0, count - 1);
 
-		int target_id = level[count - 1].id;
-
+		QuickSort(delta, 0, count - 1);
+		if (delta[count - 1].v > TASK_MAX_DALAY / TASK_TIME_SLICE) {
+			target_id = delta[count - 1].id;
+		}
+		else
+			target_id = level[count - 1].id;
+		
 		target_tss = tss + target_id;
 
 		for(int i = 0;i < count; i++) {
-			int tid = level[i].id;
-			if (target_id != level[i].id) {
+			int tid = delta[i].id;
+			if (target_id != delta[i].id) {
 				if (tid == next->tid) {
 					tss[tid].delta += 1;
 				}
@@ -1971,7 +1975,7 @@ PROCESS_INFO * GetReadyProcess() {
 				}
 						
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
-					tss[tid].delta = DYNAMIC_PRIORITY;
+					//tss[tid].delta = DYNAMIC_PRIORITY;
 				}
 			}
 			else {
@@ -2016,10 +2020,9 @@ PROCESS_INFO * GetReadyProcess() {
 		SaveMlData(&tp);
 #endif
 	}
-	else {
-		
-	}
+
 	target_tss->delta = 0;
+	target_tss->authority = 0;
 
 	return target_tss;
 }

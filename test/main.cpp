@@ -111,7 +111,7 @@ int __dump(char* src, int len, int lowercase, unsigned char* dstbuf) {
 
 
 int lf2strlf(double f, char* buf) {
-	unsigned long long i = (unsigned long long)f;
+	__int64 i = (__int64)f;
 
 	int len = __i64ToStrd64(i, buf);
 	buf[len] = '.';
@@ -409,7 +409,7 @@ int main(int argc, char* argv[])
 {
 	char buf[1024];
 
-	double db = 34567890156.1234890;
+	double db = -34567890156.1234890;
 
 	long long ul = 0x123456789012345L;
 

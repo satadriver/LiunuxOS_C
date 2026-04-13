@@ -119,29 +119,30 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	__kCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 1; ++i) {
+	for(int i = 0; i < 3; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
 		if (addr) 
 		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
-			__sleep(1000);
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
+			__sleep(100);
 		}
 	}
 
-	for (int i = 0; i < 1; ++i) {
+	for (int i = 0; i < 3; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
 		if (addr) 
 		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
-			__sleep(1000);
-		}	
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
+			__sleep(100);
+		}
 	}
-
-	DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
-	if (addr)
-	{
-		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
-		__sleep(1000);
+	for (int i = 0; i < 3; ++i) {
+		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
+		if (addr)
+		{
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
+			__sleep(100);
+		}
 	}
 
 	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {

@@ -409,7 +409,7 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 
 
 int lf2strlf(double f, char* buf) {
-	unsigned long long i = (unsigned long long)f;
+	__int64 i = (__int64)f;
 
 	int len = __i64ToStrd64(i, buf);
 	buf[len] = '.';
@@ -436,7 +436,7 @@ int lf2strlf(double f, char* buf) {
 		s = s * 10;
 		unsigned long long t = (unsigned long long)s;
 		s = s - t;
-		int sublen = __i64ToStrd64(t, buf + len);
+		int sublen = __i64ToStru64(t, buf + len);
 		len += sublen;
 	}
 
@@ -477,8 +477,7 @@ int __i64ToStrd64( __int64 v, char* buf) {
 
 		h = h / 10;
 		
-		strd[len] = (unsigned char)i + '30';
-		len++;
+		strd[len++] = (unsigned char)i + 0x30;
 
 	} while (h);
 
@@ -487,6 +486,29 @@ int __i64ToStrd64( __int64 v, char* buf) {
 	swapStr(buf+ start, strd);
 
 	return len+start;
+}
+
+
+int __i64ToStru64(__int64 v, char* buf) {
+	char strd[256];
+	*strd = 0;
+
+	int len = 0;
+	__int64 h = v;
+	do {
+		__int64 i = h % 10;
+
+		h = h / 10;
+
+		strd[len++] = (unsigned char)i + 0x30;
+
+	} while (h);
+
+	strd[len] = 0;
+
+	swapStr(buf, strd);
+
+	return len;
 }
 
 int __i2strh(unsigned int n, int lowercase, unsigned char* buf) {

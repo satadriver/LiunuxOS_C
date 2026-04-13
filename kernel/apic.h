@@ -9,7 +9,7 @@
 
 #define AUTHORITY_PRIORITY		(STATIC_PRIORITY/8)
 
-#define TASK_USAGE_PRIORITY		(STATIC_PRIORITY/2)
+#define TASK_USER_PRIORITY		(STATIC_PRIORITY/2)
 
 #define FILE_PRIORITY			4
 
@@ -17,9 +17,9 @@
 
 #define KEYBOARD_PRIORITY		1
 
-#define IPI_MSG_LIMIT			16
+#define IPI_MSG_LIMIT			64
 
-
+#define TASK_MAX_DALAY			1000
 
 
 #pragma pack(1)

@@ -1531,6 +1531,8 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 	process0->delta = 0;
 	process0->priority = 0;
+	process0->authority = 0;
+
 	process0->tick = 0;
 	process0->prev_tick = 0;
 	process0->tick_start = __krdtsc();

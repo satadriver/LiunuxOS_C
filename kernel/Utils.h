@@ -45,6 +45,7 @@ extern "C" __declspec(dllexport) int lf2strlf(double f, char* buf);
 extern "C" __declspec(dllexport) int f2strf(float f, char* buf);
 
 extern "C" __declspec(dllexport) int __i64ToStrd64( __int64 v, char* strd);
+extern "C" __declspec(dllexport) int __i64ToStru64(__int64 v, char* buf);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) char* gLogDataPtr;

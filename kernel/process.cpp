@@ -381,6 +381,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	}
 	tss->delta = 0;
 	tss->priority = 0;
+	tss->authority = 0;
+
 	tss->frac_slice = 0;
 	tss->tick = 0;
 	tss->prev_tick = 0;

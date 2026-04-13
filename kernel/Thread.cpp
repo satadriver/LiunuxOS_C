@@ -261,8 +261,10 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->errorno = 0;
 
-	tss->delta = process->delta;
+	tss->delta = 0;
 	tss->priority = process->priority;
+	tss->authority = 0;
+
 	tss->tick = 0;
 	tss->prev_tick = 0;
 	tss->tick_start = __krdtsc();

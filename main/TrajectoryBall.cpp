@@ -238,7 +238,7 @@ void TrajectoryAnimation(DWORD p1, DWORD p2, DWORD p3, DWORD p4) {
 	g_centerY = y;
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
-	if (__fabs(g_y_s) <= 0.5 && __fabs(g_x_s) <= 0.5 && (__fabs(y - max_y) < 0.1 || __fabs(g_centerY - max_y) < 0.1)) {
+	if (__fabs(g_y_s) <= 1.0 && __fabs(g_x_s) <= 1.0 && (__fabs(y - max_y) < 5.0 || __fabs(g_centerY - max_y) < 5.0)) {
 		g_counter++;
 		if (g_counter > 2000.0 / g_frame_delay) {
 			g_counter = 0;
@@ -314,7 +314,7 @@ void TrajectoryBallInit() {
 	g_frame_delay = (double)CMOS_EXACT_INTERVAL * 2.0;
 	gTrajectTid = __kAddExactTimer((DWORD)TrajectoryProc, (int)g_frame_delay, 0, 0, 0, 0);
 #else
-	g_frame_delay = (double)TASK_TIME_SLICE * 2.0;
+	g_frame_delay = (double)TASK_TIME_SLICE * 1.0;
 	gTrajectTid = __kAddApicTimer((DWORD)TrajectoryAnimation, (int)g_frame_delay, 0, 0, 0, 0);
 #endif
 
@@ -353,7 +353,8 @@ void TrajectoryBallInit() {
 
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
-	__sprintf(szout, "(X:%lf,Y:%lf) (XS:%lf,YS:%lf)	           ", g_centerX, g_centerY, g_x_s, g_y_s);
+	int len = __sprintf(szout, "(X:%lf,Y:%lf) (XS:%lf,YS:%lf)				", g_centerX, g_centerY, g_x_s, g_y_s);
+	szout[len] = 0;
 	int showPos = __getpos(0, gVideoHeight - TASKBAR_HEIGHT * 2);
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_tb_window.color);
 }
@@ -366,7 +367,7 @@ extern "C" __declspec(dllexport)int TrajectoryBall(unsigned int retaddr, int tid
 
 	char szout[1024];
 
-	int retvalue = 0;	
+	int retvalue = 0;
 
 	initFullWindow(&g_tb_window, funcname, tid,1);
 

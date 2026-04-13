@@ -314,6 +314,8 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->delta = 0;
 	tss->priority = 0;
+	tss->authority = 0;
+
 	tss->tick = 0;
 	tss->prev_tick = 0;
 	tss->tick_start = __krdtsc();
