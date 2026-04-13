@@ -119,7 +119,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	__kCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 3; ++i) {
+	for(int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
 		if (addr) 
 		{
@@ -128,7 +128,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 		}
 	}
 
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
 		if (addr) 
 		{
@@ -136,7 +136,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 			__sleep(100);
 		}
 	}
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
 		if (addr)
 		{

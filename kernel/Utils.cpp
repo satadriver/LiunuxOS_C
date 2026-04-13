@@ -409,16 +409,21 @@ int __dump(char * src,int len,int lowercase, unsigned char * dstbuf) {
 
 
 int lf2strlf(double f, char* buf) {
+	
+	int len = 0;
+	if (f < 0) {
+		buf[0] = '-';
+		f = -f;
+		len++;
+	}
+
 	__int64 i = (__int64)f;
 
-	int len = __i64ToStrd64(i, buf);
+	len += __i64ToStru64(i, buf+len);
 	buf[len] = '.';
 	len++;
 
 	double s = f - i;
-	if (s < 0) {
-		s = -s;
-	}
 
 	double tf = s;
 	int pos = 0;
