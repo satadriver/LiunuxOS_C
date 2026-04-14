@@ -72,6 +72,8 @@
 #define fgetc my_fgetc
 #define fgets my_fgets
 #define fputs my_fputs
+
+
 #endif
 
 

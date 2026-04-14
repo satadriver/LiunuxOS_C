@@ -1567,11 +1567,9 @@ LPPROCESS_INFO DebugCreateProcess() {
 		g_proc_info->fast_heap_large = 0;
 		//g_proc_info->fast_heap_large = (char*)malloc(debug_heap_size);
 
-		//g_proc_info->heapBase = (char*)malloc(debug_heap_size);
-		int total = 1;
+		int total = 4;
 		g_proc_info->lpHeapBase = &g_proc_info->heapBase;
-		int num = 0;
-		for (num = 0; num < total; num++) {
+		for (int num = 0; num < total; num++) {
 			char * buf = (char*)malloc(debug_heap_size<< num);
 			if (buf) {
 				g_proc_info->lpHeapBase[num] = buf;

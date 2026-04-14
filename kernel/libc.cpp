@@ -183,6 +183,7 @@ extern "C" __declspec(dllexport)void* my_malloc(int size) {
 	char * buf = (char*)__malloc(size);
 	//__memset(buf, 0, size );
 	if (buf == 0) {
+
 		return 0;
 	}
 	return buf;
@@ -191,6 +192,7 @@ extern "C" __declspec(dllexport)void* my_malloc(int size) {
 extern "C" __declspec(dllexport)void my_free(void* buf) {
 	__free((unsigned long)buf);
 	return;
+
 }
 
 extern "C" __declspec(dllexport)void* my_calloc(int cnt, int size) {

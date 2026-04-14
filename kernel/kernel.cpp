@@ -254,9 +254,10 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 
 
 
-
+#ifdef _DEBUG
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #pragma intrinsic(malloc)  // 启用内部函数
 #pragma function(malloc)   // 强制使用函数调用而不是内部函数
@@ -276,19 +277,31 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 #define calloc my_calloc
 
 void testalloc() {
-	char** p = (char**)malloc(0x10000);
+	int cnt = 0x10000;
+	char** p = (char**)malloc(cnt*sizeof(int));
 	srand(time(0));
-	for (int i = 0; i < 0x10000; i++) {
+	for (int i = 0; i < cnt; i++) {
 		int size = rand() % 0x10000;
 		p[i] = (char*)malloc(size);
+		__sprintf(p[i], "%x", p[i]);
+		if (p[i] == 0) {
+			printf("[%d] malloc address:%x,size:%x\r\n", i, p[i], size);
+		}
+		
 	}
 
-	for (int i = 0; i < 0x10000; i++) {
+	for (int i = 0; i < cnt; i++) {
+
+		char buf[256];
+		__sprintf(buf, "%x", p[i]);
+		if (__strcmp(buf, p[i])) {
+			printf("[%d]:free address:%x\r\n", i, p[i]);
+		}
 		free(p[i]);
 	}
 }
 
-
+#endif
 
 #ifdef _USRDLL
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {

@@ -7,6 +7,8 @@
 #include "Utils.h"
 #include "apic.h"
 #include <stdlib.h>
+#include <stdio.h>
+#define __printf sprintf
 #else
 #include "heap.h"
 #include "malloc.h"
