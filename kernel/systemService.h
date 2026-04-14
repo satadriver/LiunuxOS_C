@@ -82,7 +82,7 @@ extern "C" __declspec(dllexport) unsigned __int64 getCpuFreq();
 
 extern "C"  __declspec(dllexport) void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
-extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p, char* func);
+extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p, char* func);
 #else
 extern "C" __declspec(dllimport) char* g_hlt_addr;
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();

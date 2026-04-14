@@ -172,8 +172,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 		//__kCreateProcess((unsigned int)KERNEL_DLL_SOURCE_BASE, imagesize, "kernel.dll", "__kKernelMain", 3, 0);
 
-		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning");
-		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning");
+		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning_mlp");
+		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
 	}
 
 	//imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
@@ -309,6 +309,7 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 }
 #elif defined _CONSOLE
 int main() {
+	__kMachineLearning_rnn(0, 0, 0, 0, 0);
 	testalloc();
 	return 0;
 }

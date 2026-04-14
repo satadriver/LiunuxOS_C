@@ -1,6 +1,7 @@
 
 #include "ml.h"
 #include "kann-master/kann.h"
+#include "apic.h"
 
 #ifdef _DEBUG
 #include "process.h"
@@ -9,7 +10,6 @@
 #include "task.h"
 #include "Pe.h"
 #include "Thread.h"
-
 
 #include "libc.h"
 #include "malloc.h"
@@ -79,7 +79,7 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(4096)
+#define		TASK_PREDICTION_TRAIN	(256)
 
 
 
@@ -107,24 +107,24 @@ int SaveMlData(TaskPredictParam * tp)
 	return g_ml_data_cnt;
 }
 
-extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
+extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
 	TASKCMDPARAMS cmd2;
 	__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 	DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
-	__kCreateThread((unsigned int)ml_addr2,KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
+	__ipiCreateThread((unsigned int)ml_addr2,KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
 
 	TASKCMDPARAMS cmd1;
 	__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
 	DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
-	__kCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
+	__ipiCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
 
 	TASKCMDPARAMS cmd3;
 	__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
 	DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
-	__kCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
+	__ipiCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
 	for(int i = 0; i < 1; ++i) {
@@ -164,7 +164,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	int i = 0;
 	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
 	int n_samples = TASK_PREDICTION_TRAIN;
-	int outSize = 16;
+	int outSize = ML_TASK_LIMIT;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
 	kann_t* ann;
@@ -233,7 +233,120 @@ extern "C" __declspec(dllexport) int __kMachineLearning(unsigned int retaddr, in
 	return 0;
 }
 
-extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+typedef struct {
+	int n_in, ulen;
+	int n, m;
+	uint64_t* x, * y;
+} bit_data_t;
+
+static void train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_epoch, const char* fn, int n_threads)
+{
+	float** x, ** y, * r, best_cost = 1e30f;
+	int epoch, j, n_var, * shuf;
+	kann_t* ua;
+
+	n_var = kann_size_var(ann);
+	r = (float*)calloc(n_var, sizeof(float));
+	x = (float**)malloc(d->ulen * sizeof(float*));
+	y = (float**)malloc(d->ulen * sizeof(float*));
+	for (j = 0; j < d->ulen; ++j) {
+		x[j] = (float*)calloc(mini_size * d->n_in, sizeof(float));
+		y[j] = (float*)calloc(mini_size * 2, sizeof(float));
+	}
+	shuf = (int*)calloc(d->n, sizeof(int));
+	kann_shuffle(d->n, shuf);
+
+	ua = kann_unroll(ann, d->ulen);
+	kann_set_batch_size(ua, mini_size);
+	kann_mt(ua, n_threads, mini_size);
+	kann_feed_bind(ua, KANN_F_IN, 0, x);
+	kann_feed_bind(ua, KANN_F_TRUTH, 0, y);
+	kann_switch(ua, 1);
+	for (epoch = 0; epoch < max_epoch; ++epoch) {
+		double cost = 0.0;
+		int tot = 0, tot_base = 0, n_cerr = 0;
+		for (j = 0; j < d->n - mini_size; j += mini_size) {
+			int i, b, k;
+			for (k = 0; k < d->ulen; ++k) {
+				for (b = 0; b < mini_size; ++b) {
+					int s = shuf[j + b];
+					for (i = 0; i < d->n_in; ++i)
+						x[k][b * d->n_in + i] = (float)(d->x[s * d->n_in + i] >> k & 1);
+					y[k][b * 2] = y[k][b * 2 + 1] = 0.0f;
+					y[k][b * 2 + (d->y[s] >> k & 1)] = 1.0f;
+				}
+			}
+			cost += kann_cost(ua, 0, 1) * d->ulen * mini_size;
+			n_cerr += kann_class_error(ua, &k);
+			tot_base += k;
+			//kad_check_grad(ua->n, ua->v, ua->n-1);
+			kann_RMSprop(n_var, lr, 0, 0.9f, ua->g, ua->x, r);
+			tot += d->ulen * mini_size;
+		}
+		if (cost < best_cost) {
+			best_cost = cost;
+			if (fn) kann_save(fn, ann);
+		}
+		fprintf(stderr, "epoch: %d; cost: %g (class error: %.2f%%)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
+	}
+
+	for (j = 0; j < d->ulen; ++j) {
+		free(y[j]); free(x[j]);
+	}
+	free(y); free(x); free(r); free(shuf);
+}
+
+
+
+extern "C" __declspec(dllexport) int __kMachineLearning_rnn(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+{
+	int i, c, seed = 11, n_h_layers = 1, n_h_neurons = 64, mini_size = 64, max_epoch = 30, to_apply = 0, norm = 1, n_threads = 1;
+	float lr = 0.01f, dropout = 0.2f;
+	kann_t* ann = 0;
+	char* fn_in = 0, * fn_out = 0;
+
+	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
+	int blockSize = sizeof(TaskPredictParam) - sizeof(float);
+
+	int n_samples = TASK_PREDICTION_TRAIN;
+	int outSize = 1;
+
+	kad_node_t* t;
+	int rnn_flag = KANN_RNN_VAR_H0;
+	if (norm) rnn_flag |= KANN_RNN_NORM;
+	bit_data_t *d = (bit_data_t*)malloc(sizeof(bit_data_t));
+	d->n_in = inSize;
+	d->m = TASK_PREDICTION_TRAIN;
+	d->n = TASK_PREDICTION_TRAIN;
+	d->ulen = 32;
+	d->x = (unsigned long long*)malloc(inSize*sizeof(float) * TASK_PREDICTION_TRAIN);
+	d->y = (unsigned long long*)malloc(sizeof(float)* TASK_PREDICTION_TRAIN);
+
+	if (g_ml_data == 0) {
+		g_ml_data = (TaskPredictParam*)malloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
+	}
+
+	for (i = 0; i < n_samples; ++i) {
+
+		__memcpy((char*)d->x + i* blockSize, (char*)&g_ml_data[i], blockSize);
+
+		int idx = g_ml_data[i].result;
+		d->y[i] = idx*1.0;
+	}
+
+	t = kann_layer_input(d->n_in);
+	for (i = 0; i < n_h_layers; ++i) {
+		t = kann_layer_gru(t, n_h_neurons, rnn_flag);
+		t = kann_layer_dropout(t, dropout);
+	}
+	ann = kann_new(kann_layer_cost(t, 2, KANN_C_CEM), 0);
+	
+	train(ann, d, lr, mini_size, max_epoch, fn_out, n_threads);
+
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int __kMachineLearning_common(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char szout[256];
 	printf("%s %d\r\n", __FUNCTION__, __LINE__);
 

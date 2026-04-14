@@ -611,60 +611,62 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	{
 		char szout[256];
 		int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		__enterSpinlock(&g_ipi_lock[cpu]);
-		
-		IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[cpu];
-		for (int i = 0; i < IPI_MSG_LIMIT; i++) {
-			if (msg[i].valid && msg[i].id == cpu ) {
+		int ret = __enterSpinlock(&g_ipi_lock[cpu]);
+		//if (ret) 
+		{
+			IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[cpu];
+			for (int i = 0; i < IPI_MSG_LIMIT; i++) {
+				if (msg[i].valid && msg[i].id == cpu) {
 
-				int cmd = msg[i].cmd;
+					int cmd = msg[i].cmd;
 
-				msg[i].valid = 0;
+					msg[i].valid = 0;
 
-				//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+					//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
 
-				if (cmd == IPI_CREATEPROCESS) {
-					IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
-					DWORD base = (DWORD)subparam->base;
-					DWORD size = subparam->size;
-					char* fn = subparam->filename;
-					char* funcname = subparam->funcname;
-					int level = subparam->level;
-					char* p = (char*)subparam->lpparam;
+					if (cmd == IPI_CREATEPROCESS) {
+						IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
+						DWORD base = (DWORD)subparam->base;
+						DWORD size = subparam->size;
+						char* fn = subparam->filename;
+						char* funcname = subparam->funcname;
+						int level = subparam->level;
+						char* p = (char*)subparam->lpparam;
 
-					//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
+						//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
 
-					if (__findProcessFileName(subparam->funcname) == FALSE)
-					{
-						//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
+						if (__findProcessFileName(subparam->funcname) == FALSE)
+						{
+							//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
+						}
+						__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
 					}
-					__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
-				}
-				else if (cmd == IPI_CREATETHREAD) {
+					else if (cmd == IPI_CREATETHREAD) {
 
-					IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
-					DWORD module = (DWORD)subparam->module;
-					DWORD addr = subparam->addr;
-					char* funcname = subparam->funcname;
-					char* p = (char*)subparam->lpparam;
+						IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
+						DWORD module = (DWORD)subparam->module;
+						DWORD addr = subparam->addr;
+						char* funcname = subparam->funcname;
+						char* p = (char*)subparam->lpparam;
 
-					//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
+						//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
 
-					if (__findProcessFileName(funcname) == FALSE)
-					{
-						
+						if (__findProcessFileName(funcname) == FALSE)
+						{
+
+						}
+						__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
 					}
-					__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
-				}
-				else if (cmd == IPI_TASKSWITCH) {
-					//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-				}
-				else {
+					else if (cmd == IPI_TASKSWITCH) {
+						//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+					}
+					else {
 
+					}
 				}
 			}
+			__leaveSpinlock(&g_ipi_lock[cpu]);
 		}
-		__leaveSpinlock(&g_ipi_lock[cpu]);
 		
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
 	}
@@ -1235,7 +1237,7 @@ int InitLocalApicTimer() {
 	ticks = ticks / times;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	g_apic_freq[id] = freq;
+	g_apic_freq[id] = freq / (1000 / TASK_TIME_SLICE);
 	g_unit_cost[id] = ticks;
 
 	//1 / frequency * counter = time cost in one period
@@ -1900,7 +1902,7 @@ PROCESS_INFO * GetReadyProcess() {
 
 				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
 
-				user[count] = (ptr->level == 0 ? AUTHORITY_PRIORITY : 0);
+				user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
 
 				delta[count].v = ptr->delta;
 				delta[count].id = ptr->tid;
@@ -1935,7 +1937,7 @@ PROCESS_INFO * GetReadyProcess() {
 
 		QuickSort(tickc, 0, count - 1);
 		for (int i = 0; i < count; i++) {
-			tickc[i].v = TASK_USER_PRIORITY / (count - i);
+			tickc[i].v = STATIC_PRIORITY / (count - i);
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -1974,7 +1976,7 @@ PROCESS_INFO * GetReadyProcess() {
 				}
 						
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
-					//tss[tid].delta = DYNAMIC_PRIORITY;
+					tss[tid].delta = DYNAMIC_PRIORITY;
 				}
 			}
 			else {
@@ -1987,10 +1989,11 @@ PROCESS_INFO * GetReadyProcess() {
 		for (int i = 0; i < count; i++) {
 			int pid = tickc[i].id;
 			float tick_ratio = (float)GetValueFromArray(tickc, count, pid)/ (float)DYNAMIC_PRIORITY;
-			float user_ratio = (float)(tss[pid].level == 3 ? 0 : AUTHORITY_PRIORITY) / (float)DYNAMIC_PRIORITY;
+			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
 			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
 			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
+			float authority_r = (float)tss[pid].authority/ (float)DYNAMIC_PRIORITY;
 
 			if (pid == target_id) {
 				tp.result = i;
@@ -1999,19 +2002,21 @@ PROCESS_INFO * GetReadyProcess() {
 			tp.task[i].user = user_ratio;
 			tp.task[i].window = window_ratio;
 			tp.task[i].delta = delta_ratio;
-			tp.task[i].priority = priority_ratio;			
+			tp.task[i].priority = priority_ratio;		
+			tp.task[i].authority = authority_r;
 		}
 
-		for (int i = count; i < 16; i++) {
+		for (int i = count; i < ML_TASK_LIMIT; i++) {
 			tp.task[i].tick = 0.0;
 			tp.task[i].user = 0.0;
 			tp.task[i].window = 0.0;
 			tp.task[i].delta = 0.0;
 			tp.task[i].priority = 0.0;
+			tp.task[i].authority = 0.0;
 		}
 #ifndef _DEBUG
 		if (g_debug_tag++ % 0x1000 == 0x1000) {
-			for (int i = 0; i < 16; i++) {
+			for (int i = 0; i < ML_TASK_LIMIT; i++) {
 				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
 					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
 			}

@@ -7,9 +7,10 @@
 
 #define WINDOW_PRIORITY			(STATIC_PRIORITY/2)
 
-#define AUTHORITY_PRIORITY		(STATIC_PRIORITY/8)
+#define USER_PRIORITY			(STATIC_PRIORITY/8)
 
-#define TASK_USER_PRIORITY		(STATIC_PRIORITY/2)
+
+#define GRAPH_PRIORITY 			8
 
 #define FILE_PRIORITY			4
 
@@ -20,6 +21,7 @@
 #define IPI_MSG_LIMIT			64
 
 #define TASK_MAX_DALAY			1000
+
 
 
 #pragma pack(1)

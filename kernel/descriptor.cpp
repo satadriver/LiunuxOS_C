@@ -484,7 +484,7 @@ int IncreaseDelta(int v) {
 	current->priority = proc->priority;
 	proc->authority+=v;
 	if (proc->authority > DYNAMIC_PRIORITY) {
-		//proc->authority = DYNAMIC_PRIORITY;
+		proc->authority = DYNAMIC_PRIORITY;
 	}
 	current->authority = proc->authority;
 	__leaveSpinlock(&g_task_array_lock[id]);

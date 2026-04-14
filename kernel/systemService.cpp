@@ -221,7 +221,7 @@ extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, c
 		pop edi
 	}
 }
-extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p,char * func ) {
+extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p,char * func ) {
 
 	__asm {
 		push edi
