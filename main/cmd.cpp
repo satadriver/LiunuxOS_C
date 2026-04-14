@@ -447,6 +447,11 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int len = CpuUsage(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "intPerSec") == 0) {
+		DWORD intpersec = InterruptPerSec();
+		__sprintf(szout,"%u\r\n", intpersec);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);
 	}

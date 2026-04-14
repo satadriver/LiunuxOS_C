@@ -175,6 +175,29 @@ int CpuUsage(char* buf) {
 
 
 
+DWORD InterruptPerSec() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
+	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick;
+	while (tick2 == tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sleep(0);
+	}
+
+	tick2 = tick + 1;
+
+	DWORD ints = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+
+	while (tick2 != tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sleep(0);
+	}
+
+	DWORD ints2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	return ints2 - ints;
+}
+
+
 
 int getGeneralRegs(char * szout) {
 	DWORD reax;

@@ -14,6 +14,8 @@ int getcrs(char * szout);
 
 int getGeneralRegs(char * szout);
 
+DWORD InterruptPerSec();
+
 int CpuUsage(char* buf);
 
 int GetAllProcesses(char* szout);

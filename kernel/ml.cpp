@@ -79,7 +79,7 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(4096)
+#define		TASK_PREDICTION_TRAIN	(8192)
 
 
 
@@ -200,7 +200,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_TRAIN;

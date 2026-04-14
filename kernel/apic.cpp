@@ -1223,10 +1223,10 @@ int InitLocalApicTimer() {
 
 	//lv = lv /16 / (1000 / TASK_TIME_SLICE);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0x40000000;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 3;
+	int times = 8;
 	unsigned  long long ticks = 0;
 	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {
@@ -1242,7 +1242,7 @@ int InitLocalApicTimer() {
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq  /(1000 / TASK_TIME_SLICE);
+	freq = freq /16 /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
