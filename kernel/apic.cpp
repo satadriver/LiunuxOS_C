@@ -1242,7 +1242,7 @@ int InitLocalApicTimer() {
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq/16  /(1000 / TASK_TIME_SLICE);
+	freq = freq  /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
@@ -1985,34 +1985,63 @@ PROCESS_INFO * GetReadyProcess() {
 		}
 
 		TaskPredictParam tp;
+		int times = count / ML_TASK_LIMIT;
+		int mod = count % ML_TASK_LIMIT;
+		int n = 0;
+		for ( n = 0; n < times; n++) {
+			int idx = n * ML_TASK_LIMIT;
+			for (int i = idx; i <  idx+ ML_TASK_LIMIT; i++) {
+				int pid = tickc[i].id;
+				float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)DYNAMIC_PRIORITY;
+				float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
+				float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
+				float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
+				float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
+				float authority_r = (float)tss[pid].authority / (float)DYNAMIC_PRIORITY;
+
+				if (pid == target_id) {
+					tp.result = i% ML_TASK_LIMIT;
+				}
+				tp.task[i % ML_TASK_LIMIT].tick = tick_ratio;
+				tp.task[i % ML_TASK_LIMIT].user = user_ratio;
+				tp.task[i % ML_TASK_LIMIT].window = window_ratio;
+				tp.task[i % ML_TASK_LIMIT].delta = delta_ratio;
+				tp.task[i % ML_TASK_LIMIT].priority = priority_ratio;
+				tp.task[i % ML_TASK_LIMIT].authority = authority_r;
+			}
+
+			SaveMlData(&tp);
+		}
+
 		
-		for (int i = 0; i < count; i++) {
+		n = times * ML_TASK_LIMIT;
+		for (int i = n; i < n + mod; i++) {
 			int pid = tickc[i].id;
-			float tick_ratio = (float)GetValueFromArray(tickc, count, pid)/ (float)DYNAMIC_PRIORITY;
+			float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)DYNAMIC_PRIORITY;
 			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
 			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
 			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
-			float authority_r = (float)tss[pid].authority/ (float)DYNAMIC_PRIORITY;
+			float authority_r = (float)tss[pid].authority / (float)DYNAMIC_PRIORITY;
 
 			if (pid == target_id) {
-				tp.result = i;
+				tp.result = i % ML_TASK_LIMIT;
 			}
-			tp.task[i].tick = tick_ratio;
-			tp.task[i].user = user_ratio;
-			tp.task[i].window = window_ratio;
-			tp.task[i].delta = delta_ratio;
-			tp.task[i].priority = priority_ratio;		
-			tp.task[i].authority = authority_r;
+			tp.task[i % ML_TASK_LIMIT].tick = tick_ratio;
+			tp.task[i % ML_TASK_LIMIT].user = user_ratio;
+			tp.task[i % ML_TASK_LIMIT].window = window_ratio;
+			tp.task[i % ML_TASK_LIMIT].delta = delta_ratio;
+			tp.task[i % ML_TASK_LIMIT].priority = priority_ratio;
+			tp.task[i % ML_TASK_LIMIT].authority = authority_r;
 		}
 
-		for (int i = count; i < ML_TASK_LIMIT; i++) {
-			tp.task[i].tick = 0.0;
-			tp.task[i].user = 0.0;
-			tp.task[i].window = 0.0;
-			tp.task[i].delta = 0.0;
-			tp.task[i].priority = 0.0;
-			tp.task[i].authority = 0.0;
+		for (int i = n+mod; i < n+ML_TASK_LIMIT; i++) {
+			tp.task[i % ML_TASK_LIMIT].tick = 0.0;
+			tp.task[i % ML_TASK_LIMIT].user = 0.0;
+			tp.task[i % ML_TASK_LIMIT].window = 0.0;
+			tp.task[i % ML_TASK_LIMIT].delta = 0.0;
+			tp.task[i % ML_TASK_LIMIT].priority = 0.0;
+			tp.task[i % ML_TASK_LIMIT].authority = 0.0;
 		}
 #ifndef _DEBUG
 		if (g_debug_tag++ % 0x1000 == 0x1000) {

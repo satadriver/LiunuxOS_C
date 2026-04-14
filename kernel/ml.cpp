@@ -79,7 +79,7 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(256)
+#define		TASK_PREDICTION_TRAIN	(4096)
 
 
 
@@ -111,21 +111,24 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	TASKCMDPARAMS cmd2;
-	__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
-	DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
-	__ipiCreateThread((unsigned int)ml_addr2,KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
-
-	TASKCMDPARAMS cmd1;
-	__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
-	DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
-	__ipiCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
-
-	TASKCMDPARAMS cmd3;
-	__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
-	DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
-	__ipiCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
-
+	for (int i = 0; i < 3; i++) {
+		TASKCMDPARAMS cmd2;
+		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
+		DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
+		__ipiCreateThread((unsigned int)ml_addr2, KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
+	}
+	for (int i = 0; i < 3; i++) {
+		TASKCMDPARAMS cmd1;
+		__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
+		DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
+		__ipiCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
+	}
+	for (int i = 0; i < 3; i++) {
+		TASKCMDPARAMS cmd3;
+		__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
+		DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
+		__ipiCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
+	}
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
 	for(int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
