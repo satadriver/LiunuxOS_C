@@ -490,3 +490,44 @@ int IncreaseDelta(int v) {
 	__leaveSpinlock(&g_task_array_lock[id]);
 	return 0;
 }
+
+
+int AdjustApicTimer() {
+	return 0;
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick;
+	while (tick2 == tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		//__sleep(0);
+	}
+
+	tick2 = tick + 1;
+
+	DWORD ints = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+
+	while (tick2 != tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		//__sleep(0);
+	}
+
+	DWORD ints2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	double times = ints2 - ints;
+
+	double ideal = (1000 / TASK_TIME_SLICE);
+
+	double freq = g_apic_freq[id];
+	double cost = g_unit_cost[id];
+
+	g_unit_cost[id] = (DWORD)( times / ideal * cost);
+	double real = times / ideal * freq;
+
+	DWORD v = real;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)v;
+
+	return v;
+}

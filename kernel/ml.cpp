@@ -79,9 +79,9 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(8192)
+#define		TASK_PREDICTION_TRAIN	(4096)
 
-
+int g_train_complete = 0;
 
 TaskPredictParam* g_ml_data = 0;
 
@@ -107,23 +107,54 @@ int SaveMlData(TaskPredictParam * tp)
 	return g_ml_data_cnt;
 }
 
+
+kann_t* ann = 0;
+//float* g_x1 = 0;
+
+int TaskSwitchPrediction(TaskPredictParam* tp) {
+	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
+	int n_samples = TASK_PREDICTION_TRAIN;
+	int outSize = ML_TASK_LIMIT;
+
+	//if (g_x1 == 0) 
+	{
+		//g_x1 = (float*)calloc(inSize, sizeof(float));
+	}
+	
+	int n_err = 0;
+
+	//__memcpy((char*)g_x1, (char*)tp, sizeof(TaskPredictParam) - sizeof(float));
+
+	const float* y1 = kann_apply1(ann, (float*)tp);
+
+	float max = -1.0;
+	int num = 0;
+	for (int j = 0; j < outSize; j++) {
+		if (y1[j] > max) {
+			max = y1[j];
+			num = j;
+		}
+	}
+	return num;
+}
+
 extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		TASKCMDPARAMS cmd2;
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
 		__ipiCreateThread((unsigned int)ml_addr2, KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
 	}
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		TASKCMDPARAMS cmd1;
 		__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
 		__ipiCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
 	}
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		TASKCMDPARAMS cmd3;
 		__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
@@ -170,7 +201,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	int outSize = ML_TASK_LIMIT;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
-	kann_t* ann;
+	
 	// construct an MLP with one hidden layers
 	t = kann_layer_input(inSize);
 
@@ -231,8 +262,14 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 			n_err++;
 		}
 	}
-	printf("Test error rate: %lf\r\n", 100.0 * n_err / n_samples);
-	kann_delete(ann); // TODO: also to free x, y and x1
+
+	double error = 100.0 * n_err / n_samples;
+	printf("Test error rate: %lf\r\n", error);
+	//kann_delete(ann); // TODO: also to free x, y and x1
+	if (error > 80.0) {
+		g_train_complete = 1;
+	}
+
 	return 0;
 }
 

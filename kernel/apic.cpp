@@ -1242,7 +1242,7 @@ int InitLocalApicTimer() {
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
-	freq = freq /16 /(1000 / TASK_TIME_SLICE);
+	freq = freq /(1000 / TASK_TIME_SLICE);
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
@@ -1387,6 +1387,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
+	AdjustApicTimer();
+
 	while (1) {
 		__sleep(0);
 		__asm {
@@ -1519,8 +1521,6 @@ void BPCodeStart() {
 
 	g_cpu_start_tick[cpu] = __krdtsc();
 
-	__sleep(100);
-
 	DWORD reg_cr0 = 0;
 	DWORD reg_cr4 = 0;
 	__asm {
@@ -1538,6 +1538,8 @@ void BPCodeStart() {
 	}
 	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
 		cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
+
+	AdjustApicTimer();
 
 	return;
 }
@@ -1834,6 +1836,8 @@ int GetCongestion(int * procs) {
 	return cnt;
 }
 
+
+
 PROCESS_INFO * GetReadyProcess() {
 
 	char szout[256];
@@ -1965,24 +1969,7 @@ PROCESS_INFO * GetReadyProcess() {
 		
 		target_tss = tss + target_id;
 
-		for(int i = 0;i < count; i++) {
-			int tid = delta[i].id;
-			if (target_id != delta[i].id) {
-				if (tid == next->tid) {
-					tss[tid].delta += 1;
-				}
-				else {
-					tss[tid].delta += 1;
-				}
-						
-				if (tss[tid].delta > DYNAMIC_PRIORITY) {
-					tss[tid].delta = DYNAMIC_PRIORITY;
-				}
-			}
-			else {
-				tss[tid].delta = 0;
-			}
-		}
+		extern int g_train_complete;
 
 		TaskPredictParam tp;
 		int times = count / ML_TASK_LIMIT;
@@ -2009,8 +1996,10 @@ PROCESS_INFO * GetReadyProcess() {
 				tp.task[i % ML_TASK_LIMIT].priority = priority_ratio;
 				tp.task[i % ML_TASK_LIMIT].authority = authority_r;
 			}
-
-			SaveMlData(&tp);
+			if (g_train_complete == 0) {
+				SaveMlData(&tp);
+			}
+			
 		}
 
 		
@@ -2050,7 +2039,39 @@ PROCESS_INFO * GetReadyProcess() {
 					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
 			}
 		}
-		SaveMlData(&tp);
+		if (g_train_complete == 0) {
+			SaveMlData(&tp);
+		}
+		
+		if (g_train_complete) {
+			int target_pid = TaskSwitchPrediction(&tp);
+			if (target_pid >= 0 && target_pid < count) {
+				target_id = target_pid;
+				target_tss = tss + target_id;
+			}
+			else {
+				__printf(szout, "TaskSwitchPrediction tid:%d\r\n", target_pid);
+			}
+		}
+
+		for (int i = 0; i < count; i++) {
+			int tid = delta[i].id;
+			if (target_id != delta[i].id) {
+				if (tid == next->tid) {
+					tss[tid].delta += 1;
+				}
+				else {
+					tss[tid].delta += 1;
+				}
+
+				if (tss[tid].delta > DYNAMIC_PRIORITY) {
+					tss[tid].delta = DYNAMIC_PRIORITY;
+				}
+			}
+			else {
+				tss[tid].delta = 0;
+			}
+		}
 #endif
 	}
 

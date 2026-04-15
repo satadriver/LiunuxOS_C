@@ -63,6 +63,8 @@ int GetCpuRate();
 
 int IncreaseDelta(int v);
 
+int AdjustApicTimer();
+
 void EnableNXE();
 
 #ifdef DLL_EXPORT
