@@ -493,7 +493,7 @@ int IncreaseDelta(int v) {
 
 
 int AdjustApicTimer() {
-	return 0;
+	//return 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;

@@ -2039,19 +2039,23 @@ PROCESS_INFO * GetReadyProcess() {
 					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
 			}
 		}
+#endif
 		if (g_train_complete == 0) {
 			SaveMlData(&tp);
 		}
 		
 		if (g_train_complete) {
-			int target_pid = TaskSwitchPrediction(&tp);
-			if (target_pid >= 0 && target_pid < count) {
-				target_id = target_pid;
-				target_tss = tss + target_id;
+			int seq = TaskSwitchPrediction(&tp);
+			if (seq >= 0 && seq < count) {
+
+				target_id = tickc[seq].id;
 			}
 			else {
-				__printf(szout, "TaskSwitchPrediction tid:%d\r\n", target_pid);
+				target_id = 0;
+				__printf(szout, "TaskSwitchPrediction seq:%d,count:%d\r\n", seq,count);
 			}
+			
+			target_tss = tss + target_id;
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -2072,7 +2076,7 @@ PROCESS_INFO * GetReadyProcess() {
 				tss[tid].delta = 0;
 			}
 		}
-#endif
+
 	}
 
 	target_tss->delta = 0;
