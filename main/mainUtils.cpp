@@ -198,7 +198,7 @@ int GetCpuRatio(char* szout) {
 				double switch_cost = cost / g_timer_cost[cpu];
 				len = __sprintf(szout + outlen,
 					"[%d]. funcname:%s, cpu:%d,pid:%d,tid:%d,cpu tick:%i64x,cpu usage:%lf,task tick:%i64x,task usage:%lf,switch_cost:%lf\r\n",
-					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_ratio, proc_ratio, tss[i].tick, switch_cost);
+					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_ratio, tss[i].tick, proc_ratio, switch_cost);
 				outlen += len;
 			}
 		}

@@ -1706,7 +1706,7 @@ int GetIdleProcessor() {
 		int id = ids[i];	
 		double cpu_diff = tick - g_cpu_start_tick[id];
 		double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
-		times[i].v = g_cpu_tick[id];
+		//times[i].v = g_cpu_tick[id];
 		//__memcpy((char*)&times[i].v,(char*) & cpu_ratio, sizeof(double));
 		times[i].fv = cpu_ratio;
 		times[i].id = id;
