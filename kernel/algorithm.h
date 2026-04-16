@@ -5,7 +5,11 @@
 
 
 struct AlgorithmModel {
-	unsigned long long v;
+	union {
+		unsigned long long v;
+		double fv;
+	};
+	
 	unsigned long long id;
 };
 

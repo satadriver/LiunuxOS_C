@@ -5,14 +5,14 @@
 void BubbleSort_ull(AlgorithmModel* arr, int count) {
 	for (int i = count - 1; i > 0; i--) {
 		for (int j = 0; j < i; j++) {
-			unsigned long long  low = arr[j].v;
-			unsigned long long high = arr[j + 1].v;
+			double low = arr[j].fv;
+			double high = arr[j + 1].fv;
 			if (low > high) {
-				unsigned long long v = arr[j].v;
+				double v = arr[j].fv;
 				unsigned long long id = arr[j].id;
-				arr[j].v = arr[j + 1].v;
+				arr[j].fv = arr[j + 1].fv;
 				arr[j].id = arr[j + 1].id;
-				arr[j + 1].v = v;
+				arr[j + 1].fv = v;
 				arr[j + 1].id = id;
 			}
 		}
