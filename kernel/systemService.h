@@ -126,5 +126,5 @@ extern "C" __declspec(dllimport) unsigned __int64 getCpuFreq();
 
 extern "C"  __declspec(dllimport) int __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
-extern "C"  __declspec(dllimport)void __ipiCreateThread(DWORD addr, char* module, unsigned long p, char* func);
+extern "C"  __declspec(dllimport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p, char* func);
 #endif

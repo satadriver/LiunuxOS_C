@@ -89,6 +89,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int ret = 0;
 
 	char szout[256];
+	enter_task_array_lock();
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
@@ -96,6 +97,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	ret = __getFreeTask(&freetask);
 	if (ret == FALSE)
 	{
+		leave_task_array_lock();
 		return FALSE;
 	}
 
@@ -179,6 +181,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
+			leave_task_array_lock();
 			return FALSE;
 		}
 #ifndef DISABLE_PAGE_MAPPING
@@ -214,6 +217,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		if (tss->espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
+			leave_task_array_lock();
 			return FALSE;
 		}
 #ifndef DISABLE_PAGE_MAPPING
@@ -282,14 +286,14 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->window = 0;
 	tss->videoBase = (char*)gGraphBase;
 
-	//enter_task_array_lock();
 	tss->status = TASK_RUN;
-	//leave_task_array_lock();
 
 #ifdef TASK_SWITCH_ARRAY
 
 #else
 	InsertTaskList(tss->tid);
 #endif
+	__kCreateThread_End:
+	leave_task_array_lock();
 	return TRUE;
 }

@@ -418,7 +418,7 @@ int Read8254Counter(int num) {
 
 	__enterSpinlock(&g_8254_lock);
 
-	int cmd = 0x00 | num;
+	int cmd = 0xc0 | num;
 	outportb(TIMER_COMMAND_REG, cmd);
 
 	unsigned int low = inportb(0x40 + num);

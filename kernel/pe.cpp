@@ -86,7 +86,7 @@ bool relocTable(char* chBaseAddress)
 
 	DWORD dwDelta = (DWORD)chBaseAddress - pNt->OptionalHeader.ImageBase;
 
-	while ((pLoc->VirtualAddress + pLoc->SizeOfBlock) != 0)
+	while (pLoc->VirtualAddress && pLoc->SizeOfBlock)
 	{
 		WORD *pLocData = (WORD *)((char*)pLoc + sizeof(IMAGE_BASE_RELOCATION));
 
@@ -228,18 +228,13 @@ DWORD importTable(DWORD module) {
 		if (impd->FirstThunk == 0 && impd->ForwarderChain == 0 && impd->Name == 0 &&
 			impd->DUMMYUNIONNAME.OriginalFirstThunk == 0 && impd->TimeDateStamp == 0)
 		{
-			//ret++;
 			break;
 		}
 
 		const char * dllname = (const char *)(module + impd->Name);
-
-		//__printf(szout, "find lib:%s\r\n", dllname);
-		//__drawGraphChars((unsigned char*)szout, 0);
-
-		if (__strcmp((const CHAR*)dllname,"KERNEL32.dll") == 0 ||
-			__strcmp((const CHAR*)dllname, "USER32.dll") == 0 ||
-			__strcmp((const CHAR*)dllname, "GDI32.dll") == 0)
+		if (__stricmp((const CHAR*)dllname,"KERNEL32.dll") == 0 ||
+			__stricmp((const CHAR*)dllname, "USER32.dll") == 0 ||
+			__stricmp((const CHAR*)dllname, "GDI32.dll") == 0)
 		{
 			impd++;
 			continue;
@@ -253,19 +248,13 @@ DWORD importTable(DWORD module) {
 			continue;
 		}
 
-		if (__strcmp(dllname,"kernel.dll") == 0) {
-
-		}
-		//dllname here without path,so you need to set default path
 		HMODULE dll = loadLibFile((LPSTR)dllname);
 		if (NULL == dll)
 		{
-			//return 0;
-
+			__printf(szout, "%s %d load dll:%s error\r\n", __FUNCTION__, __LINE__, dllname);
 			impd++;
 			continue;
 		}
-		//ret++;
 
 		PIMAGE_THUNK_DATA org = (PIMAGE_THUNK_DATA)(impd->DUMMYUNIONNAME.OriginalFirstThunk + module);
 		PIMAGE_THUNK_DATA first = (PIMAGE_THUNK_DATA)(impd->FirstThunk + module);
@@ -283,7 +272,7 @@ DWORD importTable(DWORD module) {
 				addr = getAddrFromOrd((DWORD)dll, ord);
 				if (addr <= 0)
 				{
-					__printf(szout, "%s:%d get ord:%d from lib:%s error\r\n", __FUNCTION__, __LINE__, ord, dllname);
+					__printf(szout, "%s %d get import function ord:%d from dll:%s error\r\n", __FUNCTION__, __LINE__, ord, dllname);
 					break;
 				}
 				else{
@@ -342,7 +331,6 @@ void initDll() {
 	int ks = dl->_kdllSecCnt * BYTES_PER_SECTOR;
 	//__memcpy((char*)KERNEL_DLL_SOURCE_BASE, (char*)VSKDLL_LOAD_ADDRESS, ks);
 
-
 	int cnt = 0x10000 / sizeof(DLLMODULEINFO);
 	DLLMODULEINFO* dllptr = (DLLMODULEINFO*)LIB_INFO_BASE;
 	for (int i = 0; i < cnt; i++)
@@ -365,12 +353,16 @@ void initDll() {
 		//__memcpy((char*)MAIN_DLL_SOURCE_BASE, (char*)VSMAINDLL_LOAD_ADDRESS, ms);
 		memLoadDll((char*)MAIN_DLL_SOURCE_BASE, (char*)MAIN_DLL_BASE);
 	}
+
+	__kStoreModule((char*)LIUNUX_MAIN32_DLL, MAIN_DLL_BASE);
 }
 
 
 
 DWORD loadLibFile(char * dllname) {
 	char szout[256];
+
+	int ret = 0;
 
 	HMODULE dll = (HMODULE)__kGetModule((LPSTR)dllname);	//without path,only has filename
 	if (NULL == dll)
@@ -392,15 +384,17 @@ DWORD loadLibFile(char * dllname) {
 		{
 			int imagesize = getSizeOfImage((char*)data);
 			char * dllptr = (char*)__kMalloc(imagesize);
-			int ret = 0;
+			
 			ret = mapFile((char*)data, (char*)dllptr);
-			setImageBase((char*)dllptr);
+			
 			ret = importTable((DWORD)dllptr);
 			if (ret == 0) {
 				__kFree((DWORD)dllptr);
 				return 0;
 			}
 			ret = relocTable((char*)dllptr);
+
+			setImageBase((char*)dllptr);
 
 			__kStoreModule(dllname, (DWORD)dllptr);
 
@@ -485,7 +479,7 @@ DWORD __kGetModule(char * filename) {
 			continue;
 		}
 
-		if (__strcmp(module[i].name, filename) == 0)
+		if (__stricmp(module[i].name, filename) == 0)
 		{
 			return module[i].addr;
 		}
@@ -499,7 +493,7 @@ void __kStoreModule(char * filename, DWORD addr) {
 	int size = LIB_INFO_SIZE / sizeof(DLLMODULEINFO);
 	for (int i = 0; i < size; i++)
 	{
-		if ( (module[i].addr == addr) && (module[i].name[0]) && (__strcmp(module[i].name,filename)==0) )
+		if ( (module[i].addr == addr) && (module[i].name[0]) && (__stricmp(module[i].name,filename)==0) )
 		{
 			return;
 		}

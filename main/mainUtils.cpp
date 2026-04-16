@@ -175,6 +175,39 @@ int CpuUsage(char* buf) {
 
 
 
+int GetCpuRatio(char* szout) {
+
+	int outlen = 0;
+	int len = 0;
+
+	unsigned long long tick = __krdtsc();
+
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+	for (int i = 0; i < cnt; i++) {
+		int cpu = cpus[i];
+		double cpu_diff = tick - g_cpu_start_tick[cpu];
+		double cpu_ratio = g_cpu_tick[cpu] / cpu_diff;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{
+				double proc_diff = tss[i].tick_total;
+				double proc_ratio = (double)tss[i].tick / proc_diff;
+				double cost = tss[i].tick_cost;
+				double switch_cost = cost / g_unit_cost[cpu];
+				len = __sprintf(szout + outlen,
+					"funcname:%s, cpu:%d, pid:%d,tid:%d,cpu usage:%lf£¬task usage:%lf,switch_cost:%lf\r\n",
+					tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid,cpu_ratio, proc_ratio, switch_cost);
+				outlen += len;
+			}
+		}
+	}
+
+	return outlen;
+}
+
+
 DWORD InterruptPerSec() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;

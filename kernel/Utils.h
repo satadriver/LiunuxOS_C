@@ -50,6 +50,14 @@ extern "C" __declspec(dllexport) int __i64ToStru64(__int64 v, char* buf);
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) char* gLogDataPtr;
 
+
+extern "C"  __declspec(dllexport) int __isprint(int c);
+
+extern "C"  __declspec(dllexport) int __isalpha(int c);
+
+extern "C"  __declspec(dllexport) int __isdigit(int c);
+extern "C"  __declspec(dllexport) int __isxdigit(int c);
+
 extern "C"  __declspec(dllexport) int __strlen(const char * str);
 
 extern "C"  __declspec(dllexport) int __memcpy(char * dst, char * src, int len);
@@ -64,6 +72,7 @@ extern "C"  __declspec(dllexport) int __memset(char * dst, int value, int len);
 extern "C"  __declspec(dllexport) int __memset4(char * dst, int value, int len);
 
 extern "C"  __declspec(dllexport) int __strcmp(const char * src, const char * dst);
+extern "C"  __declspec(dllexport) int __stricmp(const char* src, const  char* dst);
 extern "C"  __declspec(dllexport) int __strncmp(const char* src, const char* dst, size_t n);
 extern "C"  __declspec(dllexport) int __memcmp(const char * src,const char * dst, int len);
 
@@ -137,7 +146,12 @@ extern "C" __declspec(dllexport) int asc2unicode(char * asc, int asclen, short *
 
 extern "C" __declspec(dllexport) int unicode2asc(short * unicode, int unicodelen, char * asc);
 #else
+extern "C"  __declspec(dllimport) int __isprint(int c);
 
+extern "C"  __declspec(dllimport) int __isalpha(int c);
+
+extern "C"  __declspec(dllimport) int __isdigit(int c);
+extern "C"  __declspec(dllimport) int __isxdigit(int c);
 extern "C"  __declspec(dllimport) int __strlen(const char * str);
 
 extern "C"  __declspec(dllimport) int __memcpy(char * dst, char * src, int len);
@@ -150,6 +164,7 @@ extern "C"  __declspec(dllimport) int __memset(char * dst, int value, int len);
 extern "C"  __declspec(dllimport) int __memset4(char * dst, int value, int len);
 extern "C"  __declspec(dllimport) int __strncmp(const char* src, const char* dst, size_t n);
 extern "C"  __declspec(dllimport) int __strcmp(const char * src, const char * dst);
+extern "C"  __declspec(dllimport) int __stricmp(const char* src, const  char* dst);
 
 extern "C"  __declspec(dllimport) int __memcmp(const char * src,const char * dst, int len);
 

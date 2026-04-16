@@ -89,6 +89,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__MyTestTask(0, 0, 0, 0, 0);
 	//displayCCPoem();
 
+	//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Process_Test_Main", 3, 0);
+
 	while (1)
 	{
 		//__printf(szout, "test start\r\n");

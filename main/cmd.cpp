@@ -452,6 +452,10 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout,"%u\r\n", intpersec);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "ratio") == 0) {
+		GetCpuRatio(szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);
 	}

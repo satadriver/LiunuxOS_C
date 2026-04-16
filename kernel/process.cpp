@@ -468,6 +468,8 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	int ret = 0;
 	char szout[256];
 
+	enter_task_array_lock();
+
  	//DWORD filedata = linear2phy(lpfiledata);
  	//char * filename = (char *)linear2phy((DWORD)fn);
  	//char * funcname = (char *)linear2phy((DWORD)funname);
@@ -478,64 +480,65 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
-	int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	//int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	TASKRESULT result;
 	ret = __getFreeTask(&result);
 	if (ret == FALSE)
 	{
-		__printf(szout, "%s %d error\n",__FUNCTION__, __LINE__);
-		return FALSE;
-	}
-
-	if (mode & DOS_PROCESS_RUNCODE)
-	{
-		ret = __initDosTss(result.lptss, result.number, filedata, filename, funcname, mode + (level | 3), params);
-		return ret;
-	}
-
-	int petype = getPeType(filedata);
-	if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
-	{
-		if (filesize == 0)
-		{
-			return FALSE;
-		}
-		else {
-			DWORD dosaddr = __allocVm86Addr(filename,petype,filedata, filesize, result.number);
-			if (dosaddr)
-			{
-				ret = __initDosTss(result.lptss, result.number, dosaddr, filename, funcname, 3, params);
-				return ret;
-			}
-			else {
-				__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
-				return FALSE;
-			}
-		}
-	}
-	else if (petype == 2)
-	{
-		DWORD type = getType((DWORD)filedata);
-		if (type & 0x2000)
-		{
-			if (funcname == 0)
-			{
-				__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
-				return FALSE;
-			}
-		}
-		ret = __initProcess(result.lptss, result.number, filedata, filename, funcname, level, params);
-		return ret;
-	}
-	else if (petype == 3)
-	{
-		return runElfFunction(filename, funcname);
+		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
 	}
 	else {
-		ret = FALSE;
-	}
+		if (mode & DOS_PROCESS_RUNCODE)
+		{
+			ret = __initDosTss(result.lptss, result.number, filedata, filename, funcname, mode + (level | 3), params);
+		}
+		else {
+			int petype = getPeType(filedata);
+			if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
+			{
+				if (filesize == 0)
+				{
 
+				}
+				else {
+					DWORD dosaddr = __allocVm86Addr(filename, petype, filedata, filesize, result.number);
+					if (dosaddr)
+					{
+						ret = __initDosTss(result.lptss, result.number, dosaddr, filename, funcname, 3, params);
+					}
+					else {
+						__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
+					}
+				}
+			}
+			else if (petype == 2)
+			{
+				DWORD type = getType((DWORD)filedata);
+				if (type & 0x2000)
+				{
+					if (funcname == 0)
+					{
+						__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
+					}
+					else {
+						ret = __initProcess(result.lptss, result.number, filedata, filename, funcname, level, params);
+					}
+				}
+				else {
+					ret = __initProcess(result.lptss, result.number, filedata, filename, funcname, level, params);
+				}
+			}
+			else if (petype == 3)
+			{
+				leave_task_array_lock();
+				ret = runElfFunction(filename, funcname);
+				ret = 1;
+				return ret;
+			}
+		}
+	}
+	leave_task_array_lock();
 	return ret;
 }
 

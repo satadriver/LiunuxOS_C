@@ -16,6 +16,8 @@ int getGeneralRegs(char * szout);
 
 DWORD InterruptPerSec();
 
+int GetCpuRatio(char* szout);
+
 int CpuUsage(char* buf);
 
 int GetAllProcesses(char* szout);

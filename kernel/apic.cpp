@@ -1961,7 +1961,7 @@ PROCESS_INFO * GetReadyProcess() {
 		QuickSort(level, 0, count - 1);
 
 		QuickSort(delta, 0, count - 1);
-		if (delta[count - 1].v > TASK_MAX_DALAY / TASK_TIME_SLICE) {
+		if (delta[count - 1].v > DYNAMIC_PRIORITY) {
 			target_id = delta[count - 1].id;
 		}
 		else
@@ -1979,12 +1979,12 @@ PROCESS_INFO * GetReadyProcess() {
 			int idx = n * ML_TASK_LIMIT;
 			for (int i = idx; i <  idx+ ML_TASK_LIMIT; i++) {
 				int pid = tickc[i].id;
-				float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)DYNAMIC_PRIORITY;
-				float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
-				float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
-				float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
-				float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
-				float authority_r = (float)tss[pid].authority / (float)DYNAMIC_PRIORITY;
+				float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)STATIC_PRIORITY;
+				float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
+				float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
+				float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+				float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
+				float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
 				if (pid == target_id) {
 					tp.result = i% ML_TASK_LIMIT;
@@ -2006,12 +2006,12 @@ PROCESS_INFO * GetReadyProcess() {
 		n = times * ML_TASK_LIMIT;
 		for (int i = n; i < n + mod; i++) {
 			int pid = tickc[i].id;
-			float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)DYNAMIC_PRIORITY;
-			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
-			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)DYNAMIC_PRIORITY;
-			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)DYNAMIC_PRIORITY;
-			float priority_ratio = (float)(tss[pid].priority) / (float)DYNAMIC_PRIORITY;
-			float authority_r = (float)tss[pid].authority / (float)DYNAMIC_PRIORITY;
+			float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)STATIC_PRIORITY;
+			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
+			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
+			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+			float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
+			float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
 			if (pid == target_id) {
 				tp.result = i % ML_TASK_LIMIT;

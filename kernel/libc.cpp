@@ -206,6 +206,11 @@ extern "C" __declspec(dllexport)void* my_calloc(int cnt, int size) {
 }
 
 extern "C" __declspec(dllexport)void* my_realloc(void* buf, int size) {
+	if ( size == 0) {
+		if (buf)
+			__free((unsigned long)buf);
+		return 0;
+	}
 	char* buffer = (char*)__malloc(size);
 	if (buffer) {
 		if (buf) {
@@ -218,7 +223,7 @@ extern "C" __declspec(dllexport)void* my_realloc(void* buf, int size) {
 		return buffer;
 	}
 
-	return buf;
+	return 0;
 }
 
 

@@ -186,3 +186,17 @@ extern "C" __declspec(dllexport)int __kTestWindow(unsigned int retaddr, int tid,
 	return 0;
 }
 
+
+
+
+extern "C" __declspec(dllexport) int Process_Test_Main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+
+		__sleep(0);
+
+	}
+
+	return 0;
+}

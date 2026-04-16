@@ -258,9 +258,6 @@
     <ClCompile Include="libc.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ml.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="kann-master\kann.cpp">
       <Filter>kann</Filter>
     </ClCompile>
@@ -268,6 +265,9 @@
       <Filter>kann</Filter>
     </ClCompile>
     <ClCompile Include="Animation.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ml.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -485,10 +485,10 @@
     <ClInclude Include="kann-master\kautodiff.h">
       <Filter>kann</Filter>
     </ClInclude>
-    <ClInclude Include="ml.h">
+    <ClInclude Include="Animation.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Animation.h">
+    <ClInclude Include="ml.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

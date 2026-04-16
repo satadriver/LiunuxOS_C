@@ -10,6 +10,38 @@
 #include "apic.h"
 #include "systemService.h"
 
+
+
+int __isprint(int c) {
+	if (c >= 0x20 && c <= 0x7e) {
+		return TRUE;
+	}
+	return 0;
+}
+
+
+int __isalpha(int c) {
+	if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+		return TRUE;
+	}
+	return 0;
+}
+
+
+int __isdigit(int c) {
+	if (c >= '0' && c <= '9') {
+		return TRUE;
+	}
+	return 0;
+}
+
+int __isxdigit(int c) {
+	if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+		return TRUE;
+	}
+	return 0;
+}
+
 int unicode2asc(short* unicode, int unicodelen, char* asc) {
 	int i = 0;
 	int j = 0;
@@ -259,6 +291,37 @@ int __strcmp(const char * src, const  char * dst) {
 		int v = src[i] - dst[i];
 		if (v) {
 			return v;
+		}
+		else {
+			continue;
+		}
+	}
+
+	return 0;
+}
+
+
+
+int __stricmp(const char* src, const  char* dst) {
+	int srclen = __strlen(src);
+	int dstlen = __strlen(dst);
+	if (srclen != dstlen)
+	{
+		return srclen - dstlen;
+	}
+
+	for (int i = 0; i < srclen; i++) {
+		int v = src[i] - dst[i];
+		if (v) {
+			int alpha1 = __isalpha(src[i]);
+			int alpha2 = __isalpha(dst[i]);
+			
+			if (alpha1 && alpha2 && (v == 32 || v == -32)) {
+				continue;
+			}
+			else {
+				return v;
+			}
 		}
 		else {
 			continue;

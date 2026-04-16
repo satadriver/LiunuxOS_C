@@ -373,7 +373,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 	ret->number = 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	enter_task_array_lock();
+	//enter_task_array_lock();
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
 	for (int i = 0;i < TASK_LIMIT_TOTAL; i++)
@@ -392,9 +392,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 			break;
 		}
 	}
-
-	leave_task_array_lock();
-
+	//leave_task_array_lock();
 	return result;
 }
 
