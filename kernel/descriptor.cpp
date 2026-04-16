@@ -518,9 +518,9 @@ int AdjustApicTimer() {
 	double ideal = (1000 / TASK_TIME_SLICE);
 
 	double freq = g_apic_freq[id];
-	double cost = g_unit_cost[id];
+	double cost = g_timer_cost[id];
 
-	g_unit_cost[id] = (DWORD)( times / ideal * cost);
+	g_timer_cost[id] = (DWORD)( times / ideal * cost);
 	double real = times / ideal * freq;
 
 	DWORD v = real;

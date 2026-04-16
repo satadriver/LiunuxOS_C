@@ -141,7 +141,7 @@ extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
-extern "C" __declspec(dllexport) unsigned long long g_unit_cost[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_timer_cost[TASK_LIMIT_TOTAL];
 
 extern "C"  __declspec(dllexport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllexport) int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p);
@@ -155,7 +155,7 @@ extern "C" __declspec(dllexport)  unsigned long long ApicTimerFreq();
 #else
 extern "C" __declspec(dllimport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
-extern "C" __declspec(dllimport) unsigned long long g_unit_cost[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_timer_cost[TASK_LIMIT_TOTAL];
 
 extern "C"  __declspec(dllimport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllimport) int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p);

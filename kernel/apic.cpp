@@ -39,7 +39,7 @@ LPPROCESS_INFO g_ap_tss_base[256];
 
 unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
-unsigned long long g_unit_cost[TASK_LIMIT_TOTAL];
+unsigned long long g_timer_cost[TASK_LIMIT_TOTAL];
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -1238,7 +1238,7 @@ int InitLocalApicTimer() {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq / (1000 / TASK_TIME_SLICE);
-	g_unit_cost[id] = ticks;
+	g_timer_cost[id] = ticks;
 
 	//1 / frequency * counter = time cost in one period
 	//counter = time * frequency
@@ -1701,10 +1701,13 @@ int GetIdleProcessor() {
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
 	AlgorithmModel times[TASK_LIMIT_TOTAL];
+	unsigned long long tick = __krdtsc();
 	for (int i = 0; i < counter; i++) {
-		int id = ids[i];
-
+		int id = ids[i];	
+		double cpu_diff = tick - g_cpu_start_tick[id];
+		double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
 		times[i].v = g_cpu_tick[id];
+		__memcpy((char*)&times[i].v,(char*) & cpu_ratio, sizeof(double));
 		times[i].id = id;
 	}
 
@@ -1998,10 +2001,8 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 			if (g_train_complete == 0) {
 				SaveMlData(&tp);
-			}
-			
+			}		
 		}
-
 		
 		n = times * ML_TASK_LIMIT;
 		for (int i = n; i < n + mod; i++) {
