@@ -390,7 +390,7 @@ int getidt(char * szout) {
 #define printf my_printf
 
 
-int HeapAllocTest(int cnt,unsigned long * total) {
+int HeapAllocTest(int cnt,int max,unsigned long long * total) {
 
 	int err = 0;
 	*total = 0;
@@ -402,7 +402,7 @@ int HeapAllocTest(int cnt,unsigned long * total) {
 	}
 
 	for (int i = 0; i < cnt; i++) {
-		int size = __random(0) % 0x10000;
+		int size = __random(0) % max;
 		p[i] = (char*)malloc(size);
 		__sprintf(p[i], "%x", p[i]);
 		if (p[i] == 0) {

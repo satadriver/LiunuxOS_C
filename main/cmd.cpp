@@ -457,13 +457,17 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "heapTest") == 0) {
-		DWORD cnt = 0x1000;
+		DWORD cnt = 0x100;
+		int size = 0x10000;
 		if (paramcnt >= 2){
 			cnt = __strh2i((unsigned char*)params[1]);
 		}
-		DWORD total = 0;
-		cnt = HeapAllocTest(cnt,&total);
-		__sprintf(szout, "HeapAlloc test total:%x,error:%d\r\n",total, cnt);
+		if (paramcnt >= 3) {
+			size = __strh2i((unsigned char*)params[2]);
+		}
+		unsigned long long total = 0;
+		int err = HeapAllocTest(cnt,size,&total);
+		__sprintf(szout, "HeapAlloc test count:%x, size:%x,total:%i64x,error:%d\r\n",cnt,size,total, err);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else {

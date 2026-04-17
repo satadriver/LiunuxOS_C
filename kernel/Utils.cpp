@@ -1029,7 +1029,7 @@ int __printf(char* buf,const char* format, ...) {
 	if (winfo) {
 		LPWINDOWCLASS window = winfo->window;
 		if (window) {
-			__drawWindowChars(buf, 0, window);
+			__drawWindowChars(buf, ~window->color, window);
 		}
 		else {
 			int endpos = __drawGraphChars((char*)buf, 0);

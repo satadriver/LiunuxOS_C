@@ -17,7 +17,7 @@
 #include "Thread.h"
 #include "systemService.h"
 #include "ml.h"
-
+#include "apicTimer.h"
 
 
 DWORD * gOicBase = 0;
@@ -329,7 +329,7 @@ extern "C" void __declspec(naked) HpetTimerHandler(LIGHT_ENVIRONMENT * stack) {
 		int value = *(int*)(APIC_HPET_BASE + 0x20);
 		if (value & 1)
 		{
-			//__k8254TimerProc();
+			__k8254TimerProc();
 			//__printf(szout,"hpet timer 0\r\n");
 		}
 		
@@ -1360,8 +1360,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
-
 	__asm {sti}
+	AdjustApicTimer();
+
+	
 
 	char* reg_esp_new = 0;
 	__asm {
@@ -1389,8 +1391,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
-
-	AdjustApicTimer();
 
 	while (1) {
 		__sleep(0);
@@ -1574,7 +1574,7 @@ LPPROCESS_INFO DebugCreateProcess() {
 		g_proc_info->fast_heap_large = 0;
 		//g_proc_info->fast_heap_large = (char*)malloc(debug_heap_size);
 
-		int total = 4;
+		int total = 6;
 		g_proc_info->lpHeapBase = &g_proc_info->heapBase;
 		for (int num = 0; num < total; num++) {
 			char * buf = (char*)malloc(debug_heap_size<< num);
@@ -1635,6 +1635,14 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 	*/
 }
 
+
+
+LPPROCESS_INFO GetCurrentTaskTssBaseId(int id) {
+
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)(TASK_TSS_BASE + tssSize * id);
+	return process;
+}
 
 int GetTssSize() {
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;

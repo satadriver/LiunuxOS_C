@@ -2,7 +2,7 @@
 #include "def.h"
 
 
-int HeapAllocTest(int cnt, unsigned long* total);
+int HeapAllocTest(int cnt,int size, unsigned long long* total);
 
 int getldt(char * szout);
 

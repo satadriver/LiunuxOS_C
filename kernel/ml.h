@@ -4,7 +4,7 @@
 
 
 
-#define ML_TASK_LIMIT			32
+#define ML_TASK_LIMIT			16
 
 #pragma pack(1)
 

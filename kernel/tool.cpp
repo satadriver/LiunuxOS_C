@@ -7,6 +7,9 @@
 #include "apic.h"
 
 
+
+
+
 int IpiSwitchTask(int src_tid)
 {
 	int ret = 0;

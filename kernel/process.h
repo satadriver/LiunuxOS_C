@@ -54,6 +54,8 @@ typedef struct
 
 	int cpuid;
 
+	int fcpu;
+
 	DWORD pid;
 
 	DWORD tid;

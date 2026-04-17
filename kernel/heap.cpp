@@ -38,13 +38,17 @@ DWORD __heapFree(char * heapBase,int heapLimit,DWORD addr) {
 
 	DWORD result = 0;
 
+	MS_HEAP_STRUCT* heap = (MS_HEAP_STRUCT*)((UCHAR*)addr - sizeof(MS_HEAP_STRUCT));
+	if ((DWORD)heap < (DWORD)heapBase) {
+		__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
+		return 0;
+	}
+
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	__enterSpinlock(tss->lpheap_lock);
 
 	if (addr >= (DWORD)heapBase && addr < (DWORD)heapBase + heapLimit) {
-
-		MS_HEAP_STRUCT* heap = (MS_HEAP_STRUCT*)((UCHAR*)addr - sizeof(MS_HEAP_STRUCT));
 
 		int heapSize = heap->size & HEAP_BUFFER_FREE;
 		int heapHdrSize = sizeof(MS_HEAP_STRUCT) << 1;

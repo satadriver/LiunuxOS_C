@@ -79,7 +79,7 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(4096)
+#define		TASK_PREDICTION_TRAIN	(8192)
 
 int g_train_complete = 0;
 
@@ -160,7 +160,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
-			__sleep(100);
+			__sleep(1000);
 		}
 	}
 
@@ -169,7 +169,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		if (addr) 
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
-			__sleep(100);
+			__sleep(1000);
 		}
 	}
 	for (int i = 0; i < 1; ++i) {
@@ -177,7 +177,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		if (addr)
 		{
 			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
-			__sleep(100);
+			__sleep(1000);
 		}
 	}
 

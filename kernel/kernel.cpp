@@ -194,7 +194,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
-	WaitOrKey(2, window.id, 0);
+	WaitOrKey(1, window.id, 0);
 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
@@ -265,7 +265,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 #define calloc my_calloc
 
 void testalloc() {
-	int cnt = 0x10000;
+	int cnt = 0x4000;
 	char** p = (char**)malloc(cnt*sizeof(int));
 	srand(time(0));
 	for (int i = 0; i < cnt; i++) {
@@ -297,7 +297,7 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 }
 #elif defined _CONSOLE
 int main() {
-	__kMachineLearning_rnn(0, 0, 0, 0, 0);
+	//__kMachineLearning_rnn(0, 0, 0, 0, 0);
 	testalloc();
 	return 0;
 }

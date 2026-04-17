@@ -348,6 +348,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	__strcpy(tss->funcname, funcname);
 
 	//enter_task_array_lock();
+	tss->fcpu = tss->cpuid;
 
 	tss->status = TASK_RUN;
 

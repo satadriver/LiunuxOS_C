@@ -48,7 +48,7 @@
 #include "CubeVector.h"
 #include "systemService.h"
 #include "apic.h"
-
+#include "apicTimer.h"
 
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
@@ -89,6 +89,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__MyTestTask(0, 0, 0, 0, 0);
 	//displayCCPoem();
 
+
+	g_task_switch_toggle = 1;
 	//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Process_Test_Main", 3, 0);
 
 	while (1)

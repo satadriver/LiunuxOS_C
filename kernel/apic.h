@@ -103,6 +103,8 @@ void setIoRedirect(int id, int idx, int vector, int mode);
 
 unsigned long long GetIoRedirect(int idx);
 
+LPPROCESS_INFO GetCurrentTaskTssBaseId(int id);
+
 void setIoApicID(int id);
 
 int IsBspProcessor();

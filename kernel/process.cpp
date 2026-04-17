@@ -409,6 +409,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->large_heap_size = 0;
 	tss->fast_heap_large = 0;
 
+	tss->fcpu = tss->cpuid;
+
 	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 
 	//enter_task_array_lock();

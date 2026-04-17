@@ -137,11 +137,13 @@ int initMemory() {
 }
 
 
-LPMEMALLOCINFO isAddrExist(DWORD addr,int size) {
+LPMEMALLOCINFO isAddrExist(DWORD front,int size) {
 
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gMemAllocList->list.next;
 
 	LPMEMALLOCINFO base = info;
+
+	DWORD back = front + size;
 
 	do
 	{
@@ -149,12 +151,15 @@ LPMEMALLOCINFO isAddrExist(DWORD addr,int size) {
 		{
 			return (LPMEMALLOCINFO)0;
 		}	
-		else if (info->addr == addr) 
+		else if ( (info->addr <= front) && ( info->addr + info->size > front) )
 		{
 			return info;
 		}
-		else if ( (info->addr < addr) && ( info->addr + info->size > addr) )
+		else if ((info->addr < back) && (info->addr + info->size >= back))
 		{
+			return info;
+		}
+		else if ((info->addr >= front) && (info->addr + info->size <= back)) {
 			return info;
 		}
 		else {
@@ -464,31 +469,30 @@ DWORD __malloc(DWORD s) {
 			return res;
 		}
 	}
-	
-	if (s < process->heapsize/4)
-	{
-		int cnt = *process->lpHeapCnt;
-		for (int num = 0; num < cnt; num++) {
 
-			CHAR* heapBase = (char*)process->lpHeapBase[num];
-			int heapLimit = process->heapsize << num;
-
+	int cnt = *process->lpHeapCnt;
+	for (int num = 0; num < cnt; num++) {
+		CHAR* heapBase = (char*)(process->lpHeapBase[num]);
+		int heapLimit = process->heapsize << num;
+		if (s < heapLimit/2) {
 			res = __heapAlloc(heapBase, heapLimit, s);
 			if (res) {
 				return res;
 			}
 		}
-
-		int seq = CreateHeap();
-		if (seq) {
-			int heapLimit = process->heapsize << seq;
-			char* heapBase = (char*)process->lpHeapBase[seq];
-			return __heapAlloc(heapBase, heapLimit,s);
+	}
+	int seq = CreateHeap();
+	if (seq) {
+		int heapLimit = process->heapsize << seq;
+		char* heapBase = (char*)(process->lpHeapBase[seq]);
+		res = __heapAlloc(heapBase, heapLimit, s);
+		if (res) {
+			return res;
 		}
-		else {
-			__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__,__LINE__);
-			return 0;
-		}
+	}
+	else {
+		__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__, __LINE__);
+		return 0;
 	}
 
 	int tag = PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT;
@@ -522,12 +526,12 @@ int __free(DWORD linearAddr) {
 	}
 
 	if (process->fast_heap_large && process->large_heap_size) {
-		if (linearAddr >= (DWORD)process->fast_heap_large && linearAddr < (DWORD)process->fast_heap_large + process->large_heap_size) {
+		if (linearAddr >= (DWORD)(process->fast_heap_large) && linearAddr < (DWORD)(process->fast_heap_large + process->large_heap_size) ) {
 			return fast_heap_free_large((char*)linearAddr);
 		}
 	}
 
-	for (int num = 0; num < *process->lpHeapCnt; num++) {
+	for (int num = 0; num < *(process->lpHeapCnt); num++) {
 		int heapLimit = process->heapsize << num;
 		char* heapBase = process->lpHeapBase[num];
 		if (linearAddr >= (DWORD)heapBase && linearAddr < (DWORD)heapBase + heapLimit)
