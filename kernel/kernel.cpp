@@ -46,7 +46,7 @@
 #include "des.h"
 #include "rc4.h"
 #include "libc.h"
-
+#include "tool.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -177,9 +177,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
 	}
 
-	//imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
-
 	//logFile("__kernelEntry\n");
 	
 	//ret = loadLibRunFun(LIUNUX_BASE_PATH "main.dll", "__kMainProcess");
@@ -197,30 +194,13 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
-	while (1)
-	{
-		break;
-
-		int ck = __kGetKbd(window.id)&0xff;
-		if (ck)
-			break;
-		if (ck==0x1b ) 
-		{
-			break;
-		}
-		__sleep(0);
-		
-	}
+	WaitOrKey(2, window.id, 0);
 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
 		imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
-
-
-	
-	
 
 	while (1)
 	{

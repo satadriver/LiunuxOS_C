@@ -657,6 +657,9 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 						}
 						__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
 					}
+					else if (cmd == IPI_SWITCHTASK) {
+
+					}
 					else if (cmd == IPI_TASKSWITCH) {
 						//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 					}

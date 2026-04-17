@@ -2,7 +2,7 @@
 #include "def.h"
 
 
-extern "C"  __declspec(dllexport) void __kSysRegs();
+int HeapAllocTest(int cnt, unsigned long* total);
 
 int getldt(char * szout);
 

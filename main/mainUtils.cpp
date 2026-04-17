@@ -8,6 +8,7 @@
 #include "core.h"
 #include "apic.h"
 #include "systemService.h"
+#include "libc.h"
 
 int getcrs(char * szout) {
 
@@ -378,6 +379,50 @@ int getidt(char * szout) {
 	return outlen;
 }
 
-void __kSysRegs() {
+#define malloc my_malloc
 
+#define free my_free
+
+#define realloc my_realloc
+
+#define calloc my_calloc
+
+#define printf my_printf
+
+
+int HeapAllocTest(int cnt,unsigned long * total) {
+
+	int err = 0;
+	*total = 0;
+
+	char buf[64];
+	char** p = (char**)malloc(cnt * sizeof(int));
+	if (p == 0) {
+		return err;
+	}
+
+	for (int i = 0; i < cnt; i++) {
+		int size = __random(0) % 0x10000;
+		p[i] = (char*)malloc(size);
+		__sprintf(p[i], "%x", p[i]);
+		if (p[i] == 0) {
+			printf("[%d] %s %d malloc address:%x,size:%x\r\n", i, __FUNCTION__,__LINE__, p[i], size);
+			err++;
+			continue;
+		}
+		(*total) += size;
+	}
+
+	for (int i = 0; i < cnt; i++) {
+		
+		__sprintf(buf, "%x", p[i]);
+		if (__strcmp(buf, p[i])) {
+			printf("[%d]:free address:%x,value:%s not equal:%s\r\n", i, p[i],p[i], buf);
+			err++;
+		}
+		free(p[i]);
+	}
+
+	free(p);
+	return err;
 }

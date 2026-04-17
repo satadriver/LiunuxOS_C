@@ -456,6 +456,16 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		GetCpuRatio(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "heapTest") == 0) {
+		DWORD cnt = 0x1000;
+		if (paramcnt >= 2){
+			cnt = __strh2i((unsigned char*)params[1]);
+		}
+		DWORD total = 0;
+		cnt = HeapAllocTest(cnt,&total);
+		__sprintf(szout, "HeapAlloc test total:%x,error:%d\r\n",total, cnt);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);
 	}

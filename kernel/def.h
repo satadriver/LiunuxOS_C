@@ -485,6 +485,7 @@ typedef struct  {
 #define IPI_CREATEPROCESS	1
 #define IPI_CREATETHREAD	2
 #define IPI_TASKSWITCH		3
+#define IPI_SWITCHTASK		4
 
 #define __sizeof(T) ( (size_t)(&T + 1) - (size_t)(&T) )
 

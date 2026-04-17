@@ -372,7 +372,9 @@ int __getFreeTask(LPTASKRESULT ret) {
 	ret->lptss = 0;
 	ret->number = 0;
 
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	
 	//enter_task_array_lock();
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);

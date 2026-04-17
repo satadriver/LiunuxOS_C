@@ -453,7 +453,7 @@ int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWO
 }
 
 
-int __kCreateProcessFromAddrFunc(DWORD filedata, int filesize,char * funcname,int syslevel, DWORD params) {
+int __kCreateProcessFromAddr(DWORD filedata, int filesize,char * funcname,int syslevel, DWORD params) {
  	char filename[1024];
 // 	__getDateTimeStr(filename);
 

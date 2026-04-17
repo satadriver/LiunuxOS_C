@@ -135,19 +135,19 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		TASKCMDPARAMS cmd2;
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
 		__ipiCreateThread((unsigned int)ml_addr2, KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
 	}
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		TASKCMDPARAMS cmd1;
 		__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
 		__ipiCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
 	}
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 1; i++) {
 		TASKCMDPARAMS cmd3;
 		__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
@@ -155,7 +155,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 3; ++i) {
+	for(int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
 		if (addr) 
 		{
@@ -164,7 +164,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		}
 	}
 
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
 		if (addr) 
 		{
@@ -172,7 +172,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 			__sleep(100);
 		}
 	}
-	for (int i = 0; i < 3; ++i) {
+	for (int i = 0; i < 1; ++i) {
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
 		if (addr)
 		{
@@ -184,6 +184,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
 		__sleep(1000);
 	}
+	//return 0;
 
 	char szout[256];
 
