@@ -294,7 +294,12 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[256];
 		if (g_undefined_opcode++ < 5) {
-			__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+			LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
+
+			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+			__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", __FUNCTION__, __LINE__,cpu,proc->tid,proc->filename,proc->funcname);
 		}
 
 		__kCoprocessor();

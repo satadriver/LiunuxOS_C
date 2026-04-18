@@ -198,42 +198,29 @@ void initCoprocessor() {
 //TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
 
-	/*
-	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
 	LPPROCESS_INFO pb = (LPPROCESS_INFO)GetTaskTssBase();
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	LPPROCESS_INFO proc = pb + current->tid;
 
-	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
+	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	char* fenv = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (current->tid << 9);
+	//LPPROCESS_INFO prev = pb + g_last_task_tid[id];
 
-	char* fenv_prev = (char*)FPU_STATUS_BUFFER + id * 512 * TASK_LIMIT_TOTAL + (g_last_task_tid[id] << 9);
-	*/
-	__asm {
-		clts
-		fnclex
-		//fninit
-
-		//mov eax, fenv_prev
-		//fxsave ds : [eax]
-
-		//mov eax, fenv
-		//fxrstor ds : [eax]
-	}
-
-	/*
+	char* fenv = (char*)g_fpu_status[id] + (proc->tid << 9);
+	
 	if (proc->fpu == 0)
 	{
-		proc->fpu ++;
+		current->fpu = 1;
+		proc->fpu = 1;
+
 		__asm {
-			clts
 			//fnclex
 			//fwait
 			fninit
+
+			clts
 
 			mov eax, fenv
 			//fsave [fenv]
@@ -244,17 +231,13 @@ void __kCoprocessor() {
 	}
 	else {		
 		__asm {
-			clts
-			//fnclex
-			//fwait
 			fninit
-
+			clts
 			mov eax,fenv
 			//frstor [fenv]
 			fxrstor ds:[eax]
 		}
 	}
-	*/
 }
 
 

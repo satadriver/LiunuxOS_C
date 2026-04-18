@@ -79,7 +79,7 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
-#define		TASK_PREDICTION_TRAIN	(8192)
+
 
 int g_train_complete = 0;
 
@@ -135,7 +135,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 16; i++) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d", i);
 		TASKCMDPARAMS cmd2;
@@ -147,7 +147,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 8; ++i) {
+	for(int i = 0; i < 16; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d_main", i);
 
@@ -200,7 +200,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 			y[i][j] = 0.0;
 		}
 		int idx  = g_ml_data[i].result;
-		y[i][idx] = 1.0;
+		if(idx != -1)
+			y[i][idx] = 1.0;
 	}
 
 	// train
@@ -231,8 +232,10 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 				g_ml_data[i].task[j].delta, g_ml_data[i].task[j].priority,max, g_ml_data[i].result,num);
 		}
 #endif
-		if(num != g_ml_data[i].result) {
-			n_err++;
+		if (g_ml_data[i].result != -1) {
+			if (num != g_ml_data[i].result) {
+				n_err++;
+			}
 		}
 	}
 

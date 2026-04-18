@@ -491,6 +491,7 @@ int IpiTaskSchedule(int id) {
 int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 {
 	int ret = 0;
+	char szout[256];
 	int id = GetIdleProcessor();
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if (cpu == id) {
@@ -523,7 +524,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 #ifdef _DEBUG
-			char szout[256];
+			
 			__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
 #endif
 			return TRUE;
@@ -531,6 +532,8 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	}
 
 	__leaveSpinlock(&g_ipi_lock[id]);
+
+	__printf(szout, "%s cpu:%d  function:%s error\r\n", __FUNCTION__, id, funname);
 	
 	return 0;
 }
@@ -540,7 +543,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p)
 {
 	int ret = 0;
-
+	char szout[256];
 	int id = 0;
 	if (base) {
 		int petype = getPeType(base);
@@ -589,7 +592,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
 #ifdef _DEBUG
-			char szout[256];
+			
 			__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", 
 				__FUNCTION__, id, subparam->base, subparam->size, subparam->base, &subparam->base, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 #endif
@@ -597,7 +600,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 			return TRUE;
 		}
 	}
-
+	__printf(szout, "%s cpu:%d  function:%s error\r\n",__FUNCTION__, id, func);
 	__leaveSpinlock(&g_ipi_lock[id]);
 	
 	return 0;
@@ -606,7 +609,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
-
+		cli
 		pushad
 		push ds
 		push es
@@ -679,7 +682,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 				else {
 
 				}
-				break;
+				//break;
 			}	
 		}
 		__leaveSpinlock(&g_ipi_lock[cpu]);
@@ -2006,6 +2009,7 @@ PROCESS_INFO * GetReadyProcess() {
 		int n = 0;
 		for ( n = 0; n < times; n++) {
 			int idx = n * ML_TASK_LIMIT;
+			tp.result = -1;
 			for (int i = idx; i <  idx+ ML_TASK_LIMIT; i++) {
 				int pid = tickc[i].id;
 				float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)STATIC_PRIORITY;
@@ -2031,6 +2035,7 @@ PROCESS_INFO * GetReadyProcess() {
 		}
 		
 		n = times * ML_TASK_LIMIT;
+		tp.result = -1;
 		for (int i = n; i < n + mod; i++) {
 			int pid = tickc[i].id;
 			float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)STATIC_PRIORITY;
