@@ -125,7 +125,7 @@
 #define APIC_LVTCMCI_VECTOR			(APIC_IPI_VECTOR+5)
 #define APIC_SPURIOUS_VECTOR		0XFF
 
-#define TASK_SWITCH_VECTOR			0XFD
+#define TASK_SCHEDULE_VECTOR		0XFD
 
 #define STACK_TOP_DUMMY				0x10
 #define TASK_STACK0_SIZE 			0x1000
@@ -484,8 +484,7 @@ typedef struct  {
 
 #define IPI_CREATEPROCESS	1
 #define IPI_CREATETHREAD	2
-#define IPI_TASKSWITCH		3
-#define IPI_SWITCHTASK		4
+
 
 #define __sizeof(T) ( (size_t)(&T + 1) - (size_t)(&T) )
 
