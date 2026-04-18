@@ -591,7 +591,7 @@ char* InitIDT() {
 	makeIntGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
 
-	makeIntGateDescriptor((DWORD)ApTaskSchedule, KERNEL_MODE_CODE, 3, descriptor + TASK_SWITCH_VECTOR);
+	makeIntGateDescriptor((DWORD)ApTaskSchedule, KERNEL_MODE_CODE, 3, descriptor + TASK_SCHEDULE_VECTOR);
 	
 	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
 	

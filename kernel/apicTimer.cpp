@@ -159,6 +159,14 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 	int src_id = (int)times[counter - 1].id;
 
 	int dst_id = (int)times[0].id;
+	double src_fv = times[counter - 1].fv;
+	double dst_fv = times[0].fv;
+	if (src_fv - dst_fv > 0.1) {
+
+	}
+	else {
+		return 0;
+	}
 
 	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);
 
@@ -230,7 +238,6 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 				__printf(szout, "%s copy cpu:%d tid:%d to cpu:%d tid:%d,is_src_proc:%d,is_src_cur:%d\r\n",
 					__FUNCTION__, src_id, src_tid, dst_id, dst_tid, is_src_proc, is_src_cur);
 				break;
-				
 			}
 		}
 

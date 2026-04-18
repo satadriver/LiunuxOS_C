@@ -476,7 +476,10 @@ int InitIoApicRte() {
 }
 
 
-
+int IpiTaskSchedule(int id) {
+	SetIcr(id, TASK_SCHEDULE_VECTOR, 0, 0);
+	return 0;
+}
 
 
 int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
@@ -667,12 +670,6 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 						}
 						__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
-					}
-					else if (cmd == IPI_SWITCHTASK) {
-
-					}
-					else if (cmd == IPI_TASKSWITCH) {
-						//__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 					}
 					else {
 

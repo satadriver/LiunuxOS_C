@@ -139,6 +139,7 @@ extern "C" void __declspec(dllexport) LVTPerformanceIntHandler(LIGHT_ENVIRONMENT
 
 extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 
+int IpiTaskSchedule(int id);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
