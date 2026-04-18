@@ -476,6 +476,12 @@ int InitIoApicRte() {
 }
 
 
+int __kYield() {
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	SetIcr(cpu, TASK_SCHEDULE_VECTOR, 0, 0);
+	return 0;
+}
+
 int IpiTaskSchedule(int id) {
 	SetIcr(id, TASK_SCHEDULE_VECTOR, 0, 0);
 	return 0;
@@ -625,60 +631,59 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	{
 		char szout[256];
 		int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		int ret = __enterSpinlock(&g_ipi_lock[cpu]);
-		//if (ret) 
-		{
-			IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[cpu];
-			for (int i = 0; i < IPI_MSG_LIMIT; i++) {
-				if (msg[i].valid && msg[i].id == cpu) {
+		__enterSpinlock(&g_ipi_lock[cpu]);
 
-					int cmd = msg[i].cmd;
+		IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[cpu];
+		for (int i = 0; i < IPI_MSG_LIMIT; i++) {
+			if (msg[i].valid && msg[i].id == cpu) {
 
-					msg[i].valid = 0;
+				int cmd = msg[i].cmd;
 
-					//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+				msg[i].valid = 0;
 
-					if (cmd == IPI_CREATEPROCESS) {
-						IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
-						DWORD base = (DWORD)subparam->base;
-						DWORD size = subparam->size;
-						char* fn = subparam->filename;
-						char* funcname = subparam->funcname;
-						int level = subparam->level;
-						char* p = (char*)subparam->lpparam;
+				//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
 
-						//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
+				if (cmd == IPI_CREATEPROCESS) {
+					IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
+					DWORD base = (DWORD)subparam->base;
+					DWORD size = subparam->size;
+					char* fn = subparam->filename;
+					char* funcname = subparam->funcname;
+					int level = subparam->level;
+					char* p = (char*)subparam->lpparam;
 
-						if (__findProcessFileName(subparam->funcname) == FALSE)
-						{
-							//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
-						}
-						__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
+					//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
+
+					if (__findProcessFileName(subparam->funcname) == FALSE)
+					{
+						//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
 					}
-					else if (cmd == IPI_CREATETHREAD) {
-
-						IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
-						DWORD module = (DWORD)subparam->module;
-						DWORD addr = subparam->addr;
-						char* funcname = subparam->funcname;
-						char* p = (char*)subparam->lpparam;
-
-						//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
-
-						if (__findProcessFileName(funcname) == FALSE)
-						{
-
-						}
-						__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
-					}
-					else {
-
-					}
+					__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
 				}
-			}
-			__leaveSpinlock(&g_ipi_lock[cpu]);
+				else if (cmd == IPI_CREATETHREAD) {
+
+					IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
+					DWORD module = (DWORD)subparam->module;
+					DWORD addr = subparam->addr;
+					char* funcname = subparam->funcname;
+					char* p = (char*)subparam->lpparam;
+
+					//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
+
+					if (__findProcessFileName(funcname) == FALSE)
+					{
+
+					}
+					__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
+				}
+				else {
+
+				}
+				break;
+			}	
 		}
-		
+		__leaveSpinlock(&g_ipi_lock[cpu]);
+
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;	
 	}
 
