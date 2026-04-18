@@ -135,48 +135,26 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i < 8; i++) {
+		char tn[256];
+		__sprintf(tn, "TestThread%d", i);
 		TASKCMDPARAMS cmd2;
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
-		DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, "TestThread2");
-		__ipiCreateThread((unsigned int)ml_addr2, KERNEL_DLL_BASE, (DWORD)&cmd2, "TestThread2");
-	}
-	for (int i = 0; i < 1; i++) {
-		TASKCMDPARAMS cmd1;
-		__memset((char*)&cmd1, 0, sizeof(TASKCMDPARAMS));
-		DWORD ml_addr1 = getAddrFromName(KERNEL_DLL_BASE, "TestThread1");
-		__ipiCreateThread((unsigned int)ml_addr1, KERNEL_DLL_BASE, (DWORD)&cmd1, "TestThread1");
-	}
-	for (int i = 0; i < 1; i++) {
-		TASKCMDPARAMS cmd3;
-		__memset((char*)&cmd3, 0, sizeof(TASKCMDPARAMS));
-		DWORD ml_addr3 = getAddrFromName(KERNEL_DLL_BASE, "TestThread3");
-		__ipiCreateThread((unsigned int)ml_addr3, KERNEL_DLL_BASE, (DWORD)&cmd3, "TestThread3");
+		DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, tn);
+		if (ml_addr2) {
+			__ipiCreateThread((unsigned int)ml_addr2, KERNEL_DLL_BASE, (DWORD)&cmd2, tn);
+		}
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 1; ++i) {
-		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread1_main");
-		if (addr) 
-		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread1_main", 3, 0);
-			__sleep(1000);
-		}
-	}
+	for(int i = 0; i < 8; ++i) {
+		char tn[256];
+		__sprintf(tn, "TestThread%d_main", i);
 
-	for (int i = 0; i < 1; ++i) {
-		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread2_main");
+		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (addr) 
 		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread2_main", 3, 0);
-			__sleep(1000);
-		}
-	}
-	for (int i = 0; i < 1; ++i) {
-		DWORD addr = getAddrFromName(MAIN_DLL_BASE, "TestThread3_main");
-		if (addr)
-		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "TestThread3_main", 3, 0);
+			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
 			__sleep(1000);
 		}
 	}
@@ -435,7 +413,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_common(unsigned int reta
 }
 
 
-extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int TestThread0(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	
 	while (1) {
 		__sleep(0);
@@ -446,7 +424,7 @@ extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, 
 
 	return 0;
 }
-extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	float f1 = PI;
 	while (1) {
@@ -459,7 +437,150 @@ extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, 
 	return 0;
 }
 
+extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
 extern "C" __declspec(dllexport) int TestThread3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread4(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread5(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+extern "C" __declspec(dllexport) int TestThread6(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread7(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}extern "C" __declspec(dllexport) int TestThread8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+
+	while (1) {
+		__sleep(0);
+		__asm {
+			//hlt
+		}
+	}
+
+	return 0;
+}
+extern "C" __declspec(dllexport) int TestThread9(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+{
+	float f1 = PI;
+	while (1) {
+		f1 = sinf(f1 / 3);
+		if (f1 < 0.00001f && f1 > -0.00001f) {
+			f1 = PI;
+		}
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread10(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread11(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread12(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread13(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+extern "C" __declspec(dllexport) int TestThread14(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread15(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {

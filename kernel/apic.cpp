@@ -26,7 +26,7 @@ char * gRcbaBase = 0;
 
 DWORD* gHpetBase = 0;
 
-int g_ini_cmd_lock = 0;
+int g_ipi_cmd_lock = 0;
 
 int g_allocate_ap_lock = 0;
 
@@ -402,7 +402,7 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 
 void SetIcr(int cpu,int vector,int mode,int destType) {
 
-	__enterSpinlock(&g_ini_cmd_lock);
+	//__enterSpinlock(&g_ipi_cmd_lock);
 
 	WaitIcrFree();
 
@@ -432,7 +432,7 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 	char szout[256];
 	//__printf(szout, "%s cpu:%x result:%x\r\n", __FUNCTION__, cpu, v);
 
-	__leaveSpinlock(&g_ini_cmd_lock);
+	//__leaveSpinlock(&g_ipi_cmd_lock);
 
 	return;
 }
@@ -483,6 +483,11 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 {
 	int ret = 0;
 	int id = GetIdleProcessor();
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (cpu == id) {
+		ret = __kCreateThread((DWORD)addr, (DWORD)module, p, funname);
+		return ret;
+	}
 
 	__enterSpinlock(&g_ipi_lock[id]);
 
@@ -540,6 +545,12 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 	}
 	else {
 		id = GetIdleProcessor();
+	}
+
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (cpu == id) {
+		ret = __kCreateProcess((DWORD)base, (DWORD)size,fn,func,level, p);
+		return ret;
 	}
 
 	__enterSpinlock(&g_ipi_lock[id]);
@@ -1901,6 +1912,7 @@ PROCESS_INFO * GetReadyProcess() {
 			else {
 				double ratio = 0.0;
 				if (ptr->tick == 0) {
+					ptr->delta = DYNAMIC_PRIORITY;
 					ratio = 1.0;
 				}
 				else {

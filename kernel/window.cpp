@@ -237,6 +237,7 @@ int InsertWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 		InsertListTail(&gWindowsList->list, &window->list);
 
 		//__printf(szout, "%s id:%x,name:%s\r\n", __FUNCTION__, seq, window->window->winname);
+		IncreaseDelta(GRAPH_PRIORITY);
 	}
 	else
 	{
