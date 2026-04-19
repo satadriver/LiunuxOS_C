@@ -24,7 +24,6 @@
 #include "../libc.h"
 #include "../def.h"
 #include "../math.h"
-#include "../malloc.h"
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf

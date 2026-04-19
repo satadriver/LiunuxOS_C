@@ -39,7 +39,7 @@
 #include "pcnet.h"
 #include "systemService.h"
 #include "pe64.h"
-#include "ml.h"
+#include "deepLearning.h"
 #include "base64.h"
 #include "md5.h"
 #include "aes.h"
@@ -171,10 +171,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
 		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
-		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
-
 		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning_mlp");
-		__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
+		//__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
+		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");

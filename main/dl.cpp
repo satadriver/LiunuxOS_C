@@ -1,18 +1,23 @@
 
-#include "ml.h"
+#include "dl.h"
 #include "kann-master/kann.h"
 #include "apic.h"
 
 #ifdef _DEBUG
+
+#include <stdio.h>
+#include <stdlib.h>
+
+
 #include "process.h"
-#include "math.h"
 #include "systemService.h"
 #include "task.h"
 #include "Pe.h"
 #include "Thread.h"
+#include "utils.h"
+#include <string.h>
 
-#include "libc.h"
-#include "malloc.h"
+#include <math.h>
 #else
 #include "math.h"
 #include "systemService.h"
@@ -23,10 +28,8 @@
 
 #include "libc.h"
 #include "malloc.h"
+#include "deepLearning.h"
 
-#endif
-
-//#include <windows.h>
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
@@ -75,86 +78,54 @@
 #define fgetc my_fgetc
 #define fgets my_fgets
 #define fputs my_fputs
+#endif
+
+
+
 
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
 
 
-int g_train_complete = 0;
-
-TaskPredictParam* g_ml_data = 0;
-
-int g_ml_data_cnt = 0;
 
 
-int SaveMlData(TaskPredictParam * tp)
-{
-	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
-	}
-
-	if (g_ml_data != 0 && g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
-		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictParam));
-
-		if (g_ml_data_cnt % 100 == 0) {
-
-		}
-
-		g_ml_data_cnt++;
-	}
-
-	return g_ml_data_cnt;
-}
 
 
-kann_t* ann = 0;
 
 
-int TaskSwitchPrediction(TaskPredictParam* tp) {
-	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
-	int n_samples = TASK_PREDICTION_TRAIN;
-	int outSize = ML_TASK_LIMIT;
-	
-	int n_err = 0;
 
-	const float* y1 = kann_apply1(ann, (float*)tp);
 
-	float max = -1.0;
-	int num = 0;
-	for (int j = 0; j < outSize; j++) {
-		if (y1[j] > max) {
-			max = y1[j];
-			num = j;
-		}
-	}
-	return num;
-}
+
 
 extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	for (int i = 0; i < 16; i++) {
+	if (g_dl_ann) {
+		free(g_dl_ann);
+	}
+
+	for (int i = 0; i < 8; i++) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d", i);
 		TASKCMDPARAMS cmd2;
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
-		DWORD ml_addr2 = getAddrFromName(KERNEL_DLL_BASE, tn);
+		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (ml_addr2) {
-			__ipiCreateThread((unsigned int)ml_addr2, KERNEL_DLL_BASE, (DWORD)&cmd2, tn);
+			__ipiCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
 		}
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 16; ++i) {
+	for(int i = 0; i < 8; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d_main", i);
 
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (addr) 
 		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
 			__sleep(1000);
 		}
 	}
@@ -162,7 +133,6 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
 		__sleep(1000);
 	}
-	//return 0;
 
 	char szout[256];
 
@@ -185,7 +155,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 	t = kann_layer_cost(t, outSize, KANN_C_CEM); // output uses 1-hot encoding
 
-	ann = kann_new(t, 0);
+	g_dl_ann = kann_new(t, 0);
 
 	// generate training data
 	x = (float**)calloc(n_samples, sizeof(float*));
@@ -205,7 +175,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	}
 
 	// train
-	kann_train_fnn1(ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(g_dl_ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
 
 	// predict
 	n_samples = TASK_PREDICTION_TRAIN;
@@ -214,7 +184,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	for (i = 0; i < n_samples; ++i) {
 		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
-		const float* y1 = kann_apply1(ann, x1);
+		const float* y1 = kann_apply1(g_dl_ann, x1);
 
 		float max = -1.0;
 		int num = 0;
@@ -431,7 +401,7 @@ extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, 
 {
 	float f1 = PI;
 	while (1) {
-		f1 = sinf(f1/3);
+		f1 = sin(f1/3);
 		if(f1 < 0.00001f && f1 > -0.00001f) {
 			f1 = PI;
 		}
@@ -519,7 +489,7 @@ extern "C" __declspec(dllexport) int TestThread9(unsigned int retaddr, int tid, 
 {
 	float f1 = PI;
 	while (1) {
-		f1 = sinf(f1 / 3);
+		f1 = sin(f1 / 3);
 		if (f1 < 0.00001f && f1 > -0.00001f) {
 			f1 = PI;
 		}
@@ -589,6 +559,224 @@ extern "C" __declspec(dllexport) int TestThread15(unsigned int retaddr, int tid,
 	while (1) {
 		DWORD tick = __random(0);
 		memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+extern "C" __declspec(dllexport) int TestThread0_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+		//Halt();
+		__asm {
+			//hlt
+		}
+	}
+
+	return 0;
+}
+extern "C" __declspec(dllexport) int TestThread2_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+{
+	float f1 = PI;
+	while (1) {
+		f1 = __sinf(f1 / 3);
+		if (f1 < 0.00001f && f1 > -0.00001f) {
+			f1 = PI;
+		}
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread3_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+
+
+
+extern "C" __declspec(dllexport) int TestThread4_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread5_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread6_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread7_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread8_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread9_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+
+extern "C" __declspec(dllexport) int TestThread10_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread11_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread12_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread13_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestThread14_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		__sleep(0);
+	}
+	return 0;
+}
+
+
+extern "C" __declspec(dllexport) int TestThread15_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
 		__sleep(0);
 	}
 	return 0;

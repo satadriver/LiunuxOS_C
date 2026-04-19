@@ -119,7 +119,7 @@ typedef struct
 	int* lpHeapCnt;
 	int heapCnt;
 	char** lpHeapBase;
-	char* heapBase;
+	DWORD heapBase[12];
 
 }PROCESS_INFO,*LPPROCESS_INFO;
 

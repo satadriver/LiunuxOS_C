@@ -226,7 +226,7 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 					dst_tss[i].pid = dst_tid;
 					dst_tss[i].lpvasize = &dst_tss[i].va_size;
 
-					dst_tss[i].lpHeapBase = &dst_tss[i].heapBase;
+					dst_tss[i].lpHeapBase = (char**)dst_tss[i].heapBase;
 
 					dst_tss[i].lpHeapCnt = &dst_tss[i].heapCnt;
 

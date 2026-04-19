@@ -16,7 +16,7 @@
 #include "peVirtual.h"
 #include "Thread.h"
 #include "systemService.h"
-#include "ml.h"
+#include "deeplearning.h"
 #include "apicTimer.h"
 
 
@@ -1591,7 +1591,7 @@ LPPROCESS_INFO DebugCreateProcess() {
 		//g_proc_info->fast_heap_large = (char*)malloc(debug_heap_size);
 
 		int total = 6;
-		g_proc_info->lpHeapBase = &g_proc_info->heapBase;
+		g_proc_info->lpHeapBase =(char**) & g_proc_info->heapBase[0];
 		for (int num = 0; num < total; num++) {
 			char * buf = (char*)malloc(debug_heap_size<< num);
 			if (buf) {

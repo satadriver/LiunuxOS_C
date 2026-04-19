@@ -333,7 +333,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
 
-	tss->lpHeapBase = &tss->heapBase;
+	tss->lpHeapBase = (char**)tss->heapBase;
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	__memset((char*)heapbase, 0, HEAP_SIZE);
 

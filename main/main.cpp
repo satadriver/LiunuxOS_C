@@ -5,6 +5,8 @@
 #include "utils.h"
 #include "mouse.h"
 #include "gdi/jpeg.h"
+#include "dl.h"
+#include "mainUtils.h"
 
 #pragma comment(lib,"../release/kernel.lib")
 
@@ -24,9 +26,11 @@ int __stdcall DllMain(unsigned int hInstance, unsigned int fdwReason, unsigned i
 #else
 int __stdcall WinMain(unsigned int hInstance, unsigned int hPrevInstance, char * lpCmdLine, int nShowCmd)
 {
+	unsigned long long total = 0;
+	HeapAllocTest(0x100, 0x10000, &total);
 #ifdef _DEBUG
 
-	testjpeg();
+	//testjpeg();
 #endif
 	return 1;
 }

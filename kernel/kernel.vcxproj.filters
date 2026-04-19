@@ -267,7 +267,7 @@
     <ClCompile Include="Animation.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ml.cpp">
+    <ClCompile Include="DeepLearning.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="tool.cpp">
@@ -491,7 +491,7 @@
     <ClInclude Include="Animation.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="ml.h">
+    <ClInclude Include="DeepLearning.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="tool.h">

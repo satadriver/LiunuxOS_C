@@ -43,6 +43,9 @@
     <Filter Include="头文件\fat12">
       <UniqueIdentifier>{a26b854d-5265-4931-af43-3cdcfec8fd59}</UniqueIdentifier>
     </Filter>
+    <Filter Include="kann">
+      <UniqueIdentifier>{dd40d48e-55ba-4cf4-bd3e-2aae46196714}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -129,6 +132,15 @@
     <ClCompile Include="render.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="kann-master\kann.cpp">
+      <Filter>kann</Filter>
+    </ClCompile>
+    <ClCompile Include="kann-master\kautodiff.cpp">
+      <Filter>kann</Filter>
+    </ClCompile>
+    <ClCompile Include="dl.cpp">
+      <Filter>kann</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gdi\jpeg.h">
@@ -214,6 +226,15 @@
     </ClInclude>
     <ClInclude Include="render.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="kann-master\kann.h">
+      <Filter>kann</Filter>
+    </ClInclude>
+    <ClInclude Include="kann-master\kautodiff.h">
+      <Filter>kann</Filter>
+    </ClInclude>
+    <ClInclude Include="dl.h">
+      <Filter>kann</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

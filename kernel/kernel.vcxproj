@@ -28,7 +28,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141_xp</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -229,7 +229,7 @@
     <ClCompile Include="libc.h" />
     <ClCompile Include="ListArray.cpp" />
     <ClCompile Include="md5.cpp" />
-    <ClCompile Include="ml.cpp" />
+    <ClCompile Include="DeepLearning.cpp" />
     <ClCompile Include="parallel.cpp" />
     <ClCompile Include="pcnet.cpp" />
     <ClCompile Include="pe64.cpp" />
@@ -304,7 +304,7 @@
     <ClInclude Include="kann-master\kautodiff.h" />
     <ClInclude Include="ListArray.h" />
     <ClInclude Include="md5.h" />
-    <ClInclude Include="ml.h" />
+    <ClInclude Include="DeepLearning.h" />
     <ClInclude Include="parallel.h" />
     <ClInclude Include="pcnet.h" />
     <ClInclude Include="pe64.h" />

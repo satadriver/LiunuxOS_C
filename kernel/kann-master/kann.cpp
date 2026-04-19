@@ -27,7 +27,6 @@ FILE _iob[3];
 #else
 #include "../math.h"
 #include "../libc.h"
-#include "../malloc.h"
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
