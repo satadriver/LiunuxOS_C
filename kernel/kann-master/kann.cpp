@@ -12,21 +12,15 @@
 #include "kann.h"
 
 #ifdef _DEBUG
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdarg.h>
 
-FILE _iob[3];
+#include "../math.h"
+#include "../libc.h"
+
 
 #else
 #include "../math.h"
 #include "../libc.h"
+#endif
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
@@ -75,10 +69,16 @@ FILE _iob[3];
 #define fgets my_fgets
 #define fputs my_fputs
 
+
+
+
 FILE _iob[3];
 
-//#pragma comment(lib,"kernel.lib")
-#endif
+// 标准流宏定义
+#define stdin   (&_iob[0])
+#define stdout  (&_iob[1])
+#define stderr  (&_iob[2])
+
 
 
 

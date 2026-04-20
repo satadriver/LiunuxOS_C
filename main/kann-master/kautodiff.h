@@ -32,9 +32,8 @@
 #include "def.h"
 #include "libc.h"
 #else
-#include <stdio.h>
-#include <stdint.h>
-#include <math.h>
+#include "def.h"
+#include "libc.h"
 #endif
 //#define __SSE__
 

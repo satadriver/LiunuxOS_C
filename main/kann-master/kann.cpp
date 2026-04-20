@@ -12,20 +12,13 @@
 #include "kann.h"
 
 #ifdef _DEBUG
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdarg.h>
 
+#include "math.h"
+#include "libc.h"
 #else
 #include "math.h"
 #include "libc.h"
-
+#endif
 #define sqrt __sqrt
 #define sqrtf __sqrtf
 #define exp __exp
@@ -76,7 +69,7 @@
 FILE _iob[3];
 
 //#pragma comment(lib,"kernel.lib")
-#endif
+
 
 
 

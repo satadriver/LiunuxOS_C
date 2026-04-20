@@ -171,9 +171,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
 		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
-		DWORD ml_addr = getAddrFromName(KERNEL_DLL_BASE, "__kMachineLearning_mlp");
+		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kMachineLearning_mlp");
 		//__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
 		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
+		__sleep(1000);
 	}
 
 	//logFile("__kernelEntry\n");
@@ -239,33 +240,20 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 }
 
 
-
-
 #ifdef _DEBUG
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#pragma intrinsic(malloc)  // 启用内部函数
-#pragma function(malloc)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(free)  // 启用内部函数
-#pragma function(free)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(realloc)  // 启用内部函数
-#pragma function(realloc)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(calloc)  // 启用内部函数
-#pragma function(calloc)   // 强制使用函数调用而不是内部函数
-
 #define malloc my_malloc
 #define free my_free
 #define realloc my_realloc
 #define calloc my_calloc
+#define printf my_printf
 
 void testalloc() {
-	int cnt = 0x4000;
-	char** p = (char**)malloc(cnt*sizeof(int));
+	int cnt = 0x1000;
+	char** p = (char**)malloc(cnt * sizeof(int));
 	srand(time(0));
 	for (int i = 0; i < cnt; i++) {
 		int size = rand() % 0x10000;
@@ -274,7 +262,7 @@ void testalloc() {
 		if (p[i] == 0) {
 			printf("[%d] malloc address:%x,size:%x\r\n", i, p[i], size);
 		}
-		
+
 	}
 
 	for (int i = 0; i < cnt; i++) {
@@ -288,7 +276,8 @@ void testalloc() {
 	}
 }
 
-#endif
+
+#endif 
 
 #ifdef _USRDLL
 int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserved) {

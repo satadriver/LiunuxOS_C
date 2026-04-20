@@ -5,19 +5,16 @@
 
 #ifdef _DEBUG
 
-#include <stdio.h>
-#include <stdlib.h>
-
-
+#include "math.h"
 #include "process.h"
 #include "systemService.h"
 #include "task.h"
 #include "Pe.h"
 #include "Thread.h"
 #include "utils.h"
-#include <string.h>
 
-#include <math.h>
+
+
 #else
 #include "math.h"
 #include "systemService.h"
@@ -29,7 +26,7 @@
 #include "libc.h"
 #include "malloc.h"
 #include "deepLearning.h"
-
+#endif
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
@@ -78,7 +75,7 @@
 #define fgetc my_fgetc
 #define fgets my_fgets
 #define fputs my_fputs
-#endif
+
 
 
 

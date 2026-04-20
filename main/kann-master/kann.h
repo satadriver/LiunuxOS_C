@@ -26,8 +26,7 @@
 */
 
 #ifdef _DEBUG
-#include <stdio.h>
-#include <math.h>
+#include "libc.h"
 #else
 #include "libc.h"
 #endif

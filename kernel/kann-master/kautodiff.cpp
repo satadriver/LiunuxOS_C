@@ -13,18 +13,13 @@
 
 #ifdef _DEBUG
 #include "../libc.h"
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdarg.h>
-#include <string.h>
-#include <float.h>
+#include "../def.h"
+#include "../math.h"
 #else
 #include "../libc.h"
 #include "../def.h"
 #include "../math.h"
-
+#endif
 #define sqrt __sqrt
 #define sqrtf __sqrtf
 #define exp __exp
@@ -73,7 +68,7 @@
 #define fputs my_fputs
 
 
-#endif
+
 
 
 

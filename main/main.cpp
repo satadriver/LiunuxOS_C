@@ -24,7 +24,8 @@ int __stdcall DllMain(unsigned int hInstance, unsigned int fdwReason, unsigned i
 	return 1;
 }
 #else
-int __stdcall WinMain(unsigned int hInstance, unsigned int hPrevInstance, char * lpCmdLine, int nShowCmd)
+//int __stdcall WinMain(unsigned int hInstance, unsigned int hPrevInstance, char * lpCmdLine, int nShowCmd)
+int main()
 {
 	unsigned long long total = 0;
 	HeapAllocTest(0x100, 0x10000, &total);

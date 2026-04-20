@@ -31,7 +31,7 @@
 #define KANN_H
 
 #ifdef _DEBUG
-#include <stdio.h>
+#include "../libc.h"
 #else
 #include "../libc.h"
 #endif

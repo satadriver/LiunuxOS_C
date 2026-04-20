@@ -409,15 +409,16 @@ int getidt(char * szout) {
 }
 
 #ifdef _DEBUG
-#include <stdio.h>
-#include <stdlib.h>
+
 #else
+
+#endif
+
 #define malloc my_malloc
 #define free my_free
 #define realloc my_realloc
 #define calloc my_calloc
 #define printf my_printf
-#endif
 
 int HeapAllocTest(int cnt,int max,unsigned long long * total) {
 

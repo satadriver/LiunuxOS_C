@@ -6,9 +6,8 @@
 #include "memory.h"
 #include "Utils.h"
 #include "apic.h"
-#include <stdlib.h>
 #include <stdio.h>
-#define __printf sprintf
+#include <stdlib.h>
 #else
 #include "heap.h"
 #include "malloc.h"
@@ -350,6 +349,8 @@ int CreateHeap() {
 		seq = *tss->lpHeapCnt;
 		int allocSize = tss->heapsize << seq;
 #ifdef _DEBUG
+
+
 		buf = (char*)malloc(allocSize);
 
 #else		

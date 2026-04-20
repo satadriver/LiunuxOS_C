@@ -288,7 +288,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			if ( (unsigned long long)addr + size > gAvailableBase + gAvailableSize)
 			{
 				res = -1;
-				//__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%I64x,size:%I64x\r\n", addr, size, gAvailableBase, gAvailableSize);
+				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%I64x,size:%I64x\r\n", addr, size, gAvailableBase, gAvailableSize);
 				break;
 			}
 
@@ -424,7 +424,7 @@ DWORD __kMalloc(DWORD s) {
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD ret = __kProcessMalloc(s, &size, process->pid, process->cpuid, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (ret == 0) {	
-		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
+		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
 	}
 	else {
 		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
@@ -492,7 +492,7 @@ DWORD __malloc(DWORD s) {
 		}
 	}
 	else {
-		//__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__, __LINE__);
+		__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__, __LINE__);
 		return 0;
 	}
 
@@ -539,6 +539,17 @@ int __free(DWORD linearAddr) {
 		{
 			return __heapFree(heapBase, heapLimit,linearAddr);
 		}
+	}
+
+	if (g_alloc_err++ < 0x100) {
+		int cnt = *process->lpHeapCnt;
+		for (int num = 0; num < cnt; num++) {
+			CHAR* heapBase = (char*)(process->lpHeapBase[num]);
+			int heapLimit = process->heapsize << num;
+			__printf(szout,"[%d] heap base:%x heap size:%x linearAddr:%x\r\n",num, heapBase, heapLimit, linearAddr);
+		}
+
+		__printf(szout, "fast heap base:%x heap size:%x linearAddr:%x\r\n", process->fast_heap, process->heapsize, linearAddr);
 	}
 
 	__enterSpinlock(&gMemAllocLock);

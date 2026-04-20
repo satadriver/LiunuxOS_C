@@ -4,11 +4,14 @@
 #include "math.h"
 
 #ifdef _DEBUG
-#include <stdio.h>
-#include <float.h>
+#include "libc.h"
+#include "def.h"
 #else
 #include "libc.h"
 #include "def.h"
+
+
+#endif
 
 #define malloc my_malloc
 #define free my_free
@@ -43,9 +46,6 @@
 #define fgetc my_fgetc
 #define fgets my_fgets
 #define fputs my_fputs
-#endif
-
-
 
 
 

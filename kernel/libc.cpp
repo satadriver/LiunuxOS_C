@@ -8,7 +8,7 @@
 #include "malloc.h"
 #include "math.h"
 
-extern "C" __declspec(dllexport)  FILE _iob[3];
+
 
 #ifndef _DEBUG
 
@@ -16,49 +16,6 @@ extern "C" __declspec(dllexport)  FILE _iob[3];
 
 #endif
 
-/*
-#pragma intrinsic(memcpy)  // 启用内部函数
-#pragma function(memcpy)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(memset)  // 启用内部函数
-#pragma function(memset)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(memcmp)  // 启用内部函数
-#pragma function(memcmp)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(memmove)  // 启用内部函数
-#pragma function(memmove)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(wcslen)  // 启用内部函数
-#pragma function(wcslen)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(wcscmp)  // 启用内部函数
-#pragma function(wcscmp)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(wcscat)  // 启用内部函数
-#pragma function(wcscat)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(strlen)  // 启用内部函数
-#pragma function(strlen)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(strcpy)  // 启用内部函数
-#pragma function(strcpy)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(strcmp)  // 启用内部函数
-#pragma function(strcmp)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(strcat)  // 启用内部函数
-#pragma function(strcat)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(printf)  // 启用内部函数
-#pragma function(printf)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(fprintf)  // 启用内部函数
-#pragma function(fprintf)   // 强制使用函数调用而不是内部函数
-
-#pragma intrinsic(_iob)  // 启用内部函数
-#pragma function(_iob)   // 强制使用函数调用而不是内部函数
-*/
 
 
 
