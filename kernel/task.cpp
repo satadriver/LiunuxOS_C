@@ -1525,7 +1525,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->lpHeapCnt = &lpproc->heapCnt;
 	process0->heap_lock = 0;
 	process0->lpheap_lock = &lpproc->heap_lock;
-	process0->lpHeapBase = (char**)lpproc->heapBase;
+	process0->lpHeapBase = (char**)&lpproc->heapBase;
 
 	process0->large_heap_size = 0;
 	process0->fast_heap_large = 0;
@@ -1542,7 +1542,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 	int bsp = IsBspProcessor();
 	if (bsp) {
-		process0->heapBase[0] = (DWORD)BSP_HEAP_BASE;
+		process0->heapBase = (char*)BSP_HEAP_BASE;
 		//__printf(szout,"%s %d process0->lpHeapBase[0]:%x\r\n", __FUNCTION__, __LINE__, process0->lpHeapBase[0]);
 		process0->heapsize = HEAP_SIZE; 
 		process0->fast_heap = (char*)BSP_FAST_HEAP;
@@ -1551,18 +1551,18 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 		DWORD size = HEAP_SIZE;
 		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		//__printf(szout,"%s %d __kProcessMalloc heap base:%x\r\n", __FUNCTION__, __LINE__, buf);
-		process0->heapBase[0] = (DWORD)buf;
+		process0->heapBase = (char*)buf;
 		process0->heapsize = HEAP_SIZE;
 		process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		
 	}
-	__memset((char*) process0->heapBase[0], 0, HEAP_SIZE);
+	__memset((char*) process0->heapBase, 0, HEAP_SIZE);
 	__memset(process0->fast_heap, 0, HEAP_SIZE);
 
 	__memcpy((char*)lpproc, (char*)process0, sizeof(PROCESS_INFO));
 	
 	__printf(szout, "%s %d cpu:%d *lpHeapCnt:%d,*lpheap_lock:%d,*lpHeapBase:%x\r\n",__FUNCTION__,__LINE__,id,
-		*process0->lpHeapCnt, *process0->lpheap_lock, process0->lpHeapBase[0]);
+		*process0->lpHeapCnt, *process0->lpheap_lock, process0->lpHeapBase);
 
 #ifdef TASK_SWITCH_ARRAY
 

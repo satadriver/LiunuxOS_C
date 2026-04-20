@@ -122,7 +122,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->heapCnt = process->heapCnt;
 	tss->lpHeapCnt = process->lpHeapCnt;
 	tss->lpHeapBase = process->lpHeapBase;
-	tss->heapBase[0] = process->heapBase[0];
+	tss->heapBase = process->heapBase;
 	tss->fast_heap = process->fast_heap;
 	tss->heapsize = process->heapsize;
 	tss->lpheap_lock = process->lpheap_lock;

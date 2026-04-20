@@ -21,6 +21,8 @@ int gMemAllocLock = FALSE;
 
 LPMEMALLOCINFO gMemAllocList = 0;
 
+int g_alloc_err = 0;
+
 
 QWORD getBorderAddr() {
 	return gAvailableBase + gAvailableSize;
@@ -286,8 +288,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 			if ( (unsigned long long)addr + size > gAvailableBase + gAvailableSize)
 			{
 				res = -1;
-				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%I64x,size:%I64x\r\n", 
-					addr, size, gAvailableBase, gAvailableSize);
+				//__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%I64x,size:%I64x\r\n", addr, size, gAvailableBase, gAvailableSize);
 				break;
 			}
 
@@ -423,7 +424,7 @@ DWORD __kMalloc(DWORD s) {
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD ret = __kProcessMalloc(s, &size, process->pid, process->cpuid, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (ret == 0) {	
-		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
+		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
 	}
 	else {
 		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
@@ -491,7 +492,7 @@ DWORD __malloc(DWORD s) {
 		}
 	}
 	else {
-		__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__, __LINE__);
+		//__printf(szout, "%s %d CreateHeap error\n", __FUNCTION__, __LINE__);
 		return 0;
 	}
 
@@ -515,7 +516,7 @@ DWORD __malloc(DWORD s) {
 
 
 int __free(DWORD linearAddr) {
-	
+	char szout[256];
 	if (linearAddr == 0) {
 		return 0;
 	}
@@ -551,8 +552,10 @@ int __free(DWORD linearAddr) {
 			DWORD size = ClearMemAllocItem(info);
 		}
 		else {
-			char szout[256];
-			int len = __printf(szout, "%s %d not found linear address:%x,physical address:%x\n",__FUNCTION__,__LINE__, linearAddr, phyaddr);
+			if (g_alloc_err++ < 16) {
+				int len = __printf(szout, "%s %d not found linear address:%x,physical address:%x\n", 
+					__FUNCTION__, __LINE__, linearAddr, phyaddr);
+			}
 		}
 	}
 

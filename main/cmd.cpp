@@ -456,6 +456,18 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		GetCpuRatio(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "heap") == 0) {
+		DWORD cpu = 0;
+		int tid = 0;
+		if (paramcnt >= 2) {
+			cpu = __strh2i((unsigned char*)params[1]);
+		}
+		if (paramcnt >= 3) {
+			tid = __strh2i((unsigned char*)params[2]);
+		}
+		GetHeap(cpu,tid,szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+		}
 	else if (__strcmp(params[0], "heapTest") == 0) {
 		DWORD cnt = 0x100;
 		int size = 0x10000;

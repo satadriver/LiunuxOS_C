@@ -20,6 +20,8 @@ int GetCpuRatio(char* szout);
 
 int CpuUsage(char* buf);
 
+int GetHeap(int cpu, int tid, char* szout);
+
 int GetAllProcesses(char* szout);
 
 int GetProcess(int cpuid,int pid, char* szout);

@@ -127,6 +127,35 @@ int GetProcess(int cpuid,int pid, char* szout) {
 	return 0;
 }
 
+
+int GetHeap(int cpu, int tid,char * szout) {
+	*szout = 0;
+	int pos = 0;
+
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+
+	for (int num = 0; num < cnt; num++) {
+		int id = cpus[num];
+		
+		if (id == cpu) {
+			LPPROCESS_INFO procs = GetTaskTssBaseId(id);
+			for (int j = 0; j < TASK_LIMIT_TOTAL; j++) {
+				if (procs[j].tid == tid && procs[j].status == TASK_RUN) {
+					int heapcnt = *procs[j].lpHeapCnt;
+					for (int k = 0; k < heapcnt; k++) {
+						int len = __sprintf(szout + pos, "[%d] heap base:%x,heap size:%x\r\n",
+							k,procs[j].lpHeapBase[k], procs[j].heapsize << k);
+						pos += len;
+					}
+				}
+			}
+		}
+	}
+	return pos;
+}
+
+
 int CpuUsage(char* buf) {
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
@@ -426,3 +455,4 @@ int HeapAllocTest(int cnt,int max,unsigned long long * total) {
 	free(p);
 	return err;
 }
+

@@ -22,6 +22,7 @@
 
 #define HEAP_BUFFER_FREE		0X7FFFFFFF
 
+int g_heap_err = 0;
 
 
 int InitHeap(int pid) {
@@ -361,7 +362,9 @@ int CreateHeap() {
 			*tss->lpHeapCnt = seq + 1;
 		}
 		else {
-			__printf(szout, "%s %d pid:%d malloc buffer error\r\n",__FUNCTION__,__LINE__, tss->pid);
+			if (g_heap_err++ < 16) {
+				__printf(szout, "%s %d pid:%d malloc buffer size:%x error\r\n", __FUNCTION__, __LINE__, tss->pid, allocSize);
+			}
 		}
 	}
 	else {
