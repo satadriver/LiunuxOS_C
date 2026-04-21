@@ -2046,6 +2046,13 @@ PROCESS_INFO * GetReadyProcess() {
 			if (seq >= 0 && seq < count) {
 
 				target_id = tickc[seq].id;
+				if (g_debug_tag++ % 0x100 == 0) {
+					int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
+					LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
+					LPPROCESS_INFO tp = p + target_id;
+					__printf(szout, "TaskSwitchPrediction seq:%d,count:%d pid:%x tid:%x function:%s filename:%x\r\n", 
+						seq, count, target_id,cpu,tp->funcname,tp->filename);
+				}
 			}
 			else {
 				//target_id = 0;
