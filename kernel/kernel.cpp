@@ -172,9 +172,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
 		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kMachineLearning_mlp");
-		//__kCreateThread((unsigned int)ml_addr, KERNEL_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
-		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
-		__sleep(1000);
+		__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
+		//__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
+		//__sleep(3000);
 	}
 
 	//logFile("__kernelEntry\n");
@@ -243,7 +243,7 @@ void __kKernelMain(DWORD retaddr,int pid,char * filename,char * funcname,DWORD p
 #ifdef _DEBUG
 #include <time.h>
 #include <stdlib.h>
-#include <stdio.h>
+#include <cstdio>
 
 #define malloc my_malloc
 #define free my_free

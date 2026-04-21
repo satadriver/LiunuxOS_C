@@ -29,10 +29,10 @@
 #define KANN_AUTODIFF_H
 
 #ifndef _DEBUG
-#include "../def.h"
+
 #include "../libc.h"
 #else
-#include "../def.h"
+
 #include "../libc.h"
 #endif
 //#define __SSE__

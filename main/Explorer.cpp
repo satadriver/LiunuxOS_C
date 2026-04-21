@@ -89,6 +89,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	__MyTestTask(0, 0, 0, 0, 0);
 	//displayCCPoem();
 
+	//__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
 
 	g_task_switch_toggle = 1;
 	//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Process_Test_Main", 3, 0);

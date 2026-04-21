@@ -1,6 +1,8 @@
 
 #pragma once
 
+
+
 #ifndef LIBC_H_H_H
 #define LIBC_H_H_H 
 
@@ -22,15 +24,15 @@ typedef char* va_list;
 
 #define va_end(list) ( list = (va_list)0 )
 
-// Visual Studio 中的定义
+#undef _iobuf
+#undef FILE
 
-
-
+#include <stdio.h>
 
 #pragma pack(1)
 
 
-struct _iobuf {
+typedef struct my_iobuf {
     char* _ptr;      // 缓冲区当前指针
     int _cnt;        // 缓冲区剩余字符数
     char* _base;     // 缓冲区基址
@@ -44,6 +46,7 @@ struct _iobuf {
 #pragma pack()
 
 
+
 typedef struct _iobuf FILE;
 
 
@@ -51,7 +54,6 @@ typedef struct _iobuf FILE;
 
 
 
-// Visual Studio 中的 <stdio.h> 核心定义
 
 
 // 典型的 _CRTIMP 定义
@@ -60,9 +62,9 @@ typedef struct _iobuf FILE;
 #endif
 
 #ifdef DLL_EXPORT
-#define _CRTIMP __declspec(dllexport)  // 构建 CRT DLL 时
+#define _CRTIMP __declspec(dllexport)  
 #else
-#define _CRTIMP __declspec(dllimport)  // 使用 CRT DLL 时
+#define _CRTIMP __declspec(dllimport)  
 #endif
 
 

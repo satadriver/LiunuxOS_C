@@ -78,20 +78,7 @@
 
 
 
-
-
-
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
-
-
-
-
-
-
-
-
-
-
 
 
 

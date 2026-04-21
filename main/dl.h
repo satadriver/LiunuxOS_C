@@ -4,9 +4,7 @@
 
 #include "deepLearning.h"
 
-#define		TASK_PREDICTION_TRAIN	(4096)
 
-#define ML_TASK_LIMIT				16
 
 #pragma pack(1)
 

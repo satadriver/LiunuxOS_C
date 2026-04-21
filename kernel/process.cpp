@@ -333,14 +333,14 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
 
-	tss->lpHeapBase = (char**)&tss->heapBase;
+	tss->lpHeapBase = (char***)&tss->heapBase;
 	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	__memset((char*)heapbase, 0, HEAP_SIZE);
 
 #ifndef DISABLE_PAGE_MAPPING
-	tss->lpHeapBase[0] = (char*)vaddr;
+	(*tss->lpHeapBase)[0] = (char*)vaddr;
 #else
-	tss->lpHeapBase[0] = (char*)heapbase;
+	(*tss->lpHeapBase)[0] = (char*)heapbase;
 #endif
 	tss->heapsize = heapsize;
 	tss->heapCnt = 1;

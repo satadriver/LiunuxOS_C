@@ -473,9 +473,9 @@ DWORD __malloc(DWORD s) {
 
 	int cnt = *process->lpHeapCnt;
 	for (int num = 0; num < cnt; num++) {
-		CHAR* heapBase = (char*)(process->lpHeapBase[num]);
+		CHAR* heapBase = (char*)(*process->lpHeapBase)[num];
 		int heapLimit = process->heapsize << num;
-		if (s < heapLimit/2) {
+		if (s < heapLimit) {
 			res = __heapAlloc(heapBase, heapLimit, s);
 			if (res) {
 				return res;
@@ -485,7 +485,7 @@ DWORD __malloc(DWORD s) {
 	int seq = CreateHeap();
 	if (seq) {
 		int heapLimit = process->heapsize << seq;
-		char* heapBase = (char*)(process->lpHeapBase[seq]);
+		char* heapBase = (char*)((*process->lpHeapBase)[seq]);
 		res = __heapAlloc(heapBase, heapLimit, s);
 		if (res) {
 			return res;
@@ -508,7 +508,7 @@ DWORD __malloc(DWORD s) {
 		return res;
 	}
 
-	len = __printf(szout, "__malloc(size:%x) error\n", size);
+	len = __printf(szout, "%s size:%x error\n", __FUNCTION__,size);
 
 	return FALSE;
 }
@@ -534,17 +534,18 @@ int __free(DWORD linearAddr) {
 
 	for (int num = 0; num < *(process->lpHeapCnt); num++) {
 		int heapLimit = process->heapsize << num;
-		char* heapBase = process->lpHeapBase[num];
+		char* heapBase = (*process->lpHeapBase)[num];
 		if (linearAddr >= (DWORD)heapBase && linearAddr < (DWORD)heapBase + heapLimit)
 		{
 			return __heapFree(heapBase, heapLimit,linearAddr);
 		}
 	}
 
-	if (g_alloc_err++ < 0x100) {
+	if (g_alloc_err++) 
+	{
 		int cnt = *process->lpHeapCnt;
 		for (int num = 0; num < cnt; num++) {
-			CHAR* heapBase = (char*)(process->lpHeapBase[num]);
+			CHAR* heapBase = (char*)((*process->lpHeapBase)[num]);
 			int heapLimit = process->heapsize << num;
 			__printf(szout,"[%d] heap base:%x heap size:%x linearAddr:%x\r\n",num, heapBase, heapLimit, linearAddr);
 		}
@@ -563,7 +564,7 @@ int __free(DWORD linearAddr) {
 			DWORD size = ClearMemAllocItem(info);
 		}
 		else {
-			if (g_alloc_err++ < 16) {
+			if (g_alloc_err++ ) {
 				int len = __printf(szout, "%s %d not found linear address:%x,physical address:%x\n", 
 					__FUNCTION__, __LINE__, linearAddr, phyaddr);
 			}

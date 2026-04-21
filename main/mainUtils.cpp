@@ -145,7 +145,7 @@ int GetHeap(int cpu, int tid,char * szout) {
 					int heapcnt = *procs[j].lpHeapCnt;
 					for (int k = 0; k < heapcnt; k++) {
 						int len = __sprintf(szout + pos, "[%d] heap base:%x,heap size:%x\r\n",
-							k,procs[j].lpHeapBase[k], procs[j].heapsize << k);
+							k,(*procs[j].lpHeapBase)[k], procs[j].heapsize << k);
 						pos += len;
 					}
 				}

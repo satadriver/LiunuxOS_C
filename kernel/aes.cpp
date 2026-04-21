@@ -4,8 +4,7 @@
 //
 
 #include "AES.h"
-//#include <stdio.h>
-//#include <string.h>
+
 #include "def.h"
 #include "Utils.h"
 

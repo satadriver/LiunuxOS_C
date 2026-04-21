@@ -1,20 +1,14 @@
-/*
-#include <math.h>
-#include <float.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <stdarg.h>
-*/
 
 
+#undef _iobuf
+#undef FILE
 
 #include "kann.h"
 
 #ifdef _DEBUG
-
-#include "../math.h"
 #include "../libc.h"
+#include "../math.h"
+
 
 
 #else

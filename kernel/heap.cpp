@@ -6,7 +6,7 @@
 #include "memory.h"
 #include "Utils.h"
 #include "apic.h"
-#include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 #else
 #include "heap.h"
@@ -137,7 +137,7 @@ DWORD __heapFree(char * heapBase,int heapLimit,DWORD addr) {
 	__leaveSpinlock(tss->lpheap_lock);
 
 	if (result == 0) {
-		__printf(szout, "%s %d heap address:%x format error!\r\n", __FUNCTION__, __LINE__, addr);
+		__printf(szout, "%s %d heap base:%x heap size:%x ,address:%x format error!\r\n", __FUNCTION__, __LINE__, heapBase,heapLimit, addr);
 	}
 	return result;
 }
@@ -340,40 +340,45 @@ int CreateHeap() {
 	int seq = 0;
 	char szout[256];
 	char* buf = 0;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	__enterSpinlock(tss->lpheap_lock);
+	LPPROCESS_INFO prev = tss + proc->tid;
+
+	__enterSpinlock(proc->lpheap_lock);
 	
 	int tss_limit = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	int limit = (tss_limit - sizeof(PROCESS_INFO) - (*tss->lpHeapCnt - 1) * sizeof(DWORD) ) / sizeof(DWORD);
+	int limit = (tss_limit - sizeof(PROCESS_INFO) - (*proc->lpHeapCnt - 1) * sizeof(DWORD) ) / sizeof(DWORD);
 	if (limit > 0) {
-		seq = *tss->lpHeapCnt;
-		int allocSize = tss->heapsize << seq;
+		seq = *proc->lpHeapCnt;
+		int allocSize = proc->heapsize << seq;
 #ifdef _DEBUG
-
-
 		buf = (char*)malloc(allocSize);
-
 #else		
 		buf = (char*)__kMalloc(allocSize);
 #endif
 		if (buf) {
-			tss->lpHeapBase[seq] = buf;
+			(*proc->lpHeapBase)[seq] = buf;
 			__memset((char*)buf, 0, allocSize);
 
-			*tss->lpHeapCnt = seq + 1;
+			*(proc->lpHeapCnt) = seq + 1;
+
+			__printf(szout, "%s size:%x base:%x\r\n", __FUNCTION__, allocSize, (*proc->lpHeapBase)[seq]);
+
+			//*prev->lpHeapCnt = *proc->lpHeapCnt;
+			//(*prev->lpHeapBase)[seq] = buf;
 		}
 		else {
 			if (g_heap_err++ < 16) {
-				__printf(szout, "%s %d pid:%d malloc buffer size:%x error\r\n", __FUNCTION__, __LINE__, tss->pid, allocSize);
+				__printf(szout, "%s %d pid:%d malloc buffer size:%x error\r\n", __FUNCTION__, __LINE__, proc->pid, allocSize);
 			}
 		}
 	}
 	else {
-		__printf(szout, "pid:%d sizeof(PROCESS_INFO):%x is too small to alloc new heap!\r\n",tss->pid, sizeof(PROCESS_INFO));
+		__printf(szout, "pid:%d sizeof(PROCESS_INFO):%x is too small to alloc new heap!\r\n", proc->pid, sizeof(PROCESS_INFO));
 		seq = 0;
 	}
 
-	__leaveSpinlock(tss->lpheap_lock);
+	__leaveSpinlock(proc->lpheap_lock);
 	return seq;
 }
 
@@ -464,6 +469,9 @@ DWORD __heapAlloc(char * heapBase,int heapLimit, int size) {
 		//__printf(szout, "%s %d heap alloc size:%x heap base:%x heap limit:%x heap:%x heap size:%x error\r\n",
 			//__FUNCTION__, __LINE__, allocSize, heapBase, heapLimit, lpheap->addr, lpheap->size);
 		//addr = 0;
+	}
+	else {
+		//__printf(szout, "%s %d heap alloc size:%x heap base:%x heap limit:%x heap:%x heap size:%x error\r\n",__FUNCTION__, __LINE__, allocSize, heapBase, heapLimit, lpheap->addr, lpheap->size);
 	}
 	
 	return addr;

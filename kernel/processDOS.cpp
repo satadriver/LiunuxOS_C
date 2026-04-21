@@ -338,7 +338,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->heapsize = 0;
 	tss->heapCnt = 0;
 	tss->lpHeapCnt = &tss->heapCnt;
-	tss->lpHeapBase = (char**)& tss->heapBase;
+	tss->lpHeapBase = (char***)& tss->heapBase;
 	tss->fast_heap = 0;
 	tss->heap_lock = 0;
 	tss->lpheap_lock = &tss->heap_lock;

@@ -3,11 +3,12 @@
 
 
 #ifdef _DEBUG
-#include "apic.h"
-#include "task.h"
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
+#include "apic.h"
+#include "task.h"
+#include <cstdio>
 
 LPPROCESS_INFO g_proc_info = 0;
 

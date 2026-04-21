@@ -1,23 +1,16 @@
 
-
-/*
-#include <stdlib.h>
-#include <assert.h>
-#include <stdarg.h>
-#include <string.h>
-#include <float.h>
-#include <math.h>
-*/
+#undef _iobuf
+#undef FILE
 
 #include "kautodiff.h"
 
 #ifdef _DEBUG
 #include "../libc.h"
-#include "../def.h"
+
 #include "../math.h"
 #else
 #include "../libc.h"
-#include "../def.h"
+
 #include "../math.h"
 #endif
 #define sqrt __sqrt

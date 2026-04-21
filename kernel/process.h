@@ -45,9 +45,6 @@ typedef struct
 	TSS tss;
 	//char unused[3];
 
-	char filename[256];
-	char funcname[64];
-
 	char level;
 	char fpu;
 	char copyMap;
@@ -72,8 +69,6 @@ typedef struct
 
 	//内存分配的虚拟地址偏移
 	DWORD * lpvasize;
-
-	DWORD va_size;
 
 	DWORD errorno;
 
@@ -113,15 +108,22 @@ typedef struct
 	char* fast_heap_large;
 	int large_heap_size;
 	char* fast_heap;
-	int heap_lock;
+	int* lpHeapCnt;
 	int* lpheap_lock;
 	DWORD heapsize;
-	int* lpHeapCnt;
+	char*** lpHeapBase;
+
+	char filename[256];
+	char funcname[64];
+	DWORD va_size;
 	int heapCnt;
-	char** lpHeapBase;
-	char* heapBase;
+	int heap_lock;
+	char* heapBase[12];
 
 }PROCESS_INFO,*LPPROCESS_INFO;
+
+
+
 
 #pragma pack()
 

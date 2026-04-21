@@ -763,12 +763,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		fxrstor[eax]
 	}
 
-	if (prev->copyMap == 0) {
+	
+	if (prev->copyMap == 0) {	
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)proc, off);
-		off = OFFSETOF(PROCESS_INFO, level);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev + off, (char*)proc + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)prev + off1, (char*)proc + off1, lsize);
 	}
 	else {
 		__memcpy((char*)prev, (char*)proc, sizeof(PROCESS_INFO));
@@ -776,9 +778,10 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (next->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)proc, (char*)next, off);
-		off = OFFSETOF(PROCESS_INFO, level);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)proc + off, (char*)next + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)proc + off1, (char*)next + off1, lsize);
 	}
 	else {
 		__memcpy((char*)proc, (char*)next, sizeof(PROCESS_INFO));
@@ -963,9 +966,10 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)process, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev + off, (char*)process + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)prev + off1, (char*)process + off1, lsize);
 	}
 	else {
 		__memcpy((char*)prev, (char*)process, sizeof(PROCESS_INFO));
@@ -973,9 +977,10 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (process->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)process, (char*)next->node, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)process + off, (char*)next->node + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)process + off1, (char*)next->node + off1, lsize);
 	}
 	else {
 		__memcpy((char*)process, (char*)next->node, sizeof(PROCESS_INFO));
@@ -1156,9 +1161,10 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (current->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)current, (char*)process, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)current + off, (char*)process + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)current + off1, (char*)process + off1, lsize);
 	}
 	else {
 		__memcpy((char*)current, (char*)process, sizeof(PROCESS_INFO));
@@ -1166,9 +1172,11 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (next->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)process, (char*)next, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)process + off, (char*)next + off, lsize);
+
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)process + off1, (char*)next + off1, lsize);
 	}
 	else {
 		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
@@ -1321,9 +1329,10 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)proc, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)prev + off, (char*)proc + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)prev + off1, (char*)proc + off1, lsize);
 	}
 	else {
 		__memcpy((char*)prev, (char*)proc, sizeof(PROCESS_INFO));
@@ -1331,9 +1340,10 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (proc->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)proc, (char*)next->node, off);
-		off = OFFSETOF(TSS, iomapEnd);
-		int lsize = sizeof(PROCESS_INFO) - off;
-		__memcpy((char*)proc + off, (char*)next->node + off, lsize);
+		int off1 = OFFSETOF(PROCESS_INFO, level);
+		int off2 = OFFSETOF(PROCESS_INFO, filename);
+		int lsize = off2 - off1;
+		__memcpy((char*)proc + off1, (char*)next->node + off1, lsize);
 	}
 	else {
 		__memcpy((char*)proc, (char*)next->node, sizeof(PROCESS_INFO));
@@ -1525,7 +1535,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->lpHeapCnt = &lpproc->heapCnt;
 	process0->heap_lock = 0;
 	process0->lpheap_lock = &lpproc->heap_lock;
-	process0->lpHeapBase = (char**)&lpproc->heapBase;
+	process0->lpHeapBase = (char***)&lpproc->heapBase;
 
 	process0->large_heap_size = 0;
 	process0->fast_heap_large = 0;
@@ -1542,7 +1552,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 	int bsp = IsBspProcessor();
 	if (bsp) {
-		process0->heapBase = (char*)BSP_HEAP_BASE;
+		process0->heapBase[0] = (char*)BSP_HEAP_BASE;
 		//__printf(szout,"%s %d process0->lpHeapBase[0]:%x\r\n", __FUNCTION__, __LINE__, process0->lpHeapBase[0]);
 		process0->heapsize = HEAP_SIZE; 
 		process0->fast_heap = (char*)BSP_FAST_HEAP;
@@ -1551,12 +1561,12 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 		DWORD size = HEAP_SIZE;
 		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		//__printf(szout,"%s %d __kProcessMalloc heap base:%x\r\n", __FUNCTION__, __LINE__, buf);
-		process0->heapBase = (char*)buf;
+		process0->heapBase[0] = (char*)buf;
 		process0->heapsize = HEAP_SIZE;
 		process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 		
 	}
-	__memset((char*) process0->heapBase, 0, HEAP_SIZE);
+	__memset((char*) process0->heapBase[0], 0, HEAP_SIZE);
 	__memset(process0->fast_heap, 0, HEAP_SIZE);
 
 	__memcpy((char*)lpproc, (char*)process0, sizeof(PROCESS_INFO));

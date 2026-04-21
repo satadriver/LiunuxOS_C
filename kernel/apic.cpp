@@ -2048,7 +2048,7 @@ PROCESS_INFO * GetReadyProcess() {
 				target_id = tickc[seq].id;
 			}
 			else {
-				target_id = 0;
+				//target_id = 0;
 				__printf(szout, "TaskSwitchPrediction seq:%d,count:%d\r\n", seq,count);
 			}
 			
