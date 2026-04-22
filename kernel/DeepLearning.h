@@ -3,7 +3,7 @@
 #include "def.h"
 #include "kann-master/kann.h"
 
-#define		TASK_PREDICTION_TRAIN		(4096)
+#define		TASK_PREDICTION_TRAIN		(16384)
 
 #define		ML_TASK_LIMIT				16
 
