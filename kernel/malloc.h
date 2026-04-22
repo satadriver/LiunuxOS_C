@@ -4,9 +4,7 @@
 #include "ListEntry.h"
 
 
-extern QWORD gAvailableSize;
 
-extern QWORD gAvailableBase;
 
 #pragma pack(1)
 
@@ -66,6 +64,13 @@ DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid,int cpu, DWORD vaddr,int
 void freeProcessMemory(int pid,int cpu);
 
 #ifdef DLL_EXPORT
+extern "C"  __declspec(dllexport) LPMEMALLOCINFO gMemAllocList ;
+
+extern "C"  __declspec(dllexport) QWORD gAvailableSize ;
+
+extern "C"  __declspec(dllexport) QWORD gAvailableBase ;
+
+extern "C"  __declspec(dllexport) QWORD gAllocLimitSize ;
 
 extern "C"  __declspec(dllexport) int getProcMemory(int pid,int cpu, char * szout);
 extern "C"  __declspec(dllexport) int __free(DWORD addr);
@@ -75,6 +80,12 @@ extern "C"  __declspec(dllexport) DWORD __kMalloc(DWORD size);
 
 extern "C"  __declspec(dllexport) int __kFree(DWORD buf);
 #else
+extern "C"  __declspec(dllimport) LPMEMALLOCINFO gMemAllocList;
+extern "C"  __declspec(dllimport) QWORD gAvailableSize;
+
+extern "C"  __declspec(dllimport) QWORD gAvailableBase;
+
+extern "C"  __declspec(dllimport) QWORD gAllocLimitSize;
 extern "C"  __declspec(dllimport) int getProcMemory(int pid,int cpu, char * szout);
 extern "C"  __declspec(dllimport) int __free(DWORD addr);
 extern "C"  __declspec(dllimport) DWORD __malloc(DWORD s);

@@ -128,6 +128,58 @@ int GetProcess(int cpuid,int pid, char* szout) {
 }
 
 
+
+int GetMemory(char * szout,int pid) {
+
+	unsigned long long allocated = 0;
+
+	unsigned long long cpuMem[TASK_LIMIT_TOTAL];
+
+	__memset((char*)cpuMem, 0, sizeof(cpuMem));
+
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gMemAllocList->list.next;
+
+	LPMEMALLOCINFO base = info;
+
+	int len = 0;
+
+	unsigned long long procMem = 0;
+
+	do
+	{	
+		allocated += info->size;
+
+		info = (LPMEMALLOCINFO)info->list.next;
+
+		int id = info->cpu;
+		cpuMem[id] += info->size;
+
+		if (pid != -1 && info->pid == pid) {
+			procMem += info->size;
+		}
+			
+	} while (info != base);
+	
+	len += __sprintf(szout+len, "total size:%i64x,allocated size:%i64x, available size:%i64x\r\n",
+		gAvailableSize, allocated, gAvailableSize - allocated);
+
+	int* ids = (int*)CPU_ID_ADDRESS;
+	int cpuCnt = *(int*)(CPU_TOTAL_ADDRESS);
+
+	for (int i = 0; i < cpuCnt; i++) {
+		int id = ids[i];
+		len += __sprintf(szout + len, "cpu:%d used size:%i64x\r\n",id, cpuMem[id]);
+	}
+
+	if (pid != -1) {
+		len += __sprintf(szout + len, "pid:%d used size:%i64x\r\n", pid, procMem);
+	}
+
+	return len;
+}
+
+
+
 int GetHeap(int cpu, int tid,char * szout) {
 	*szout = 0;
 	int pos = 0;

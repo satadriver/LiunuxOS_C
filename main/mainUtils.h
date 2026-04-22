@@ -22,6 +22,8 @@ int CpuUsage(char* buf);
 
 int GetHeap(int cpu, int tid, char* szout);
 
+int GetMemory(char* szout,int pid);
+
 int GetAllProcesses(char* szout);
 
 int GetProcess(int cpuid,int pid, char* szout);
