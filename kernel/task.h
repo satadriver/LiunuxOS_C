@@ -93,7 +93,7 @@ extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 
-int __getFreeTask(LPTASKRESULT ret);
+int __GetFreeTask(LPTASKRESULT ret, int id);
 
 
 PROCESS_INFO* GetNextProcess();

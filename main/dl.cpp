@@ -109,8 +109,8 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (addr) 
 		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
-			__sleep(1000);
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
+			//__sleep(1000);
 		}
 	}
 

@@ -363,7 +363,7 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 }
 
 
-int __getFreeTask(LPTASKRESULT ret) {
+int __GetFreeTask(LPTASKRESULT ret,int id) {
 	int result = 0;
 	if (ret == 0)
 	{
@@ -373,7 +373,7 @@ int __getFreeTask(LPTASKRESULT ret) {
 	ret->number = 0;
 
 
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	//int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	
 	//enter_task_array_lock();
 
@@ -1491,7 +1491,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	InitTaskArray();
 
 	TASKRESULT freeTss;
-	__getFreeTask(&freeTss);
+	__GetFreeTask(&freeTss,id);
 	int tid = freeTss.number;
 
 	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);

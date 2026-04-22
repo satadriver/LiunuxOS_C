@@ -94,7 +94,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	TASKRESULT freetask;
-	ret = __getFreeTask(&freetask);
+	ret = __GetFreeTask(&freetask,cpu);
 	if (ret == FALSE)
 	{
 		leave_task_array_lock();

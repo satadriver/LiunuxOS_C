@@ -464,13 +464,20 @@ int __kCreateProcessFromAddr(DWORD filedata, int filesize,char * funcname,int sy
 	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
 }
 
+#define CREATE_PROCESS_DYNAMIC
+
 
 int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcname, int syslevel, DWORD params) {
 
 	int ret = 0;
 	char szout[256];
-
+#ifdef CREATE_PROCESS_DYNAMIC
+	int id = GetIdleProcessor();
+	enter_task_array_lock_id(id);
+#else
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	enter_task_array_lock();
+#endif
 
  	//DWORD filedata = linear2phy(lpfiledata);
  	//char * filename = (char *)linear2phy((DWORD)fn);
@@ -485,7 +492,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	//int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	TASKRESULT result;
-	ret = __getFreeTask(&result);
+	ret = __GetFreeTask(&result,id);
 	if (ret == FALSE)
 	{
 		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
@@ -533,14 +540,16 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 			}
 			else if (petype == 3)
 			{
-				leave_task_array_lock();
 				ret = runElfFunction(filename, funcname);
-				ret = 1;
-				return ret;
 			}
 		}
 	}
+
+#ifdef CREATE_PROCESS_DYNAMIC
+	leave_task_array_lock_id(id);
+#else
 	leave_task_array_lock();
+#endif
 	return ret;
 }
 
