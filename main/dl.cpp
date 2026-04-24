@@ -90,7 +90,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		free(g_dl_ann);
 	}
 
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 16; i++) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d", i);
 		TASKCMDPARAMS cmd2;
@@ -98,11 +98,12 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (ml_addr2) {
 			__ipiCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
+			__sleep(200);
 		}
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	for(int i = 0; i < 8; ++i) {
+	for(int i = 0; i < 16; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d_main", i);
 
@@ -110,7 +111,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		if (addr) 
 		{
 			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
-			//__sleep(1000);
+			__sleep(200);
 		}
 	}
 

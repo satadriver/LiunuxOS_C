@@ -1626,7 +1626,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		//__printf(szout,"ApTaskSchedule\r\n");
 
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+		__kTaskSchedule(stack);
 
 		//ipi command need to send eoi to local apic
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
@@ -1664,7 +1664,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 	int ret = IsBspProcessor();
 	if (ret) {
 #ifdef SINGLE_TASK_TSS
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+		__kTaskSchedule(stack);
 #else
 		//need to run in another tss
 		//LPPROCESS_INFO next = MultipleTssSchedule(stack);		//something error
@@ -1695,7 +1695,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 #endif
 	}
 	else {
-		LPPROCESS_INFO next = SingleTssSchedule(stack);
+		__kTaskSchedule(stack);
 	}
 	
 	__asm {

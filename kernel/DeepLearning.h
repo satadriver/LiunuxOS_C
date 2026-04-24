@@ -5,7 +5,7 @@
 
 #define		TASK_PREDICTION_TRAIN		(16384)
 
-#define		ML_TASK_LIMIT				16
+#define		ML_TASK_LIMIT				32
 
 #pragma pack(1)
 

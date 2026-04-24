@@ -164,7 +164,7 @@ void addAlarmTimer() {
 	//__asm{sti}
 
 	char szout[256];
-	__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);
+	//__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);
 
 }
 
@@ -227,7 +227,7 @@ void __kRemoveAlarmTimer() {
 void __doAlarmTask(DWORD  param) {
 
 	char szout[256];
-	__printf(szout, "__doAlarmTask running\n");
+	//__printf(szout, "__doAlarmTask running\n");
 
 	//SnowScreenShow();
 }
