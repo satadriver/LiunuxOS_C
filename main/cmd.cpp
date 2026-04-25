@@ -115,18 +115,18 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "cd") == 0) {
 
 	}
-	else if (__strcmp(params[0], "keyboardID") == 0)
+	else if (__strcmp(params[0], "keyboard") == 0)
 	{
 		*szout = 0;
 		__sprintf(szout, "keyboard id:%x", gKeyboardID);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "mouseID") == 0) {
+	else if (__strcmp(params[0], "mouse") == 0) {
 		*szout = 0;
 		__sprintf(szout, "mouse id:%x", gMouseID);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "reg") == 0 && paramcnt >= 2)
+	else if (__strcmp(params[0], "regs") == 0 && paramcnt >= 2)
 	{
 		if (__strcmp(params[1], "idt") == 0)
 		{
@@ -146,7 +146,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			getldt(szout);
 			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
-		else if (__strcmp(params[1], "crs") == 0)
+		else if (__strcmp(params[1], "crx") == 0)
 		{
 			*szout = 0;
 			getcrs(szout);
@@ -280,12 +280,19 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			__strcpy((char*)addr, params[2]);
 		}
 	}
-
 	else if (__strcmp(params[0], "memlist") == 0 && paramcnt >= 2)
 	{
-		int pid = __strh2i((unsigned char*)params[1]);
+		int pid = -1;
+		int cpu = -1;
+		if (paramcnt >= 2) {
+			pid = __strh2i((unsigned char*)params[1]);
+		}
+		if (paramcnt >= 3) {
+			cpu = __strh2i((unsigned char*)params[2]);
+		}
+
 		*szout = 0;
-		int len = getmemmap(pid, szout);
+		int len = getmemmap(pid,cpu, szout);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "testme") == 0)
@@ -334,14 +341,14 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			mov dword ptr [res], eax
 			mov dword ptr [res+4], edx
 		}
-		__sprintf(szout, "rdpmc:%i64x\n", res);
+		__sprintf(szout, "rdpmc[%x]:%i64x\n", num, res);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "temperature") == 0)
 	{
-		DWORD tj = 0;
-		DWORD temp = CpuTemperature(&tj);
-		__sprintf(szout, "tjmax:%x,temperature:%d\n", temp);
+		int tjmax = 0;
+		int temp = __kCpuTemperature(&tjmax);
+		__sprintf(szout, "tjmax:%x,temperature:%d\n", tjmax,temp);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "exit") == 0)
@@ -384,7 +391,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			}
 		}
 	}
-	else if (__strcmp(params[0], "cpu") == 0)
+	else if (__strcmp(params[0], "cpuinfo") == 0)
 	{
 		char cpuinfo[256];
 		char cputype[256];
@@ -416,7 +423,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		getIdeSeq(seq);
 		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "hdversion") == 0) {
+	else if (__strcmp(params[0], "hdver") == 0) {
 		char seq[1024];
 		getIdeFirmVersion(seq);
 		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
@@ -434,16 +441,16 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "vga") == 0) {
 		ret = __drawWindowChars((char*)getVGAInfo(), CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "vesaMode") == 0) {
+	else if (__strcmp(params[0], "vesa") == 0) {
 		char mode[1024];
-		__sprintf(mode,"%d\r\n", gVideoMode);
+		__sprintf(mode,"mode:%x,width:%x,height:%x,color:%x\r\n", gVideoMode,gVideoWidth,gVideoHeight,gBytesPerPixel<<3);
 		ret = __drawWindowChars((char*)mode, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "windows") == 0) {
 		int len =traversalWindow(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "cpuUsage") == 0) {
+	else if (__strcmp(params[0], "usage") == 0) {
 		int len = CpuUsage(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
@@ -479,7 +486,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		GetHeap(cpu,tid,szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 		}
-	else if (__strcmp(params[0], "heapTest") == 0) {
+	else if (__strcmp(params[0], "heapAlloc") == 0) {
 		DWORD cnt = 0x100;
 		int size = 0x10000;
 		if (paramcnt >= 2){

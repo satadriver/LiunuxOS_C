@@ -476,11 +476,7 @@ int InitIoApicRte() {
 }
 
 
-int __kYield() {
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	SetIcr(cpu, TASK_SCHEDULE_VECTOR, 0, 0);
-	return 0;
-}
+
 
 int IpiTaskSchedule(int id) {
 	SetIcr(id, TASK_SCHEDULE_VECTOR, 0, 0);
@@ -1173,7 +1169,7 @@ int DisableLocalApicLVT() {
 int InitApicThermalMonitor() {
 
 	DWORD tj = 0;
-	CpuTemperature(&tj);
+	//CpuTemperature(&tj);
 
 	int threshHold1 = tj - 10;
 

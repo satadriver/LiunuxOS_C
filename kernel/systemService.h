@@ -2,6 +2,7 @@
 #include "def.h"
 #include "task.h"
 
+
 #define SVC_KBD_OUTPUT			1
 #define SVC_KBD_INPUT			2
 #define SVC_MOUSE_OUTPUT		3
@@ -18,13 +19,16 @@
 #define SVC_RESTORE_MOUSE		14
 #define SVC_SET_VIDEOMODE		15
 #define SVC_YIELD				16
+
 #define SVC_IPI_CREATEPROC		17
 #define SVC_IPI_CREATETHREAD	18
-#define SVC_TEMPERATURE			19
-#define SVC_RDMSR				20
-#define SVC_WRMSR				21
-#define SVC_HALT				22
-#define SVC_SLEEP_ADDR			23
+#define SVC_IPI_YIELD			19
+
+#define SVC_TEMPERATURE			20
+#define SVC_RDMSR				21
+#define SVC_WRMSR				22
+#define SVC_HALT				23
+#define SVC_SLEEP_ADDR			24
 
 #ifdef DLL_EXPORT
 
@@ -34,8 +38,7 @@
 
 
 
-
-
+int __kYield();
 
 
 
@@ -73,12 +76,16 @@ extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high);
 
 extern "C"  __declspec(dllexport)void Halt();
 
+extern "C"  __declspec(dllexport) int __yield2();
+
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllexport) unsigned __int64 __cpuFreq(DWORD* cpu, DWORD* max, DWORD* bus);
 
 extern "C" __declspec(dllexport) unsigned int getcpuFreq();
 
 extern "C" __declspec(dllexport) unsigned __int64 getCpuFreq();
+
+extern "C" __declspec(dllexport) int __kCpuTemperature(int* tjmax);
 
 extern "C"  __declspec(dllexport) void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
@@ -117,12 +124,16 @@ extern "C"  __declspec(dllimport)void WrMsr(DWORD num, DWORD low, DWORD high);
 
 extern "C"  __declspec(dllimport)void Halt();
 
+extern "C"  __declspec(dllimport) int __yield2();
+
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllimport) unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);
 
 extern "C" __declspec(dllimport) unsigned int getcpuFreq();
 
 extern "C" __declspec(dllimport) unsigned __int64 getCpuFreq();
+
+extern "C" __declspec(dllimport) int __kCpuTemperature(int* tjmax);;
 
 extern "C"  __declspec(dllimport) int __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 

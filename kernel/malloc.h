@@ -72,7 +72,7 @@ extern "C"  __declspec(dllexport) QWORD gAvailableBase ;
 
 extern "C"  __declspec(dllexport) QWORD gAllocLimitSize ;
 
-extern "C"  __declspec(dllexport) int getProcMemory(int pid,int cpu, char * szout);
+extern "C"  __declspec(dllexport) int GetProcessMemory(int pid,int cpu, char * szout);
 extern "C"  __declspec(dllexport) int __free(DWORD addr);
 extern "C"  __declspec(dllexport) DWORD __malloc(DWORD s);
 
@@ -86,7 +86,7 @@ extern "C"  __declspec(dllimport) QWORD gAvailableSize;
 extern "C"  __declspec(dllimport) QWORD gAvailableBase;
 
 extern "C"  __declspec(dllimport) QWORD gAllocLimitSize;
-extern "C"  __declspec(dllimport) int getProcMemory(int pid,int cpu, char * szout);
+extern "C"  __declspec(dllimport) int GetProcessMemory(int pid,int cpu, char * szout);
 extern "C"  __declspec(dllimport) int __free(DWORD addr);
 extern "C"  __declspec(dllimport) DWORD __malloc(DWORD s);
 extern "C"  __declspec(dllimport) DWORD __kMalloc(DWORD size);

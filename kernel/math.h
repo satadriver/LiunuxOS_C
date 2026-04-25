@@ -161,6 +161,8 @@ extern "C" __declspec(dllexport) float __fabsf(float x);
 extern "C"  __declspec(dllexport) float __tanf(float x);
 extern "C"  __declspec(dllexport) double __tan(double x);
 
+extern "C"  __declspec(dllexport) float __fmaxf(float x, float y);
+extern "C"  __declspec(dllexport) float __fminf(float x, float y);
 #ifndef _DEBUG
 //extern "C" __declspec(dllexport) int abs(int x);
 //extern "C" __declspec(dllexport) double pown(double x, int n);
@@ -210,6 +212,9 @@ extern "C" __declspec(dllimport) float __expf(float x);
 
 extern "C"  __declspec(dllimport) float __tanf(float x);
 extern "C"  __declspec(dllimport) double __tan(double x);
+
+extern "C"  __declspec(dllimport) float __fmaxf(float x, float y);
+extern "C"  __declspec(dllimport) float __fminf(float x, float y);
 #endif
 
 

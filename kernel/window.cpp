@@ -134,6 +134,7 @@ int traversalWindow(char* outbuf) {
 	}
 	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO hdr = info;
+	int len = 0;
 	do
 	{
 		if (info == 0) {
@@ -141,7 +142,24 @@ int traversalWindow(char* outbuf) {
 		}
 		if (info->valid )
 		{
-			int len = __printf(buf+size, "%s window id:%d,name:%s\r\n",__FUNCTION__, info->window->id, info->window->winname);
+			int tid = info->window->tid;
+			int cpu = info->window->cpu;
+			char* funcname = 0;
+			char* filename = 0;
+			
+			LPPROCESS_INFO procs = GetTaskTssBaseId(cpu);
+			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+				if (procs[i].tid == tid) {
+					filename = procs[i].filename;
+					funcname = procs[i].funcname;
+
+					len = __printf(buf + size,
+						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
+						info->window->id, info->window->winname,cpu,procs[i].pid,tid,filename,funcname);
+					break;
+				}
+			}
+
 			size += len;
 		}
 		else {

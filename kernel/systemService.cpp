@@ -86,6 +86,10 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			yield(stack);
 			break;
 		}
+		case SVC_IPI_YIELD: {
+			__kYield();
+			break;
+		}
 		case SVC_KBD_OUTPUT:
 		{
 			r = __kGetKbd(params[0]);
@@ -111,7 +115,6 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			r = __random((unsigned long)params[0]);
 			break;
 		}
-
 		case SVC_TURNON_SCREEN:
 		{
 			__turnonScreen();
@@ -158,7 +161,6 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		{
 			break;
 		}
-
 		case SVC_IPI_CREATEPROC:
 		{
 			IpiCreateProcess(params[0], params[1], (char*)params[2], (char*)params[3], params[4], params[5]);
@@ -170,8 +172,8 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			break;
 		}
 		case SVC_TEMPERATURE: {
-			DWORD tj = 0;
-			r = CpuTemperature(&tj);
+
+			r = CpuTemperature((unsigned long*)params[0]);
 			break;
 		}
 		case SVC_RDMSR: {
@@ -208,6 +210,18 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	return r;
 }
 
+
+int __kCpuTemperature(int* tjmax) {
+	int temperature = 0;
+	__asm {
+		lea edi,tjmax
+
+		mov eax, SVC_TEMPERATURE
+		int 80h
+		mov [temperature],eax
+	}
+	return temperature;
+}
 
 
 
@@ -301,7 +315,20 @@ void sleep(DWORD * params) {
 }
 
 
+int __kYield() {
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	SetIcr(cpu, TASK_SCHEDULE_VECTOR, 0, 0);
+	return 0;
+}
 
+
+int __yield2() {
+	__asm {
+		mov eax, SVC_IPI_YIELD
+		int 80h
+	}
+	return 0;
+}
 
 
 extern "C" __declspec(dllexport) DWORD __random(DWORD r) {
@@ -591,7 +618,7 @@ int CpuTemperature(DWORD* lptj) {
 	*lptj = tjmax;
 
 	char szout[256];
-	__printf(szout, (char*)"tjmax:%x,temperature:%x\r\n", tjmax, temp);
+	//__printf(szout, (char*)"tjmax:%x,temperature:%x\r\n", tjmax, temp);
 
 	return temp;
 }

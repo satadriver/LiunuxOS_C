@@ -184,6 +184,11 @@ extern "C" __declspec(dllexport)void* my_realloc(void* buf, int size) {
 }
 
 
+
+
+
+
+
 extern "C" __declspec(dllexport)int my_printf(const char* format, ...) {
 	char buf[1024];
 	if (g_ScreenMode == 0) {

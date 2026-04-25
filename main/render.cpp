@@ -27,6 +27,7 @@
 #define fabsf __fabsf
 #define logf __logf
 #define tanf __tanf
+#define fmaxf __fmaxf
 
 #define malloc my_malloc
 #define free my_free
@@ -62,304 +63,321 @@
 #define fgets my_fgets
 #define fputs my_fputs
 
+#define M_PI PI
 
-// ================= 1. 硬件抽象层配置 (请根据内核修改这里) =================
 
-// 屏幕分辨率
-#define WIDTH  gVideoWidth
-#define HEIGHT gVideoHeight
 
-// 显存地址：请修改为您内核分配的实际物理地址
-// 例如：0xE0000000 (线性帧缓冲) 或 0x000B8000 (实模式 VGA)
-//#define FRAMEBUFFER_ADDR 0xE0000000 
 
-// 定义颜色格式宏 (假设是 32位色，格式为 0x00RRGGBB)
-// 如果是 24位色，您可能需要按字节写入，这里统一按 32位处理以简化逻辑
-typedef uint32_t color_t;
+/**
+ * 3D 软渲染动画 (torus)
+ * 适用于 32 位保护模式，线性帧缓冲，32 位色 (RGBA)
+ * 编译命令: i686-elf-gcc -std=c99 -ffreestanding -O2 -m32 -c main.c -o main.o
+ * 链接命令: i686-elf-ld -T your_linker.ld -o kernel.elf main.o -lm
+ *
+ * 注意: 请根据你的显存地址和分辨率修改 FB_ADDR, FB_WIDTH, FB_HEIGHT
+ */
 
-// 像素绘制函数：直接向显存写入
-void put_pixel_old(int x, int y, color_t color) {
-    if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT) {
-        // 将显存地址强转为 uint32_t 指针
-        volatile color_t* fb = (color_t*)gGraphBase;
-        fb[y * WIDTH + x] = color;
-    }
+
+
+ /* ========== 硬件配置（请根据你的 OS 修改） ========== */
+//#define FB_ADDR         0xE0000000      // 线性帧缓冲物理地址
+//#define FB_WIDTH        1024            // 屏幕宽度（像素）
+//#define FB_HEIGHT       768             // 屏幕高度（像素）
+//#define FB_STRIDE       (FB_WIDTH * 4)  // 每行字节数（32 位色）
+
+typedef uint32_t color_t;               // RGBA 格式 (0xAARRGGBB)
+static color_t* fb = (color_t*)gGraphBase; // 直接写显存
+static float* zbuffer = NULL;           // 深度缓冲（动态分配）
+
+/* ========== 简单数学库（使用标准 C 函数） ========== */
+typedef struct { float x, y, z; } vec3;
+typedef struct { float x, y, z, w; } vec4;
+typedef struct { float m[4][4]; } mat4;
+
+static vec3 vec3_new(float x, float y, float z) {
+    vec3 v = { x, y, z }; return v;
+}
+static vec4 vec4_new(float x, float y, float z, float w) {
+    vec4 v = { x, y, z, w }; return v;
+}
+static vec3 vec3_add(vec3 a, vec3 b) {
+    return vec3_new(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+static vec3 vec3_sub(vec3 a, vec3 b) {
+    return vec3_new(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+static vec3 vec3_mul(vec3 v, float s) {
+    return vec3_new(v.x * s, v.y * s, v.z * s);
+}
+static float vec3_dot(vec3 a, vec3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+static vec3 vec3_cross(vec3 a, vec3 b) {
+    return vec3_new(a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x);
+}
+static float vec3_len(vec3 v) {
+    return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+static vec3 vec3_norm(vec3 v) {
+    float l = vec3_len(v);
+    if (l < 1e-6f) return v;
+    return vec3_new(v.x / l, v.y / l, v.z / l);
 }
 
-void put_pixel(int x, int y, uint32_t color) {
-    PROCESS_INFO* process = (PROCESS_INFO*)GetCurrentTaskTssBase();
-    uint8_t* video_mem = (uint8_t*)process->videoBase;
-    int offset;
-
-    // 边界检查
-    if (x < 0 || x >= gVideoWidth || y < 0 || y >= gVideoHeight) {
-        return;
-    }
-
-    // 计算显存偏移（24位RGB，每个像素3字节）
-    offset = (y * gVideoWidth + x) * gBytesPerPixel;
-
-    // 写入RGB分量（小端序：BGR顺序）
-    for (int i = 0; i < gBytesPerPixel; i++) {
-        video_mem[offset + i] = (color) & 0xFF;  // 蓝色
-        color >>= 8;
-    }
+static mat4 mat4_identity(void) {
+    mat4 m = { 0 };
+    for (int i = 0; i < 4; i++) m.m[i][i] = 1.0f;
+    return m;
+}
+static mat4 mat4_mul(mat4 a, mat4 b) {
+    mat4 r = { 0 };
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            for (int k = 0; k < 4; k++)
+                r.m[i][j] += a.m[i][k] * b.m[k][j];
+    return r;
+}
+static vec4 mat4_mul_vec4(mat4 m, vec4 v) {
+    vec4 r;
+    r.x = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z + m.m[0][3] * v.w;
+    r.y = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z + m.m[1][3] * v.w;
+    r.z = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z + m.m[2][3] * v.w;
+    r.w = m.m[3][0] * v.x + m.m[3][1] * v.y + m.m[3][2] * v.z + m.m[3][3] * v.w;
+    return r;
+}
+static mat4 mat4_translate(float x, float y, float z) {
+    mat4 m = mat4_identity();
+    m.m[0][3] = x; m.m[1][3] = y; m.m[2][3] = z;
+    return m;
+}
+static mat4 mat4_rotate_x(float a) {
+    float c = cosf(a), s = sinf(a);
+    mat4 m = mat4_identity();
+    m.m[1][1] = c; m.m[1][2] = -s;
+    m.m[2][1] = s; m.m[2][2] = c;
+    return m;
+}
+static mat4 mat4_rotate_y(float a) {
+    float c = cosf(a), s = sinf(a);
+    mat4 m = mat4_identity();
+    m.m[0][0] = c; m.m[0][2] = s;
+    m.m[2][0] = -s; m.m[2][2] = c;
+    return m;
+}
+static mat4 mat4_rotate_z(float a) {
+    float c = cosf(a), s = sinf(a);
+    mat4 m = mat4_identity();
+    m.m[0][0] = c; m.m[0][1] = -s;
+    m.m[1][0] = s; m.m[1][1] = c;
+    return m;
+}
+static mat4 mat4_perspective(float fov, float aspect, float near, float far) {
+    float tan_half = tanf(fov * 0.5f);
+    mat4 m = { 0 };
+    m.m[0][0] = 1.0f / (aspect * tan_half);
+    m.m[1][1] = 1.0f / tan_half;
+    m.m[2][2] = -(far + near) / (far - near);
+    m.m[2][3] = -(2.0f * far * near) / (far - near);
+    m.m[3][2] = -1.0f;
+    return m;
 }
 
-// ================= 2. 数学库 (纯 C 指针风格，无结构体返回值) =================
+/* ========== 网格数据结构 ========== */
+typedef struct {
+    vec3 pos;
+    vec3 norm;
+} vertex;
+typedef struct {
+    int i0, i1, i2;
+} tri;
+typedef struct {
+    vertex* verts;
+    tri* tris;
+    int nvert, ntri;
+} mesh;
 
-typedef struct { float x, y, z; } Vec3;
-typedef struct { float m[4][4]; } Mat4;
+/* 生成环面 (R: 主半径, r: 小半径, us: 环向分段, vs: 径向分段) */
+static mesh* create_torus(float R, float r, int us, int vs) {
+    int nv = us * vs;
+    int nt = us * vs * 2;
+    vertex* verts = (vertex*)malloc(nv * sizeof(vertex));
+    tri* tris = (tri*)malloc(nt * sizeof(tri));
 
-// --- 向量运算 ---
-
-// 设置向量值
-void vec3_set(Vec3* out, float x, float y, float z) {
-    out->x = x; out->y = y; out->z = z;
-}
-
-// 向量减法: out = a - b
-void vec3_sub(Vec3* out, const Vec3* a, const Vec3* b) {
-    out->x = a->x - b->x;
-    out->y = a->y - b->y;
-    out->z = a->z - b->z;
-}
-
-// 向量叉乘: out = a x b
-void vec3_cross(Vec3* out, const Vec3* a, const Vec3* b) {
-    out->x = a->y * b->z - a->z * b->y;
-    out->y = a->z * b->x - a->x * b->z;
-    out->z = a->x * b->y - a->y * b->x;
-}
-
-// 向量点乘: 返回标量
-float vec3_dot(const Vec3* a, const Vec3* b) {
-    return a->x * b->x + a->y * b->y + a->z * b->z;
-}
-
-// 向量归一化: out = normalize(v)
-void vec3_norm(Vec3* out, const Vec3* v) {
-    float len_sq = v->x * v->x + v->y * v->y + v->z * v->z;
-    if (len_sq == 0.0f) { vec3_set(out, 0, 0, 0); return; }
-    float inv_len = 1.0f / sqrtf(len_sq);
-    out->x = v->x * inv_len;
-    out->y = v->y * inv_len;
-    out->z = v->z * inv_len;
-}
-
-// --- 矩阵运算 ---
-
-// 创建单位矩阵
-void mat4_identity(Mat4* out) {
-    __memset((char*)out, 0, sizeof(Mat4));
-    out->m[0][0] = 1.0f; out->m[1][1] = 1.0f;
-    out->m[2][2] = 1.0f; out->m[3][3] = 1.0f;
-}
-
-// 矩阵乘法: out = a * b
-void mat4_multiply(Mat4* out, const Mat4* a, const Mat4* b) {
-    Mat4 temp;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            temp.m[i][j] = 0;
-            for (int k = 0; k < 4; k++) {
-                temp.m[i][j] += a->m[i][k] * b->m[k][j];
-            }
+    for (int u = 0; u < us; u++) {
+        float ua = 2.0f * M_PI * u / us;
+        float cu = cosf(ua), su = sinf(ua);
+        for (int v = 0; v < vs; v++) {
+            float va = 2.0f * M_PI * v / vs;
+            float cv = cosf(va), sv = sinf(va);
+            float x = (R + r * cv) * cu;
+            float y = (R + r * cv) * su;
+            float z = r * sv;
+            verts[u * vs + v].pos = vec3_new(x, y, z);
+            // 法线：从环中心圆指向表面
+            vec3 center_dir = vec3_new(R * cu, R * su, 0);
+            vec3 to_surface = vec3_sub(verts[u * vs + v].pos, center_dir);
+            verts[u * vs + v].norm = vec3_norm(to_surface);
         }
     }
-    __memcpy((char*)out, (char*)&temp, sizeof(Mat4));
+
+    int idx = 0;
+    for (int u = 0; u < us; u++) {
+        int nu = (u + 1) % us;
+        for (int v = 0; v < vs; v++) {
+            int nv = (v + 1) % vs;
+            int i00 = u * vs + v;
+            int i10 = nu * vs + v;
+            int i01 = u * vs + nv;
+            int i11 = nu * vs + nv;
+            tris[idx].i0 = i00;
+            tris[idx].i1 = i10;
+            tris[idx].i2 = i01;
+            idx++;
+            tris[idx].i0 = i10;
+            tris[idx].i1 = i11;
+            tris[idx].i2 = i01;
+            idx++;
+            //tris[idx++] = (tri){ i00, i10, i01 };
+            //tris[idx++] = (tri){ i10, i11, i01 };
+        }
+    }
+
+    mesh* m = (mesh*)malloc(sizeof(mesh));
+    m->verts = verts; m->tris = tris;
+    m->nvert = nv; m->ntri = nt;
+    return m;
 }
 
-// 矩阵变换向量: out = m * v
-void mat4_transform(Vec3* out, const Mat4* m, const Vec3* v) {
-    // 齐次坐标变换
-    out->x = v->x * m->m[0][0] + v->y * m->m[1][0] + v->z * m->m[2][0] + m->m[3][0];
-    out->y = v->x * m->m[0][1] + v->y * m->m[1][1] + v->z * m->m[2][1] + m->m[3][1];
-    out->z = v->x * m->m[0][2] + v->y * m->m[1][2] + v->z * m->m[2][2] + m->m[3][2];
+static void free_mesh(mesh* m) {
+    if (m) { free(m->verts); free(m->tris); free(m); }
 }
 
-// 创建透视投影矩阵
-void mat4_perspective(Mat4* out, float fov, float aspect, float near, float far) {
-    __memset((char*)out, 0, sizeof(Mat4));
-    float tan_half_fov = tanf(fov / 2.0f);
-    out->m[0][0] = 1.0f / (aspect * tan_half_fov);
-    out->m[1][1] = 1.0f / tan_half_fov;
-    out->m[2][2] = -(far + near) / (far - near);
-    out->m[2][3] = -1.0f;
-    out->m[3][2] = -(2.0f * far * near) / (far - near);
+/* ========== 渲染器 ========== */
+static vec3 light_dir = { 0.6f, 0.8f, 0.5f };
+static color_t ambient = 0xFF202020;
+static color_t diffuse = 0xFFE0A080;
+
+static color_t shade(vec3 normal) {
+    vec3 n = vec3_norm(normal);
+    vec3 l = vec3_norm(light_dir);
+    float diff = vec3_dot(n, l);
+    if (diff < 0.2f) diff = 0.2f;  // 环境光保底
+    int r = ((diffuse >> 16) & 0xFF) * diff;
+    int g = ((diffuse >> 8) & 0xFF) * diff;
+    int b = (diffuse & 0xFF) * diff;
+    r += (ambient >> 16) & 0xFF;
+    g += (ambient >> 8) & 0xFF;
+    b += ambient & 0xFF;
+    if (r > 255) r = 255;
+    if (g > 255) g = 255;
+    if (b > 255) b = 255;
+    return (0xFF << 24) | (r << 16) | (g << 8) | b;
 }
 
-// ================= 3. 3D 渲染管线 =================
+static void draw_pixel(int x, int y, float z, color_t c) {
+    if (x < 0 || x >= gVideoWidth || y < 0 || y >= gVideoHeight) return;
+    int idx = y * gVideoWidth + x;
+    if (z < zbuffer[idx]) {
+        zbuffer[idx] = z;
+        fb[idx] = c;
+    }
+}
 
-// 全局 Z-Buffer (深度缓冲)
-float * z_buffer = 0;
+/* 三角形光栅化（重心坐标 + 透视修正） */
+static void draw_triangle(vec4 clip[3], color_t col[3]) {
+    // 透视除法得到 NDC
+    float ndc_x[3], ndc_y[3];
+    for (int i = 0; i < 3; i++) {
+        ndc_x[i] = clip[i].x / clip[i].w;
+        ndc_y[i] = clip[i].y / clip[i].w;
+    }
+    // 屏幕坐标
+    int sx[3], sy[3];
+    for (int i = 0; i < 3; i++) {
+        sx[i] = (int)((ndc_x[i] * 0.5f + 0.5f) * gVideoWidth);
+        sy[i] = (int)((-ndc_y[i] * 0.5f + 0.5f) * gVideoHeight);
+    }
 
-// 模型数据：一个四面体 (金字塔)
-Vec3 cube_vertices[] = {
-    {0.0f, 1.0f, 0.0f},   // 顶点
-    {-1.0f, -1.0f, -1.0f},// 左下后
-    {1.0f, -1.0f, -1.0f}, // 右下后
-    {0.0f, -1.0f, 1.0f}   // 下前
-};
+    // 包围盒
+    int minx = sx[0], maxx = sx[0], miny = sy[0], maxy = sy[0];
+    for (int i = 1; i < 3; i++) {
+        if (sx[i] < minx) minx = sx[i];
+        if (sx[i] > maxx) maxx = sx[i];
+        if (sy[i] < miny) miny = sy[i];
+        if (sy[i] > maxy) maxy = sy[i];
+    }
+    if (minx < 0) minx = 0; if (maxx >= gVideoWidth) maxx = gVideoWidth - 1;
+    if (miny < 0) miny = 0; if (maxy >= gVideoHeight) maxy = gVideoHeight - 1;
+    if (minx > maxx || miny > maxy) return;
 
-// 面索引与颜色
-int faces[][3] = { {0,1,2}, {0,2,3}, {0,3,1}, {1,3,2} };
-color_t face_colors[] = { 0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00 }; // 红绿蓝黄
+    float inv_w[3];
+    for (int i = 0; i < 3; i++) inv_w[i] = 1.0f / clip[i].w;
 
-// 绘制单个三角形 (带 Z-Buffer 测试)
-void draw_triangle(Vec3* v0, Vec3* v1, Vec3* v2, color_t color) {
-    // 1. 计算包围盒
-    int min_x = (int)((v0->x < v1->x ? (v0->x < v2->x ? v0->x : v2->x) : (v1->x < v2->x ? v1->x : v2->x)));
-    int max_x = (int)((v0->x > v1->x ? (v0->x > v2->x ? v0->x : v2->x) : (v1->x > v2->x ? v1->x : v2->x)));
-    int min_y = (int)((v0->y < v1->y ? (v0->y < v2->y ? v0->y : v2->y) : (v1->y < v2->y ? v1->y : v2->y)));
-    int max_y = (int)((v0->y > v1->y ? (v0->y > v2->y ? v0->y : v2->y) : (v1->y > v2->y ? v1->y : v2->y)));
+    for (int y = miny; y <= maxy; y++) {
+        for (int x = minx; x <= maxx; x++) {
+            // 重心坐标 (整数坐标)
+            int denom = (sx[1] - sx[0]) * (sy[2] - sy[0]) - (sy[1] - sy[0]) * (sx[2] - sx[0]);
+            if (denom == 0) continue;
+            float w0 = ((sx[1] - sx[0]) * (y - sy[0]) - (sy[1] - sy[0]) * (x - sx[0])) / (float)denom;
+            float w1 = ((sx[2] - sx[1]) * (y - sy[1]) - (sy[2] - sy[1]) * (x - sx[1])) / (float)denom;
+            float w2 = 1.0f - w0 - w1;
+            if (w0 < 0 || w1 < 0 || w2 < 0) continue;
 
-    // 屏幕边界裁剪
-    if (min_x < 0) min_x = 0;
-    if (min_y < 0) min_y = 0;
-    if (max_x >= WIDTH) max_x = WIDTH - 1;
-    if (max_y >= HEIGHT) max_y = HEIGHT - 1;
-
-    // 2. 扫描线光栅化
-    for (int y = min_y; y <= max_y; y++) {
-        for (int x = min_x; x <= max_x; x++) {
-            float px = (float)x;
-            float py = (float)y;
-
-            // 重心坐标判断点是否在三角形内 (2D 叉乘)
-            float w0 = (v1->x - v0->x) * (py - v0->y) - (v1->y - v0->y) * (px - v0->x);
-            float w1 = (v2->x - v1->x) * (py - v1->y) - (v2->y - v1->y) * (px - v1->x);
-            float w2 = (v0->x - v2->x) * (py - v2->y) - (v0->y - v2->y) * (px - v2->x);
-
-            // 判断 winding order (假设逆时针为正)
-            if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
-                // 3. 深度插值与测试
-                // 简单的线性插值 (忽略透视校正以节省性能)
-                float area = w0 + w1 + w2;
-                if (area > 0) {
-                    float alpha = w0 / area;
-                    float beta = w1 / area;
-                    float gamma = w2 / area;
-
-                    // 插值深度 Z
-                    float z = v0->z * alpha + v1->z * beta + v2->z * gamma;
-
-                    int idx = y * WIDTH + x;
-                    if (z < z_buffer[idx]) {
-                        z_buffer[idx] = z;
-                        put_pixel(x, y, color);
-                    }
-                }
-            }
+            // 透视修正深度
+            float z = 1.0f / (w0 * inv_w[0] + w1 * inv_w[1] + w2 * inv_w[2]);
+            // 透视修正颜色
+            float r = (w0 * ((col[0] >> 16) & 0xFF) * inv_w[0] +
+                w1 * ((col[1] >> 16) & 0xFF) * inv_w[1] +
+                w2 * ((col[2] >> 16) & 0xFF) * inv_w[2]) * z;
+            float g = (w0 * ((col[0] >> 8) & 0xFF) * inv_w[0] +
+                w1 * ((col[1] >> 8) & 0xFF) * inv_w[1] +
+                w2 * ((col[2] >> 8) & 0xFF) * inv_w[2]) * z;
+            float b = (w0 * (col[0] & 0xFF) * inv_w[0] +
+                w1 * (col[1] & 0xFF) * inv_w[1] +
+                w2 * (col[2] & 0xFF) * inv_w[2]) * z;
+            if (r < 0) r = 0; if (r > 255) r = 255;
+            if (g < 0) g = 0; if (g > 255) g = 255;
+            if (b < 0) b = 0; if (b > 255) b = 255;
+            color_t c = (0xFF << 24) | ((int)r << 16) | ((int)g << 8) | (int)b;
+            draw_pixel(x, y, z, c);
         }
     }
 }
 
-// 主渲染函数
-void render() {
-    // 1. 清空 Z-Buffer
-    for (int i = 0; i < WIDTH * HEIGHT; i++) z_buffer[i] = 99999.0f; // 设为极大值
+static void render_mesh(mesh* m, mat4 model, mat4 view, mat4 proj) {
+    mat4 mvp = mat4_mul(proj, mat4_mul(view, model));
+    mat4 normal_mat = mat4_mul(view, model);  // 用于法线变换
 
-    // 2. 准备矩阵
-    static float angle = 0;
-    angle += 0.02f; // 旋转速度
+    vec4* clip = (vec4*)malloc(m->nvert * sizeof(vec4));
+    color_t* vcol = (color_t*)malloc(m->nvert * sizeof(color_t));
+    if (!clip || !vcol) { free(clip); free(vcol); return; }
 
-    Mat4 rot, trans, proj, mvp;
-
-    // 旋转矩阵 (绕 Y 轴)
-    mat4_identity(&rot);
-    rot.m[0][0] = cosf(angle); rot.m[0][2] = sinf(angle);
-    rot.m[2][0] = -sinf(angle); rot.m[2][2] = cosf(angle);
-
-    // 平移矩阵 (向后移)
-    mat4_identity(&trans);
-    trans.m[3][2] = -5.0f;
-
-    // 投影矩阵
-    mat4_perspective(&proj, 3.14159f / 4.0f, (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-
-    // 组合矩阵: MVP = Projection * Translation * Rotation
-    Mat4 temp_mat;
-    mat4_multiply(&temp_mat, &trans, &rot);
-    mat4_multiply(&mvp, &proj, &temp_mat);
-
-    // 光照方向
-    Vec3 light_dir; vec3_set(&light_dir, 0.5f, 1.0f, -1.0f);
-    vec3_norm(&light_dir, &light_dir);
-
-    // 3. 渲染循环
-    for (int i = 0; i < 4; i++) {
-        int i0 = faces[i][0];
-        int i1 = faces[i][1];
-        int i2 = faces[i][2];
-
-        // 变换顶点
-        Vec3 t0, t1, t2;
-        mat4_transform(&t0, &mvp, &cube_vertices[i0]);
-        mat4_transform(&t1, &mvp, &cube_vertices[i1]);
-        mat4_transform(&t2, &mvp, &cube_vertices[i2]);
-
-        // 背面剔除 (Backface Culling)
-        Vec3 edge1, edge2, normal;
-        vec3_sub(&edge1, &t1, &t0);
-        vec3_sub(&edge2, &t2, &t0);
-        vec3_cross(&normal, &edge1, &edge2);
-
-        // 如果法线 Z > 0，说明面朝后，不绘制
-        if (normal.z > 0) continue;
-
-        // 简单光照计算
-        Vec3 world_n; // 这里简化处理，直接用变换后的法线近似
-        vec3_norm(&world_n, &normal);
-        float intensity = vec3_dot(&world_n, &light_dir);
-        if (intensity < 0.1f) intensity = 0.1f; // 环境光
-
-        // 颜色混合
-        color_t base_color = face_colors[i];
-        uint8_t r = (base_color >> 16) & 0xFF;
-        uint8_t g = (base_color >> 8) & 0xFF;
-        uint8_t b = base_color & 0xFF;
-        color_t final_color = ((int)(r * intensity) << 16) | ((int)(g * intensity) << 8) | (int)(b * intensity);
-
-        // 透视除法 (将齐次坐标转为屏幕坐标)
-        // 注意：这里我们直接修改 t0, t1, t2 的 x,y 用于光栅化
-        if (t0.z != 0) { t0.x /= t0.z; t0.y /= t0.z; }
-        if (t1.z != 0) { t1.x /= t1.z; t1.y /= t1.z; }
-        if (t2.z != 0) { t2.x /= t2.z; t2.y /= t2.z; }
-
-        // 映射到屏幕空间 (-1~1 转 0~Width/Height)
-        t0.x = (t0.x + 1) * WIDTH / 2;  t0.y = (1 - t0.y) * HEIGHT / 2;
-        t1.x = (t1.x + 1) * WIDTH / 2;  t1.y = (1 - t1.y) * HEIGHT / 2;
-        t2.x = (t2.x + 1) * WIDTH / 2;  t2.y = (1 - t2.y) * HEIGHT / 2;
-
-        draw_triangle(&t0, &t1, &t2, final_color);
-    }
-}
-
-
-void __clear_screen(uint32_t color) {
-    PROCESS_INFO* process = (PROCESS_INFO*)GetCurrentTaskTssBase();
-    unsigned char* framebuffer = (unsigned char*)process->videoBase;
-
-    uint8_t* video_mem = (uint8_t*)framebuffer;
-    int total_pixels = gVideoHeight * gVideoWidth;
-    int i;
-
-    for (i = 0; i < total_pixels; i++) {
-        DWORD cc = color;
-        for (int j = 0; j < gBytesPerPixel; j++) {
-            unsigned char c = (cc) & 0xFF;
-            if (video_mem[i * gBytesPerPixel + j] != c) {
-                video_mem[i * gBytesPerPixel + j] = c;
-            }
-
-            cc >>= 8;
-        }
-
-
+    // 顶点着色
+    for (int i = 0; i < m->nvert; i++) {
+        vec4 world = mat4_mul_vec4(model, vec4_new(m->verts[i].pos.x, m->verts[i].pos.y, m->verts[i].pos.z, 1.0f));
+        clip[i] = mat4_mul_vec4(mvp, world);
+        // 变换法线到相机空间
+        vec3 n = m->verts[i].norm;
+        vec3 n_cam;
+        n_cam.x = normal_mat.m[0][0] * n.x + normal_mat.m[1][0] * n.y + normal_mat.m[2][0] * n.z;
+        n_cam.y = normal_mat.m[0][1] * n.x + normal_mat.m[1][1] * n.y + normal_mat.m[2][1] * n.z;
+        n_cam.z = normal_mat.m[0][2] * n.x + normal_mat.m[1][2] * n.y + normal_mat.m[2][2] * n.z;
+        vcol[i] = shade(n_cam);
     }
 
+    // 光栅化所有三角形
+    for (int i = 0; i < m->ntri; i++) {
+        tri t = m->tris[i];
+        vec4 tri_clip[3] = { clip[t.i0], clip[t.i1], clip[t.i2] };
+        color_t tri_col[3] = { vcol[t.i0], vcol[t.i1], vcol[t.i2] };
+        draw_triangle(tri_clip, tri_col);
+    }
+
+    free(clip); free(vcol);
 }
+
 
 
 // 主循环入口 (由你的 OS 内核调用)
@@ -369,7 +387,16 @@ extern "C" __declspec(dllexport) int Render3DCube(unsigned int retaddr, int tid,
     __strcpy(window.caption, funcname);
     initFullWindow(&window, funcname, tid, 1);
 
-    z_buffer = (float*)malloc(gVideoWidth * gVideoHeight * sizeof(float));
+    // 分配深度缓冲
+    zbuffer = (float*)malloc(gVideoWidth * gVideoHeight * sizeof(float));
+    if (!zbuffer) return 0;
+
+    // 创建环面网格
+    mesh* torus = create_torus(1.6f, 0.5f, 72, 36);
+    if (!torus) { free(zbuffer); return 0; }
+
+    mat4 proj = mat4_perspective(M_PI / 2.2f, (float)gVideoWidth / gVideoHeight, 0.3f, 8.0f);
+    float angle = 0.0f;
 
     // 主循环
     while (1) {
@@ -377,7 +404,8 @@ extern "C" __declspec(dllexport) int Render3DCube(unsigned int retaddr, int tid,
         unsigned int asc = ck & 0xff;
         if (asc == 0x1b) {
             __DestroyWindow(&window);
-            free(z_buffer);
+            free_mesh(torus);
+            free(zbuffer);
             return 0;
         }
 
@@ -389,7 +417,8 @@ extern "C" __declspec(dllexport) int Render3DCube(unsigned int retaddr, int tid,
             if (mouseinfo.x >= window.shutdownx && mouseinfo.x <= window.shutdownx + window.capHeight &&
                 mouseinfo.y >= window.shutdowny && mouseinfo.y <= window.shutdowny + window.capHeight) {
                 __DestroyWindow(&window);
-                free(z_buffer);
+                free_mesh(torus);
+                free(zbuffer);
                 return 0;
             }
             if (mouseinfo.x >= window.minx && mouseinfo.x <= window.minx + window.capHeight &&
@@ -397,12 +426,43 @@ extern "C" __declspec(dllexport) int Render3DCube(unsigned int retaddr, int tid,
                 MinimizeWindow(&window);
             }
         }
-        __clear_screen(0);
 
-        render();
-        // 如果需要双缓冲，这里交换缓冲区
+        // 清空深度缓冲和帧缓冲
+        for (int i = 0; i < gVideoWidth * gVideoHeight; i++) {
+            zbuffer[i] = 1e30f;
+            fb[i] = 0xFF000000;  // 黑色
+        }
+
+        // 模型矩阵：环面自转
+        mat4 model = mat4_mul(mat4_rotate_y(angle), mat4_rotate_x(angle * 0.5f));
+
+        // 视图矩阵：相机绕 Y 轴旋转，同时上下浮动
+        float cam_r = 4.2f;
+        float cam_a = angle * 0.3f;
+        float cam_x = sinf(cam_a) * cam_r;
+        float cam_z = cosf(cam_a) * cam_r;
+        float cam_y = 0.8f + sinf(angle * 0.7f) * 0.6f;
+        vec3 eye = vec3_new(cam_x, cam_y, cam_z);
+        vec3 center = vec3_new(0, 0, 0);
+        vec3 up = vec3_new(0, 1, 0);
+        // 构造 LookAt 矩阵
+        vec3 f = vec3_norm(vec3_sub(center, eye));
+        vec3 r = vec3_norm(vec3_cross(up, f));
+        vec3 u = vec3_cross(f, r);
+        mat4 view = { 0 };
+        view.m[0][0] = r.x; view.m[0][1] = r.y; view.m[0][2] = r.z; view.m[0][3] = -vec3_dot(r, eye);
+        view.m[1][0] = u.x; view.m[1][1] = u.y; view.m[1][2] = u.z; view.m[1][3] = -vec3_dot(u, eye);
+        view.m[2][0] = f.x; view.m[2][1] = f.y; view.m[2][2] = f.z; view.m[2][3] = -vec3_dot(f, eye);
+        view.m[3][3] = 1.0f;
+
+        render_mesh(torus, model, view, proj);
+
+        angle += 0.025f;
+        if (angle > 2 * M_PI) 
+            angle -= 2 * M_PI;
 
         __sleep(0);
     }
+    return 0;
 }
 

@@ -101,7 +101,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 			//hlt
 		}
 
-		__kYield();
+		//__yield2();
 
 		__sleep(-1);
 	}

@@ -54,9 +54,9 @@ int getcrs(char * szout) {
 	return len;
 }
 
-int getmemmap(int pid, char* szout) {
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	return getProcMemory(pid,cpu, szout);
+int getmemmap(int pid,int cpu, char* szout) {
+
+	return GetProcessMemory(pid,cpu, szout);
 }
 
 int GetAllProcesses(char* szout) {

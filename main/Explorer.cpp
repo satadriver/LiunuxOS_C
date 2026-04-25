@@ -173,7 +173,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			{
 				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Rotate3DCube", 3, 0);
 				
-				//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Rotate3DCube", 3, 0);
+				//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Render3DCube", 3, 0);
 				//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "ScreenVector", 3, 0);
 			}
 			continue;

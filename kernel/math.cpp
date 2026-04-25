@@ -513,8 +513,49 @@ double __exp(double x) {
 }
 
 
+/**
+ * 计算两个 float 单精度浮点数的最大值。
+ * 遵循 C99/C11 标准语义：
+ * - 若任一参数为 NaN，返回另一个参数（若两个都是 NaN，返回 NaN）。
+ * - 数值上较大者返回，若相等则返回第一个参数（x）。
+ *
+ * 完全使用标准 C，不依赖 math.h。
+ */
+float __fmaxf(float x, float y) {
+	// 利用 NaN 不等于自身的特性判断是否为 NaN
+	int x_is_nan = (x != x);
+	int y_is_nan = (y != y);
 
+	if (x_is_nan)
+		return y;          // x 是 NaN → 返回 y（y 可能是 NaN 或正常数）
+	if (y_is_nan)
+		return x;          // y 是 NaN → 返回 x（x 一定不是 NaN，因为上面已排除）
 
+	// 都不是 NaN → 正常比较
+	return (x > y) ? x : y;
+}
+
+/**
+ * 计算两个 float 单精度浮点数的最小值。
+ * 遵循 C99/C11 标准语义：
+ * - 若任一参数为 NaN，返回另一个参数（若两个都是 NaN，返回 NaN）。
+ * - 数值上较小者返回，若相等则返回第一个参数（x）。
+ *
+ * 完全使用标准 C，不依赖 math.h。
+ */
+float __fminf(float x, float y) {
+	// 利用 NaN 不等于自身的特性判断是否为 NaN
+	int x_is_nan = (x != x);
+	int y_is_nan = (y != y);
+
+	if (x_is_nan)
+		return y;          // x 是 NaN → 返回 y（y 可能是 NaN 或正常数）
+	if (y_is_nan)
+		return x;          // y 是 NaN → 返回 x（x 一定不是 NaN）
+
+	// 都不是 NaN → 正常比较
+	return (x < y) ? x : y;
+}
 
 float __fabsf(float x) {
 	if (x >= 0) {

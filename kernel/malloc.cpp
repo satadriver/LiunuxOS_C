@@ -611,16 +611,26 @@ unsigned char* __slab_malloc(int size) {
 }
 
 
-int getProcMemory(int pid,int cpu, char* szout) {
-	int offset = 0;
+int GetProcessMemory(int pid,int cpu, char* szout) {
+	
+	LPPROCESS_INFO current = GetCurrentTaskTssBase();
+	if (pid == -1) {
+		pid = current->pid;
+	}
 
-	LPPROCESS_INFO processes = (LPPROCESS_INFO) GetTaskTssBase();
-	LPPROCESS_INFO tss = processes + pid;
-	if (tss->status != TASK_RUN)
+	
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO proc = tss + pid;
+	if (proc->status != TASK_RUN)
 	{
 		return FALSE;
 	}
 
+	if (cpu == -1) {
+		cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	}
+
+	int offset = 0;
 	LPMEMALLOCINFO base = (LPMEMALLOCINFO)gMemAllocList->list.next;
 	LPMEMALLOCINFO info = base;
 	do
