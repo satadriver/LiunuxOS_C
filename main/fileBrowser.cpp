@@ -28,7 +28,7 @@
 #include "fileWindow.h"
 #include "apic.h"
 #include "systemService.h"
-
+#include "ac97.h"
 
 
 int getPartitionInfo() {
@@ -171,7 +171,14 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	}
 	else if (__memcmp(files->pathname + fnlen - 4, ".wav", 4) == 0)
 	{
-		result = sbplay((char*)buffer, readsize);
+		ac97_play_wav((const unsigned char*)buffer, readsize);
+		if (g_ac97_exist) {
+			ac97_play_wav((const unsigned char*)buffer, readsize);
+		}
+		else {
+			result = sbplay((char*)buffer, readsize);
+		}
+		
 
 		//return playWavFile(files->pathname);
 		__kFree((DWORD)buffer);

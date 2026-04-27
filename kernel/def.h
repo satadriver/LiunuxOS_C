@@ -33,6 +33,7 @@
 #define uint8_t		unsigned char
 #define uint16_t	unsigned short
 #define uint32_t	unsigned int
+//#define uintptr_t	(unsigned int)
 #define uint64_t	unsigned __int64
 #define int8_t		char
 #define int16_t		short

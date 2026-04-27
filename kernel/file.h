@@ -98,7 +98,7 @@ extern "C" __declspec(dllexport) int getMBR();
 
 extern "C" int logFile(char * log);
 
-extern "C" __declspec(dllexport) int readFileTo(char * filename);
+extern "C" __declspec(dllexport) int readFileTo(char * filename, char** buf);
 
 extern "C" int initFileSystem();
 
@@ -119,7 +119,7 @@ extern "C" __declspec(dllimport) int getMBR();
 
 extern "C" int logFile(char * log);
 
-extern "C" __declspec(dllimport)int readFileTo(char * filename);
+extern "C" __declspec(dllimport)int readFileTo(char * filename,char ** buf);
 
 extern "C" int initFileSystem();
 

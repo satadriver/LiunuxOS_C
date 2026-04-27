@@ -26,16 +26,23 @@ int		g_ClusterSize = g_SecsPerCluster * g_bytesPerSec;
 
 
 
-int readFileTo(char * filename) {
-	//char * buf = (char*)FILE_BUFFER_ADDRESS;
-	char* buf = (char*)__kMalloc(MAX_FILE_SIZE);
-	if (buf == 0) {
+int readFileTo(char * filename,char ** buf) {
+
+	if(buf == 0)
+	{
 		return 0;
+	}
+
+	if (*buf == 0) {
+		*buf = (char*)__kMalloc(MAX_FILE_SIZE);
+		if (*buf == 0) {
+			return 0;
+		}
 	}
 
 	IncreaseDelta(FILE_PRIORITY);
 
-	return readFile(filename, &buf);
+	return readFile(filename, buf);
 }
 
 

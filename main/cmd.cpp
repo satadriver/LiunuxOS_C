@@ -18,8 +18,8 @@
 
 #include "Kernel.h"
 #include "mainUtils.h"
-
-#include "Utils.h"
+#include "ac97.h"
+#include "file.h"
 #include "paint.h"
 #include "malloc.h"
 #include "Thread.h"
@@ -106,7 +106,13 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		}
 		else if (__memcmp(filename + fnlen - 4, ".wav", 4) == 0)
 		{
-			return playWavFile(filename);
+			if (g_ac97_exist) {
+				return ac97_play_wav_file(filename);
+			}
+			else {
+				return playWavFile(filename);
+			}
+			
 		}
 	}
 	else if (__strcmp(params[0], "ls") == 0) {

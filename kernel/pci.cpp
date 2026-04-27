@@ -3,7 +3,7 @@
 #include "video.h"
 #include "Utils.h"
 #include "hardware.h"
-
+#include "ac97.h"
 
 
 
@@ -152,7 +152,10 @@ int listpci(DWORD* dst) {
 			*lpdst = bdf;
 			lpdst++;
 
-			
+			if (v == 0x0401) {
+				
+				g_ac97_exist = 1;
+			}
 			//if ( (v == 0x200) ||  (v== 0x0300) || (v== 0x0401) || (v == 0x0c03) || (v == 0x0c05) ) 
 			{
 				int baseregidx = (bdf & 0xffffff00) + 0x00;	//0x10
