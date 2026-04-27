@@ -24,15 +24,14 @@ typedef char* va_list;
 
 #define va_end(list) ( list = (va_list)0 )
 
-#undef _iobuf
-#undef FILE
 
-#include <stdio.h>
+
+//#include <stdio.h>
 
 #pragma pack(1)
 
 
-typedef struct my_iobuf {
+ typedef struct  _iobuf {
     char* _ptr;      // 缓冲区当前指针
     int _cnt;        // 缓冲区剩余字符数
     char* _base;     // 缓冲区基址
@@ -47,7 +46,7 @@ typedef struct my_iobuf {
 
 
 
-typedef struct _iobuf FILE;
+typedef   struct _iobuf FILE;
 
 
 

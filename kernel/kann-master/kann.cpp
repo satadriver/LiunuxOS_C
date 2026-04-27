@@ -1,7 +1,5 @@
 
 
-#undef _iobuf
-#undef FILE
 
 #include "kann.h"
 
@@ -12,8 +10,9 @@
 
 
 #else
-#include "../math.h"
 #include "../libc.h"
+#include "../math.h"
+
 #endif
 
 #define sqrt __sqrt
@@ -66,12 +65,7 @@
 
 
 
-FILE _iob[3];
 
-// 标准流宏定义
-#define stdin   (&_iob[0])
-#define stdout  (&_iob[1])
-#define stderr  (&_iob[2])
 
 
 

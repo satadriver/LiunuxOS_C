@@ -995,7 +995,6 @@ void idctcol(int * blk)
 
 #ifdef _DEBUG
 #include <stdio.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 int testjpeg()

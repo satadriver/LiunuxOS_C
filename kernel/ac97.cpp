@@ -1,12 +1,13 @@
-
+#include "def.h"
+#include "libc.h"
 #include "ac97.h"
 #include "device.h"
 #include "hardware.h"
-#include "libc.h"
+
 #include "math.h"
 #include "malloc.h"
 #include "file.h"
-#include "def.h"
+
 
 extern "C" __declspec(dllexport) int g_ac97_exist = 0;
 

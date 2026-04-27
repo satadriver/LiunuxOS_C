@@ -16,7 +16,7 @@
 
 #endif
 
-
+FILE _iob[3];
 
 
 

@@ -59,7 +59,7 @@
 #define fgets my_fgets
 #define fputs my_fputs
 
-FILE _iob[3];
+
 
 //#pragma comment(lib,"kernel.lib")
 

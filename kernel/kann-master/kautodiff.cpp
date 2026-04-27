@@ -1,6 +1,4 @@
 
-#undef _iobuf
-#undef FILE
 
 #include "kautodiff.h"
 

@@ -39,8 +39,6 @@
 
 #define KAD_VERSION "r556"
 
-//#include <stdio.h>
-//#include <stdint.h>
 
 #ifdef __STRICT_ANSI__
 #define inline

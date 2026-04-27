@@ -1,7 +1,5 @@
 
 
-//#include<stdio.h>
-//#include<string.h>
 //#include "rc4.h"
 #include "def.h"
 #include "Utils.h"
