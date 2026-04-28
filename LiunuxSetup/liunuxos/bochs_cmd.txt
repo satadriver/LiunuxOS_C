@@ -1,0 +1,9 @@
+
+bximage -q -hd=16 -func=create -sectsize=512 liunuxos.img
+dd if=liunux_bochs_mbr.bin of=liunuxos.img bs=446 count=1 conv=notrunc
+dd if=liunux_os_data.bin of=liunuxos.img bs=512 seek=100000 count=1 conv=notrunc
+dd if=font.db of=liunuxos.img bs=512 seek=100003 count=2 conv=notrunc
+dd if=loader.com of=liunuxos.img bs=512 seek=100005 count=3 conv=notrunc
+dd if=kernel.exe of=liunuxos.img bs=512 seek=100008 count=46 conv=notrunc
+dd if=kernel.dll of=liunuxos.img bs=512 seek=100054 count=856 conv=notrunc
+dd if=main.dll of=liunuxos.img bs=512 seek=100910 count=482 conv=notrunc

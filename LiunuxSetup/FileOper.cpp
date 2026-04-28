@@ -47,7 +47,9 @@ string FileOper::getDateTime() {
 
 int FileOper::fileReader(string filename, char ** lpbuf, int *bufsize) {
 	int ret = 0;
-
+	if (bufsize == 0) {
+		return 0;
+	}
 	FILE * fp = fopen(filename.c_str(), "rb");
 	if (fp <= 0)
 	{
@@ -60,12 +62,21 @@ int FileOper::fileReader(string filename, char ** lpbuf, int *bufsize) {
 	int filesize = ftell(fp);
 
 	ret = fseek(fp, 0, FILE_BEGIN);
+	if (filesize == 0) {
+		fclose(fp);
+		return 0;
+	}
 
-	*bufsize = filesize;
+	if ( *bufsize) {
 
-	*lpbuf = new char[filesize + 1024];
+	}
+	else {
+		*bufsize = filesize;
+	}
 
-	ret = fread(*lpbuf, 1, filesize, fp);
+	*lpbuf = new char[*bufsize + 1024];
+
+	ret = fread(*lpbuf, 1, *bufsize, fp);
 	fclose(fp);
 	if (ret <= FALSE)
 	{
@@ -73,8 +84,8 @@ int FileOper::fileReader(string filename, char ** lpbuf, int *bufsize) {
 		return FALSE;
 	}
 
-	*(*lpbuf + filesize) = 0;
-	return filesize;
+	*(*lpbuf + *bufsize) = 0;
+	return *bufsize;
 }
 
 

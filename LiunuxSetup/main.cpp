@@ -1,15 +1,19 @@
 #include <windows.h>
-
+#include "bochs_mbr.h"
 #include "osWriter.h"
 #include "sectorRW.h"
 #include "FileOper.h"
-
+#include "main.h"
 
 
 
 
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	int ret = 0;
+
+	ret = MakeBochsMBR();
+	return 0;
+
 	ret = SectorReaderWriter::init();
 	if (ret <= 0)
 	{

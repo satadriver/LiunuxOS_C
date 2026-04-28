@@ -16,6 +16,10 @@ using namespace std;
 #define KERNEL_DLL_FILENAME			"kernel.dll"
 #define MAIN_DLL_FILENAME			"main.dll"
 
+#define LIUNUX_BOCHS_MBR_FILENAME	"liunux_bochs_mbr.bin"
+#define LIUNUX_OS_DATA_FILENAME		"liunux_os_data.bin"
+#define BOCHS_HARDDISK_FILENAME		"liunuxos.img"
+#define BOCHS_CMD_FILENAME			"bochs_cmd.txt"
 
 #pragma pack(1)
 typedef struct  
@@ -55,6 +59,14 @@ typedef struct {
 	MBR_DPT dpt[4];
 	unsigned char systemFlag[2];
 }MBR, *LPMBR;
+
+
+typedef struct {
+	unsigned char code[442];
+	unsigned int secoff;
+	MBR_DPT dpt[4];
+	unsigned char systemFlag[2];
+}LJGMBR, * LPLJGMBR;
 
 typedef struct
 {

@@ -149,12 +149,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="bochs_mbr.cpp" />
     <ClCompile Include="fileOper.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="osWriter.cpp" />
     <ClCompile Include="sectorRW.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bochs_mbr.h" />
     <ClInclude Include="fileOper.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="osWriter.h" />
