@@ -93,7 +93,7 @@ int FileOper::fileReader(string filename, char ** lpbuf, int *bufsize) {
 
 
 
-int FileOper::fileWriter(string filename, const char * lpdate, int datesize, int cover) {
+int FileOper::fileWriter(string filename, const char * lpdata, int datasize, int cover) {
 	int ret = 0;
 
 	FILE * fp = 0;
@@ -110,13 +110,16 @@ int FileOper::fileWriter(string filename, const char * lpdate, int datesize, int
 		return FALSE;
 	}
 
-	ret = fwrite(lpdate, 1, datesize, fp);
+	if (lpdata && datasize) {
+		ret = fwrite(lpdata, 1, datasize, fp);
+	}
+	
 	fclose(fp);
 	if (ret == FALSE)
 	{
 		return FALSE;
 	}
 
-	return datesize;
+	return datasize;
 }
 

