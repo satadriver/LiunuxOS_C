@@ -5,18 +5,31 @@
 
 #define __le32 unsigned int
 #define __le16 unsigned short
+#define __le8 unsigned char
+
 #define __u8 unsigned char
 #define __u16 unsigned short
+#define __u32 unsigned int
 
-
-#define __u32 unsigned char
+#define u16 unsigned short
 #define u8 unsigned char
 #define u32 unsigned int
 
 #define uid_t unsigned int
 #define gid_t unsigned int
 
-#define spinlock_t unsigned int
+#define spinlock_t  int
+
+
+#define        EXT2_NDIR_BLOCKS					12									//直接块数目
+
+#define        EXT2_IND_BLOCK					EXT2_NDIR_BLOCKS					//简单间接12
+
+#define        EXT2_DIND_BLOCK					(EXT2_IND_BLOCK+ 1)					//二级间接13
+
+#define        EXT2_TIND_BLOCK					(EXT2_DIND_BLOCK+ 1)				//三级间接14
+
+#define        EXT2_N_BLOCKS					(EXT2_TIND_BLOCK+ 1)				//ext2_inode中i_blocks数组的大小15
 
 
 #pragma pack(1)
@@ -54,15 +67,7 @@ typedef struct {
 
 
 
-#define        EXT2_NDIR_BLOCKS					12									//直接块数目
 
-#define        EXT2_IND_BLOCK					EXT2_NDIR_BLOCKS					//简单间接12
-
-#define        EXT2_DIND_BLOCK					(EXT2_IND_BLOCK+ 1)					//二级间接13
-
-#define        EXT2_TIND_BLOCK					(EXT2_DIND_BLOCK+ 1)				//三级间接14
-
-#define        EXT2_N_BLOCKS					(EXT2_TIND_BLOCK+ 1)				//ext2_inode中i_blocks数组的大小15
 
 
 
@@ -244,5 +249,25 @@ struct ext2_group_desc
 	__le32	bg_reserved[3];
 };
 
+struct ext4_dir_entry_2 {
+	__le32  inode;          // 子项的 inode 号
+	__le16  rec_len;        // 当前条目总长度（含填充字节）
+	__le8   name_len;       // 文件名长度（最大 255）
+	__le8   file_type;      // 文件类型（EXT4_FT_REG_FILE、EXT4_FT_DIR 等）
+	char    name[];         // 变长文件名（不以 '\0' 结尾）
+};
+
 
 #pragma pack()
+
+
+
+int GetExt4DBR();
+
+int GetSuperBlock();
+
+int GetGroupDesc();
+
+int GetExt4Inode();
+
+int GetExt4RootDir();

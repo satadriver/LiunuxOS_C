@@ -44,17 +44,22 @@ int initNTFS() {
 
 int getNtfsDBR() {
 	int ret = 0;
-
-	for (int i = 0; i < 4; i++)
-	{
-		if (gMBR.dpt[i].flag == 0x80) {
-			unsigned int secno = gMBR.dpt[i].offset;
-			ret = readSector(secno, 0, 1, (char*)&gNtfsDbr);
-			if (__memcmp((char*)gNtfsDbr.FsID, "NTFS    ", 8) == 0)
-			{
-				break;
+	unsigned long max = 0;
+	unsigned long seq = 0;
+	for (int i = 0; i < 4; i++) {
+		if (gMBR.dpt[i].flag & 0x80) {
+			unsigned long total = gMBR.dpt[i].total;
+			if (total > max) {
+				max = total;
+				seq = gMBR.dpt[i].offset;
 			}
 		}
+	}
+
+	ret = readSector(seq, 0, 1, (char*)&gNtfsDbr);
+	if (__memcmp((char*)gNtfsDbr.FsID, "NTFS    ", 8) == 0)
+	{
+		return ret;
 	}
 
 	return ret;

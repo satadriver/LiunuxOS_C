@@ -466,7 +466,7 @@ typedef struct {
 	QWORD ist6;
 
 	QWORD reservedQw2;
-	WORD reservedw;
+	WORD reservedW;
 	WORD iomap;
 	unsigned char ioend;
 }TSS64_DATA, * LPTSS64_DATA;

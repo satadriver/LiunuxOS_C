@@ -552,6 +552,7 @@ int insertPopupItem(LPWINDOWCLASS window) {
 int deletePopupItem(LPWINDOWCLASS window) {
 
 	__enterSpinlock(&g_popupmenu_lock);
+
 	int n = 0;
 	int cnt = LEFTCLICK_MENU_HEIGHT / 2 / GRAPHCHAR_HEIGHT;
 	for (int i = 0; i < cnt; i++) {

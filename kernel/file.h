@@ -12,7 +12,7 @@ typedef struct {
 	unsigned char endvolume;
 	unsigned char enddiskno;
 	unsigned int offset;			//8
-	unsigned int sectortotal;		//12
+	unsigned int total;		//12
 }MBR_DPT, *LPMBR_DPT;
 
 typedef struct {

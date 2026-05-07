@@ -16,7 +16,7 @@
 
 #endif
 
-FILE _iob[3];
+extern "C" __declspec(dllexport) FILE _iob[3];
 
 
 
