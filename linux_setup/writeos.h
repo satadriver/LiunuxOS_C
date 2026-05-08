@@ -180,7 +180,7 @@ typedef struct _NTFSDBR {
 
 #define LINUX_BOOT_SIZE				1024
 
-#define EMPTY_SECTOR_NEED			0x400
+#define EMPTY_SECTOR_NEED			(0x800 - 64)
 
 #define MBR_SIGNATURE               		0xAA55
 

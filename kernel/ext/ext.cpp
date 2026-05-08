@@ -153,42 +153,39 @@ int GetExt4Inode() {
 int GetExt4RootDir() {
 	int ret = 0;
 	
-	ext2_inode* node = gExt4Inode;
+	ext2_inode* node = (ext2_inode*)((char*)gExt4Inode + gExt4SuperBlock.s_inode_size);
 
 	int rootDirSize = 0;
+	if (node->i_mode && node->i_block && node->i_blocks) {
 
-	for (int i = 0; i < gExt4GroupDesc.bg_used_dirs_count; i++) {
+		unsigned int long sector = 0;
 
-		if (node->i_mode && node->i_block && node->i_blocks) {
-
-			unsigned int long sector = 0;
-
-			ext4_extent_header* hdr = (ext4_extent_header*)node->i_block;
-			if (hdr->eh_magic == 0xf30a) {
-				ext4_extent* ext = (ext4_extent*)((char*)hdr+sizeof(ext4_extent_header));
-				sector =(ext->ee_start_hi << 32)+ ext->ee_start_lo;
-				sector = sector * 0x1000 / BYTES_PER_SECTOR + g_ext4_part_offset;
-			}
-			else {
-				sector = g_ext4_part_offset+ node->i_block[0] * gLogBlockSize / BYTES_PER_SECTOR;
-			}
-
-			DWORD low = sector & 0xffffffff;
-			DWORD high = sector >> 32;
-
-			rootDirSize = node->i_blocks * gLogBlockSize;
-
-			int seccnt = node->i_blocks* gLogBlockSize/ BYTES_PER_SECTOR;
-			if (gExt4RootDir == 0) {
-				gExt4RootDir = (ext4_dir_entry_2*)__kMalloc(seccnt * BYTES_PER_SECTOR);
-			}
-			
-			ret = readSector(low, high, seccnt, (char*)gExt4RootDir);
-			break;
+		ext4_extent_header* hdr = (ext4_extent_header*)node->i_block;
+		if (hdr->eh_magic == 0xf30a) {
+			ext4_extent* ext = (ext4_extent*)((char*)hdr+sizeof(ext4_extent_header));
+			sector =ext->ee_start_hi;
+			sector = (sector << 32) + ext->ee_start_lo;
+			sector = sector * gLogBlockSize / BYTES_PER_SECTOR + g_ext4_part_offset;
 		}
-		node = (ext2_inode * )((char*)node + gExt4SuperBlock. s_inode_size);
+		else {
+			sector = g_ext4_part_offset+ node->i_block[0] * gLogBlockSize / BYTES_PER_SECTOR;
+		}
+
+		DWORD low = sector & 0xffffffff;
+		DWORD high = sector >> 32;
+
+		rootDirSize = node->i_blocks * gLogBlockSize;
+
+		int seccnt = node->i_blocks* gLogBlockSize/ BYTES_PER_SECTOR;
+		if (gExt4RootDir == 0) {
+			gExt4RootDir = (ext4_dir_entry_2*)__kMalloc(seccnt * BYTES_PER_SECTOR);
+		}
+			
+		ret = readSector(low, high, seccnt, (char*)gExt4RootDir);
 	}
 
+	
+	
 	char szout[1024];
 	ext4_dir_entry_2* dir = gExt4RootDir;
 	while ((char*)dir < (char*) gExt4RootDir + rootDirSize) {

@@ -13,13 +13,13 @@ OBJECTS = fileutils.o writeos.o main.o
 
 #endif
 
-CFLAGS += -g -lstdc++
+CFLAGS += -g 
 
 CPPFLAGS = CFLAGS
 
 
 all: $(OBJECTS)
-	$(CC)  $(CFLAGS) $(OBJECTS) -o $(TARGET)
+	$(CC)  $(CFLAGS) $(OBJECTS) -lstdc++ -o $(TARGET)
 	-rm -rf $(OBJECTS)
 
 $(TARGET):$(OBJECTS)
