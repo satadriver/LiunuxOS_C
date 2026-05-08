@@ -47,7 +47,9 @@ int getNtfsDBR() {
 	unsigned long max = 0;
 	unsigned long seq = 0;
 	for (int i = 0; i < 4; i++) {
-		if (gMBR.dpt[i].flag & 0x80) {
+		//if (gMBR.dpt[i].flag & 0x80) 
+		if (gMBR.dpt[i].type)
+		{
 			unsigned long total = gMBR.dpt[i].total;
 			if (total > max) {
 				max = total;

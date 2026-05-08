@@ -35,12 +35,11 @@
 #pragma pack(1)
 
 
-
 typedef struct  _rb_node
 {
 	unsigned long  __rb_parent_color; //下面详细解析这个变量
-	struct _rb_node *rb_right;//右孩子指针域
-	struct _rb_node *rb_left;//左孩子指针域
+	struct _rb_node* rb_right;//右孩子指针域
+	struct _rb_node* rb_left;//左孩子指针域
 } rb_node;
 
 
@@ -62,13 +61,6 @@ typedef struct {
 typedef struct {
 	unsigned int i;
 }ext2_reserve_window_node;
-
-
-
-
-
-
-
 
 
 struct ext2_super_block {
@@ -254,13 +246,60 @@ struct ext4_dir_entry_2 {
 	__le16  rec_len;        // 当前条目总长度（含填充字节）
 	__le8   name_len;       // 文件名长度（最大 255）
 	__le8   file_type;      // 文件类型（EXT4_FT_REG_FILE、EXT4_FT_DIR 等）
-	char    name[];         // 变长文件名（不以 '\0' 结尾）
+	char    name[0];         // 变长文件名（不以 '\0' 结尾）
 };
 
+
+struct ext4_extent_header {
+	__le16  eh_magic;       // 0xF30A
+	__le16  eh_entries;     // 当前有多少个 extent
+	__le16  eh_max;         // 最多能存多少个 extent
+	__le16  eh_depth;       // 树的深度（0 表示叶子）
+	__le32  eh_generation;  // 生成数（通常 0）
+};
+
+
+struct ext4_extent {
+	__le32  ee_block;       // 逻辑块号（从 0 开始）
+	__le16  ee_len;         // 块数（实际长度低 16 位）
+	__le16  ee_start_hi;    // 物理块号高 16 位
+	__le32  ee_start_lo;    // 物理块号低 32 位
+};
 
 #pragma pack()
 
 
+#ifdef DLL_EXPORT
+extern __declspec(dllexport)char gExt4Dbr[512];
+extern __declspec(dllexport)unsigned long long g_ext4_part_offset ;
+
+extern __declspec(dllexport)ext2_super_block gExt4SuperBlock;
+extern __declspec(dllexport)int gLogBlockSize ;
+extern __declspec(dllexport)int s_first_data_block ;
+
+extern __declspec(dllexport)ext2_group_desc gExt4GroupDesc;
+extern __declspec(dllexport)unsigned long long g_inode_offset ;
+
+extern __declspec(dllexport)ext2_inode* gExt4Inode ;
+
+extern __declspec(dllexport)ext4_dir_entry_2* gExt4RootDir ;
+#else
+extern __declspec(dllexport)char gExt4Dbr[512];
+extern __declspec(dllexport)unsigned long long g_ext4_part_offset;
+
+extern __declspec(dllimport)ext2_super_block gExt4SuperBlock;
+extern __declspec(dllimport)int gLogBlockSize;
+extern __declspec(dllimport)int s_first_data_block;
+
+extern __declspec(dllimport)ext2_group_desc gExt4GroupDesc;
+extern __declspec(dllimport)unsigned long long g_inode_offset;
+
+extern __declspec(dllimport)ext2_inode* gExt4Inode ;
+
+extern __declspec(dllimport)ext4_dir_entry_2* gExt4RootDir;
+#endif
+
+int InitExt4();
 
 int GetExt4DBR();
 

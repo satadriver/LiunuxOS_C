@@ -46,6 +46,12 @@
     <Filter Include="kann">
       <UniqueIdentifier>{dd40d48e-55ba-4cf4-bd3e-2aae46196714}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\ext">
+      <UniqueIdentifier>{3559906c-85c7-4c1a-9d28-1cb943a8a068}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="头文件\ext">
+      <UniqueIdentifier>{5004b1f9-5995-4df5-8a7f-ab31460d6fc7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -141,6 +147,9 @@
     <ClCompile Include="dl.cpp">
       <Filter>kann</Filter>
     </ClCompile>
+    <ClCompile Include="ext\ext.cpp">
+      <Filter>源文件\ext</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gdi\jpeg.h">
@@ -235,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="dl.h">
       <Filter>kann</Filter>
+    </ClInclude>
+    <ClInclude Include="ext\ext.h">
+      <Filter>头文件\ext</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

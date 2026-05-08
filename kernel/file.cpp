@@ -8,7 +8,7 @@
 #include "NTFS/ntfsFile.h"
 #include "apic.h"
 #include "task.h"
-
+#include "ext/ext.h"
 
 
 extern "C" __declspec(dllexport)  int (__cdecl * readFile)(const char * filename, char ** buf) = readNtfsFile;
@@ -62,6 +62,9 @@ int initFileSystem() {
 	{
 		ret = initNTFS();
 	}
+	else if (ret == 3) {
+		ret = InitExt4();
+	}
 	else {
 		return 0;
 	}
@@ -98,8 +101,7 @@ int getMBR() {
 			{
 				return 2;
 			}
-			else if (gMBR.dpt[i].type == LINUX_SWAP_PARTITION || gMBR.dpt[i].type == LINUX_PARTITION || 
-				gMBR.dpt[i].type == LINUX_EXTENDED_PARTITION)
+			else if ( gMBR.dpt[i].type == LINUX_PARTITION )
 			{
 				return 3;
 			}
@@ -111,6 +113,9 @@ int getMBR() {
 			else if (gMBR.dpt[i].type == FAT12_PARTITION || gMBR.dpt[i].type == FAT12_HIDDEN)
 			{
 				return 5;
+			}
+			else if (gMBR.dpt[i].type == LINUX_SWAP_PARTITION || gMBR.dpt[i].type == LINUX_EXTENDED_PARTITION) {
+				return 6;
 			}
 			else {
 				int type = gMBR.dpt[i].type;
