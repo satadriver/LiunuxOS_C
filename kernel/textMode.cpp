@@ -86,7 +86,7 @@ int runcmd(char * cmd) {
 		}
 
 	}
-	else if (__strcmp(cmd, "cpuinfo") == 0) {
+	else if (__strcmp(cmd, "cpu") == 0) {
 
 		char cpu[1024];
 		getCpuInfo(cpu);
@@ -103,6 +103,9 @@ int runcmd(char * cmd) {
 	else if (__strcmp(cmd, "timestamp") == 0) {
 
 	}
+	else if (__strcmp(cmd, "reset") == 0) {
+		outportb(0x92, 1);
+	}
 	else if (__strcmp(cmd, "version") == 0) {
 		
 		__sprintf(buf, "%s\r\n", LIUNUXOS_VERSION);
@@ -113,7 +116,10 @@ int runcmd(char * cmd) {
 		__sprintf(buf, "%s\r\n", "LIUNUXOS");
 		outputStr(buf, OUTPUT_TEXTMODE_COLOR);
 	}
-	else if (__strcmp(cmd, "date") == 0) {
+	else if (__strcmp(cmd, "cls") == 0) {
+		clearTextScreen();
+	}
+	else if (__strcmp(cmd, "date") == 0 || __strcmp(cmd, "time") == 0) {
 
 		DATETIME dt;
 		__getDateTime(&dt);
@@ -139,8 +145,7 @@ int outputStr(char* str,char color) {
 int outputChar(char c,char color) {
 
 	if (c == 0x0d ) {
-		gTxtOffset = (gTxtOffset / LINE_SIZE) * LINE_SIZE + LINE_SIZE;
-		
+		gTxtOffset = (gTxtOffset / LINE_SIZE) * LINE_SIZE + LINE_SIZE;		
 	}
 	else if (c == 0x0a) {
 		//int mod = gTxtOffset % LINE_SIZE;
@@ -160,10 +165,12 @@ int outputChar(char c,char color) {
 		*(gTxtBuf + gTxtOffset + 1) = 0;
 	}
 	else {
-		*(gTxtBuf + gTxtOffset) = c;
-		gTxtOffset++;
-		*(gTxtBuf + gTxtOffset) = color;
-		gTxtOffset++;
+		if (__isprint(c)) {
+			*(gTxtBuf + gTxtOffset) = c;
+			gTxtOffset++;
+			*(gTxtBuf + gTxtOffset) = color;
+			gTxtOffset++;
+		}
 	}
 
 	setScreenPos(gTxtOffset );
@@ -308,29 +315,13 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	return 0;
 }
 
-//https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
-//http://www.osdever.net/FreeVGA/vga/portidx.htm
 
-//光标在屏幕上的位置保存在显卡内部的两个光标寄存器中，
-//索引寄存器的端口号是0x03d4。通过给索引寄存器写入索引值读取对应的显卡内部寄存器的值。
-//两个 8 位光标寄存器，索引值分别是 14（0x0e）和 15（0x0f），分别存储光标位置的高 8 位和低 8 位。
-//指定了索引寄存器的值之后，通过数据端口0x03d5读取数据。
-int setCursor(int pos) {
-
-	outportb(0x3d4, 0x0e);
-	//int h = inportb(0x3d5);
-	outportb(0x3d5, (pos>>8)&0xff);
-
-	outportb(0x3d4, 0x0f);
-	outportb(0x3d5, pos  & 0xff);
-	//int h = inportb(0x3d5);
-	return 0;
-}
 
 int clearTextScreen() {
 	for (int i = 0; i < TEXTMODE_BUF_SIZE; i++) {
 		*((char*)TEXTMODE_BASE + i) = 0;
 	}
+	setScreenPos(0);
 	return 0;
 }
 
@@ -360,5 +351,26 @@ int setScreenPos(int offset) {
 	outportb(0x3d4, 0x0d);
 	outportb(0x3d5, offset & 0xff);
 
+	setCursor(offset/2);
+
+	return 0;
+}
+
+//https://wiki.osdev.org/VGA_Hardware#Port_0x3C0
+//http://www.osdever.net/FreeVGA/vga/portidx.htm
+
+//光标在屏幕上的位置保存在显卡内部的两个光标寄存器中，
+//索引寄存器的端口号是0x03d4。通过给索引寄存器写入索引值读取对应的显卡内部寄存器的值。
+//两个 8 位光标寄存器，索引值分别是 14（0x0e）和 15（0x0f），分别存储光标位置的高 8 位和低 8 位。
+//指定了索引寄存器的值之后，通过数据端口0x03d5读取数据。
+int setCursor(int pos) {
+
+	outportb(0x3d4, 0x0e);
+	//int h = inportb(0x3d5);
+	outportb(0x3d5, (pos >> 8) & 0xff);
+
+	outportb(0x3d4, 0x0f);
+	outportb(0x3d5, pos & 0xff);
+	//int h = inportb(0x3d5);
 	return 0;
 }
