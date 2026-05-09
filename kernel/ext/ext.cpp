@@ -14,10 +14,9 @@ unsigned long long g_ext4_part_offset = 0;
 
 ext2_super_block gExt4SuperBlock;
 int gLogBlockSize = 0;
-int s_first_data_block = 0;
 
 ext2_group_desc gExt4GroupDesc;
-unsigned long long g_inode_offset = 0;
+//unsigned long long g_inode_offset = 0;
 
 ext2_inode* gExt4Inode = 0;
 
@@ -26,9 +25,6 @@ ext4_dir_entry_2* gExt4RootDir = 0;
 
 
 
-int GetNextPath(char path, int a1) {
-	return 0;
-}
 
 
 int InitExt4() {
@@ -84,13 +80,12 @@ int GetSuperBlock() {
 
 	gLogBlockSize = (1 << gExt4SuperBlock.s_log_block_size) * 1024 ;
 
-	s_first_data_block = gExt4SuperBlock.s_first_data_block;
 	if (gExt4SuperBlock.s_magic != 0xef53) {
 		ret = 0;
-		__printf(szout, "%s %d ext4 magic error:%x\r\n", gExt4SuperBlock.s_magic);
+		__printf(szout, "%s %d ext4 magic error:%x\r\n", __FUNCTION__, __LINE__, gExt4SuperBlock.s_magic);
 	}
 
-	__printf(szout, "%s %d ext4 magic:%x,s_first_data_block:%x\r\n", gExt4SuperBlock.s_magic, gExt4SuperBlock.s_log_block_size);
+	__printf(szout, "%s %d ext4 magic:%x,s_first_data_block:%x\r\n", __FUNCTION__, __LINE__, gExt4SuperBlock.s_magic, gExt4SuperBlock.s_log_block_size);
 	return ret;
 
 }
@@ -112,10 +107,10 @@ int GetGroupDesc() {
 	ret = readSector(low, high, cnt, (char*)buf);
 	__memcpy((char*)&gExt4GroupDesc, buf, sizeof(ext2_group_desc));
 
-	g_inode_offset = gExt4GroupDesc.bg_inode_table;
+	//g_inode_offset = gExt4GroupDesc.bg_inode_table;
 
 	char szout[256];
-	__printf(szout, "%s %d ext4 gdt bg_inode_table:%x\r\n", gExt4GroupDesc.bg_inode_table);
+	__printf(szout, "%s %d ext4 gdt bg_inode_table:%x\r\n",__FUNCTION__,__LINE__, gExt4GroupDesc.bg_inode_table);
 
 	return ret;
 	
@@ -127,9 +122,7 @@ int GetExt4Inode() {
 	int ret = 0;
 
 	if (gExt4Inode == 0) {
-		int size = gLogBlockSize;
 		gExt4Inode = (ext2_inode*)__kMalloc(gLogBlockSize);
-
 	}
 	unsigned long long sector = g_ext4_part_offset + gExt4GroupDesc.bg_inode_table* gLogBlockSize/ BYTES_PER_SECTOR;
 	DWORD low = sector & 0xffffffff;
@@ -143,8 +136,10 @@ int GetExt4Inode() {
 
 	ret = readSector(low, high, cnt, (char*)gExt4Inode);
 
+	ext2_inode* node = (ext2_inode*)((char*)gExt4Inode + gExt4SuperBlock.s_inode_size);
 	char szout[256];
-	__printf(szout, "%s %d ext4 i_mode:%x,i_blocks:%x,i_block:%x\r\n", gExt4Inode->i_mode, gExt4Inode->i_blocks, gExt4Inode->i_block[0]);
+	__printf(szout, "%s %d ext4 i_mode:%x,i_blocks:%x,i_block:%x\r\n",
+		__FUNCTION__, __LINE__, node->i_mode, node->i_blocks, node->i_block[0]);
 
 	return 0;
 }
@@ -152,13 +147,13 @@ int GetExt4Inode() {
 
 int GetExt4RootDir() {
 	int ret = 0;
-	
+
 	ext2_inode* node = (ext2_inode*)((char*)gExt4Inode + gExt4SuperBlock.s_inode_size);
 
 	int rootDirSize = 0;
-	if (node->i_mode && node->i_block && node->i_blocks) {
+	if (node->i_mode  && node->i_blocks) {
 
-		unsigned int long sector = 0;
+		unsigned long long sector = 0;
 
 		ext4_extent_header* hdr = (ext4_extent_header*)node->i_block;
 		if (hdr->eh_magic == 0xf30a) {
@@ -184,18 +179,61 @@ int GetExt4RootDir() {
 		ret = readSector(low, high, seccnt, (char*)gExt4RootDir);
 	}
 
-	
-	
 	char szout[1024];
 	ext4_dir_entry_2* dir = gExt4RootDir;
 	while ((char*)dir < (char*) gExt4RootDir + rootDirSize) {
-		if (dir->file_type == 0) {
+		if (dir->file_type == 0 || dir->inode == 0 || dir->name_len == 0 || dir->rec_len == 0) {
 			break;
 		}
-		__printf(szout, "file:%s,type:%x,inode:%x\r\n", dir->name, dir->file_type, dir->inode);
+		//__printf(szout, "file:%s,type:%x,inode:%x\r\n", dir->name, dir->file_type, dir->inode);
 
 		dir = (ext4_dir_entry_2 * )((char*)dir + dir->rec_len);
 	}
+
+	return 0;
+}
+
+
+DWORD GetGDSize() {
+	DWORD size = gExt4SuperBlock.s_blocks_count;
+	if (size == 0) {
+		return 32;
+	}
+	return 64;
+}
+
+
+DWORD GetNextInode(DWORD inode,char * buf) {
+	int ret = 0;
+	char szout[256];
+
+	DWORD gd_page = (inode - 1) / gExt4SuperBlock.s_inodes_per_group ;
+	unsigned long long inode_mod = (inode - 1) % gExt4SuperBlock.s_inodes_per_group;
+
+	int gds = 64;	// sizeof(ext2_group_desc)
+
+	DWORD gd_sector =	g_ext4_part_offset + (gLogBlockSize + gd_page * gds) / BYTES_PER_SECTOR;
+	DWORD gd_off = ( gd_page * gds) % BYTES_PER_SECTOR;
+
+	//__printf(szout, "s_inodes_per_group:%x,read gd_sector:%x,gd_off:%x,inode_mod:%x\r\n",gExt4SuperBlock.s_inodes_per_group, gd_sector, gd_off, inode_mod);
+
+	char gdbuf[1024];
+	ret = readSector(gd_sector, 0, 2, (char*)gdbuf);
+	ext2_group_desc* gd = (ext2_group_desc*)(gdbuf + gd_off);
+	unsigned long long node_table = gd->bg_inode_table;
+
+	unsigned long long inode_sector = (node_table * gLogBlockSize + inode_mod * gExt4SuperBlock.s_inode_size) / BYTES_PER_SECTOR;
+	inode_sector += g_ext4_part_offset;
+	DWORD inode_off =  (node_table * gLogBlockSize + inode_mod * gExt4SuperBlock.s_inode_size) % BYTES_PER_SECTOR;
+	
+	//__printf(szout, "s_inodes_per_group:%x,read inode_sector:%x,inode_off:%x,node_table:%x\r\n", gExt4SuperBlock.s_inodes_per_group, inode_sector, inode_off, node_table);
+
+	char nodebuf[1024];
+	DWORD low = inode_sector & 0xffffffff;
+	DWORD hign = inode_sector >> 32;
+	ret = readSector(low, hign, 2, (char*)nodebuf);
+
+	__memcpy(buf, (char*)nodebuf + inode_off, gExt4SuperBlock.s_inode_size);
 
 	return 0;
 }

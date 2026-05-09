@@ -29,9 +29,9 @@
 #include "apic.h"
 #include "systemService.h"
 #include "ac97.h"
+#include "ext/ext4dirs.h"
 
-
-int getPartitionInfo() {
+int getPartitionType() {
 	int ret = 0;
 	int partitionType = 0;
 
@@ -66,6 +66,9 @@ int getPartitionInfo() {
 
 		ret = readMSFRoot();
 	}
+	else if (partitionType == 5) {
+
+	}
 	else {
 
 	}
@@ -92,6 +95,9 @@ int readFileDirs(int partitionType,unsigned __int64 secno, LPFILEBROWSER files, 
 	else if (partitionType == 4)
 	{
 		return readFat12Dirs((DWORD)secno, files);
+	}
+	else if (partitionType == 5) {
+		return ReadExt4Dirs((DWORD)secno, files);
 	}
 
 	return 0;
@@ -122,6 +128,9 @@ int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 fil
 	else if (partitionType == FLOPPY_FILE_SYSTEM)
 	{
 		return fat12FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
+	}
+	else if (partitionType == 5) {
+		return Ext4FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
 	}
 	else {
 		return FALSE;
@@ -179,7 +188,6 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 			result = sbplay((char*)buffer, readsize);
 		}
 		
-
 		//return playWavFile(files->pathname);
 		__kFree((DWORD)buffer);
 	}
@@ -224,7 +232,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 
 	if (cmd->cmd == UNKNOWN_FILE_SYSTEM)
 	{
-		partitionType = getPartitionInfo();
+		partitionType = getPartitionType();
 		if (partitionType <= 0)
 		{
 			__printf(szout, "%s %d error\n",__FUNCTION__,__LINE__);
@@ -261,6 +269,9 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 	else if (partitionType == FLOPPY_FILE_SYSTEM)
 	{
 		filetotal = browseFat12File(files);
+	}
+	else if (partitionType == 5) {
+		filetotal = BrowseExt4File(files);
 	}
 
 	if (filetotal <= 0)

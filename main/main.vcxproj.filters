@@ -147,7 +147,7 @@
     <ClCompile Include="dl.cpp">
       <Filter>kann</Filter>
     </ClCompile>
-    <ClCompile Include="ext\ext.cpp">
+    <ClCompile Include="ext\ext4dirs.cpp">
       <Filter>源文件\ext</Filter>
     </ClCompile>
   </ItemGroup>
@@ -245,7 +245,7 @@
     <ClInclude Include="dl.h">
       <Filter>kann</Filter>
     </ClInclude>
-    <ClInclude Include="ext\ext.h">
+    <ClInclude Include="ext\ext4dirs.h">
       <Filter>头文件\ext</Filter>
     </ClInclude>
   </ItemGroup>

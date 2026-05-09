@@ -241,7 +241,7 @@ struct ext2_group_desc
 	__le32	bg_reserved[3];
 };
 
-struct ext4_dir_entry_2 {
+typedef struct ext4_dir_entry_2 {
 	__le32  inode;          // 子项的 inode 号
 	__le16  rec_len;        // 当前条目总长度（含填充字节）
 	__le8   name_len;       // 文件名长度（最大 255）
@@ -275,31 +275,33 @@ extern __declspec(dllexport)unsigned long long g_ext4_part_offset ;
 
 extern __declspec(dllexport)ext2_super_block gExt4SuperBlock;
 extern __declspec(dllexport)int gLogBlockSize ;
-extern __declspec(dllexport)int s_first_data_block ;
 
 extern __declspec(dllexport)ext2_group_desc gExt4GroupDesc;
-extern __declspec(dllexport)unsigned long long g_inode_offset ;
 
 extern __declspec(dllexport)ext2_inode* gExt4Inode ;
 
 extern __declspec(dllexport)ext4_dir_entry_2* gExt4RootDir ;
+extern __declspec(dllexport)int InitExt4();
+
+extern __declspec(dllexport)DWORD GetNextInode(DWORD inode, char* buf);
 #else
-extern __declspec(dllexport)char gExt4Dbr[512];
-extern __declspec(dllexport)unsigned long long g_ext4_part_offset;
+extern __declspec(dllimport)char gExt4Dbr[512];
+extern __declspec(dllimport)unsigned long long g_ext4_part_offset;
 
 extern __declspec(dllimport)ext2_super_block gExt4SuperBlock;
 extern __declspec(dllimport)int gLogBlockSize;
-extern __declspec(dllimport)int s_first_data_block;
 
 extern __declspec(dllimport)ext2_group_desc gExt4GroupDesc;
-extern __declspec(dllimport)unsigned long long g_inode_offset;
 
 extern __declspec(dllimport)ext2_inode* gExt4Inode ;
 
 extern __declspec(dllimport)ext4_dir_entry_2* gExt4RootDir;
+
+extern __declspec(dllimport)int InitExt4();
+extern __declspec(dllimport)DWORD GetNextInode(DWORD inode, char* buf);
 #endif
 
-int InitExt4();
+
 
 int GetExt4DBR();
 

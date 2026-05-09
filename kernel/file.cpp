@@ -62,7 +62,7 @@ int initFileSystem() {
 	{
 		ret = initNTFS();
 	}
-	else if (ret == 3) {
+	else if (ret == 5) {
 		ret = InitExt4();
 	}
 	else {
@@ -103,19 +103,19 @@ int getMBR() {
 			}
 			else if ( gMBR.dpt[i].type == LINUX_PARTITION )
 			{
-				return 3;
+				return 5;
 			}
 			else if (gMBR.dpt[i].type == FAT16_OLD_PARTITION || gMBR.dpt[i].type == FAT16_OLD2_PARTITION ||
 				gMBR.dpt[i].type == FAT16_PARTITION || gMBR.dpt[i].type == FAT16_HIDDEN)
 			{
-				return 4;
+				return 6;
 			}
 			else if (gMBR.dpt[i].type == FAT12_PARTITION || gMBR.dpt[i].type == FAT12_HIDDEN)
 			{
-				return 5;
+				return 7;
 			}
 			else if (gMBR.dpt[i].type == LINUX_SWAP_PARTITION || gMBR.dpt[i].type == LINUX_EXTENDED_PARTITION) {
-				return 6;
+				return 8;
 			}
 			else {
 				int type = gMBR.dpt[i].type;
