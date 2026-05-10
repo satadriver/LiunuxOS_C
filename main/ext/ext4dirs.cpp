@@ -102,9 +102,9 @@ unsigned long Ext4FileReader(DWORD nodenum, int* filesize, char** lpdata) {
 	}
 	*filesize = node->i_size;
 
-	unsigned char szshow[0x1000];
-	__dump((char*)nodebuf, gExt4SuperBlock.s_inode_size, 0, szshow);
-	__printf((char*)szshow, (char*)szshow);
+	//unsigned char szshow[0x1000];
+	//__dump((char*)nodebuf, gExt4SuperBlock.s_inode_size, 0, szshow);
+	//__printf((char*)szshow, (char*)szshow);
 
 	//0x8000 file
 	//0x4000 dir
@@ -117,13 +117,13 @@ unsigned long Ext4FileReader(DWORD nodenum, int* filesize, char** lpdata) {
 	
 	if ( (node->i_mode & 0xc000 ) == 0xc000) {
 		//socket
-		__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
+		__printf(szout, "%s %d error type:%x\r\n", __FUNCTION__, __LINE__,node->i_mode);
 		return 0;
 	}
 
 	if ( (node->i_mode & 0xa000 )== 0xa000) {
 		//link
-		__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
+		__printf(szout, "%s %d error type:%x\r\n", __FUNCTION__, __LINE__, node->i_mode);
 		int datalen = __strlen((char*)node->i_block);
 		__strcpy(*lpdata,(char*) node->i_block);
 		return datalen;
@@ -143,7 +143,8 @@ unsigned long Ext4FileReader(DWORD nodenum, int* filesize, char** lpdata) {
 			seccnt = ext->ee_len* gLogBlockSize/ BYTES_PER_SECTOR;
 		}
 		else {
-
+			__printf(szout, "%s %d error flags:%x\r\n", __FUNCTION__, __LINE__, flags);
+			return 0;
 		}
 	}
 	else {
@@ -155,9 +156,7 @@ unsigned long Ext4FileReader(DWORD nodenum, int* filesize, char** lpdata) {
 	DWORD low = sector & 0xffffffff;
 	DWORD high = sector >> 32;
 	ret = readSector(low, high, seccnt, (char*)*lpdata);
-
-	__printf(szout, "node:%x,low:%x,high:%x,seccnt:%x,ret:%x\r\n", nodenum, low, high, seccnt,ret);
-
+	//__printf(szout, "node:%x,low:%x,high:%x,seccnt:%x,ret:%x\r\n", nodenum, low, high, seccnt,ret);
 	if (ret > 0) {
 		return node->i_size;
 	}
@@ -191,13 +190,13 @@ int ReadExt4Dirs(DWORD nodenum, LPFILEBROWSER files) {
 			seccnt = ext->ee_len * gLogBlockSize / BYTES_PER_SECTOR;
 		}
 		else {
-
+			__printf(szout, "%s %d error flags:%x\r\n", __FUNCTION__, __LINE__, flags);
+			return 0;
 		}
 	}
 	else {
 		sector = g_ext4_part_offset + node->i_block[0] * (gLogBlockSize / BYTES_PER_SECTOR);
-		seccnt = node->i_blocks * gLogBlockSize / BYTES_PER_SECTOR;
-		
+		seccnt = node->i_blocks * gLogBlockSize / BYTES_PER_SECTOR;	
 	}
 
 	DWORD low = sector & 0xffffffff;

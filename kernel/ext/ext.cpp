@@ -162,6 +162,7 @@ int GetExt4Inode() {
 
 int GetExt4RootDir() {
 	int ret = 0;
+	char szout[256];
 
 	ext2_inode* node = (ext2_inode*)((char*)gExt4Inode + gExt4SuperBlock.s_inode_size);
 
@@ -172,7 +173,6 @@ int GetExt4RootDir() {
 
 		int flags = node->i_flags;
 		if (flags & 0x80000) {
-
 			ext4_extent_header* hdr = (ext4_extent_header*)node->i_block;
 			if (hdr->eh_magic == 0xf30a) {
 				ext4_extent* ext = (ext4_extent*)((char*)hdr + sizeof(ext4_extent_header));
@@ -182,7 +182,8 @@ int GetExt4RootDir() {
 				seccnt = ext->ee_len* gLogBlockSize/ BYTES_PER_SECTOR;
 			}
 			else {
-
+				__printf(szout, "%s %d error flags:%x\r\n", __FUNCTION__, __LINE__, flags);
+				return 0;
 			}
 		}
 		else {
@@ -199,7 +200,6 @@ int GetExt4RootDir() {
 		ret = readSector(low, high, seccnt, (char*)gExt4RootDir);
 	}
 
-	char szout[1024];
 	ext4_dir_entry_2* dir = gExt4RootDir;
 	int rootDirSize = node->i_blocks * gLogBlockSize;
 	while ((char*)dir < (char*) gExt4RootDir + rootDirSize) {
