@@ -16,7 +16,6 @@ ext2_super_block gExt4SuperBlock;
 int gLogBlockSize = 0;
 
 ext2_group_desc gExt4GroupDesc;
-//unsigned long long g_inode_offset = 0;
 
 ext2_inode* gExt4Inode = 0;
 
@@ -24,15 +23,31 @@ ext4_dir_entry_2* gExt4RootDir = 0;
 
 
 
+int WriteExt4File(const char* filename, char* buf, int size, int writemode) {
+	return 0;
+}
 
+
+
+int ReadExt4File(const char* filename, char** buf) {
+	return 0;
+}
 
 
 int InitExt4() {
+	char szout[256];
+
 	GetExt4DBR();
 	GetSuperBlock();
 	GetGroupDesc();
 	GetExt4Inode();
 	GetExt4RootDir();
+
+	__printf(szout, "%s %d ext4 volume:%s,uuid:%x\r\n", __FUNCTION__, __LINE__, gExt4SuperBlock.s_volume_name,gExt4SuperBlock.s_uuid);
+
+	readFile = ReadExt4File;
+	writeFile = WriteExt4File;
+
 	return 0;
 }
 
@@ -150,37 +165,43 @@ int GetExt4RootDir() {
 
 	ext2_inode* node = (ext2_inode*)((char*)gExt4Inode + gExt4SuperBlock.s_inode_size);
 
-	int rootDirSize = 0;
 	if (node->i_mode  && node->i_blocks) {
 
 		unsigned long long sector = 0;
+		DWORD seccnt = 0;
 
-		ext4_extent_header* hdr = (ext4_extent_header*)node->i_block;
-		if (hdr->eh_magic == 0xf30a) {
-			ext4_extent* ext = (ext4_extent*)((char*)hdr+sizeof(ext4_extent_header));
-			sector =ext->ee_start_hi;
-			sector = (sector << 32) + ext->ee_start_lo;
-			sector = sector * gLogBlockSize / BYTES_PER_SECTOR + g_ext4_part_offset;
+		int flags = node->i_flags;
+		if (flags & 0x80000) {
+
+			ext4_extent_header* hdr = (ext4_extent_header*)node->i_block;
+			if (hdr->eh_magic == 0xf30a) {
+				ext4_extent* ext = (ext4_extent*)((char*)hdr + sizeof(ext4_extent_header));
+				sector = ext->ee_start_hi;
+				sector = (sector << 32) + ext->ee_start_lo;
+				sector = sector * gLogBlockSize / BYTES_PER_SECTOR + g_ext4_part_offset;
+				seccnt = ext->ee_len* gLogBlockSize/ BYTES_PER_SECTOR;
+			}
+			else {
+
+			}
 		}
 		else {
 			sector = g_ext4_part_offset+ node->i_block[0] * gLogBlockSize / BYTES_PER_SECTOR;
+			seccnt = node->i_blocks * gLogBlockSize / BYTES_PER_SECTOR;
+		}
+
+		if (gExt4RootDir == 0) {
+			gExt4RootDir = (ext4_dir_entry_2*)__kMalloc(seccnt * BYTES_PER_SECTOR);
 		}
 
 		DWORD low = sector & 0xffffffff;
 		DWORD high = sector >> 32;
-
-		rootDirSize = node->i_blocks * gLogBlockSize;
-
-		int seccnt = node->i_blocks* gLogBlockSize/ BYTES_PER_SECTOR;
-		if (gExt4RootDir == 0) {
-			gExt4RootDir = (ext4_dir_entry_2*)__kMalloc(seccnt * BYTES_PER_SECTOR);
-		}
-			
 		ret = readSector(low, high, seccnt, (char*)gExt4RootDir);
 	}
 
 	char szout[1024];
 	ext4_dir_entry_2* dir = gExt4RootDir;
+	int rootDirSize = node->i_blocks * gLogBlockSize;
 	while ((char*)dir < (char*) gExt4RootDir + rootDirSize) {
 		if (dir->file_type == 0 || dir->inode == 0 || dir->name_len == 0 || dir->rec_len == 0) {
 			break;
@@ -195,9 +216,12 @@ int GetExt4RootDir() {
 
 
 DWORD GetGDSize() {
-	DWORD size = gExt4SuperBlock.s_blocks_count;
-	if (size == 0) {
+	DWORD flag = gExt4SuperBlock.s_feature_incompat;
+	if (flag == 0) {
 		return 32;
+	}
+	else if (flag& 0x80) {
+		return 64;
 	}
 	return 64;
 }
@@ -210,7 +234,7 @@ DWORD GetNextInode(DWORD inode,char * buf) {
 	DWORD gd_page = (inode - 1) / gExt4SuperBlock.s_inodes_per_group ;
 	unsigned long long inode_mod = (inode - 1) % gExt4SuperBlock.s_inodes_per_group;
 
-	int gds = 64;	// sizeof(ext2_group_desc)
+	int gds = GetGDSize();	// sizeof(ext2_group_desc)
 
 	DWORD gd_sector =	g_ext4_part_offset + (gLogBlockSize + gd_page * gds) / BYTES_PER_SECTOR;
 	DWORD gd_off = ( gd_page * gds) % BYTES_PER_SECTOR;

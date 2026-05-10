@@ -47,7 +47,7 @@ int readFat12Dirs(DWORD clsnum, LPFILEBROWSER files);
 
 int browseFat12File( LPFILEBROWSER files);
 
-int fat12FileReader(DWORD clusterno, int filesize, char * lpdata, int readsize);
+int fat12FileReader(DWORD clusterno, int* filesize, char* * lpdata);
 
 int getNextFAT12Cluster(int clusterno);
 

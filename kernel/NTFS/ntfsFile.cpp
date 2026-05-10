@@ -292,7 +292,7 @@ unsigned long long getNtfsDir(unsigned long long secoff, char* filename)
 
 
 
-unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
+unsigned long long getNtfsFileData(unsigned long long secoff,unsigned long long * filesize, char** buf) {
 	int ret = 0;
 	char szout[256];
 
@@ -329,6 +329,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 				if (*buf == 0)
 				{
 					*buf = (char*)__kMalloc((DWORD)hdr->ATTR_ValidSz);
+					*filesize = hdr->ATTR_ValidSz;
 				}
 				char* lpdata = (char*)*buf;
 
@@ -391,7 +392,7 @@ unsigned long long getNtfsFileData(unsigned long long secoff, char** buf) {
 					DWORD low = datasecoff & 0xffffffff;
 					DWORD high = (datasecoff >> 32) & 0xffff;
 
-					ret = readSector(low, high, (DWORD)(clscnt * g_SecsPerCluster), (char*)*buf);
+					ret = readSector(low, high, (DWORD)(clscnt * g_SecsPerCluster), (char*)lpdata);
 					if (ret <= 0)
 					{
 						__printf((char*)szout, "getNtfsFileData readSector:%I64x,count:%I64x error\n", 
@@ -447,6 +448,7 @@ int readNtfsFile(const char* filename, char** buf) {
 	{
 		return 0;
 	}
+	unsigned long long filesize = 0;
 
 	int ret = 0;
 	unsigned char szout[256];
@@ -479,7 +481,7 @@ int readNtfsFile(const char* filename, char** buf) {
 				secoff = dirclsno * 2 + gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
 				if (*subpath == 0)
 				{
-					ret = (int)getNtfsFileData(secoff, buf);
+					ret = (int)getNtfsFileData(secoff,&filesize, buf);
 					return ret;
 				}
 				else {

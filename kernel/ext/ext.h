@@ -284,6 +284,9 @@ extern __declspec(dllexport)ext4_dir_entry_2* gExt4RootDir ;
 extern __declspec(dllexport)int InitExt4();
 
 extern __declspec(dllexport)DWORD GetNextInode(DWORD inode, char* buf);
+
+extern __declspec(dllexport)int WriteExt4File(const char* filename, char* buf, int size, int writemode);
+extern __declspec(dllexport)int ReadExt4File(const char* filename, char** buf);
 #else
 extern __declspec(dllimport)char gExt4Dbr[512];
 extern __declspec(dllimport)unsigned long long g_ext4_part_offset;
@@ -299,9 +302,13 @@ extern __declspec(dllimport)ext4_dir_entry_2* gExt4RootDir;
 
 extern __declspec(dllimport)int InitExt4();
 extern __declspec(dllimport)DWORD GetNextInode(DWORD inode, char* buf);
+
+extern __declspec(dllimport)int WriteExt4File(const char* filename, char* buf, int size, int writemode);
+extern __declspec(dllimport)int ReadExt4File(const char* filename, char** buf);
 #endif
 
 
+DWORD GetGDSize();
 
 int GetExt4DBR();
 

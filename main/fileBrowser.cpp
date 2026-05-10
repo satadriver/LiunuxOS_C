@@ -104,33 +104,33 @@ int readFileDirs(int partitionType,unsigned __int64 secno, LPFILEBROWSER files, 
 }
 
 
-int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64 filesize, char* databuf, unsigned __int64 readsize) {
+int readFileData(int partitionType, unsigned __int64 secno, unsigned __int64* filesize, char** databuf) {
 
 	if (partitionType == NTFS_FILE_SYSTEM)
 	{
 		unsigned __int64 secoff = secno * 2 + gNtfsDbr.hideSectors + gNtfsDbr.MFT * g_SecsPerCluster;
-		return (DWORD)getNtfsFileData(secoff, &databuf);
+		return (DWORD)getNtfsFileData(secoff, filesize, databuf);
 	}
 	else if (partitionType == FAT32_FILE_SYSTEM)
 	{
-		return fat32FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
+		return fat32FileReader((DWORD)secno, (int*)filesize, databuf);
 	}
 	else if (partitionType == CDROM_FILE_SYSTEM)
 	{
-		int seccnt =(DWORD)( filesize / ATAPI_SECTOR_SIZE);
-		int mod = filesize % ATAPI_SECTOR_SIZE;
+		int seccnt =(DWORD)( *filesize / ATAPI_SECTOR_SIZE);
+		int mod = *filesize % ATAPI_SECTOR_SIZE;
 		if (mod)
 		{
 			seccnt++;
 		}
-		return readIso9660File((DWORD)secno, seccnt, &databuf);
+		return readIso9660File((DWORD)secno, seccnt, databuf);
 	}
 	else if (partitionType == FLOPPY_FILE_SYSTEM)
 	{
-		return fat12FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
+		return fat12FileReader((DWORD)secno, (int*)filesize, databuf);
 	}
 	else if (partitionType == 5) {
-		return Ext4FileReader((DWORD)secno, (DWORD)filesize, databuf, (DWORD)readsize);
+		return Ext4FileReader((DWORD)secno,(int*) filesize, databuf);
 	}
 	else {
 		return FALSE;
@@ -143,24 +143,27 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 	char szout[256];
 	__printf(szout, "doFileAction readFileData:%s size:%I64x\n", files->pathname, files->filesize);
 
-	if (files->filesize > 0x10000000)
+	if (files->filesize > 0x40000000)
 	{
 		__printf(szout, "doFileAction filename:%s size:%I64x error\n", files->pathname, files->filesize);
 		return FALSE;
 	}
-	if (files->filesize == 0) {
-		files->filesize = 0x4000000;
+
+	char* buffer = 0;
+	if ( (partitionType == FAT32_FILE_SYSTEM || partitionType == FLOPPY_FILE_SYSTEM || partitionType == CDROM_FILE_SYSTEM)&& files->filesize) {
+		buffer = (char*)__kMalloc((DWORD)files->filesize);
 	}
-	char* buffer = (char*)__kMalloc((DWORD)files->filesize);
-	int readsize = readFileData(partitionType,files->secno, files->filesize, (char*)buffer, files->filesize);
-	if (readsize <= 0)
+	else {
+		files->filesize = 0;
+	}
+	int readsize = readFileData(partitionType,files->secno, &files->filesize,&buffer);
+	if (readsize <= 0 || buffer == 0)
 	{
-		__printf(szout, "doFileAction readFileData:%s size:%I64x error\n", files->pathname, files->filesize);
+		__printf(szout, "%s %d readFileData:%s size:%I64x error\n",__FUNCTION__,__LINE__, files->pathname, files->filesize);
 		return FALSE;
 	}
 
 	int fnlen = __strlen(files->pathname);
-
 	upper2lower(files->pathname, fnlen);
 
 	TASKCMDPARAMS cmd;
@@ -271,7 +274,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 		filetotal = browseFat12File(files);
 	}
 	else if (partitionType == 5) {
-		filetotal = BrowseExt4File(files);
+		filetotal = BrowseExt4RootDir(files);
 	}
 
 	if (filetotal <= 0)

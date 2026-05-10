@@ -251,19 +251,14 @@ int browseFat12File(LPFILEBROWSER files) {
 
 
 
-int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
+int fat12FileReader(DWORD clusterno,int * filesize, char* * lpbuf) {
 	char szout[256];
-	int readoksize = 0;
+	int outsize = 0;
 
 	int ret = 0;
-	if (readsize > filesize)
-	{
-		readsize = filesize;
-	}
-	else if (readsize <= 0)
-	{
-		return FALSE;
-	}
+
+	int readsize = *filesize;
+	char* lpdata = *lpbuf;
 
 	int readtimes = readsize / gFat12Dbr->BPB_SecPerClus;
 	int readmod = readsize % gFat12Dbr->BPB_SecPerClus;
@@ -285,7 +280,7 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 			__memcpy(lpdata,(char*) FLOPPY_DMA_BUFFER, gFat12Dbr->BPB_SecPerClus * gFat12Dbr->BPB_BytesPerSec);
 			lpdata += gFat12ClusterSize;
 
-			readoksize += gFat12ClusterSize;
+			outsize += gFat12ClusterSize;
 		}
 		else {
 			__printf(szout, ( char*)"fat12 read cluster error\n");
@@ -299,7 +294,7 @@ int fat12FileReader(DWORD clusterno,int filesize, char * lpdata, int readsize) {
 		}
 	}
 
-	return readoksize;
+	return outsize;
 }
 
 

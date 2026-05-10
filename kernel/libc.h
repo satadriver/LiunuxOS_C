@@ -26,11 +26,11 @@ typedef char* va_list;
 
 
 
-#include <stdio.h>
+//#include <stdio.h>
 
 #pragma pack(1)
 
-/*
+
  typedef struct  _iobuf {
     char* _ptr;      // 缓冲区当前指针
     int _cnt;        // 缓冲区剩余字符数
@@ -41,7 +41,7 @@ typedef char* va_list;
     int _bufsiz;     // 缓冲区大小
     char* _tmpfname; // 临时文件名
 };
-*/
+
 #pragma pack()
 
 

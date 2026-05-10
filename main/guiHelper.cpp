@@ -14,13 +14,18 @@
 
 int isTxtFile(char * filename, int fnlen) {
 	if (__memcmp(filename + fnlen - 4, ".txt", 4) == 0 || __memcmp(filename + fnlen - 4, ".asm", 4) == 0 ||
-		__memcmp(filename + fnlen - 4, ".json", 4) == 0 || __memcmp(filename + fnlen - 4, ".cpp", 4) == 0 ||
-		__memcmp(filename + fnlen - 2, ".c", 2) == 0 || 
+		__memcmp(filename + fnlen - 4, ".json", 5) == 0 || __memcmp(filename + fnlen - 4, ".cpp", 4) == 0 ||
+		__memcmp(filename + fnlen - 2, ".c", 2) == 0 || __memcmp(filename + fnlen - 2, ".h", 2) == 0 ||
 		__memcmp(filename + fnlen - 4, ".htm", 4) == 0 || __memcmp(filename + fnlen - 5, ".html", 5) == 0 ||
 		__memcmp(filename + fnlen - 4, ".php", 4) == 0 || __memcmp(filename + fnlen - 5, ".java", 5) == 0 ||
 		__memcmp(filename + fnlen - 3, ".js", 3) == 0 || __memcmp(filename + fnlen - 3, ".py", 3) == 0 ||
 		__memcmp(filename + fnlen - 4, ".log", 4) == 0 || __memcmp(filename + fnlen - 4, ".ini", 4) == 0 || 
-		__memcmp(filename + fnlen - 4, ".bat", 4) == 0)
+		__memcmp(filename + fnlen - 4, ".bat", 4) == 0 || __memcmp(filename + fnlen - 4, ".xml", 4) == 0 ||
+		__memcmp(filename + fnlen - 4, ".rtf", 4) == 0 || __memcmp(filename + fnlen - 4, ".css", 4) == 0 ||
+		__memcmp(filename + fnlen - 4, ".csv", 4) == 0 || __memcmp(filename + fnlen - 4, ".md", 3) == 0 ||
+		__memcmp(filename + fnlen - 4, ".yaml", 5) == 0 || __memcmp(filename + fnlen - 4, ".cfg", 4) == 0 ||
+		__strcmp(filename , "makefile") == 0 || __strcmp(filename, "Makefile") == 0 
+		|| __strcmp(filename, "Readme ") == 0 || __strcmp(filename, "readme ") == 0)
 	{
 		return TRUE;
 	}

@@ -215,25 +215,26 @@ int browseISO9660File(LPFILEBROWSER files) {
 	return cnt;
 }
 
-int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
+int readIso9660File(DWORD secno,DWORD seccnt, char ** lpbuf) {
 
 	int iret = 0;
 
-	if (buf == 0)
+	if (lpbuf == 0)
 	{
 		return FALSE;
 	}
 
-	if (*buf == 0)
+	if (*lpbuf == 0)
 	{
-		*buf = (char*)__kMalloc(0x10000);
+		*lpbuf = (char*)__kMalloc(0x4000000);
 	}
+	char* buf = *lpbuf;
 	int times = seccnt / 32;
 	int mod = seccnt % 32;
 	for (int i = 0; i < times; i ++)
 	{
 #ifdef APAPI_INT13_READWRITE
-		iret = v86Int13Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);	
+		iret = v86Int13Read(secno, 0, 32, buf, gAtapiDev, ATAPI_SECTOR_SIZE);	
 #elif defined APAPI_INT255_READWRITE
 		iret = v86Int255Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 #else
@@ -244,14 +245,14 @@ int readIso9660File(DWORD secno,DWORD seccnt, char ** buf) {
 			return FALSE;
 		}
 
-		*buf += 0x10000;
+		buf += 0x10000;
 		secno += 32;
 	}
 
 	if (mod)
 	{
 #ifdef APAPI_INT13_READWRITE
-		iret = v86Int13Read(secno, 0, mod, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
+		iret = v86Int13Read(secno, 0, mod, buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 #elif defined APAPI_INT255_READWRITE
 		iret = v86Int255Read(secno, 0, 32, *buf, gAtapiDev, ATAPI_SECTOR_SIZE);
 #else
