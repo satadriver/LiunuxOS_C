@@ -283,6 +283,7 @@
     <ClCompile Include="video.cpp" />
     <ClCompile Include="VMM.cpp" />
     <ClCompile Include="window.cpp" />
+    <ClCompile Include="xfs\xfs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ac97.h" />
@@ -361,6 +362,7 @@
     <ClInclude Include="video.h" />
     <ClInclude Include="VMM.h" />
     <ClInclude Include="window.h" />
+    <ClInclude Include="xfs\xfs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

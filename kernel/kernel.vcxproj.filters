@@ -49,6 +49,9 @@
     <Filter Include="kann">
       <UniqueIdentifier>{772b6a2b-1571-4816-b996-dbedfaff7745}</UniqueIdentifier>
     </Filter>
+    <Filter Include="源文件\xfs">
+      <UniqueIdentifier>{47a2d4be-5035-4070-b0a9-4d1a60c212a5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="kernel.cpp">
@@ -279,6 +282,9 @@
     <ClCompile Include="ac97.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="xfs\xfs.cpp">
+      <Filter>源文件\xfs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h">
@@ -508,6 +514,9 @@
     </ClInclude>
     <ClInclude Include="ac97.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="xfs\xfs.h">
+      <Filter>源文件\xfs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

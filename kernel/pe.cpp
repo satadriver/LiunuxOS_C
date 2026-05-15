@@ -403,7 +403,7 @@ DWORD loadLibFile(char * dllname) {
 			return (DWORD)dllptr;
 		}
 		else {
-			__printf(szout, "%s %d readFileTo:%s error\n",__FUNCTION__,__LINE__, szdllpath);
+			__printf(szout, "%s %d file:%s error\n",__FUNCTION__,__LINE__, szdllpath);
 
 			return FALSE;
 		}
