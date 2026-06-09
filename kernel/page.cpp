@@ -16,6 +16,16 @@ LPMEMALLOCINFO gPageAllocList = 0;
 char * g_page_table_base = 0;
 
 
+void DisablePaging32() {
+	__asm {
+		cli
+		mov eax, cr0
+		and eax, 0x7fffffff
+		mov cr0, eax
+	}
+}
+
+
 void EnablePaging32(char * pde) {
 
 	__asm {

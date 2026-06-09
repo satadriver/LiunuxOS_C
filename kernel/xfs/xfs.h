@@ -209,15 +209,7 @@ struct xfs_btree_block {
 };
 
 
-struct xfs_btree_block {
-    __be32          bb_magic;       /* magic number for block type */
-    __be16          bb_level;       /* 0 is a leaf */
-    __be16          bb_numrecs;     /* current # of data records */
-    union {
-        struct xfs_btree_block_shdr s;
-        struct xfs_btree_block_lhdr l;
-    } bb_u;                         /* rest */
-};
+
 
 /*
  * The on-disk inode record structure has two formats. The original "full"
@@ -245,13 +237,6 @@ typedef struct xfs_inobt_rec {
 } xfs_inobt_rec_t;
 
 
-// On-Disk 格式（存储于磁盘）
-typedef struct xfs_inobt_rec {
-    __be32      ir_startino;    // 起始 inode 编号
-    __be32      ir_freecount;   // 空闲 inode 的数量（即 ir_free 中 1 的个数）
-    __be64      ir_free;        // 空闲 inode 的位图，类型就是 xfs_inofree_t
-} xfs_inobt_rec_t;
-
 
 #define __uint64_t unsigned long long
 
@@ -269,12 +254,7 @@ typedef struct xfs_inobt_rec_incore {
     xfs_inofree_t ir_free;      // 空闲 inode 的位图
 } xfs_inobt_rec_incore_t;
 
-// On-Disk 格式（存储于磁盘）
-typedef struct xfs_inobt_rec {
-    __be32      ir_startino;    // 起始 inode 编号
-    __be32      ir_freecount;   // 空闲 inode 的数量（即 ir_free 中 1 的个数）
-    __be64      ir_free;        // 空闲 inode 的位图，类型就是 xfs_inofree_t
-} xfs_inobt_rec_t;
+
 
 
 typedef struct xfs_dir2_data_free {
@@ -304,10 +284,6 @@ struct xfs_dir3_data_hdr {
 };
 
 
-typedef struct xfs_dir2_data_free {
-    __be16                  offset;         /* start of freespace */
-    __be16                  length;         /* length of freespace */
-} xfs_dir2_data_free_t;
 
 
 /*

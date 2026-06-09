@@ -697,19 +697,21 @@ void InitIdt64() {
 int InitGdt64() {
 	QWORD* gdt = (QWORD*)GDT64_BASE_ADDR;
 	gdt[0] = 0;
-	gdt[1] = 0x00209a0000000000;
-	gdt[2] = 0x0020920000000000;
-	gdt[3] = 0x0020fa0000000000;
-	gdt[4] = 0x0020f20000000000;
-	gdt[5] = 0x00cffa0000000000;
-	gdt[6] = 0x00cff20000000000;
-	gdt[7] = 0x0000000000000000;
-	short tss_offset = 8 * sizeof (SegDescriptor);
+	gdt[1] = 0x00209a0000000000;			//code0
+	gdt[2] = 0x0020920000000000;			//data0		0x0000920000000000
+	gdt[3] = 0x0020fa0000000000;			//code3		0x0000f20000000000
+	gdt[4] = 0x0020f20000000000;			//data3
+	gdt[5] = 0x0000000000000000;			//tr
+	gdt[6] = 0x00cffa0000000000;			
+	gdt[7] = 0x00cff20000000000;
+	gdt[8] = 0x0000000000000000;
+
+	short tss_offset = 5 * sizeof (SegDescriptor);
 
 	initTss64((TSS64_DATA*)KERNEL64_TSS_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
 	makeTss64Descriptor(KERNEL64_TSS_ADDRESS, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
 
-	return tss_offset + sizeof(Tss64Descriptor);
+	return 8 * sizeof(Tss64Descriptor);
 }
 
 int Is64Supported() {
@@ -722,7 +724,7 @@ int Is64Supported() {
 
 		mov eax, 0x80000001
 		cpuid
-		test edx, 1 << 29; 测试LM位
+		test edx, 1 << 29		; 测试LM位
 		jz __no_long_mode
 		mov[v], 1
 		__no_long_mode:
@@ -785,24 +787,21 @@ void DisablePAE() {
 	}
 }
 
+
+
 void EnterLongMode() {
+	char szout[256];
 	int ret = Is64Supported();
 	if (ret) {
-		char* databuf = (char*)__kMalloc(0x100000);
-		ret = readFile(LIUNUX_BASE_PATH "liunuxos64.dll", &databuf);
-		char* realbuf = (char*)MemLoadDll64((char*)databuf, (char*)KERNEL64_DLL_BASE);
+		char* libbuf = (char*)__kMalloc(0x100000);
+		ret = readFile(LIUNUX_BASE_PATH "liunuxos64.dll", &libbuf);
+		char* lib64 = (char*)MemLoadDll64((char*)libbuf, (char*)KERNEL64_DLL_BASE);
 		typedef int (*ptrfunction)();
-		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(realbuf, "__kKernelEntry64");
-		char szout[256];
+		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(lib64, "__kKernelEntry64");
+		
 		__printf(szout, "__kKernelEntry64:%x\r\n", kernel64Entry);
 
-		__asm {
-			cli
-
-			mov eax, cr0
-			and eax, 0x7fffffff
-			mov cr0, eax
-		}
+		DisablePaging32();
 
 		int gdtlen = InitGdt64();
 
@@ -814,13 +813,15 @@ void EnterLongMode() {
 
 		InitPAE();
 
-		unsigned char g_jmpstub[16];
-		g_jmpstub[0] = 0xea;
-		g_jmpstub[5] = KERNEL_MODE_CODE;
-		g_jmpstub[6] = 0;	
-		* (DWORD*)(g_jmpstub + 1) =(DWORD) kernel64Entry;
+		unsigned char jmpstub[16];
+		JUMP_FAR_STUB* stub = (JUMP_FAR_STUB*)jmpstub;
+		jmpstub[0] = 0xea;
+		jmpstub[5] = KERNEL_MODE_CODE;
+		jmpstub[6] = 0;
+		* (DWORD*)(jmpstub + 1) =(DWORD) kernel64Entry;
 
 		DWORD kernel64Entry32 = (DWORD)kernel64Entry;
+
 		//EnablePage64();
 
 		//SetLongMode();
@@ -829,13 +830,12 @@ void EnterLongMode() {
 		gdtbase.size = gdtlen - 1;
 		gdtbase.addr = GDT64_BASE_ADDR;
 
-		short tr_offset = gdtlen - sizeof(Tss64Descriptor);
+		short troffset = 5* sizeof(Tss64Descriptor);
 
 		unsigned long oldEbp = 0;
 		unsigned long oldEsp = 0;
 
 		__asm {
-
 			lea eax, __bit64EntryOffset
 			mov edx, kernel64Entry32
 			mov  ds : [eax] , edx
@@ -848,7 +848,7 @@ void EnterLongMode() {
 
 			mov ecx, 0xC0000080; EFER MSR
 			rdmsr
-			or eax, 1 << 8; 设置LME位
+			or eax, 1 << 8	;LME
 			wrmsr
 
 			mov eax, cr0
@@ -856,7 +856,8 @@ void EnterLongMode() {
 			mov cr0, eax
 
 			lgdt gdtbase
-			mov ax, tr_offset
+
+			mov ax, troffset
 			ltr ax
 
 			pushad
@@ -877,7 +878,7 @@ void EnterLongMode() {
 			push dword ptr kernel64Entry32
 			retf
 
-			lea eax, g_jmpstub
+			lea eax,jmpstub
 			jmp eax
 
 		__win64_leave:

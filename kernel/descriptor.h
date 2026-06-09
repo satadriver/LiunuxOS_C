@@ -28,10 +28,10 @@ typedef struct {
 
 typedef struct  
 {
-	unsigned char jmpcode;		//0xea
+	unsigned char code;		//0xea
 	unsigned short seg;
 	unsigned long offset;
-}JUMP_LONG;
+}JUMP_FAR_STUB;
 
 typedef struct
 {
