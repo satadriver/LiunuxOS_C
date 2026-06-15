@@ -87,19 +87,17 @@ void __kMouseProc() {
 	while (TRUE)
 	{
 		int status = inportb(0x64);
-		if ((status & 1) == 0)
+		if ((status & 0x21) != 0x21)
 		{
-			break;
+			return;
 		}
 
-		if ((status & 0xa0) ) {
+		if ((status & 0xc0) || (status & 8) == 0) {
 			g_mouse_error_cnt++;
 			if (g_mouse_error_cnt <= 16) {
-				//__printf(szout, (char*)"mouse status %x error\r\n", status);
-			}
-			
-			//return;
-			//break;
+				__printf(szout, (char*)"mouse status %x error\r\n", status);
+			}	
+			return;
 		}
 
 		int md = inportb(0x60);
@@ -113,9 +111,6 @@ void __kMouseProc() {
 			{
 				break;
 			}
-			else {
-				continue;
-			}
 		}
 		if (gMouseID ==0x81)
 		{
@@ -123,34 +118,15 @@ void __kMouseProc() {
 			{
 				break;
 			}
-			else {
-				continue;
-			}
 		}
 		else {
 			if (counter >= 3)
 			{
 				break;
 			}
-			else {
-				continue;
-			}
 		}
 	}
 
-	if (gMouseID == 3 || gMouseID == 4)
-	{
-		if (counter != 4)
-		{
-			//return;
-		}
-	}
-	else {
-		if (counter != 3)
-		{
-			//return;
-		}
-	}
 	if (counter < 3) {
 		return;
 	}
