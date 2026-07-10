@@ -74,6 +74,10 @@ int __initVideo(LPVESAINFORMATION vesaInfo, DWORD fontbase) {
 	p.y = 0;
 	__drawRectWindow(&p, gVideoWidth, gVideoHeight, BACKGROUND_COLOR, 0);
 
+	extern void background_original(char* buf);
+
+	background_original((char*)gGraphBase);
+
 	g_ScreenMode = TRUE;
 
 	return 0;

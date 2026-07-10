@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -223,6 +223,11 @@
     <ClCompile Include="des.cpp" />
     <ClCompile Include="descriptor.cpp" />
     <ClCompile Include="device.cpp" />
+    <ClCompile Include="gui\aurora.cpp" />
+    <ClCompile Include="gui\mandelbrot.cpp" />
+    <ClCompile Include="gui\nebula.cpp" />
+    <ClCompile Include="gui\synthwave.cpp" />
+    <ClCompile Include="gui\wallpaper_original.cpp" />
     <ClCompile Include="heap.cpp" />
     <ClCompile Include="kann-master\kann.cpp" />
     <ClCompile Include="kann-master\kautodiff.cpp" />
