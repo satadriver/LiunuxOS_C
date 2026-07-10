@@ -50,6 +50,10 @@
 #include "apic.h"
 #include "apicTimer.h"
 
+extern "C" __declspec(dllimport) void background_original(char* buf);
+
+extern "C" __declspec(dllimport) void background_nebula(char* buf);
+
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
 
@@ -59,6 +63,9 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	
 	WINDOWCLASS window;
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid,1);
+
+	background_original((char*)gGraphBase);
+	//background_nebula((char*)gGraphBase);
 
 	WINDOWCLASS taskbar;
 	initTaskbarWindow(&taskbar, filename, tid);

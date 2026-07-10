@@ -47,7 +47,7 @@ static void px(char*buf,int x,int y,int r,int g,int b){
     //buf[i+3]=0xFF;
 }
 
-void background_nebula(char*buf){
+extern "C" __declspec(dllexport) void background_nebula(char*buf){
     int x,y;
     for(y=0;y< gVideoHeight;y++){
         for(x=0;x< gVideoWidth;x++){

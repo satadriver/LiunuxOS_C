@@ -21,11 +21,11 @@ static void px(char*buf,int x,int y,int r,int g,int b){
     //buf[i+3]=0xFF;
 }
 
-void background_original(char*buf){
+extern "C" __declspec(dllexport) void background_original(char* buf) {
     int x,y;
-    for(y=0;y< gVideoHeight;y++){
+    for(y=0;y< gWindowHeight;y++){
         for(x=0;x< gVideoWidth;x++){
-            float nx=(float)x/ gVideoWidth, ny=(float)y/ gVideoHeight;
+            float nx=(float)x/ gVideoWidth, ny=(float)y/ gWindowHeight;
             float cx=(nx-0.5f)*2.0f, cy=(ny-0.5f)*2.0f;
             float dist=my_sqrt(cx*cx+cy*cy);
 
@@ -53,4 +53,4 @@ void background_original(char*buf){
             px(buf,x,y,r,g,b);
         }
     }
-}
+} 
