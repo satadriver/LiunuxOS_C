@@ -54,6 +54,10 @@ extern "C" __declspec(dllimport) void background_original(char* buf);
 
 extern "C" __declspec(dllimport) void background_nebula(char* buf);
 
+//extern "C" __declspec(dllimport) void nebulaLoop(void);
+
+void nebulaLoop(void);
+
 int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname, DWORD param) {
 	int ret = 0;
 
@@ -66,6 +70,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	//background_original((char*)gGraphBase);
 	background_nebula((char*)gGraphBase);
+	//nebulaLoop();
 
 	WINDOWCLASS taskbar;
 	initTaskbarWindow(&taskbar, filename, tid);

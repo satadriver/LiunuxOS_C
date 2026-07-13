@@ -92,11 +92,12 @@ void __kMouseProc() {
 			return;
 		}
 
-		if ((status & 0xc0) || (status & 8) == 0) {
+		if ((status & 0xc0) /* || (status & 8) == 0*/ ) {
 			g_mouse_error_cnt++;
 			if (g_mouse_error_cnt <= 16) {
 				__printf(szout, (char*)"mouse status %x error\r\n", status);
 			}	
+			inportb(0x60);
 			return;
 		}
 
