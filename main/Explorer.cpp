@@ -64,8 +64,8 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	WINDOWCLASS window;
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid,1);
 
-	background_original((char*)gGraphBase);
-	//background_nebula((char*)gGraphBase);
+	//background_original((char*)gGraphBase);
+	background_nebula((char*)gGraphBase);
 
 	WINDOWCLASS taskbar;
 	initTaskbarWindow(&taskbar, filename, tid);
