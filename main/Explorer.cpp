@@ -49,6 +49,7 @@
 #include "systemService.h"
 #include "apic.h"
 #include "apicTimer.h"
+#include "cmosPeriodTimer.h"
 
 extern "C" __declspec(dllimport) void background_original(char* buf);
 
@@ -74,9 +75,20 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	WINDOWCLASS window;
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid,1);
 
+	DATETIME datetime;
+	int second= __getDateTime(& datetime);
+	int idx = datetime.second % 5;
+	typedef void (* background_picture)(char* buf);
+	background_picture callback[8];
+	callback[0] = background_original;
+	callback[1] = background_nebula;
+	callback[2] = background_aurora;
+	callback[3] = background_mandelbrot;
+	callback[4] = background_synthwave;
+	callback[idx]((char*)gGraphBase);
 	//background_original((char*)gGraphBase);
 	//background_nebula((char*)gGraphBase);
-	background_mandelbrot((char*)gGraphBase);
+	//background_mandelbrot((char*)gGraphBase);
 	//background_aurora((char*)gGraphBase);
 	//background_synthwave((char*)gGraphBase);
 	//nebulaLoop();
