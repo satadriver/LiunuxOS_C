@@ -20,7 +20,9 @@ static float my_sin(float x) {
     float x2 = x * x; return x - x2 * x / 6.0f + x2 * x2 * x / 120.0f - x2 * x2 * x2 * x / 5040.0f;
 }
 static float my_fabs(float x) { return x < 0 ? -x : x; }
+
 static unsigned int hash_u(unsigned int n) { n = (n ^ (n >> 13)) * 1274126177u; return n ^ (n >> 16); }
+
 static float hash2d(int ix, int iy) {
     return(float)(hash_u((unsigned)(ix * 374761393 + iy * 668265263)) & 0xFFFF) / 65535.0f;
 }

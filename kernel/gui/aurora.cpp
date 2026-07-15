@@ -1,8 +1,9 @@
 // aurora.c - 极光
 // 依赖: 无
 // 调用: background_aurora((char*)显存地址);
-#define WIDTH  1024
-#define HEIGHT 768
+#include "../def.h"
+#include "../video.h"
+#include "../Utils.h"
 
 static float my_sin(float x) {
     while(x> 3.14159265f) x-=6.28318530f;
@@ -11,7 +12,9 @@ static float my_sin(float x) {
     return x - x2*x/6.0f + x2*x2*x/120.0f - x2*x2*x2*x/5040.0f;
 }
 static unsigned int hash_u(unsigned int n){n=(n^(n>>13))*1274126177u;return n^(n>>16);}
+
 static float hash2d(int ix,int iy){return(float)(hash_u((unsigned)(ix*374761393+iy*668265263))&0xFFFF)/65535.0f;}
+
 static float smooth_noise(float x,float y,float sc){
     float sx=x/sc,sy=y/sc;int ix=(int)sx,iy=(int)sy;
     float fx=sx-ix,fy=sy-iy;
@@ -21,16 +24,17 @@ static float smooth_noise(float x,float y,float sc){
 }
 static void px(char*buf,int x,int y,int r,int g,int b){
     if(r<0)r=0;if(r>255)r=255;if(g<0)g=0;if(g>255)g=255;if(b<0)b=0;if(b>255)b=255;
-    int i=(y*WIDTH+x)*4;buf[i]=b;buf[i+1]=g;buf[i+2]=r;buf[i+3]=0xFF;
+    int i=(y* gVideoWidth +x)* gBytesPerPixel;buf[i]=b;buf[i+1]=g;buf[i+2]=r;
+    //buf[i+3]=0xFF;
 }
 static int clampi(float v){int i=(int)v;return i<0?0:i>255?255:i;}
 
-void background_aurora(char*buf){
+extern "C" __declspec(dllexport) void background_aurora(char*buf){
     int x,y;
-    for(y=0;y<HEIGHT;y++){
-        float ny=(float)y/HEIGHT;
-        for(x=0;x<WIDTH;x++){
-            float nx=(float)x/WIDTH;
+    for(y=0;y< gWindowHeight;y++){
+        float ny=(float)y/ gWindowHeight;
+        for(x=0;x< gVideoWidth;x++){
+            float nx=(float)x/ gVideoWidth;
             int r=2,g=2,b=8;
 
             /* 星星 */

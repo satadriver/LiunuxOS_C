@@ -54,6 +54,12 @@ extern "C" __declspec(dllimport) void background_original(char* buf);
 
 extern "C" __declspec(dllimport) void background_nebula(char* buf);
 
+extern "C" __declspec(dllexport) void background_aurora(char* buf);
+
+extern "C" __declspec(dllexport) void background_mandelbrot(char* buf);
+
+extern "C" __declspec(dllexport) void background_synthwave(char* buf);
+
 //extern "C" __declspec(dllimport) void nebulaLoop(void);
 
 void nebulaLoop(void);
@@ -69,7 +75,10 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid,1);
 
 	//background_original((char*)gGraphBase);
-	background_nebula((char*)gGraphBase);
+	//background_nebula((char*)gGraphBase);
+	background_mandelbrot((char*)gGraphBase);
+	//background_aurora((char*)gGraphBase);
+	//background_synthwave((char*)gGraphBase);
 	//nebulaLoop();
 
 	WINDOWCLASS taskbar;
