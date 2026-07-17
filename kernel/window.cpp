@@ -456,10 +456,11 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	
 	deletePopupItem(window);
 
-	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
-
 	//leave_task_array_lock();
 	leave_task_array_lock_id(window->cpu);
+
+	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
+
 	return 0;
 }
 

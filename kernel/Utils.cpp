@@ -1182,6 +1182,29 @@ void __initSpinlock(int * v) {
 	*v = 0;
 }
 
+int __enterCpuSpinlock(int* lpv) {
+	int cpunum = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	cpunum = (cpunum +1)<< 24;
+	__asm {
+
+	__enterSpinLockLoop:
+		mov eax, lpv
+			lock bts ds : [eax] , 0
+			jnc __getSpinLock
+			mov edx,ds:[eax]
+			sub edx,1
+			xor edx,cpunum
+			jz __getSpinLock
+			pause
+			pause
+			pause
+			jmp __enterSpinLockLoop
+			__getSpinLock :
+		mov edx, cpunum
+			or dword ptr ds:[eax],edx
+	}
+}
+
 
 /*
 ¸ñÊ½ £º bts dword ptr [ecx],0
