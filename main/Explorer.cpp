@@ -32,7 +32,6 @@
 #include "descriptor.h"
 #include "debugger.h"
 #include "gdi.h"
-#include "pci.h"
 #include "hept.h"
 #include "cmosAlarm.h"
 #include "elf.h"
