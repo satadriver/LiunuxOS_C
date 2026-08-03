@@ -160,6 +160,46 @@ void __wait8042Empty() {
 	} while (status & 2);
 }
 
+void __flush8042() {
+	while (inportb(0x64) & 0x01) {
+		inportb(0x60);  // 丢弃数据
+	}
+}
+
+void mouseCommand(unsigned char cmd) {
+	__wait8042Empty();
+	outportb(0x64, 0xD4);  // 告诉键盘控制器：下一个字节发给鼠标
+	__wait8042Empty();
+	outportb(0x60, cmd);    // 发送命令
+}
+
+unsigned char mouseReadData(int timeout_ms) {
+	int retries = timeout_ms * 1000;  // 粗略超时
+	while (retries-- > 0) {
+		if (inportb(0x64) & 0x01) {  // 有数据
+			return inportb(0x60);
+		}
+		// 短暂延时（如果有时钟源）
+		// __sleep(0);
+	}
+	return 0xFF;  // 超时错误
+}
+
+
+int getMouseIDBasic() {
+	__flush8042();  // 清空残留数据
+
+	mouseCommand(0xF2);  // 发送读取ID命令
+
+	unsigned char ack = mouseReadData(1000);
+	if (ack != 0xFA) {
+		// 命令失败，可能是没有鼠标或通信错误
+		return 0;
+	}
+
+	unsigned char id = mouseReadData(1000);
+	return id;  // 0x00 = 标准鼠标, 0x03 = 滚轮, 0x04 = 5键
+}
 
 void initDevices() {
 
@@ -308,6 +348,61 @@ void getKeyboardID() {
 	__printf(szout, "keyboardid:%x\r\n", gKeyboardID);
 }
 
+
+int getMouseID_new() {
+	int id;
+
+	// 第一步：基础检测
+	id = getMouseIDBasic();
+	if (id != 0x00) {
+		return id;  // 已经是高级鼠标
+	}
+
+	// 第二步：尝试启用滚轮（发送魔法序列）
+	// 设置采样率 200
+	mouseCommand(0xF3);
+	if (mouseReadData(100) != 0xFA) return 0;
+	mouseCommand(200);
+	if (mouseReadData(100) != 0xFA) return 0;
+
+	// 设置采样率 100
+	mouseCommand(0xF3);
+	if (mouseReadData(100) != 0xFA) return 0;
+	mouseCommand(100);
+	if (mouseReadData(100) != 0xFA) return 0;
+
+	// 设置采样率 80
+	mouseCommand(0xF3);
+	if (mouseReadData(100) != 0xFA) return 0;
+	mouseCommand(80);
+	if (mouseReadData(100) != 0xFA) return 0;
+
+	// 再次读取 ID
+	id = getMouseIDBasic();
+
+	// 如果检测到滚轮 (0x03)，尝试检测 5 键鼠标
+	if (id == 0x03) {
+		mouseCommand(0xF3);
+		mouseReadData(100);
+		mouseCommand(200);
+		mouseReadData(100);
+		mouseCommand(0xF3);
+		mouseReadData(100);
+		mouseCommand(200);
+		mouseReadData(100);
+		mouseCommand(0xF3);
+		mouseReadData(100);
+		mouseCommand(80);
+		mouseReadData(100);
+
+		int newId = getMouseIDBasic();
+		if (newId == 0x04) {
+			id = 0x04;
+		}
+	}
+
+	return id;
+}
 
 int getMouseID() {
 
