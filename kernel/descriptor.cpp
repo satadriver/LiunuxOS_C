@@ -409,7 +409,6 @@ int InitPm() {
 		return 0;
 	}
 
-
 	unsigned long low = 0;
 	unsigned long high = 0;
 	low = 0x5300c0;
