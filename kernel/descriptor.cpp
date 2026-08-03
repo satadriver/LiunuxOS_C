@@ -355,7 +355,25 @@ int SysenterInit(DWORD entryaddr) {
 
 int g_pm_enable = FALSE;
 
+
+int IsPmEnable() {
+	int ver = 0;
+	__asm {
+		mov eax, 0ah
+		cpuid
+		mov[ver], eax
+	}
+
+	return ver&0xff;
+}
+
 int GetPmVersion() {
+	int ver = IsPmEnable();
+	if (ver == 0)
+	{
+		return 0;
+	}
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	unsigned long long tick = __krdtsc();
 
@@ -376,12 +394,7 @@ int GetPmVersion() {
 		g_cpu_start_tick[id] = tick;
 	}
 
-	int ver = 0;
-	__asm {
-		mov eax,0ah
-		cpuid
-		mov [ver],eax
-	}
+
 	char szout[256];
 	__printf(szout, "%s %d performance monitor version: %x\r\n",__FUNCTION__,__LINE__, ver);
 	return ver;
@@ -390,19 +403,20 @@ int GetPmVersion() {
 
 
 int InitPm() {
-
-	int ver = GetPmVersion();
-	if (ver == 0) {
+	int ver = IsPmEnable();
+	if (ver == 0)
+	{
 		return 0;
 	}
+
+
 	unsigned long low = 0;
 	unsigned long high = 0;
-
-	writemsr(0xc1, low, high);
-
 	low = 0x5300c0;
+	low = 0x0043003c;
 	writemsr(0x186, low, 0);		//IA32_PERFEVTSELx
 
+	writemsr(0xc1, low, high);
 	readmsr(0xc1, &low, &high);
 
 	unsigned long long tick = __krdtsc();
@@ -414,6 +428,10 @@ int InitPm() {
 
 
 int GetCpuRate() {
+	int ver = GetPmVersion();
+	if (ver == 0) {
+		return 0;
+	}
 
 	unsigned long e7low = 0;
 	unsigned long e7high = 0;

@@ -1375,8 +1375,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__asm {sti}
 	AdjustApicTimer();
 
-	
-
 	char* reg_esp_new = 0;
 	__asm {
 		mov ds : [reg_esp_new] , esp

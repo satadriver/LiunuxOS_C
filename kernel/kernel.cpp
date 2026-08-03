@@ -121,16 +121,23 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enableTSD();
 	//enableVMXE();
 
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+
 	initDebugger();
-
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	initWindowList();
-
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	getCpuInfo((char*)CPU_INFO_ADDR);
-
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	InitPm();
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	GetCpuRate();
 
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+
 	ret = InitLocalApicTimer();
+
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 	__asm {
 		sti
