@@ -301,14 +301,14 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int len = getmemmap(pid,cpu, szout);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "testme") == 0)
+	else if (__strcmp(params[0], "testdev") == 0)
 	{
 		__strcpy(taskcmd.filename, params[0]);
 		taskcmd.cmd = SHOW_TEST_WINDOW;
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 	}
-	else if (__strcmp(params[0], "ApicTimerTick") == 0)
+	else if (__strcmp(params[0], "apicTimerTick") == 0)
 	{
 		DWORD cnt = *((DWORD*)APICTIMER_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
@@ -491,7 +491,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		}
 		GetHeap(cpu,tid,szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
-		}
+	}
 	else if (__strcmp(params[0], "heapAlloc") == 0) {
 		DWORD cnt = 0x100;
 		int size = 0x10000;
@@ -505,6 +505,9 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int err = HeapAllocTest(cnt,size,&total);
 		__sprintf(szout, "HeapAlloc test count:%x, size:%x,total:%i64x,error:%d\r\n",cnt,size,total, err);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "mlTest") == 0) {
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kMachineLearning_mlp", 3, 0);
 	}
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);

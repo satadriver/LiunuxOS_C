@@ -13,23 +13,23 @@
 DATETIME g_startup_timer;
 
 void EnableCmos() {
-	__asm {cli}
+	//__asm {cli}
 	outportb(0x70, 0x0b | 0x80);
 	int v = inportb(0x71) & 0x7f;
 	outportb(0x71, v);
 
 	//outportb(0x70, 0x0c | 0x80);
 	//inportb(0x71);
-	__asm {sti}
+	//__asm {sti}
 }
 
 void DisableCmos() {
-	__asm {cli}
+	//__asm {cli}
 	int s = 0x0b | 0x80;
 	outportb(0x70, s);
 	int v = inportb(0x71) | 0x80;
 	outportb(0x71, v);
-	__asm {sti}
+	//__asm {sti}
 }
 
 unsigned char readCmosPort(unsigned char port) {

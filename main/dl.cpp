@@ -89,6 +89,10 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	if (g_dl_ann) {
 		free(g_dl_ann);
 	}
+	if (g_ml_data) {
+		free(g_ml_data);
+	}
+	g_ml_data_cnt = 0;
 
 	int max_task = ML_TASK_TEST_LIMIT;
 
