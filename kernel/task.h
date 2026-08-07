@@ -66,13 +66,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 
 extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);
 
-int __pausePid(int pid);
 
-int __resumePid(int pid);
-
-int __resumeTid(int tid);
-
-int __pauseTid(int tid);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
@@ -111,6 +105,14 @@ extern "C"  __declspec(dllexport) int __terminateTid(int tid);
 
 extern "C"  __declspec(dllexport) int __terminatePid(int pid);
 
+extern "C"  __declspec(dllexport) int __pausePid(int pid);
+
+extern "C"  __declspec(dllexport) int __resumePid(int pid);
+
+extern "C"  __declspec(dllexport) int __resumeTid(int tid);
+
+extern "C"  __declspec(dllexport) int __pauseTid(int tid);
+
 extern "C"  __declspec(dllexport) int __terminateByFileName(char * filename);
 
 extern "C"  __declspec(dllexport) int __terminateByFuncName(char * funcname);
@@ -144,6 +146,14 @@ extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 extern "C"  __declspec(dllimport) int __terminateTid(int tid);
 
 extern "C"  __declspec(dllimport) int __terminatePid(int pid);
+
+extern "C"  __declspec(dllimport) int __pausePid(int pid);
+
+extern "C"  __declspec(dllimport) int __resumePid(int pid);
+
+extern "C"  __declspec(dllimport) int __resumeTid(int tid);
+
+extern "C"  __declspec(dllimport) int __pauseTid(int tid);
 
 extern "C"  __declspec(dllimport) int __terminateByFileName(char * filename);
 

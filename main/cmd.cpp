@@ -115,6 +115,32 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			
 		}
 	}
+	else if (__strcmp(params[0], "uname") == 0) {
+		*szout = 0;
+		__sprintf(szout, "liunux %s", LIUNUXOS_VERSION);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "kill") == 0) {
+		if(paramcnt >= 2)
+		{
+			int pid = __strd2i(params[1]);
+			__terminateTid(pid);
+		}
+	}
+	else if (__strcmp(params[0], "pause") == 0) {
+		if (paramcnt >= 2)
+		{
+			int pid = __strd2i(params[1]);
+			__pauseTid(pid);
+		}
+	}
+	else if (__strcmp(params[0], "resume") == 0) {
+		if (paramcnt >= 2)
+		{
+			int pid = __strd2i(params[1]);
+			__resumeTid(pid);
+		}
+	}
 	else if (__strcmp(params[0], "ls") == 0) {
 
 	}
