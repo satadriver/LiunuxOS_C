@@ -117,7 +117,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	}
 	else if (__strcmp(params[0], "uname") == 0) {
 		*szout = 0;
-		__sprintf(szout, "liunux %s", LIUNUXOS_VERSION);
+		__sprintf(szout, "liunux %s\r\n", LIUNUXOS_VERSION);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "kill") == 0) {
@@ -150,12 +150,12 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "keyboard") == 0)
 	{
 		*szout = 0;
-		__sprintf(szout, "keyboard id:%x", gKeyboardID);
+		__sprintf(szout, "keyboard id:%x\r\n", gKeyboardID);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "mouse") == 0) {
 		*szout = 0;
-		__sprintf(szout, "mouse id:%x", gMouseID);
+		__sprintf(szout, "mouse id:%x\r\n", gMouseID);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "regs") == 0 && paramcnt >= 2)

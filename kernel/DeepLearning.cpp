@@ -92,9 +92,6 @@ kann_t* g_dl_ann = 0;
 
 int SaveMlData(TaskPredictParam * tp)
 {
-	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
-	}
 
 	if (g_ml_data != 0 && g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
 		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictParam));
