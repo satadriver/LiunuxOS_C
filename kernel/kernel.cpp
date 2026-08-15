@@ -119,7 +119,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enablePCE();
 	enableMCE();
 	enableTSD();
-	//enableVMXE();
+	enableVMXE();
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
@@ -167,7 +167,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 #endif
 	
-	EnterLongMode();
+	//EnterLongMode();
 
 	int imageSize = getSizeOfImage((char*)KERNEL_DLL_BASE);
 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");

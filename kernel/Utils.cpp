@@ -74,7 +74,7 @@ int __memset(char* dst, int value, int len) {
 #ifdef _DEBUG
 	return 0;
 #else
-	if (dst == 0) {
+	if (dst == 0 || len <= 0) {
 		return 0;
 	}
 	for (int i = 0; i < len; i++) {
@@ -85,7 +85,7 @@ int __memset(char* dst, int value, int len) {
 }
 
 int __memcpy(char* dst, char* src, int len) {
-	if (dst == 0 || src == 0) {
+	if (dst == 0 || src == 0 || len <= 0) {
 		return 0;
 	}
 	for (int i = 0; i < len; i++) {
@@ -95,7 +95,7 @@ int __memcpy(char* dst, char* src, int len) {
 }
 
 int __wmemcpy(wchar_t* dst, wchar_t* src, int len) {
-	if (dst == 0 || src == 0) {
+	if (dst == 0 || src == 0 || len <= 0) {
 		return 0;
 	}
 	for (int i = 0; i < len; i++) {
@@ -105,7 +105,7 @@ int __wmemcpy(wchar_t* dst, wchar_t* src, int len) {
 }
 
 int __wmemcmp(wchar_t* src, wchar_t* dst, int len) {
-	if (dst == 0 || src == 0) {
+	if (dst == 0 || src == 0 || len <= 0) {
 		return 0;
 	}
 	for (int i = 0; i < len; i++) {
@@ -123,7 +123,7 @@ int __wmemcmp(wchar_t* src, wchar_t* dst, int len) {
 
 
 int __memcmp(const char* src, const char* dst, int len) {
-	if (dst == 0 || src == 0) {
+	if (dst == 0 || src == 0 || len <= 0) {
 		return 0;
 	}
 	for (int i = 0; i < len; i++) {

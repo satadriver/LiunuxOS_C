@@ -394,7 +394,6 @@ int GetPmVersion() {
 		g_cpu_start_tick[id] = tick;
 	}
 
-
 	char szout[256];
 	__printf(szout, "%s %d performance monitor version: %x\r\n",__FUNCTION__,__LINE__, ver);
 	return ver;
@@ -412,7 +411,7 @@ int InitPm() {
 	unsigned long low = 0;
 	unsigned long high = 0;
 	low = 0x5300c0;
-	low = 0x0043003c;
+	//low = 0x0043003c;
 	writemsr(0x186, low, 0);		//IA32_PERFEVTSELx
 
 	writemsr(0xc1, low, high);
