@@ -4,7 +4,7 @@
 #include "Utils.h"
 #include "malloc.h"
 #include "descriptor.h"
-
+#include "device.h"
 
 
 //https://blog.csdn.net/qq_41988448/article/details/122791042
@@ -98,6 +98,8 @@ int StartVirtualTechnology()
    
     if (!IsVTEnabled())
         return 0;
+
+    enableVMXE();
 
     pVMXONRegion = (char*)__kMalloc(0x1000);
 

@@ -119,7 +119,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enablePCE();
 	enableMCE();
 	enableTSD();
-	enableVMXE();
+	
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
