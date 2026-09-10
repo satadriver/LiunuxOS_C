@@ -1377,10 +1377,10 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		}
 		else {
 			if (current->prev_tick) {
-				current->tick += (tick1 - current->prev_tick);
+				current->tick_run += (tick1 - current->prev_tick);
 			}
 			if (prev->prev_tick) {
-				prev->tick += (tick1 - prev->prev_tick);
+				prev->tick_run += (tick1 - prev->prev_tick);
 			}
 			if (g_cpu_prev_tick[id]) {
 				g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
@@ -1435,7 +1435,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		}
 		*/
 
-		current->tick_cost = (current->tick_cost + (tick2 - tick1)) / 2;
+		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1)) ;
 
 		current->prev_tick = tick2;
 		if (next) {
@@ -1509,7 +1509,6 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->pid = tid;
 	process0->ppid = 0;
 	process0->cpuid = id;
-	process0->fcpu = id;
 	process0->espbase = stacktop;
 	process0->level = 0;
 	process0->vaddr = 0;
@@ -1544,11 +1543,11 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->priority = 0;
 	process0->authority = 0;
 
-	process0->tick = 0;
+	process0->tick_run = 0;
 	process0->prev_tick = 0;
 	process0->tick_start = __krdtsc();
 	process0->tick_total = 0;
-	process0->tick_cost = 0;
+	process0->tick_switch_cost = 0;
 
 	int bsp = IsBspProcessor();
 	if (bsp) {

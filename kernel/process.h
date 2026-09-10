@@ -51,8 +51,6 @@ typedef struct
 
 	int cpuid;
 
-	int fcpu;
-
 	DWORD pid;
 
 	DWORD tid;
@@ -76,11 +74,11 @@ typedef struct
 	int delta;
 	int authority;
 
-	unsigned long long tick;
+	unsigned long long tick_run;
 	unsigned long long tick_total;
 	unsigned long long prev_tick;
 	unsigned long long tick_start;
-	unsigned long long tick_cost;
+	unsigned long long tick_switch_cost;		//for task switch tick cost, for debug only, not used in scheduling
 
 	DWORD sleep;
 

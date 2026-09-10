@@ -316,11 +316,11 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->priority = 0;
 	tss->authority = 0;
 
-	tss->tick = 0;
+	tss->tick_run = 0;
 	tss->prev_tick = 0;
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
-	tss->tick_cost = 0;
+	tss->tick_switch_cost = 0;
 
 	//tss->cpuid = cpuid;
 	tss->lpvasize = &tss->va_size;
@@ -347,12 +347,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	__strcpy(tss->funcname, funcname);
 
-	//enter_task_array_lock();
-	tss->fcpu = tss->cpuid;
-
 	tss->status = TASK_RUN;
-
-	//leave_task_array_lock();
 
 #ifdef TASK_SWITCH_ARRAY
 

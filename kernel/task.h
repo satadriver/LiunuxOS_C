@@ -135,7 +135,6 @@ extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllexport) void leave_task_array_lock_id(int id);
 
-extern "C" __declspec(dllexport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack);
 #else
 extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
 extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
@@ -176,7 +175,6 @@ extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllimport) void leave_task_array_lock_id(int id);
 
-extern "C" __declspec(dllimport) int __kKernelProcess(LIGHT_ENVIRONMENT * stack);
 #endif
 
 

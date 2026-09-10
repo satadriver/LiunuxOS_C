@@ -34,7 +34,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v141_xp</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -343,7 +343,6 @@
     <ClInclude Include="rc4.h" />
     <ClInclude Include="rtl8139.h" />
     <ClInclude Include="serialUART.h" />
-    <ClInclude Include="screenProtect.h" />
     <ClInclude Include="ATA.h" />
     <ClInclude Include="kernel.h" />
     <ClInclude Include="keyboard.h" />

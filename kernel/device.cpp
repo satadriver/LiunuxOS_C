@@ -548,8 +548,10 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 
 	unsigned long slice = TASK_TIME_SLICE;
 	unsigned long circle = 1000 / slice;
-	unsigned long delta = (cnt1 > cnt0) ? (cnt1 - cnt0) : (cnt0 - cnt1);
-	delta = cnt0 - cnt1;
+	long delta  = cnt0 - cnt1;
+	if(delta < 0) {
+		delta = -delta;
+	}
 	unsigned long value = delta * circle;
 
 	char szout[256];

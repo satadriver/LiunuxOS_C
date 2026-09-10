@@ -29,11 +29,7 @@ int MakeBochsMBR() {
 	char* buf = 0;
 	int fs = 0;
 
-	int freesecno = 1;
-
-	char *old_mbr = new char[SECTOR_SIZE+16];
-	int old_mbr_size = SECTOR_SIZE;
-	ret = FileOper::fileReader(BOCHS_HARDDISK_FILENAME, &old_mbr, &old_mbr_size);
+	int freesecno = 0x10;
 
 	LIUNUX_OS_DATA *hdr = (LIUNUX_OS_DATA*)new char[SECTOR_SIZE];
 	memset(hdr, 0, SECTOR_SIZE);
@@ -113,6 +109,10 @@ int MakeBochsMBR() {
 	wsprintfA(cmdbuf, "bximage -q -hd=16 -func=create -sectsize=512 %s\r\n", BOCHS_HARDDISK_FILENAME);
 	ret = FileOper::fileWriter(BOCHS_CMD_FILENAME, (const char*)cmdbuf, strlen(cmdbuf), 0);
 	ret = system(cmdbuf);
+
+	char* old_mbr = new char[SECTOR_SIZE + 16];
+	int old_mbr_size = SECTOR_SIZE;
+	ret = FileOper::fileReader(BOCHS_HARDDISK_FILENAME, &old_mbr, &old_mbr_size);
 
 	wsprintfA(cmdbuf, "dd if=%s of=%s bs=%d count=1 \r\n", 
 		LIUNUX_BOCHS_MBR_FILENAME,BOCHS_HARDDISK_FILENAME, SECTOR_SIZE);

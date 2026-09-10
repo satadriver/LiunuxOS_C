@@ -179,7 +179,7 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 		if (src_tss[i].status == TASK_RUN) {
 			cnt++;
 			double proc_diff = src_tss[i].tick_total;
-			double proc_ratio = (double)src_tss[i].tick / proc_diff;
+			double proc_ratio = (double)src_tss[i].tick_run / proc_diff;
 			if (proc_ratio > max) {
 				max = proc_ratio;
 				src_tid = src_tss[i].tid;

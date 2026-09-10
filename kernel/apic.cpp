@@ -1241,7 +1241,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 8;
+	int times = 3;
 	unsigned  long long ticks = 0;
 	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {
@@ -1808,14 +1808,14 @@ int GetCongestion(int * procs) {
 			if (tss[i].status == TASK_RUN) {
 				n++;
 
-				double proc_cpu_ratio = (double)tss[i].tick / cpu_diff;
+				double proc_cpu_ratio = (double)tss[i].tick_run / cpu_diff;
 				if (proc_cpu_ratio > max_ratio) {
 					max_ratio = proc_cpu_ratio;
 					max_tid = tss[i].tid;
 				}
 
 				double proc_diff = tss[i].tick_total;
-				double proc_ratio = (double)tss[i].tick / proc_diff;
+				double proc_ratio = (double)tss[i].tick_run / proc_diff;
 				if (proc_ratio > 0.5) {
 					procs[cnt++] = tss[i].tid;
 				}
@@ -1875,13 +1875,13 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 			else {
 				double ratio = 0.0;
-				if (ptr->tick == 0) {
+				if (ptr->tick_run == 0) {
 					ptr->delta = DYNAMIC_PRIORITY;
 					ratio = 1.0;
 				}
 				else {
 					double diff = (double)(ptr->tick_total);
-					ratio = ((double)ptr->tick) / diff;
+					ratio = ((double)ptr->tick_run) / diff;
 					if (ratio > 0.9) 
 					{
 						//ratio = 0.01;
@@ -1894,7 +1894,7 @@ PROCESS_INFO * GetReadyProcess() {
 
 				if (g_debug_tag++ % 0x1000 == 0x1000) {
 					__printf(szout, "tick_start:%lf, diff:%i64x,tick:%I64x, ratio:%lf\r\n",
-						tickc[count].v, ptr->tick_total, ptr->tick, ratio);
+						tickc[count].v, ptr->tick_total, ptr->tick_run, ratio);
 				}
 
 				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);

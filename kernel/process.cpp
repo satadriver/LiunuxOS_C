@@ -19,7 +19,6 @@
 #include "systemService.h"
 
 void __kFreeProcess(int pid) {
-	//return;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	freeProcessMemory(pid,cpu);
@@ -48,9 +47,9 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	char szout[256];
 
-	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid) {
-		__printf(szout, "__terminateProcess tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s\n",
-			tid, pid, current->pid, current->tid, filename, funcname);
+	if (tid < 0 || tid >= TASK_LIMIT_TOTAL || tss[tid].tid != tid || tss[pid].pid != pid || tid != pid) {
+		__printf(szout, "%s %d tid:%x,pid:%x,current pid:%x,current tid:%x,filename:%s,funcname:%s error\r\n",
+		__FUNCTION__,__LINE__,	tid, pid, current->pid, current->tid, filename, funcname);
 		return;
 	}
 
@@ -91,7 +90,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	leave_task_array_lock();
 
-	__printf(szout, "pid:%d tid:%d file:%s function:%s terminate\r\n",pid,tid,filename,funcname);
+	//__printf(szout, "pid:%d tid:%d file:%s function:%s terminate\r\n",pid,tid,filename,funcname);
 
 	if (dwtid & 0x80000000) {
 		return;
@@ -384,11 +383,11 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->authority = 0;
 
 	tss->frac_slice = 0;
-	tss->tick = 0;
+	tss->tick_run = 0;
 	tss->prev_tick = 0;
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
-	tss->tick_cost = 0;
+	tss->tick_switch_cost = 0;
 
 	tss->sleep = 0;
 	tss->sleep_total = 0;
@@ -409,15 +408,9 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->large_heap_size = 0;
 	tss->fast_heap_large = 0;
 
-	tss->fcpu = tss->cpuid;
-
 	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 
-	//enter_task_array_lock();
-
 	tss->status = TASK_RUN;
-
-	//leave_task_array_lock();
 
 #ifdef TASK_SWITCH_ARRAY
 

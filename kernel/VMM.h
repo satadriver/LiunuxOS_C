@@ -11,8 +11,8 @@
 #define MSR_IA32_FEATURE_CONTROL 		0x03a
 #define MSR_IA32_VMX_BASIC              0x480
 
-#define BOOLEAN int
-#define NTSTATUS int
+#define BOOLEAN		int
+#define NTSTATUS	int
 
 #ifndef VTASM_H
 #define VTASM_H

@@ -4,7 +4,7 @@
 
 
 
-int checkAtapiPort(WORD port);
+
 
 int writeAtapiCMD(unsigned short* cmd);
 

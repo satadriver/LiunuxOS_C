@@ -1,8 +1,4 @@
 
-
-
-
-
 #pragma once
 #include "paint.h"
 #include "video.h"

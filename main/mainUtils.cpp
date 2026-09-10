@@ -76,13 +76,13 @@ int GetAllProcesses(char* szout) {
 			if (tss[i].status == TASK_RUN)
 			{
 				double proc_diff = tss[i].tick_total;
-				double proc_ratio = (double)tss[i].tick / proc_diff;
-				double cost = tss[i].tick_cost;
+				double proc_ratio = (double)tss[i].tick_run / proc_diff;
+				double cost = tss[i].tick_switch_cost;
 				double switch_cost = cost / g_timer_cost[cpu];
 				len = __sprintf(szout + outlen, 
 					"[%d]. filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf£¬task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					n++,tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
-					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_cost, tss[i].tick_start,
+					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick_run, tss[i].tick_switch_cost, tss[i].tick_start,
 					cpu_ratio,proc_ratio, switch_cost,tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 				outlen += len;
 			}
@@ -110,13 +110,13 @@ int GetProcess(int cpuid,int pid, char* szout) {
 				if (tss[i].status == TASK_RUN && tss[i].pid == pid)
 				{
 					double proc_diff = tss[i].tick_total;
-					double proc_ratio = (double)tss[i].tick / proc_diff;
-					double cost = tss[i].tick_cost;
+					double proc_ratio = (double)tss[i].tick_run / proc_diff;
+					double cost = tss[i].tick_switch_cost;
 					double switch_cost = cost / g_timer_cost[cpu];
 					int len = __sprintf(szout, 
 						"filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 						tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
-						tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick, tss[i].tick_cost,tss[i].tick_start,
+						tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level, tss[i].tick_run, tss[i].tick_switch_cost,tss[i].tick_start,
 						cpu_ratio, proc_ratio, switch_cost, tss[i].sleep_total, tss[i].counter, tss[i].slice, tss[i].priority, tss[i].delta, *tss[i].lpvasize, *tss[i].lpHeapCnt);
 					return len;
 				}
@@ -275,12 +275,12 @@ int GetCpuRatio(char* szout) {
 			if (tss[i].status == TASK_RUN)
 			{
 				double proc_diff = tss[i].tick_total;
-				double proc_ratio = (double)tss[i].tick / proc_diff;
-				double cost = tss[i].tick_cost;
+				double proc_ratio = (double)tss[i].tick_run / proc_diff;
+				double cost = tss[i].tick_switch_cost;
 				double switch_cost = cost / g_timer_cost[cpu];
 				len = __sprintf(szout + outlen,
 					"[%d]. funcname:%s, cpu:%d,pid:%d,tid:%d,cpu tick:%i64x,cpu usage:%lf,task tick:%i64x,task usage:%lf,switch_cost:%lf\r\n",
-					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_ratio, tss[i].tick, proc_ratio, switch_cost);
+					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_ratio, tss[i].tick_run, proc_ratio, switch_cost);
 				outlen += len;
 			}
 		}
