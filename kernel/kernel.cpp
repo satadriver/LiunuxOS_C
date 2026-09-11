@@ -119,7 +119,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enablePCE();
 	enableMCE();
 	enableTSD();
-	
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
@@ -194,7 +193,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		mov[reg_esp], esp
 		mov[reg_ebp], ebp
 	}
-
 	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
 		LIUNUXOS_VERSION,reg_esp,reg_ebp);
 
@@ -292,6 +290,7 @@ int __stdcall DllMain( HINSTANCE hInstance,  DWORD fdwReason,  LPVOID lpvReserve
 }
 #elif defined _CONSOLE
 int main() {
+	strlf2lf("-2345.678");
 	//__kMachineLearning_rnn(0, 0, 0, 0, 0);
 	testalloc();
 	return 0;

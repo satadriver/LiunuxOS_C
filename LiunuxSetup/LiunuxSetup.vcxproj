@@ -154,6 +154,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="osWriter.cpp" />
     <ClCompile Include="sectorRW.cpp" />
+    <ClCompile Include="test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bochs_mbr.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="osWriter.h" />
     <ClInclude Include="sectorRW.h" />
+    <ClInclude Include="test.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

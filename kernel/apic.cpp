@@ -1220,16 +1220,18 @@ int InitLocalApicTimer() {
 	int v = 0;
 
 	v = 0x10000;
-	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
+	//*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
 
 	iomfence();
 
 	v = 0x03;
+	v = 0x0b;
+	//v = 0;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
 
 	iomfence();
 
-	v = APIC_LVTTIMER_VECTOR | 0x20000 ;
+	v = APIC_LVTTIMER_VECTOR;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
 
 	iomfence();
@@ -1251,13 +1253,15 @@ int InitLocalApicTimer() {
 	freq = freq / times;
 	ticks = ticks / times;
 
+	freq = lv /16 / (1000 / TASK_TIME_SLICE);
+	//freq = freq/16; 
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	g_apic_freq[id] = freq / (1000 / TASK_TIME_SLICE);
+	g_apic_freq[id] = freq;
 	g_timer_cost[id] = ticks;
 
-	//1 / frequency * counter = time cost in one period
-	//counter = time * frequency
-	freq = freq /(1000 / TASK_TIME_SLICE);
+	v = APIC_LVTTIMER_VECTOR | 0x20000;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
@@ -2064,7 +2068,7 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 			else {
 				//target_id = 0;
-				__printf(szout, "TaskSwitchPrediction seq:%d,count:%d\r\n", seq,count);
+				__printf(szout, "TaskSwitchPrediction seq:%d,count:%d error\r\n", seq,count);
 			}
 			
 			target_tss = tss + target_id;

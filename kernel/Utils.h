@@ -41,11 +41,8 @@ void logInMem(char* data, int len);
 
 int __kFormat(char* buf, const char* format, DWORD* params);
 
-extern "C" __declspec(dllexport) int lf2strlf(double f, char* buf);
-extern "C" __declspec(dllexport) int f2strf(float f, char* buf);
 
-extern "C" __declspec(dllexport) int __i64ToStrd64( __int64 v, char* strd);
-extern "C" __declspec(dllexport) int __i64ToStru64(__int64 v, char* buf);
+
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) char* gLogDataPtr;
@@ -96,6 +93,14 @@ extern "C"  __declspec(dllexport) int __i2strd(int h, char* strd);
 extern "C"  __declspec(dllexport) int __i2stru(unsigned int h, char * strd);
 
 extern "C"  __declspec(dllexport) int __strd2i(char * istr);
+
+extern "C" __declspec(dllexport) double strlf2lf(char* str);
+
+extern "C" __declspec(dllexport) int lf2strlf(double f, char* buf);
+extern "C" __declspec(dllexport) int f2strf(float f, char* buf);
+
+extern "C" __declspec(dllexport) int __i64ToStrd64(__int64 v, char* strd);
+extern "C" __declspec(dllexport) int __i64ToStru64(__int64 v, char* buf);
 
 extern "C"  __declspec(dllexport) int __sprintf(char * buf,const char * format, ...);
 
@@ -189,7 +194,15 @@ extern "C"  __declspec(dllimport) int __i2strd( int h, char * strd);
 
 extern "C"  __declspec(dllimport) int __strd2i(char * istr);
 
-extern "C"  __declspec(dllexport) int __i2stru(unsigned int h, char* strd);
+extern "C"  __declspec(dllimport) int __i2stru(unsigned int h, char* strd);
+
+extern "C" __declspec(dllimport) double strlf2lf(char* str);
+
+extern "C" __declspec(dllimport) int lf2strlf(double f, char* buf);
+extern "C" __declspec(dllimport) int f2strf(float f, char* buf);
+
+extern "C" __declspec(dllimport) int __i64ToStrd64(__int64 v, char* strd);
+extern "C" __declspec(dllimport) int __i64ToStru64(__int64 v, char* buf);
 
 extern "C"  __declspec(dllimport) int __sprintf(char * buf,const char * format, ...);
 

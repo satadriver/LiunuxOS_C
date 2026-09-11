@@ -505,15 +505,16 @@ void init8254() {
 }
 
 //8042 read command
-//d7 = 1, d6 =1,read command
+//d7 = 1, d6 =1,read command ,or select clock number?
 //d5 = 0,d4 =0,lock value
-//d3,d2,d1,d0 ,select timer
+//d3,d2,d1,d0 ,select timer,or make no sense ?
 //计数到0时，OUT引脚电平翻转，并自动将初值重新装入，继续计数以产生连续的方波
 int Read8254Counter(int num) {
 
 	__enterSpinlock(&g_8254_lock);
 
 	int cmd = 0xc0 | num;
+	cmd = 0x00 | (num <<6);
 	outportb(TIMER_COMMAND_REG, cmd);
 
 	unsigned int low = inportb(0x40 + num);
@@ -529,35 +530,32 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	int v0 = Read8254Counter(0);
 	int v1 = v0;
 	while(v1 == v0){
-		v1= Read8254Counter(0);
+		v0 = Read8254Counter(0);
 	}
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
+
 	unsigned long long tick1 = __krdtsc();
-	unsigned long cnt0 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	unsigned long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
 
-	while (v1 == v0) {
-		v1 = Read8254Counter(0);
-	}
-
-	while (v1 != v0) {
+	while (v0 != v1) {
 		v0 = Read8254Counter(0);
 	}
 	unsigned long long tick2 = __krdtsc();
-	unsigned long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
+	unsigned long cnt2 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
 
 	tick[0] = tick2 - tick1;
 
-	unsigned long slice = TASK_TIME_SLICE;
-	unsigned long circle = 1000 / slice;
-	long delta  = cnt0 - cnt1;
+	long delta  = cnt1 - cnt2;
 	if(delta < 0) {
 		delta = -delta;
 	}
-	unsigned long value = delta * circle;
 
 	char szout[256];
 	//__printf(szout, "%s %d delta:%I64x,value:%I64x\r\n", __FUNCTION__, __LINE__, delta, value);
 
-	return value;
+	return delta;
 }
 
 

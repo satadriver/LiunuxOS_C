@@ -108,8 +108,7 @@ extern "C" __declspec(dllexport) int SquareVector(unsigned int retaddr, int tid,
 		unsigned int ck = __kGetKbd(g_sqaure_window.id);
 		unsigned int asc = ck & 0xff;
 		if (asc == 0x1b)
-		{
-			
+		{			
 			break;
 		}
 

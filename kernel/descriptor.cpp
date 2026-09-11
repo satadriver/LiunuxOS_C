@@ -509,41 +509,62 @@ int IncreaseDelta(int v) {
 
 
 int AdjustApicTimer() {
-	//return 0;
+
+	return 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-	DWORD tick2 = tick;
-	while (tick2 == tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-		//__sleep(0);
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick1;
+	while (tick2 == tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	}
 
-	tick2 = tick + 1;
+	unsigned long long tc1 = __krdtsc();
+	DWORD ts1 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
 
-	DWORD ints = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
-
-	while (tick2 != tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-		//__sleep(0);
+	while (tick1 <  tick2) {
+		tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	}
 
-	DWORD ints2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
-	double times = ints2 - ints;
+	DWORD ts2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	unsigned long long tc2 = __krdtsc();
 
-	double ideal = (1000 / TASK_TIME_SLICE);
+	DWORD delta = ts1 - ts2;
+	delta = tc2 - tc1;
+	if (delta < 0)
+		delta = -delta;
 
-	double freq = g_apic_freq[id];
-	double cost = g_timer_cost[id];
+	delta = delta / (1000 / TASK_TIME_SLICE) / 16;
 
-	g_timer_cost[id] = (DWORD)( times / ideal * cost);
-	double real = times / ideal * freq;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)delta;
 
-	DWORD v = real;
+	return delta;
+}
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)v;
 
-	return v;
+unsigned long GetCpuTickCount() {
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick1;
+	while (tick2 == tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	}
+
+	unsigned long long tc1 = __krdtsc();
+	DWORD ts1 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+
+	while (tick1 < tick2) {
+		tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	}
+
+	DWORD ts2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	unsigned long long tc2 = __krdtsc();
+
+	DWORD delta = tc2 - tc1;
+	if (delta < 0)
+		delta = -delta;
+
+	return delta;
 }

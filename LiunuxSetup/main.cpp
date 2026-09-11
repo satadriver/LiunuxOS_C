@@ -4,13 +4,20 @@
 #include "sectorRW.h"
 #include "FileOper.h"
 #include "main.h"
+#include "test.h"
 
 
+void test() {
+	double v = strlf2lf("12345.67890");
+	return;
+}
 
 
 int __stdcall WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd) {
 	int ret = 0;
-
+#ifdef _DEBUG
+	test();
+#endif
 	char* cmd = GetCommandLineA();
 	wchar_t wstrcmd[1024] = { 0 };
 	int wstrlen = MultiByteToWideChar(CP_ACP, 0, cmd, -1, wstrcmd, 1024);

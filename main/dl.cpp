@@ -98,9 +98,9 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN * sizeof(TaskPredictParam));
 	}
 
-	int max_task = ML_TASK_TEST_LIMIT;
+	int max_task = ML_TASK_LIMIT/2;
 
-	int sleep_time = 200;
+	int sleep_time = 20;
 
 	for (int i = 0; i < max_task; i++) {
 		char tn[256];
@@ -117,7 +117,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
 	for(int i = 0; i < max_task; ++i) {
 		char tn[256];
-		__sprintf(tn, "TestThread%d_main", i);
+		__sprintf(tn, "TestProcess%d", i);
 
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (addr) 
@@ -336,13 +336,11 @@ extern "C" __declspec(dllexport) int TestThread0(unsigned int retaddr, int tid, 
 	
 	while (1) {
 		__sleep(0);
-		__asm {
-			//hlt
-		}
 	}
 
 	return 0;
 }
+
 extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	float f1 = PI;
@@ -389,7 +387,6 @@ extern "C" __declspec(dllexport) int TestThread4(unsigned int retaddr, int tid, 
 	return 0;
 }
 
-
 extern "C" __declspec(dllexport) int TestThread5(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
@@ -400,6 +397,7 @@ extern "C" __declspec(dllexport) int TestThread5(unsigned int retaddr, int tid, 
 	}
 	return 0;
 }
+
 extern "C" __declspec(dllexport) int TestThread6(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
@@ -420,17 +418,17 @@ extern "C" __declspec(dllexport) int TestThread7(unsigned int retaddr, int tid, 
 		__sleep(0);
 	}
 	return 0;
-}extern "C" __declspec(dllexport) int TestThread8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+}
+
+extern "C" __declspec(dllexport) int TestThread8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 
 	while (1) {
 		__sleep(0);
-		__asm {
-			//hlt
-		}
 	}
 
 	return 0;
 }
+
 extern "C" __declspec(dllexport) int TestThread9(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	float f1 = PI;
@@ -476,7 +474,6 @@ extern "C" __declspec(dllexport) int TestThread12(unsigned int retaddr, int tid,
 	}
 	return 0;
 }
-
 
 extern "C" __declspec(dllexport) int TestThread13(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
@@ -532,7 +529,7 @@ extern "C" __declspec(dllexport) int TestThread15(unsigned int retaddr, int tid,
 
 
 
-extern "C" __declspec(dllexport) int TestThread0_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int TestProcess0(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -543,22 +540,19 @@ extern "C" __declspec(dllexport) int TestThread0_main(unsigned int retaddr, int 
 	return 0;
 }
 
-
-extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int TestProcess1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-		//Halt();
-		__asm {
-			//hlt
-		}
+		//__sleep(0);
+
 	}
 
 	return 0;
 }
-extern "C" __declspec(dllexport) int TestThread2_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+
+extern "C" __declspec(dllexport) int TestProcess2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	float f1 = PI;
 	while (1) {
@@ -571,7 +565,18 @@ extern "C" __declspec(dllexport) int TestThread2_main(unsigned int retaddr, int 
 	return 0;
 }
 
-extern "C" __declspec(dllexport) int TestThread3_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int TestProcess3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
+
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestProcess4(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -582,11 +587,18 @@ extern "C" __declspec(dllexport) int TestThread3_main(unsigned int retaddr, int 
 	return 0;
 }
 
+extern "C" __declspec(dllexport) int TestProcess5(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
 
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+	}
+	return 0;
+}
 
-
-
-extern "C" __declspec(dllexport) int TestThread4_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int TestProcess6(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -597,8 +609,18 @@ extern "C" __declspec(dllexport) int TestThread4_main(unsigned int retaddr, int 
 	return 0;
 }
 
+extern "C" __declspec(dllexport) int TestProcess7(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
 
-extern "C" __declspec(dllexport) int TestThread5_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestProcess8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -609,8 +631,18 @@ extern "C" __declspec(dllexport) int TestThread5_main(unsigned int retaddr, int 
 	return 0;
 }
 
+extern "C" __declspec(dllexport) int TestProcess9(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
 
-extern "C" __declspec(dllexport) int TestThread6_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestProcess10(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -621,8 +653,18 @@ extern "C" __declspec(dllexport) int TestThread6_main(unsigned int retaddr, int 
 	return 0;
 }
 
+extern "C" __declspec(dllexport) int TestProcess11(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
 
-extern "C" __declspec(dllexport) int TestThread7_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestProcess12(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -633,8 +675,18 @@ extern "C" __declspec(dllexport) int TestThread7_main(unsigned int retaddr, int 
 	return 0;
 }
 
+extern "C" __declspec(dllexport) int TestProcess13(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	char buf[1024];
 
-extern "C" __declspec(dllexport) int TestThread8_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+	while (1) {
+		DWORD tick = __random(0);
+		__memset(buf, (unsigned char)tick, sizeof(buf));
+		//__sleep(0);
+	}
+	return 0;
+}
+
+extern "C" __declspec(dllexport) int TestProcess14(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
@@ -645,85 +697,13 @@ extern "C" __declspec(dllexport) int TestThread8_main(unsigned int retaddr, int 
 	return 0;
 }
 
-
-extern "C" __declspec(dllexport) int TestThread9_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
+extern "C" __declspec(dllexport) int TestProcess15(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	char buf[1024];
 
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-
-
-extern "C" __declspec(dllexport) int TestThread10_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (1) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-
-extern "C" __declspec(dllexport) int TestThread11_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (1) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread12_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (1) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-
-extern "C" __declspec(dllexport) int TestThread13_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (1) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread14_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (1) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-
-extern "C" __declspec(dllexport) int TestThread15_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (1) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
+		//__sleep(0);
 	}
 	return 0;
 }

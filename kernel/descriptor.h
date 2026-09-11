@@ -68,6 +68,8 @@ int AdjustApicTimer();
 void EnableNXE();
 
 #ifdef DLL_EXPORT
+
+extern "C" __declspec(dllexport) unsigned long GetCpuTickCount();
 extern "C" __declspec(dllexport) int SysenterProc(char* params, int cnt);
 
 extern "C" __declspec(dllexport) int SysenterEntry(char* params, int cnt);
@@ -85,6 +87,7 @@ extern "C" __declspec(dllexport)void readmsr(DWORD no, DWORD* lowpart, DWORD* hi
 extern "C" __declspec(dllexport)void writemsr(DWORD no, DWORD lowpart, DWORD highpart);
 
 #else
+extern "C" __declspec(dllimport) unsigned long GetCpuTickCount();
 extern "C" __declspec(dllimport) int SysenterProc(char* params, int cnt);
 
 extern "C" __declspec(dllimport) int SysenterEntry(char* params, int cnt);

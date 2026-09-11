@@ -39,19 +39,19 @@ extern "C" __declspec(dllexport) int TestThread14(unsigned int retaddr, int tid,
 extern "C" __declspec(dllexport) int TestThread15(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
 
 
-extern "C" __declspec(dllexport) int TestThread0_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread3_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread2_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread1_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread4_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread5_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread6_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread7_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread8_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread9_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread10_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread11_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread12_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread13_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread14_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
-extern "C" __declspec(dllexport) int TestThread15_main(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess0(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess4(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess5(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess6(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess7(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess9(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess10(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess11(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess12(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess13(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess14(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int TestProcess15(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);

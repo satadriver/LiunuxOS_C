@@ -24,11 +24,11 @@ LPPROCESS_INFO DebugCreateProcess() {
 		//g_proc_info->fast_heap_large = (char*)malloc(debug_heap_size);
 
 		int total = 6;
-		g_proc_info->lpHeapBase = (char**)&g_proc_info->heapBase;
+		g_proc_info->lpHeapBase = (char***)&g_proc_info->heapBase;
 		for (int num = 0; num < total; num++) {
 			char* buf = (char*)malloc(debug_heap_size << num);
 			if (buf) {
-				g_proc_info->lpHeapBase[num] = buf;
+				g_proc_info->lpHeapBase[num] = (char**)buf;
 			}
 			else {
 				break;
