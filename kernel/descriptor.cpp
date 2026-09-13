@@ -512,6 +512,7 @@ int IncreaseDelta(int v) {
 #include "device.h"
 
 int AdjustApicTimer() {
+	char szout[256];
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
@@ -535,9 +536,12 @@ int AdjustApicTimer() {
 	DWORD delta = ts2 - ts1;
 
 	if (delta == 0)
+	{
+		//__printf(szout,"%s cpu:%d delta is null\r\n",__FUNCTION__, id);
 		return 0;
+	}
 
-	// delta/100 = g_apic_freq[id] / y ==> y = g_apic_freq[id] *100/delta
+	// [delta/100 = g_apic_freq[id] / y ]==> [y = g_apic_freq[id] *100/delta]
 
 	unsigned long oldv = g_apic_freq[id];
 	
@@ -550,7 +554,7 @@ int AdjustApicTimer() {
 	double rt = g_timer_cost[id] * (1000 / TASK_TIME_SLICE) / delta;
 	g_timer_cost[id] = rt;
 
-	char szout[256];
+	
 	__printf(szout, "%s cpuid:%d intPerSec:%x, old value:%d,new value:%x\r\n", __FUNCTION__,id, delta,oldv, newv);
 
 	return newv;

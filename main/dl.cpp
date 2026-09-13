@@ -98,7 +98,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN * sizeof(TaskPredictParam));
 	}
 
-	int max_task = ML_TASK_LIMIT/2;
+	int max_task = ML_TASK_LIMIT;
 
 	int sleep_time = 20;
 
@@ -109,7 +109,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (ml_addr2) {
-			__ipiCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
+			__kCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
 			__sleep(sleep_time);
 		}
 	}

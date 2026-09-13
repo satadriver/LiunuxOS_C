@@ -1410,8 +1410,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
-	__sleep(0);
-	AdjustApicTimer();
+	do {
+		__sleep(0);
+		ret = AdjustApicTimer();
+	} while (ret == 0);
 
 	while (1) {
 		__sleep(0);
