@@ -199,7 +199,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
 
-	WaitOrKey(1, window.id, 0);
+	WaitOrKey(0, window.id, 0x1b);
 
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{

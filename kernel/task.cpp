@@ -1395,8 +1395,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			prev->tick_total += tick1 - prev->prev_tick;
 		}
 
-		
-
 		//ActiveApTask(TASK_SWITCH_VECTOR);
 
 #ifndef SINGLE_TASK_TSS

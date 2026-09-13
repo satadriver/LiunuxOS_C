@@ -1253,7 +1253,6 @@ int InitLocalApicTimer() {
 	freq = freq / times;
 	ticks = ticks / times;
 
-
 	if (freq > 10000000 || freq < 1000000) {
 
 	}
@@ -1381,7 +1380,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 	__asm {sti}
-	
 
 	char* reg_esp_new = 0;
 	__asm {
@@ -1565,7 +1563,11 @@ void BPCodeStart() {
 	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
 		cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
 
-	AdjustApicTimer();
+	do {
+		__sleep(0);
+		ret = AdjustApicTimer();
+		break;
+	} while (ret == 0);
 
 	return;
 }

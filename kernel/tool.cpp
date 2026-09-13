@@ -53,15 +53,13 @@ int WaitOrKey(int s,int wid,int key) {
 	while (tick < dest) {
 		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 
-		int ck = __kGetKbd(wid) & 0xff;
 		if (key) {
+			int ck = __kGetKbd(wid) & 0xff;
 			if (ck == key)
 				break;
 		}
 		else {
-			if (ck) {
-				break;
-			}
+
 		}
 
 		__sleep(0);
