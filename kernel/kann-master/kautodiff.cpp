@@ -11,6 +11,12 @@
 
 #include "../math.h"
 #endif
+
+#undef malloc 
+#undef free
+#undef realloc
+#undef calloc
+
 #define sqrt __sqrt
 #define sqrtf __sqrtf
 #define exp __exp

@@ -1364,6 +1364,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	__kApicTimerProc();
+
 	int ret = __GetSpinlock(&g_task_array_lock[id]);
 	if (ret) {
 		unsigned long long tick1 = __krdtsc();
@@ -1393,7 +1395,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			prev->tick_total += tick1 - prev->prev_tick;
 		}
 
-		__kApicTimerProc();
+		
 
 		//ActiveApTask(TASK_SWITCH_VECTOR);
 

@@ -28,6 +28,12 @@
 #define fabsf __fabsf
 #define logf __logf
 
+
+#undef malloc 
+#undef free
+#undef realloc
+#undef calloc
+
 #define malloc my_malloc
 #define free my_free
 #define realloc my_realloc

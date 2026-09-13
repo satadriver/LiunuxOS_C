@@ -1253,7 +1253,11 @@ int InitLocalApicTimer() {
 	freq = freq / times;
 	ticks = ticks / times;
 
-	freq = lv /16 / (1000 / TASK_TIME_SLICE);
+
+	if (freq > 10000000 || freq < 1000000) {
+
+	}
+	//freq = lv /16 / (1000 / TASK_TIME_SLICE);
 	//freq = freq/16; 
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -1353,6 +1357,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableTSD();
 	initDebugger();
 
+	ret = InitLocalApicTimer();
+
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
@@ -1363,8 +1369,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 
 	//__asm{int APIC_IPI_VECTOR}
-
-	ret = InitLocalApicTimer();
 
 	InitPm();
 
@@ -1377,7 +1381,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 	__asm {sti}
-	AdjustApicTimer();
+	
 
 	char* reg_esp_new = 0;
 	__asm {
@@ -1405,6 +1409,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
+
+	__sleep(0);
+	AdjustApicTimer();
 
 	while (1) {
 		__sleep(0);

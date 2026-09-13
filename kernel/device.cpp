@@ -505,22 +505,27 @@ void init8254() {
 }
 
 //8042 read command
-//d7 = 1, d6 =1,read command ,or select clock number?
-//d5 = 0,d4 =0,lock value
-//d3,d2,d1,d0 ,select timer,or make no sense ?
-//计数到0时，OUT引脚电平翻转，并自动将初值重新装入，继续计数以产生连续的方波
+//d7 = 1, d6 =1,read command 
+//D5 = 0:锁存计数值（CT = 0）,D4 = 1:不锁存状态（ST = 1）
+//d3,d2,d1,d0 ,select timer,1000 = timer2,0100=timer1,0010=timer0
+
+//8042 latch command
+// d7 d6:select timer,10=timer2,01=timer1,00=timer0
+//d5 = 0,d4 =0,lock command
+//d3 d2 d1 d0: any value
+
 int Read8254Counter(int num) {
 
-	__enterSpinlock(&g_8254_lock);
+	//__enterSpinlock(&g_8254_lock);
 
-	int cmd = 0xc0 | num;
-	cmd = 0x00 | (num <<6);
+	int cmd = 0xc0 | (2<<num) | 0x10;
+	cmd = 0x00 |(num<<6);
 	outportb(TIMER_COMMAND_REG, cmd);
 
 	unsigned int low = inportb(0x40 + num);
 	unsigned int high = inportb(0x40 + num);
 
-	__leaveSpinlock(&g_8254_lock);
+	//__leaveSpinlock(&g_8254_lock);
 
 	return low + (high << 8);
 }
@@ -531,6 +536,7 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	int v1 = v0;
 	while(v1 == v0){
 		v0 = Read8254Counter(0);
+		__delay();
 	}
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
 
@@ -541,6 +547,7 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 
 	while (v0 != v1) {
 		v0 = Read8254Counter(0);
+		__delay();
 	}
 	unsigned long long tick2 = __krdtsc();
 	unsigned long cnt2 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);
@@ -576,7 +583,7 @@ int delay() {
 void __delay() {
 	for (int i = 0; i < 0x10; i++) {
 		__asm {
-			nop
+			pause
 		}
 	}
 }
