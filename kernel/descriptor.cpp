@@ -572,7 +572,7 @@ int AdjustApicTimer() {
 	if (ts == 0)
 	{
 		//__printf(szout,"%s cpu:%d delta is null\r\n",__FUNCTION__, id);
-		//return 0;
+		return 0;
 	}
 
 	DWORD tc = tc2 - tc1;
