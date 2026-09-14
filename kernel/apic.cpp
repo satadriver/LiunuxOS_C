@@ -1256,8 +1256,8 @@ int InitLocalApicTimer() {
 	if (freq > 10000000 || freq < 1000000) {
 
 	}
-	//freq = lv /16 / (1000 / TASK_TIME_SLICE);
-	//freq = freq/16; 
+	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
+	//freq = freq/4; 
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
@@ -1562,12 +1562,6 @@ void BPCodeStart() {
 	}
 	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
 		cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
-
-	do {
-		__sleep(0);
-		ret = AdjustApicTimer();
-		break;
-	} while (ret == 0);
 
 	return;
 }

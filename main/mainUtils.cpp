@@ -289,6 +289,28 @@ int GetCpuRatio(char* szout) {
 	return outlen;
 }
 
+unsigned long long tscps() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick;
+	while (tick2 == tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sleep(0);
+	}
+
+	tick2 = tick + 1;
+
+	unsigned long long tsc1 = __krdtsc();
+
+	while (tick2 != tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sleep(0);
+	}
+
+	unsigned long long tsc2 = __krdtsc();
+	return tsc2 - tsc1;
+}
+
 
 DWORD InterruptPerSec() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;

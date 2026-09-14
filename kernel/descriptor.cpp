@@ -10,6 +10,7 @@
 #include "Kernel.h"
 #include "apic.h"
 #include "systemService.h"
+#include "device.h"
 
 //reference:https://zhuanlan.zhihu.com/p/678582574
 
@@ -507,18 +508,52 @@ int IncreaseDelta(int v) {
 	return 0;
 }
 
+int AdjustApicTimer_new() {
+	char szout[256];
+	char cpuinfo[256] = { 0 };
 
+	getCpuInfo(cpuinfo);
+	char* hdr = __strstr(cpuinfo, "CPU @ ");
+	if (hdr) {
+		hdr += 6;
+		char* end = __strstr(hdr, "Hz");
+		if (end) {
+			end--;
+			char buf[32] = { 0 };
+			__memcpy(buf, hdr, end - hdr);
+			double freq = strlf2lf(buf);
+			int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+			double v = 0.0;
+			if (*(end ) == 'G') {
+				v = freq * 1000000000;
+			}
+			else if (*(end ) == 'M') {
+				v = freq * 1000000;
+			}
+			else {
+				return 0;
+			}
 
-#include "device.h"
+			__printf(szout, "%s cpu:%d apic timer frequency:%x\r\n", __FUNCTION__, id, (DWORD)v);
+			*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)v/(1000 / TASK_TIME_SLICE);
+			return (DWORD)v;
+		}
+	}
+	return 0;
+}
+
 
 int AdjustApicTimer() {
+	//return 1;
+
 	char szout[256];
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD tick1 = *(DWORD*)TIMER_TICK_COUNT;
+
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
-		tick2 = *(DWORD*)TIMER_TICK_COUNT;
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 		__delay();
 	}
 
@@ -526,36 +561,44 @@ int AdjustApicTimer() {
 	DWORD ts1 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
 
 	while (tick1 <  tick2) {
-		tick1 = *(DWORD*)TIMER_TICK_COUNT;
+		tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 		__delay();
 	}
 
 	DWORD ts2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
 	unsigned long long tc2 = __krdtsc();
 
-	DWORD delta = ts2 - ts1;
-	if (delta == 0)
+	DWORD ts = ts2 - ts1;
+	if (ts == 0)
 	{
 		//__printf(szout,"%s cpu:%d delta is null\r\n",__FUNCTION__, id);
-		return 0;
+		//return 0;
 	}
 
-	// [delta/1 = g_apic_freq[id] / y ]==> [y = g_apic_freq[id] *1/delta]
+	DWORD tc = tc2 - tc1;
 
-	unsigned long oldv = g_apic_freq[id];
+	//  x(should be 100) = [ts/g_apic_freq[id] = tc / g_timer_cost[id] ]
+
+	unsigned long old_f = g_apic_freq[id];
+
+	unsigned long old_c = g_timer_cost[id];
+
+	double tps = tc / (1000 / TASK_TIME_SLICE); 
 	
-	double newv = g_apic_freq[id] * (1) / delta;
+	double times = g_timer_cost[id]/tps;
 
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)newv;
+	double newf = g_apic_freq[id] / times;
 
-	g_apic_freq[id] = newv;
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)newf;
 
-	double rt = g_timer_cost[id] * (1) / delta;
-	g_timer_cost[id] = (DWORD)rt;
+	g_apic_freq[id] = (DWORD)newf;
 
-	__printf(szout, "%s cpuid:%d intPerSec:%x, old value:%d,new value:%x\r\n", __FUNCTION__,id, delta,oldv, newv);
+	g_timer_cost[id] = (DWORD)tc/(1000/ TASK_TIME_SLICE);
 
-	return newv;
+	__printf(szout, "%s cpuid:%d intPerSec:%x, old g_apic_freq:%x,g_apic_freq:%x,old g_timer_cost:%x, g_timer_cost:%x\r\n", 
+		__FUNCTION__,id, ts, old_f,(DWORD)g_apic_freq[id],old_c, (DWORD)g_timer_cost[id]);
+
+	return newf;
 }
 
 

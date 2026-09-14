@@ -84,6 +84,7 @@
 
 extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
+	
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
 	if (g_dl_ann) {
@@ -545,7 +546,7 @@ extern "C" __declspec(dllexport) int TestProcess1(unsigned int retaddr, int tid,
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 
 	}
 
@@ -571,7 +572,7 @@ extern "C" __declspec(dllexport) int TestProcess3(unsigned int retaddr, int tid,
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }
@@ -593,7 +594,7 @@ extern "C" __declspec(dllexport) int TestProcess5(unsigned int retaddr, int tid,
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }
@@ -615,7 +616,7 @@ extern "C" __declspec(dllexport) int TestProcess7(unsigned int retaddr, int tid,
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }
@@ -637,7 +638,7 @@ extern "C" __declspec(dllexport) int TestProcess9(unsigned int retaddr, int tid,
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }
@@ -659,7 +660,7 @@ extern "C" __declspec(dllexport) int TestProcess11(unsigned int retaddr, int tid
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }
@@ -681,7 +682,7 @@ extern "C" __declspec(dllexport) int TestProcess13(unsigned int retaddr, int tid
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }
@@ -703,7 +704,7 @@ extern "C" __declspec(dllexport) int TestProcess15(unsigned int retaddr, int tid
 	while (1) {
 		DWORD tick = __random(0);
 		__memset(buf, (unsigned char)tick, sizeof(buf));
-		//__sleep(0);
+		__sleep(0);
 	}
 	return 0;
 }

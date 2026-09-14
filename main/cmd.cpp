@@ -362,11 +362,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout, "%s\n", (char*)CMOS_DATETIME_STRING);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "rdtsc") == 0)
-	{	
-		__sprintf(szout, "rdtsc:%I64x\n", __krdtsc());
-		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-	}
 	else if (__strcmp(params[0], "rdpmc") == 0 && paramcnt>=2)
 	{
 		DWORD num = __strh2i((unsigned char*)params[1]);
@@ -491,10 +486,16 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int len = CpuUsage(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "intPerSec") == 0) {
+	else if (__strcmp(params[0], "intps") == 0) {
 		DWORD intpersec = InterruptPerSec();
 		__sprintf(szout,"%u\r\n", intpersec);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "tscps") == 0)
+	{
+		unsigned long long tsc = tscps();
+		__sprintf(szout, "time stamp counter:%I64x\n", tsc);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "ratio") == 0) {
 		GetCpuRatio(szout);

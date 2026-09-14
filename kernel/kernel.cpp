@@ -179,8 +179,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kMachineLearning_mlp");
 		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
-		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
-		//__sleep(3000);
+		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");
@@ -207,12 +206,15 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
+	int adjust = 0;
 	while (1)
 	{
 		__sleep(0);
 		__asm {
 			//hlt
 		}
+		if(adjust == 0)
+			adjust = AdjustApicTimer();
 	}
 
 	return 0;
