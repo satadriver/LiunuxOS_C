@@ -544,7 +544,7 @@ int AdjustApicTimer_new() {
 
 
 int AdjustApicTimer() {
-	//return 1;
+	return 1;
 
 	char szout[256];
 

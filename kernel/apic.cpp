@@ -1243,7 +1243,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 3;
+	int times = 8;
 	unsigned  long long ticks = 0;
 	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {
@@ -1258,6 +1258,8 @@ int InitLocalApicTimer() {
 	}
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/16; 
+
+	freq = freq / 2;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;

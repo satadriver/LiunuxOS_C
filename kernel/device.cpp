@@ -581,9 +581,11 @@ int delay() {
 }
 
 void __delay() {
-	for (int i = 0; i < 0x100; i++) {
+	for (int i = 0; i < 0x1000; i++) {
 		__asm {
+			nop
 			pause
+			nop
 		}
 	}
 }
