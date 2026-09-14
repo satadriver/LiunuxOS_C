@@ -368,6 +368,27 @@ int IsPmEnable() {
 	return ver&0xff;
 }
 
+int GetApicTimerDivideCode(int divide) {
+	if (divide == 16) {
+		return 3;
+	}
+	else if (divide == 32) {
+		return 8;
+	}
+	else if (divide == 64) {
+		return 9;
+	}
+	else if (divide == 128) {
+		return 0x0a;
+	}
+	else if(divide == 1) {
+		return 0x0b;
+	}
+	else {
+		return -1;
+	}
+}
+
 int GetPmVersion() {
 	int ver = IsPmEnable();
 	if (ver == 0)
@@ -588,6 +609,8 @@ int AdjustApicTimer() {
 	double times = g_timer_cost[id]/tps;
 
 	double newf = g_apic_freq[id] / times;
+
+	newf = newf / LOCAL_APIC_DIVIDE;
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)newf;
 

@@ -54,6 +54,10 @@ typedef struct
 
 #define g_pm_enable_INVALID		1
 
+#define LOCAL_APIC_DIVIDE		64
+
+int GetApicTimerDivideCode(int divide);
+
 
 int GetPmVersion();
 

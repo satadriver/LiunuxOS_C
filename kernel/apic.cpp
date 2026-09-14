@@ -1224,7 +1224,7 @@ int InitLocalApicTimer() {
 
 	iomfence();
 
-	v = 0x03;
+	v = GetApicTimerDivideCode(LOCAL_APIC_DIVIDE);
 	//v = 0x0b;
 	//v = 0;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x3E0) = v;
@@ -1243,7 +1243,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 8;
+	int times = 3;
 	unsigned  long long ticks = 0;
 	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {
@@ -1257,9 +1257,9 @@ int InitLocalApicTimer() {
 
 	}
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
-	freq = freq/16; 
+	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	freq = freq / 2;
+	//freq = freq / 2;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
