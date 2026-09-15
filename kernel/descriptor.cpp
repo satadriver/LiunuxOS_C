@@ -581,8 +581,9 @@ int AdjustApicTimer() {
 	unsigned long long tc1 = __krdtsc();
 	DWORD ts1 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
 
-	while (tick1 <  tick2) {
-		tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	tick1 = tick2 + 1;
+	while (tick2 <  tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 		__delay();
 	}
 
@@ -625,29 +626,68 @@ int AdjustApicTimer() {
 }
 
 
+unsigned long Get8254TickCount_error() {
 
-unsigned long GetCpuTickCount() {
-
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
 		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	}
 
-	unsigned long long tc1 = __krdtsc();
-	DWORD ts1 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	DWORD ts1 = *(DWORD*)(TIMER_TICK_COUNT);
 
 	while (tick1 < tick2) {
 		tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	}
 
-	DWORD ts2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
-	unsigned long long tc2 = __krdtsc();
+	DWORD ts2 = *(DWORD*)(TIMER_TICK_COUNT);
 
-	DWORD delta = tc2 - tc1;
-	if (delta < 0)
-		delta = -delta;
+	DWORD delta = ts2 - ts1;
+
+	return delta;
+}
+
+unsigned long Get8254TickCount() {
+
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick1;
+	while (tick2 == tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	}
+
+	DWORD ts1 = *(DWORD*)(TIMER_TICK_COUNT );
+
+	tick1 = tick2 + 1;
+	while (tick2 < tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	}
+
+	DWORD ts2 = *(DWORD*)(TIMER_TICK_COUNT );
+
+	DWORD delta = ts2 - ts1;
+
+	return delta;
+}
+
+
+unsigned long GetCmosExactTickCount() {
+
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick1;
+	while (tick2 == tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	}
+
+	DWORD ts1 = *(DWORD*)(CMOS_EXACT_TICK_COUNT);
+
+	tick1 = tick2 + 1;
+	while (tick2 < tick1) {
+		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	}
+
+	DWORD ts2 = *(DWORD*)(CMOS_EXACT_TICK_COUNT);
+
+	DWORD delta = ts2 - ts1;
 
 	return delta;
 }

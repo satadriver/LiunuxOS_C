@@ -86,7 +86,7 @@ extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr
 {
 	
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
-
+	g_train_complete = 0;
 	if (g_dl_ann) {
 		free(g_dl_ann);
 	}

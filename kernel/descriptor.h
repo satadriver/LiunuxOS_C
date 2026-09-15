@@ -54,7 +54,7 @@ typedef struct
 
 #define g_pm_enable_INVALID		1
 
-#define LOCAL_APIC_DIVIDE		64
+#define LOCAL_APIC_DIVIDE		16
 
 int GetApicTimerDivideCode(int divide);
 
@@ -73,7 +73,9 @@ void EnableNXE();
 
 #ifdef DLL_EXPORT
 
-extern "C" __declspec(dllexport) unsigned long GetCpuTickCount();
+extern "C" __declspec(dllexport) unsigned long Get8254TickCount();
+
+extern "C" __declspec(dllexport) unsigned long GetCmosExactTickCount();
 extern "C" __declspec(dllexport) int SysenterProc(char* params, int cnt);
 
 extern "C" __declspec(dllexport) int SysenterEntry(char* params, int cnt);
@@ -91,7 +93,10 @@ extern "C" __declspec(dllexport)void readmsr(DWORD no, DWORD* lowpart, DWORD* hi
 extern "C" __declspec(dllexport)void writemsr(DWORD no, DWORD lowpart, DWORD highpart);
 
 #else
-extern "C" __declspec(dllimport) unsigned long GetCpuTickCount();
+extern "C" __declspec(dllimport) unsigned long Get8254TickCount();
+
+extern "C" __declspec(dllimport) unsigned long GetCmosExactTickCount();
+
 extern "C" __declspec(dllimport) int SysenterProc(char* params, int cnt);
 
 extern "C" __declspec(dllimport) int SysenterEntry(char* params, int cnt);

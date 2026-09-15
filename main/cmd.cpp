@@ -111,8 +111,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			}
 			else {
 				return playWavFile(filename);
-			}
-			
+			}	
 		}
 	}
 	else if (__strcmp(params[0], "uname") == 0) {
@@ -334,24 +333,47 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int imagesize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imagesize, "main.dll", "__kShowWindow", 3, (DWORD)&taskcmd);
 	}
-	else if (__strcmp(params[0], "tick") == 0) {
-		unsigned long v = GetCpuTickCount();
-		__sprintf(szout, "0x%x\r\n", v);
+	else if (__strcmp(params[0], "intps") == 0) {
+		DWORD intpersec = InterruptPerSec();
+		__sprintf(szout, "%u\r\n", intpersec);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+		}
+	else if (__strcmp(params[0], "tscps") == 0)
+	{
+		unsigned long long tsc = tscps();
+		__sprintf(szout, "time stamp counter:%I64x\n", tsc);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
+	else if (__strcmp(params[0], "8254ps") == 0) {
+		unsigned long v = Get8254TickCount();
+		__sprintf(szout, "%x\r\n", v);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "apicTimerTick") == 0)
+	else if (__strcmp(params[0], "cmoseps") == 0) {
+		unsigned long v = GetCmosExactTickCount();
+		__sprintf(szout, "%x\r\n", v);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
+	else if (__strcmp(params[0], "apictc") == 0 && paramcnt > 2)
 	{
-		DWORD cnt = *((DWORD*)APICTIMER_TICK_COUNT);
+		int id = __strh2i((unsigned char*)params[1]);
+		DWORD cnt = *(DWORD*)(APICTIMER_TICK_COUNT + id*sizeof(int));
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "cmosPeriod") == 0)
+	else if (__strcmp(params[0], "8254tc") == 0)
+	{
+		DWORD cnt = *((DWORD*)TIMER_TICK_COUNT);
+		__sprintf(szout, "%x\r\n", cnt);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "cmosptc") == 0)
 	{
 		DWORD cnt = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "cmosExact") == 0)
+	else if (__strcmp(params[0], "cmosetc") == 0)
 	{
 		DWORD cnt = *((DWORD*)CMOS_EXACT_TICK_COUNT);
 		__sprintf(szout, "%x\r\n", cnt);
@@ -376,7 +398,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout, "rdpmc[%x]:%i64x\n", num, res);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "temperature") == 0)
+	else if (__strcmp(params[0], "temper") == 0)
 	{
 		int tjmax = 0;
 		int temp = __kCpuTemperature(&tjmax);
@@ -398,7 +420,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	{
 		__reset();
 	}
-	else if ( (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outpport") == 0)  )
+	else if ( (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outport") == 0)  )
 	{
 		DWORD port = __strh2i((unsigned char*)params[1]);
 		
@@ -486,17 +508,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int len = CpuUsage(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "intps") == 0) {
-		DWORD intpersec = InterruptPerSec();
-		__sprintf(szout,"%u\r\n", intpersec);
-		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
-	}
-	else if (__strcmp(params[0], "tscps") == 0)
-	{
-		unsigned long long tsc = tscps();
-		__sprintf(szout, "time stamp counter:%I64x\n", tsc);
-		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
-	}
 	else if (__strcmp(params[0], "ratio") == 0) {
 		GetCpuRatio(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
@@ -524,7 +535,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		GetHeap(cpu,tid,szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "heapAlloc") == 0) {
+	else if (__strcmp(params[0], "heapalloc") == 0) {
 		DWORD cnt = 0x100;
 		int size = 0x10000;
 		if (paramcnt >= 2){
@@ -538,7 +549,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout, "HeapAlloc test count:%x, size:%x,total:%i64x,error:%d\r\n",cnt,size,total, err);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "mlTest") == 0) {
+	else if (__strcmp(params[0], "mltest") == 0) {
 		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kMachineLearning_mlp", 3, 0);
 	}
 	else {
