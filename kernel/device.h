@@ -34,6 +34,8 @@ void enablePCE();
 void enableSpeaker();
 void getKeyboardID();
 
+void __flush8042Output();
+
 void __wait8042Empty();
 
 void __wait8042Full();

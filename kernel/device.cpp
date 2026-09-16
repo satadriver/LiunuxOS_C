@@ -144,6 +144,14 @@ void enableVMXE() {
 	}
 }
 
+
+void __flush8042Output() {
+	// 循环读取，直到输出缓冲区为空（Bit 0 = 0）
+	while (inportb(PS2_COMMAND_PORT) & 0x01) {
+		inportb(PS2_DATA_PORT);
+	}
+}
+
 void __wait8042Full() {
 	unsigned char status = 0;
 	do
@@ -322,19 +330,50 @@ void setMouseSampleRate(int rate) {
 
 }
 
+
+int getMouseID() {
+	__flush8042Output();
+
+	__wait8042Empty();
+	outportb(PS2_COMMAND_PORT, 0xd4);
+
+	__wait8042Empty();
+	outportb(PS2_DATA_PORT, 0xf2);
+
+	int c1 = 0;
+	__wait8042Full();
+	c1 = inportb(PS2_DATA_PORT);
+	if(c1 != 0xfa) {
+		char szout[256];
+		__printf(szout, "mouse ack error:%x\r\n", c1);
+		return 0;
+	}
+
+	__wait8042Full();
+	int c2 = inportb(PS2_DATA_PORT);
+
+	char szout[256];
+	__printf(szout, "mouseid:%x\r\n", c2);
+
+	return c2;
+
+}
+
 //https://www.cnblogs.com/LinKArftc/p/5735627.html
 //83ABh
 void getKeyboardID() {
-	int c = 0;
+	__flush8042Output();
 
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, 0Xf2);
 
 	__wait8042Full();
 	char c1 = inportb(PS2_DATA_PORT);
-
-	__wait8042Full();
-	char c2 = inportb(PS2_DATA_PORT);
+	if(c1 != 0xfa) {
+		char szout[256];
+		__printf(szout, "keyboard ack error:%x\r\n", c1);
+		return;
+	}
 
 	__wait8042Full();
 	unsigned char high = inportb(PS2_DATA_PORT);
@@ -404,23 +443,7 @@ int getMouseID_new() {
 	return id;
 }
 
-int getMouseID() {
 
-	int c = 0;
-
-	__wait8042Empty();
-	outportb(PS2_COMMAND_PORT, 0xd4);
-
-	__wait8042Empty();
-	outportb(PS2_DATA_PORT, 0xf2);
-
-	int c1 = 0;
-	//__wait8042Full();
-	c1 = inportb(PS2_DATA_PORT);
-
-	return c1 ;
-
-}
 
 
 void disableMouse() {
