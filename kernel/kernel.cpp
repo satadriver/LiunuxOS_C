@@ -175,11 +175,11 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		TASKCMDPARAMS cmd;
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		//__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
 		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kMachineLearning_mlp");
 		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
-		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");
@@ -192,8 +192,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		mov[reg_esp], esp
 		mov[reg_ebp], ebp
 	}
-	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
-		LIUNUXOS_VERSION,reg_esp,reg_ebp);
 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);
@@ -206,6 +204,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
+	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
+		LIUNUXOS_VERSION, reg_esp, reg_ebp);
+
 	int adjust = 0;
 	while (1)
 	{
@@ -213,8 +214,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		__asm {
 			//hlt
 		}
-		if(adjust == 0)
-			adjust = AdjustApicTimer();
+		if (adjust == 0) {
+			//adjust = AdjustApicTimer();
+		}
 	}
 
 	return 0;

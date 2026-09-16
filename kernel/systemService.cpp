@@ -176,6 +176,10 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			r = CpuTemperature((unsigned long*)params[0]);
 			break;
 		}
+		case SVC_ADJUST_APIC_TIMER: {
+			r = AdjustApicTimer();
+			break;
+		}
 		case SVC_RDMSR: {
 			DWORD* low = (DWORD*)params[1];
 			DWORD* high = (DWORD*)params[2];
@@ -223,6 +227,16 @@ int __kCpuTemperature(int* tjmax) {
 	return temperature;
 }
 
+
+int __kAdjustApicTimer() {
+	int ret = 0;
+	__asm {
+		mov eax, SVC_ADJUST_APIC_TIMER
+		int 80h
+		mov[ret], eax
+	}
+	return ret;
+}
 
 
 extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {

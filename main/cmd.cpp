@@ -405,6 +405,10 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout, "tjmax:%x,temperature:%d\n", tjmax,temp);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "adjat") == 0)
+	{
+		int temp = __kAdjustApicTimer();
+	}
 	else if (__strcmp(params[0], "exit") == 0)
 	{
 		__DestroyWindow(window);

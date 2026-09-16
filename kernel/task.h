@@ -2,6 +2,8 @@
 #include "descriptor.h"
 #include "process.h"
 
+
+
 #pragma pack(1)
 
 typedef struct {
@@ -45,28 +47,29 @@ typedef struct {
 #pragma pack()
 
 
+
 #define DOS_PROCESS_RUNCODE		0X80000000
 
 #define TASK_OVER				0
 #define TASK_RUN				1
 #define TASK_SUSPEND			2
 #define TASK_TERMINATE			4
-
-
-void clearTssBuf(LPPROCESS_INFO tss);
+#define TASK_REALTIME			8
 
 
 
 extern "C" int g_last_task_tid[TASK_LIMIT_TOTAL];
 
-void tasktest();
+
+
+void clearTssBuf(LPPROCESS_INFO tss);
+
+void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr);
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 
 extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);
-
-
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
@@ -88,7 +91,6 @@ extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 
 int __GetFreeTask(LPTASKRESULT ret, int id);
-
 
 PROCESS_INFO* GetNextProcess();
 
@@ -129,7 +131,6 @@ extern "C"  __declspec(dllexport) void enter_task_array_lock();
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
 extern "C"  __declspec(dllexport) void enter_task_list_lock();
 extern "C"  __declspec(dllexport) void leave_task_list_lock();
-
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 

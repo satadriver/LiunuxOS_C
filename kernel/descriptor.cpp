@@ -518,11 +518,11 @@ int IncreaseDelta(int v) {
 	PROCESS_INFO* tss = GetTaskTssBase();
 	PROCESS_INFO* current = GetCurrentTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + current->tid);
-	proc->priority = proc->priority | v;
+	proc->priority = proc->priority ;
 	current->priority = proc->priority;
 	proc->authority+=v;
-	if (proc->authority > DYNAMIC_PRIORITY) {
-		proc->authority = DYNAMIC_PRIORITY;
+	if (proc->authority > AUTHORITY_PRIORITY) {
+		proc->authority = AUTHORITY_PRIORITY;
 	}
 	current->authority = proc->authority;
 	__leaveSpinlock(&g_task_array_lock[id]);
@@ -565,7 +565,6 @@ int AdjustApicTimer_new() {
 
 
 int AdjustApicTimer() {
-	return 1;
 
 	char szout[256];
 
@@ -611,7 +610,7 @@ int AdjustApicTimer() {
 
 	double newf = g_apic_freq[id] / times;
 
-	newf = newf / LOCAL_APIC_DIVIDE;
+	//newf = newf / LOCAL_APIC_DIVIDE;
 
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)newf;
 

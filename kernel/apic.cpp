@@ -1412,7 +1412,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	do {
 		__sleep(0);
-		ret = AdjustApicTimer();
+		//ret = AdjustApicTimer();
+		break;
 	} while (ret == 0);
 
 	while (1) {
@@ -1885,9 +1886,10 @@ PROCESS_INFO * GetReadyProcess() {
 				ptr->sleep--;
 			}
 			else {
+				int dynamic = ptr->delta;
 				double ratio = 0.0;
 				if (ptr->tick_run == 0) {
-					ptr->delta = DYNAMIC_PRIORITY;
+					dynamic = DYNAMIC_PRIORITY;
 					ratio = 1.0;
 				}
 				else {
@@ -1912,7 +1914,7 @@ PROCESS_INFO * GetReadyProcess() {
 
 				user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
 
-				delta[count].v = ptr->delta;
+				delta[count].v = dynamic;
 				delta[count].id = ptr->tid;
 
 				level[count].id = ptr->tid;
@@ -1957,19 +1959,14 @@ PROCESS_INFO * GetReadyProcess() {
 			}
 			level[i].v += (window[i] + user[i]);
 			int pid = level[i].id;
-			level[i].v += tss[pid].delta;
+			level[i].v += delta[i].v;
 			level[i].v += tss[pid].priority;
 			level[i].v += tss[pid].authority;
 		}
 
 		QuickSort(level, 0, count - 1);
 
-		QuickSort(delta, 0, count - 1);
-		if (delta[count - 1].v > DYNAMIC_PRIORITY) {
-			target_id = delta[count - 1].id;
-		}
-		else
-			target_id = level[count - 1].id;
+		target_id = level[count - 1].id;
 		
 		target_tss = tss + target_id;
 
