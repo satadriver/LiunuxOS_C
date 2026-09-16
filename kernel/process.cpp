@@ -369,6 +369,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		params->lpcmdparams = 0;
 	}
 
+	tss->param = params->lpcmdparams;
+
 	tss->counter = 0;
 	tss->errorno = 0;
 

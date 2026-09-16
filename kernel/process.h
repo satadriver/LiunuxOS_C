@@ -25,9 +25,6 @@ typedef struct
 
 
 
-#pragma pack(pop)
-
-#pragma pack(1)
 
 
 typedef struct {
@@ -40,10 +37,19 @@ typedef struct {
 }ProcessHeap;
 
 
+typedef struct
+{
+	DWORD cmd;
+	DWORD addr;
+	DWORD filesize;
+	char filename[256];
+}TASKCMDPARAMS, *LPTASKCMDPARAMS;
+
 typedef struct 
 {
 	TSS tss;
-	//char unused[3];
+
+	LPTASKCMDPARAMS param;
 
 	char level;
 	char fpu;
@@ -123,16 +129,7 @@ typedef struct
 
 
 
-#pragma pack()
 
-#pragma pack(push,1)
-typedef struct
-{
-	DWORD cmd;
-	DWORD addr;
-	DWORD filesize;
-	char filename[256];
-}TASKCMDPARAMS, *LPTASKCMDPARAMS;
 
 typedef struct {
 	DWORD eip;

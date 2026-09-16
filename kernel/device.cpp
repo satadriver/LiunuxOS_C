@@ -340,7 +340,7 @@ int getMouseID() {
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, 0xf2);
 
-	int c1 = 0;
+	unsigned int c1 = 0;
 	__wait8042Full();
 	c1 = inportb(PS2_DATA_PORT);
 	if(c1 != 0xfa) {
@@ -368,7 +368,7 @@ void getKeyboardID() {
 	outportb(PS2_DATA_PORT, 0Xf2);
 
 	__wait8042Full();
-	char c1 = inportb(PS2_DATA_PORT);
+	unsigned char c1 = inportb(PS2_DATA_PORT);
 	if(c1 != 0xfa) {
 		char szout[256];
 		__printf(szout, "keyboard ack error:%x\r\n", c1);

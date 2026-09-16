@@ -1888,7 +1888,7 @@ PROCESS_INFO * GetReadyProcess() {
 			else {
 				int dynamic = ptr->delta;
 				double ratio = 0.0;
-				if (ptr->tick_run == 0) {
+				if (ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME) ) {
 					dynamic = DYNAMIC_PRIORITY;
 					ratio = 1.0;
 				}
