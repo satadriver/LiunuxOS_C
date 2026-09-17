@@ -20,8 +20,7 @@ DWORD gMouseColor =	MOUSE_SHOW_COLOR;
 
 #define MOUSE_FACTOR_SIZE	30
 
-//1. many mouse command has no response 0xfa
-//2. mouse packet process?
+
 
 
 void mousetest() {
@@ -34,9 +33,9 @@ void mousetest() {
 	{
 		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel + (gVideoWidth/2)*gBytesPerPixel;
 
-		int id = *(DWORD*)0xFEE00020 >> 24;
-
-		__sprintf(szout, (char*)"cpu:%d,mouse X:%x,mouse Y:%x,status:%x        ", id,mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
+		unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		__sprintf(szout, (char*)"cpu:%d,mouse X:%x,mouse Y:%x,status:%x        ", 
+			id,mouseinfo.x&0xff,mouseinfo.y&0xff,mouseinfo.status);
 		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
 	}
 }
@@ -78,12 +77,23 @@ void invalidMouse() {
 
 
 int g_mouse_error_cnt = 0;
+int g_mouse_packet_cnt = 0;
+int* g_mouse_pos = (int*) MOUSE_BUFFER;
+
+//bit7: 1=Y overflow, 0=Y no overflow
+//bit6: 1=X overflow, 0=X no overflow
+//bit5: 1=Y sign bit, 0=Y positive
+//bit4: 1=X sign bit, 0=X positive
+//bit3: 1=always 1
+//bit2: 1=middle button down, 0=middle button up
+//bit1: 1=right button down, 0=right button up
+//bit0: 1=left button down, 0=left button up
 
 void __kMouseProc() {
 	char szout[256];
 	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
-	int * pos = (int*)&data->mintrData.status;
-	int counter = 0;
+	//int * pos = (int*)&data->mintrData.status;
+	//int counter = 0;
 	while (TRUE)
 	{
 		int status = inportb(0x64);
@@ -102,41 +112,43 @@ void __kMouseProc() {
 		}
 
 		int md = inportb(0x60);
-		*pos = md;
-		pos++;
+		*g_mouse_pos = md;
+		g_mouse_pos++;
 
-		counter++;
+		g_mouse_packet_cnt++;
 		if (gMouseID ==3 || gMouseID==4)
 		{
-			if (counter >= 4)
+			if (g_mouse_packet_cnt >= 4)
 			{
 				break;
 			}
 		}
 		else if (gMouseID ==0x81)
 		{
-			if (counter >= 5)
+			if (g_mouse_packet_cnt >= 5)
 			{
 				break;
 			}
 		}
 		else {
-			if (counter >= 3)
+			if (g_mouse_packet_cnt >= 3)
 			{
 				break;
 			}
 		}
 	}
 
-	if (counter < 3) {
+	if (g_mouse_packet_cnt < 3) {
 		return;
 	}
+
+	g_mouse_packet_cnt = 0;
+	g_mouse_pos = (int*)MOUSE_BUFFER;
 	
 	//https://wiki.osdev.org/PS/2_Mouse
 	int state = data->mintrData.status;
 
 	data->mintrData.x = data->mintrData.x - ((state << 4) & 0x100);
-
 	data->mintrData.y = data->mintrData.y - ((state << 3) & 0x100);
 
 	data->mintrData.y = -data->mintrData.y;

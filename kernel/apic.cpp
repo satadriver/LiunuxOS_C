@@ -1891,6 +1891,10 @@ PROCESS_INFO * GetReadyProcess() {
 				if (ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME) ) {
 					dynamic = DYNAMIC_PRIORITY;
 					ratio = 1.0;
+					if (ptr->param->cmd & TASK_REALTIME) {
+						ptr->authority = AUTHORITY_PRIORITY;
+						ptr->priority = STATIC_PRIORITY;
+					}
 				}
 				else {
 					double diff = (double)(ptr->tick_total);
