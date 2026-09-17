@@ -459,6 +459,16 @@ int __kCreateProcessFromAddr(DWORD filedata, int filesize,char * funcname,int sy
 	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
 }
 
+
+int __kCreateProcessRealtime(DWORD filedata, int filesize, char* filename,char* funcname, int syslevel) {
+
+	TASKCMDPARAMS params;
+	params.cmd = TASK_REALTIME;
+
+	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel,(DWORD) & params);
+}
+
+
 #define CREATE_PROCESS_DYNAMIC
 
 

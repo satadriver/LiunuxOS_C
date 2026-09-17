@@ -177,9 +177,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
 		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
-		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kMachineLearning_mlp");
-		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kMachineLearning_mlp");
-		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kMachineLearning_mlp", 3, 0);
+		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kDeepLearning_mlp");
+		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kDeepLearning_mlp");
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kDeepLearning_mlp", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");

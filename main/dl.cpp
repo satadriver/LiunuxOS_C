@@ -82,7 +82,7 @@
 
 
 
-extern "C" __declspec(dllexport) int __kMachineLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
+extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
@@ -282,7 +282,7 @@ static void train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_e
 
 
 
-extern "C" __declspec(dllexport) int __kMachineLearning_rnn(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	int i, c, seed = 11, n_h_layers = 1, n_h_neurons = 64, mini_size = 64, max_epoch = 30, to_apply = 0, norm = 1, n_threads = 1;
 	float lr = 0.01f, dropout = 0.2f;

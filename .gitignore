@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+*.sdf
 *.VC.db
 *.db
 *.ipch
@@ -71,3 +72,10 @@ Mkfile.old
 dkms.conf
 
 .vs/
+debug/
+Debug/
+release/
+Release/
+X64/
+x64/
+

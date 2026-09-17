@@ -33,9 +33,9 @@
 
 #define SECOND_HAND_WIDTH				1
 
-#define MINUTE_HAND_WIDTH				5
+#define MINUTE_HAND_WIDTH				2
 
-#define HOUR_HAND_WIDTH					9
+#define HOUR_HAND_WIDTH					3
 
 
 double getHourAngle(int h,int m) {
