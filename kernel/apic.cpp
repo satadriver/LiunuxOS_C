@@ -1259,7 +1259,7 @@ int InitLocalApicTimer() {
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	//freq = freq / 2;
+	freq = freq / 2;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;

@@ -78,7 +78,6 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		case SVC_SLEEP:
 		{
 			sleep(params);
-
 			break;
 		}
 		case SVC_YIELD:
@@ -102,7 +101,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		}
 		case SVC_MOUSE_OUTPUT:
 		{
-			r= __kGetMouse((LPMOUSEINFO)params[0], params[1]);
+			r = __kGetMouse((LPMOUSEINFO)params[0], params[1]);
 			break;
 		}
 		case SVC_GRAPH_CHAR_OUTPUT:
@@ -206,6 +205,18 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 		{
 			break;
 		}
+		case SVC_CLI:
+		{
+			__asm{cli}
+			break;
+		}
+		case SVC_STI:
+		{
+			__asm {
+				sti
+			}
+			break;
+		}
 		default: {
 			r = 0;
 			break;
@@ -214,6 +225,20 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	return r;
 }
 
+
+void __kcli() {
+	__asm {
+		mov eax, SVC_CLI
+		int 0x80
+	}
+}
+
+void __ksti() {
+	__asm {
+		mov eax,SVC_STI
+		int 0x80
+	}
+}
 
 int __kCpuTemperature(int* tjmax) {
 	int temperature = 0;

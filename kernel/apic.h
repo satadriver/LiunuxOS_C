@@ -7,8 +7,7 @@
 
 #define WINDOW_PRIORITY			(STATIC_PRIORITY/2)
 
-#define USER_PRIORITY			(STATIC_PRIORITY/8)
-
+#define USER_PRIORITY			(STATIC_PRIORITY/4)
 
 #define GRAPH_PRIORITY 			8
 
@@ -20,7 +19,7 @@
 
 #define IPI_MSG_LIMIT			64
 
-#define TASK_MAX_DALAY			1000
+//#define TASK_MAX_DALAY			1000
 
 
 

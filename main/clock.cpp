@@ -15,7 +15,7 @@
 
 #define CLOCK_CIRCLE_COLOR				0x0
 
-#define CLOCK_NUMBER_COLOR				0xff00
+#define CLOCK_NUMBER_COLOR				0x00
 
 #define CLOCK_HOUR_COLOR				0
 
@@ -23,7 +23,7 @@
 
 #define CLOCK_SECOND_COLOR				0xff0000
 
-#define CLOCK_TEXT_COLOR				0xff0000
+#define CLOCK_TEXT_COLOR				0xff
 
 #define HOUR_HAND_SIZE					(CLOCK_RADIUS_SIZE*3/5)
 
@@ -31,11 +31,11 @@
 
 #define SECOND_HAND_SIZE				(CLOCK_RADIUS_SIZE*9/10)
 
-#define SECOND_HAND_WIDTH				1
+#define SECOND_HAND_WIDTH				3
 
-#define MINUTE_HAND_WIDTH				7
+#define MINUTE_HAND_WIDTH				5
 
-#define HOUR_HAND_WIDTH					11
+#define HOUR_HAND_WIDTH					9
 
 
 double getHourAngle(int h,int m) {

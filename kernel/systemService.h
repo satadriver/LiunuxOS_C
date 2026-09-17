@@ -32,6 +32,9 @@
 
 #define SVC_ADJUST_APIC_TIMER	25
 
+#define SVC_CLI					26
+#define SVC_STI					27
+
 #ifdef DLL_EXPORT
 
 #else
@@ -94,6 +97,9 @@ extern "C" __declspec(dllexport) int __kAdjustApicTimer();
 extern "C"  __declspec(dllexport) void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
 extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p, char* func);
+
+extern "C"  __declspec(dllexport)void __kcli();
+extern "C"  __declspec(dllexport)void __ksti();
 #else
 extern "C" __declspec(dllimport) char* g_hlt_addr;
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
@@ -143,4 +149,6 @@ extern "C" __declspec(dllimport) int __kAdjustApicTimer();
 extern "C"  __declspec(dllimport) int __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p);
 
 extern "C"  __declspec(dllimport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p, char* func);
+extern "C"  __declspec(dllimport)void __kcli();
+extern "C"  __declspec(dllimport)void __ksti();
 #endif

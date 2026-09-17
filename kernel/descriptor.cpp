@@ -570,6 +570,8 @@ int AdjustApicTimer() {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	//__asm {cli}
+
 	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
@@ -588,6 +590,8 @@ int AdjustApicTimer() {
 
 	DWORD ts2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
 	unsigned long long tc2 = __krdtsc();
+
+	//__asm{sti}
 
 	DWORD ts = ts2 - ts1;
 	if (ts == 0)

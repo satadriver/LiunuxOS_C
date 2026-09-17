@@ -80,8 +80,6 @@ void addAlarmTimer() {
 	}
 	int ret = 0;
 
-	//__asm {cli}
-
 	//DisableCmos();
 	
 	unsigned char bcentury = readCmosPort(0x32);
@@ -160,8 +158,6 @@ void addAlarmTimer() {
 	writeCmosPort(0x01, b2bcd(dstsecond));
 
 	//EnableCmos();
-
-	//__asm{sti}
 
 	char szout[256];
 	//__printf(szout, "set alarm at:%d/%d/%d %d:%d:%d\n", dstyear, dstmonth, dstday, dsthour, dstmin, dstsecond);

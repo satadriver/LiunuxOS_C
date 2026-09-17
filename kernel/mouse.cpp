@@ -91,54 +91,42 @@ int* g_mouse_pos = (int*) MOUSE_BUFFER;
 
 void __kMouseProc() {
 	char szout[256];
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
-	//int * pos = (int*)&data->mintrData.status;
-	//int counter = 0;
+	
 	while (TRUE)
 	{
 		int status = inportb(0x64);
 		if ((status & 0x21) != 0x21)
 		{
-			return;
+			break;
 		}
 
 		if ((status & 0xc0) /* || (status & 8) == 0*/ ) {
 			g_mouse_error_cnt++;
-			if (g_mouse_error_cnt <= 16) {
-				__printf(szout, (char*)"mouse status %x error\r\n", status);	//0x35 in parallell
-			}	
+
+			__printf(szout, (char*)"mouse status %x error\r\n", status);	//0x35 in parallell
+			
 			inportb(0x60);
-			return;
+
+			g_mouse_packet_cnt = 0;
+			g_mouse_pos = (int*)MOUSE_BUFFER;
+			continue;
 		}
 
-		int md = inportb(0x60);
-		*g_mouse_pos = md;
+		*g_mouse_pos = inportb(0x60);
 		g_mouse_pos++;
 
 		g_mouse_packet_cnt++;
-		if (gMouseID ==3 || gMouseID==4)
-		{
-			if (g_mouse_packet_cnt >= 4)
-			{
-				break;
-			}
-		}
-		else if (gMouseID ==0x81)
-		{
-			if (g_mouse_packet_cnt >= 5)
-			{
-				break;
-			}
-		}
-		else {
-			if (g_mouse_packet_cnt >= 3)
-			{
-				break;
-			}
-		}
 	}
 
-	if (g_mouse_packet_cnt < 3) {
+	if ( (gMouseID == 3 || gMouseID == 4) && (g_mouse_packet_cnt >= 4))
+	{
+
+	}
+	else if (gMouseID == 0x81 && g_mouse_packet_cnt >= 5)
+	{
+
+	}
+	else if (g_mouse_packet_cnt < 3) {
 		return;
 	}
 
@@ -146,6 +134,7 @@ void __kMouseProc() {
 	g_mouse_pos = (int*)MOUSE_BUFFER;
 	
 	//https://wiki.osdev.org/PS/2_Mouse
+	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
 	int state = data->mintrData.status;
 
 	data->mintrData.x = data->mintrData.x - ((state << 4) & 0x100);
