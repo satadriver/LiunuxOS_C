@@ -21,6 +21,9 @@ typedef struct
 #pragma pack()
 
 
+extern int g_cmos_spinlock;
+
+
 #ifdef DLL_EXPORT
 
 extern "C"  __declspec(dllexport) char* dayOfWeek2str(int dw);

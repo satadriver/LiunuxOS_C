@@ -1605,9 +1605,13 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 	}
 
 	{
+		__enterSpinlock(&g_cmos_spinlock);
 		outportb(0x70, 0x0c);
 
 		int flag = inportb(0x71);
+
+		__leaveSpinlock(&g_cmos_spinlock);
+
 		//IRQF = (PF * PIE) + (AF * AIE) + (UF * UFE), if double interruptions, will not be 1
 		if (flag & 0x20) {
 			__kAlarmTimerProc();

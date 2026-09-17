@@ -12,50 +12,39 @@
 
 DATETIME g_startup_timer;
 
+int g_cmos_spinlock = 0;
+
 void EnableCmos() {
-	//__asm {cli}
+	__enterSpinlock(&g_cmos_spinlock);
 	outportb(0x70, 0x0b | 0x80);
 	int v = inportb(0x71) & 0x7f;
 	outportb(0x71, v);
-
-	//outportb(0x70, 0x0c | 0x80);
-	//inportb(0x71);
-	//__asm {sti}
+	__leaveSpinlock(&g_cmos_spinlock);
 }
 
 void DisableCmos() {
-	//__asm {cli}
+	__enterSpinlock(&g_cmos_spinlock);
 	int s = 0x0b | 0x80;
 	outportb(0x70, s);
 	int v = inportb(0x71) | 0x80;
 	outportb(0x71, v);
-	//__asm {sti}
+	__leaveSpinlock(&g_cmos_spinlock);
 }
 
 unsigned char readCmosPort(unsigned char port) {
+	__enterSpinlock(&g_cmos_spinlock);
 
-	//__asm{cli}
 	outportb(0x70, port|0x80);
 	unsigned char c= inportb(0x71);
-	//__asm{sti}
+	__leaveSpinlock(&g_cmos_spinlock);
 	return c;
-	__asm {
-		//in al,70h
-		//and al,80h
-		//or al,port
-	}
 }
 
 void writeCmosPort(unsigned char port, unsigned char value) {
-	//__asm {cli}
+	__enterSpinlock(&g_cmos_spinlock);
 	outportb(0x70, port|0x80);	//bit7 =1,disable NMI,bit7=0,enable NMI
 	outportb(0x71, value);
-	//__asm {sti}
-	__asm {
-		//in al, 70h
-		//and al, 80h
-		//or al, port
-	}
+	__leaveSpinlock(&g_cmos_spinlock);
 }
 
 
@@ -152,9 +141,6 @@ void initTimer() {
 	initPeriodTimer();
 	initExactTimer();
 	initApicTimer();
-
-	outportb(0x70, 0x0c | 0x80);
-	inportb(0x71);
 	__getDateTime(&g_startup_timer);
 }
 

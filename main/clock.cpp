@@ -33,9 +33,9 @@
 
 #define SECOND_HAND_WIDTH				1
 
-#define MINUTE_HAND_WIDTH				2
+#define MINUTE_HAND_WIDTH				7
 
-#define HOUR_HAND_WIDTH					3
+#define HOUR_HAND_WIDTH					11
 
 
 double getHourAngle(int h,int m) {
@@ -267,11 +267,19 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			int secondy = my - (int)(1.0 * SECOND_HAND_SIZE * __sin(hs));
 
 			drawLine(mx, my, secondx_old, secondy_old, SECOND_HAND_WIDTH, 1, (DWORD)secondBak, 0);
-			drawLine(mx, my, minutex_old, minutey_old, MINUTE_HAND_WIDTH,1, (DWORD)minuteBak, 0);
-			drawLine(mx, my, hourx_old, houry_old, HOUR_HAND_WIDTH, 1, (DWORD)hourBak, 0);
+			if (dt.minute != dt_old.minute) {
+				drawLine(mx, my, minutex_old, minutey_old, MINUTE_HAND_WIDTH, 1, (DWORD)minuteBak, 0);
+			}
 
-			drawLine(mx, my, hourx, houry, HOUR_HAND_WIDTH, 0, CLOCK_HOUR_COLOR, hourBak);
-			drawLine(mx, my, minutex, minutey, MINUTE_HAND_WIDTH,0, CLOCK_MINUTE_COLOR, minuteBak);
+			if (dt.hour != dt_old.hour) {
+				drawLine(mx, my, hourx_old, houry_old, HOUR_HAND_WIDTH, 1, (DWORD)hourBak, 0);
+				drawLine(mx, my, hourx, houry, HOUR_HAND_WIDTH, 0, CLOCK_HOUR_COLOR, hourBak);
+			}
+			
+			if (dt.minute != dt_old.minute) {
+				drawLine(mx, my, minutex, minutey, MINUTE_HAND_WIDTH, 0, CLOCK_MINUTE_COLOR, minuteBak);
+			}
+
 			drawLine(mx, my, secondx, secondy, SECOND_HAND_WIDTH, 0, CLOCK_SECOND_COLOR, secondBak);
 
 			secondx_old = secondx;
