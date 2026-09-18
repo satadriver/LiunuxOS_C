@@ -8,7 +8,7 @@
 #include "memory.h"
 #include "mouse.h"
 #include "apic.h"
-
+#include "taskPriority.h"
 
 LPWINDOWSINFO gWindowsList = 0;
 

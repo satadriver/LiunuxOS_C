@@ -5,21 +5,11 @@
 #include "task.h"
 #include "process.h"
 
-#define WINDOW_PRIORITY			(STATIC_PRIORITY/2)
 
-#define USER_PRIORITY			(STATIC_PRIORITY/4)
-
-#define GRAPH_PRIORITY 			8
-
-#define FILE_PRIORITY			4
-
-#define MOUSE_PRIORITY			2
-
-#define KEYBOARD_PRIORITY		1
 
 #define IPI_MSG_LIMIT			64
 
-//#define TASK_MAX_DALAY			1000
+
 
 
 
@@ -108,7 +98,7 @@ void setIoApicID(int id);
 
 int IsBspProcessor();
 
-PROCESS_INFO* GetReadyProcess();
+
 
 int GetIdleProcessor();
 
@@ -143,7 +133,7 @@ int IpiTaskSchedule(int id);
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
-extern "C" __declspec(dllexport) unsigned long long g_timer_cost[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
 
 extern "C" __declspec(dllexport) int g_ipi_lock[256] ;
 extern "C" __declspec(dllexport) char* g_ipi_buf[256] ;
@@ -162,7 +152,7 @@ extern "C" __declspec(dllexport)  unsigned long long ApicTimerFreq();
 #else
 extern "C" __declspec(dllimport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
-extern "C" __declspec(dllimport) unsigned long long g_timer_cost[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
 extern "C" __declspec(dllimport) int g_ipi_lock[256];
 extern "C" __declspec(dllimport) char* g_ipi_buf[256];
 

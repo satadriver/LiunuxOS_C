@@ -39,7 +39,7 @@ LPPROCESS_INFO g_ap_tss_base[256];
 
 unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
-unsigned long long g_timer_cost[TASK_LIMIT_TOTAL];
+unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -1259,11 +1259,11 @@ int InitLocalApicTimer() {
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	freq = freq / 2;
+	//freq = freq / 2;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
-	g_timer_cost[id] = ticks;
+	g_timer_tick[id] = ticks;
 
 	v = APIC_LVTTIMER_VECTOR | 0x20000;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x320) = v;
@@ -1304,6 +1304,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	unsigned int cpuid = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
 	g_cpu_start_tick[cpuid] = __krdtsc();
+	g_cpu_prev_tick[cpuid] = g_cpu_start_tick[cpuid];
 
 	g_ipi_buf[cpuid] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 	__memset(g_ipi_buf[cpuid], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
@@ -1547,6 +1548,7 @@ void BPCodeStart() {
 	//ret = InitLocalApicTimer();
 
 	g_cpu_start_tick[cpu] = __krdtsc();
+	g_cpu_prev_tick[cpu] = g_cpu_start_tick[cpu];
 
 	DWORD reg_cr0 = 0;
 	DWORD reg_cr4 = 0;
@@ -1789,16 +1791,7 @@ int GetIdleProcessor() {
 }
 
 
-unsigned long GetValueFromArray(AlgorithmModel* array,int size,int key) {
-	for(int i = 0; i < size; i++) {
-		if(array[i].id == key) {
-			return (unsigned long)array[i].v;
-		}
-	}
-	return 0;
-}
 
-int g_debug_tag = 0;
 
 
 int GetCongestion(int * procs) {
@@ -1840,273 +1833,7 @@ int GetCongestion(int * procs) {
 
 
 
-PROCESS_INFO * GetReadyProcess() {
 
-	char szout[256];
-
-	LPPROCESS_INFO target_tss = 0;
-	PROCESS_INFO* tss = GetTaskTssBase();
-	PROCESS_INFO* process = GetCurrentTaskTssBase();
-	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
-	LPPROCESS_INFO ptr = current;
-	LPPROCESS_INFO next = 0;
-	
-	AlgorithmModel tickc[TASK_LIMIT_TOTAL];
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
-	int window[TASK_LIMIT_TOTAL];
-
-	int user[TASK_LIMIT_TOTAL];
-
-	AlgorithmModel delta[TASK_LIMIT_TOTAL];
-
-	AlgorithmModel level[TASK_LIMIT_TOTAL];
-
-	int count = 0;
-	do {
-		ptr++;
-		if (ptr - tss >= TASK_LIMIT_TOTAL) {
-			ptr = tss;
-		}
-
-		if (ptr == 0 || ptr == current) {
-			break;
-		}
-
-		if (cpu != ptr->cpuid) {
-			continue;
-		}
-
-		if (ptr->status == TASK_TERMINATE) {
-			ptr->status = TASK_OVER;
-			continue;
-		}
-		else if (ptr->status == TASK_RUN) {
-			if (ptr->sleep) {
-				ptr->sleep--;
-			}
-			else {
-				int dynamic = ptr->delta;
-				double ratio = 0.0;
-				if (ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME) ) {
-					dynamic = DYNAMIC_PRIORITY;
-					ratio = 1.0;
-					if (ptr->param->cmd & TASK_REALTIME) {
-						ptr->authority = AUTHORITY_PRIORITY;
-						ptr->priority = STATIC_PRIORITY;
-					}
-				}
-				else {
-					double diff = (double)(ptr->tick_total);
-					ratio = ((double)ptr->tick_run) / diff;
-					if (ratio > 0.9) 
-					{
-						//ratio = 0.01;
-					}
-				}
-				tickc[count].id = ptr->tid;
-				//__memcpy((char*)&tickc[count].v, (char*)&ratio, sizeof(double));
-				double v =  ratio * (double) STATIC_PRIORITY;
-				tickc[count].v = (unsigned long long) v;
-
-				if (g_debug_tag++ % 0x1000 == 0x1000) {
-					__printf(szout, "tick_start:%lf, diff:%i64x,tick:%I64x, ratio:%lf\r\n",
-						tickc[count].v, ptr->tick_total, ptr->tick_run, ratio);
-				}
-
-				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
-
-				user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
-
-				delta[count].v = dynamic;
-				delta[count].id = ptr->tid;
-
-				level[count].id = ptr->tid;
-				level[count].v = 0;
-
-				count++;
-
-				if (next == 0) {
-					next = ptr;
-				}
-			}
-		}
-		else if (ptr->status == TASK_OVER) {
-			continue;
-		}
-		else if (ptr->status == TASK_SUSPEND) {
-			continue;
-		}
-	} while (TRUE);
-
-	if (count == 1) {
-		target_tss = next;
-	}
-	else if (count <= 0) {
-		target_tss = current;
-		//__printf(szout, "%s %d count:%d\r\n", __FUNCTION__, __LINE__);
-	}
-	else if (count > 1) {
-		int target_id = 0;
-
-		//QuickSort(tickc, 0, count - 1);
-		//for (int i = 0; i < count; i++) {
-		//	tickc[i].v = STATIC_PRIORITY / (count - i);
-		//}
-
-		for (int i = 0; i < count; i++) {
-			for (int j = 0; j < count; j++) {
-				if (level[i].id == tickc[j].id) {
-					level[i].v += tickc[j].v;
-					break;
-				}
-			}
-			level[i].v += (window[i] + user[i]);
-			int pid = level[i].id;
-			level[i].v += delta[i].v;
-			level[i].v += tss[pid].priority;
-			level[i].v += tss[pid].authority;
-		}
-
-		QuickSort(level, 0, count - 1);
-
-		target_id = level[count - 1].id;
-		
-		target_tss = tss + target_id;
-
-		extern int g_train_complete;
-
-		TaskPredictParam tp;
-		tp.result = -1;
-
-		int num = 0;
-		if (count >= ML_TASK_LIMIT) {
-			num = ML_TASK_LIMIT;
-		}
-		else {
-			num = count;
-		}
-
-		for (int i = 0; i < num; i++) {
-			int pid = tickc[i].id;
-			float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)STATIC_PRIORITY;
-			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
-			float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-			float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
-
-			if (pid == target_id) {
-				tp.result = i;
-			}
-			tp.task[i].tick = tick_ratio;
-			tp.task[i].user = user_ratio;
-			tp.task[i].window = window_ratio;
-			tp.task[i].delta = delta_ratio;
-			tp.task[i].priority = priority_ratio;
-			tp.task[i].authority = authority_r;
-		}
-
-		if (num == ML_TASK_LIMIT) {
-			if (count != ML_TASK_LIMIT) {
-				int index = -1;
-				for (int i = 0; i < count; i++) {
-					if (tickc[i].id == target_id) {
-						index = i;
-						break;
-					}
-				}
-				if (index >= ML_TASK_LIMIT) {
-					int pid = tickc[index].id;
-					float tick_ratio = (float)GetValueFromArray(tickc, count, pid) / (float)STATIC_PRIORITY;
-					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
-					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
-
-					int ri = __random(0) % ML_TASK_LIMIT;
-					tp.task[ri].tick = tick_ratio;
-					tp.task[ri].user = user_ratio;
-					tp.task[ri].window = window_ratio;
-					tp.task[ri].delta = delta_ratio;
-					tp.task[ri].priority = priority_ratio;
-					tp.task[ri].authority = authority_r;
-
-					tp.result = ri;
-				}
-			}
-		}
-		else {
-			for (int i = num; i < ML_TASK_LIMIT; i++) {
-				tp.task[i].tick = 0.0;
-				tp.task[i].user = 0.0;
-				tp.task[i].window = 0.0;
-				tp.task[i].delta = 0.0;
-				tp.task[i].priority = 0.0;
-				tp.task[i].authority = 0.0;
-			}
-		}
-
-#ifndef _DEBUG
-		if (g_debug_tag++ % 0x1000 == 0x1000) {
-			for (int i = 0; i < ML_TASK_LIMIT; i++) {
-				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n", 
-					i, tp.task[i].tick, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority,tp.result);
-			}
-		}
-#endif
-		if (g_train_complete == 0) {
-			SaveMlData(&tp);
-		}
-		
-		if (g_train_complete) {
-			int seq = TaskSwitchPrediction(&tp);
-			if (seq >= 0 && seq < count) {
-
-				//target_id = tickc[seq].id;
-				target_id = tickc[seq].id;
-				if (g_debug_tag++ % 0x100 == 0) {
-					int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
-					LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
-					LPPROCESS_INFO tp = p + target_id;
-					__printf(szout, "TaskSwitchPrediction seq:%d,count:%d tid:%x cpu:%x function:%s filename:%s\r\n", 
-						seq, count, target_id,cpu,tp->funcname,tp->filename);
-				}
-			}
-			else {
-				//target_id = 0;
-				__printf(szout, "TaskSwitchPrediction seq:%d,count:%d error\r\n", seq,count);
-			}
-			
-			target_tss = tss + target_id;
-		}
-
-		for (int i = 0; i < count; i++) {
-			int tid = delta[i].id;
-			if (target_id != delta[i].id) {
-				if (tid == next->tid) {
-					tss[tid].delta += 1;
-				}
-				else {
-					tss[tid].delta += 1;
-				}
-
-				if (tss[tid].delta > DYNAMIC_PRIORITY) {
-					tss[tid].delta = DYNAMIC_PRIORITY;
-				}
-			}
-			else {
-				tss[tid].delta = 0;
-			}
-		}
-	}
-
-	target_tss->delta = 0;
-	target_tss->authority = 0;
-
-	return target_tss;
-}
 
 
 

@@ -78,7 +78,7 @@ int GetAllProcesses(char* szout) {
 				double proc_diff = tss[i].tick_total;
 				double proc_ratio = (double)tss[i].tick_run / proc_diff;
 				double cost = tss[i].tick_switch_cost;
-				double switch_cost = cost / g_timer_cost[cpu];
+				double switch_cost = cost / g_timer_tick[cpu];
 				len = __sprintf(szout + outlen, 
 					"[%d]. filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf£¬task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					n++,tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
@@ -112,7 +112,7 @@ int GetProcess(int cpuid,int pid, char* szout) {
 					double proc_diff = tss[i].tick_total;
 					double proc_ratio = (double)tss[i].tick_run / proc_diff;
 					double cost = tss[i].tick_switch_cost;
-					double switch_cost = cost / g_timer_cost[cpu];
+					double switch_cost = cost / g_timer_tick[cpu];
 					int len = __sprintf(szout, 
 						"filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 						tss[i].filename, tss[i].funcname, tss[i].moduleBase, tss[i].cpuid,
@@ -249,7 +249,7 @@ int CpuUsage(char* buf) {
 		
 		len = __sprintf(buf + offset, 
 			"[%d]. cpu:%d,active:%i64x,alive:%i64x,rate:%lf,g_timer_cost:%i64x,g_apic_freq:%i64x,aperf:%i64x,mperf:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
-			i,id, g_cpu_tick[id], alive, usage, g_timer_cost[id], g_apic_freq[id], aperf, mperf,load, g_pm_enable);
+			i,id, g_cpu_tick[id], alive, usage, g_timer_tick[id], g_apic_freq[id], aperf, mperf,load, g_pm_enable);
 		offset += len;
 	}
 	return offset;
@@ -277,7 +277,7 @@ int GetCpuRatio(char* szout) {
 				double proc_diff = tss[i].tick_total;
 				double proc_ratio = (double)tss[i].tick_run / proc_diff;
 				double cost = tss[i].tick_switch_cost;
-				double switch_cost = cost / g_timer_cost[cpu];
+				double switch_cost = cost / g_timer_tick[cpu];
 				len = __sprintf(szout + outlen,
 					"[%d]. funcname:%s, cpu:%d,pid:%d,tid:%d,cpu tick:%i64x,cpu usage:%lf,task tick:%i64x,task usage:%lf,switch_cost:%lf\r\n",
 					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_ratio, tss[i].tick_run, proc_ratio, switch_cost);

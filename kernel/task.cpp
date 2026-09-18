@@ -14,9 +14,8 @@
 #include "isr.h"
 #include "systemService.h"
 #include "apic.h"
-#include "apic.h"
+#include "taskPriority.h"
 #include "window.h"
-#include "malloc.h"
 #include "coprocessor.h"
 
 int g_task_array_lock[256] ;
@@ -1435,7 +1434,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		}
 		*/
 
-		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1)) ;
+		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1))/2 ;
 
 		current->prev_tick = tick2;
 		if (next) {
@@ -1519,7 +1518,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->showY = showy;
 	process0->window = 0;
 
-	process0->slice = 1;
+	process0->slice = TASK_SLICE_KERNEL;
 	process0->frac_slice = 0;
 	process0->counter = 0;
 	process0->sleep = 0;

@@ -6,7 +6,7 @@
 #include "malloc.h"
 #include "page.h"
 #include "video.h"
-#include "Utils.h"
+#include "taskPriority.h"
 #include "Kernel.h"
 #include "apic.h"
 #include "systemService.h"
@@ -606,11 +606,11 @@ int AdjustApicTimer() {
 
 	unsigned long old_f = g_apic_freq[id];
 
-	unsigned long old_c = g_timer_cost[id];
+	unsigned long old_c = g_timer_tick[id];
 
 	double tps = tc / (1000 / TASK_TIME_SLICE); 
 	
-	double times = g_timer_cost[id]/tps;
+	double times = g_timer_tick[id]/tps;
 
 	double newf = g_apic_freq[id] / times;
 
@@ -620,10 +620,10 @@ int AdjustApicTimer() {
 
 	g_apic_freq[id] = (DWORD)newf;
 
-	g_timer_cost[id] = (DWORD)tc/(1000/ TASK_TIME_SLICE);
+	g_timer_tick[id] = (DWORD)tc/(1000/ TASK_TIME_SLICE);
 
 	__printf(szout, "%s cpuid:%d intPerSec:%x, old g_apic_freq:%x,g_apic_freq:%x,old g_timer_cost:%x, g_timer_cost:%x\r\n", 
-		__FUNCTION__,id, ts, old_f,(DWORD)g_apic_freq[id],old_c, (DWORD)g_timer_cost[id]);
+		__FUNCTION__,id, ts, old_f,(DWORD)g_apic_freq[id],old_c, (DWORD)g_timer_tick[id]);
 
 	return newf;
 }

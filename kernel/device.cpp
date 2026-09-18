@@ -539,7 +539,7 @@ void init8254() {
 
 int Read8254Counter(int num) {
 
-	//__enterSpinlock(&g_8254_lock);
+	__enterSpinlock(&g_8254_lock);
 
 	int cmd = 0xc0 | (2<<num) | 0x10;
 	cmd = 0x00 |(num<<6);
@@ -548,7 +548,7 @@ int Read8254Counter(int num) {
 	unsigned int low = inportb(0x40 + num);
 	unsigned int high = inportb(0x40 + num);
 
-	//__leaveSpinlock(&g_8254_lock);
+	__leaveSpinlock(&g_8254_lock);
 
 	return low + (high << 8);
 }

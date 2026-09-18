@@ -9,6 +9,7 @@
 #include "apic.h"
 #include "task.h"
 #include "ext/ext.h"
+#include "taskPriority.h"
 
 
 extern "C" __declspec(dllexport)  int (__cdecl * readFile)(const char * filename, char ** buf) = readNtfsFile;

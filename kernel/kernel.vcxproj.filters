@@ -303,6 +303,9 @@
     <ClCompile Include="gui\wallpaper_original.cpp">
       <Filter>源文件\gui</Filter>
     </ClCompile>
+    <ClCompile Include="taskPriority.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="kernel.h">
@@ -532,6 +535,9 @@
     </ClInclude>
     <ClInclude Include="xfs\xfs.h">
       <Filter>源文件\xfs</Filter>
+    </ClInclude>
+    <ClInclude Include="taskPriority.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

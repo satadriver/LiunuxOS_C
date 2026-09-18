@@ -11,6 +11,9 @@
 #include "Animation.h"
 #include "device.h"
 #include "apic.h"
+#include "taskPriority.h"
+
+
 
  DWORD gMouseTest = 1;
 

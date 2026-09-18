@@ -8,6 +8,7 @@
 #include "device.h"
 #include "systemService.h"
 #include "apic.h"
+#include "taskPriority.h"
 
 DWORD gKbdTest = FALSE;
 

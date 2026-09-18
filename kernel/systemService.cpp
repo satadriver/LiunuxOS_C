@@ -254,13 +254,13 @@ int __kCpuTemperature(int* tjmax) {
 
 
 int __kAdjustApicTimer() {
-	int ret = 0;
+	int result = 0;
 	__asm {
 		mov eax, SVC_ADJUST_APIC_TIMER
 		int 80h
-		mov[ret], eax
+		mov[result], eax
 	}
-	return ret;
+	return result;
 }
 
 
