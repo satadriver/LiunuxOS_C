@@ -264,6 +264,61 @@ void insert8042Key(char key) {
 }
 
 
+
+
+/* 端口定义 */
+#define PS2_DATA    0x60
+#define PS2_STATUS  0x64
+
+/* 状态位 */
+#define STATUS_OUTPUT_FULL  0x01   /* Bit0: 输出缓冲区满 */
+#define STATUS_INPUT_FULL   0x02   /* Bit1: 输入缓冲区满 */
+
+/* 等待输入缓冲区为空 */
+void wait_input_clear(void) {
+	while (inportb(PS2_STATUS) & STATUS_INPUT_FULL)
+		;
+}
+
+/* 等待输出缓冲区有数据 */
+void wait_output_full(void) {
+	while (!(inportb(PS2_STATUS) & STATUS_OUTPUT_FULL))
+		;
+}
+
+/* 向鼠标发送一个字节（含 0xD4 前缀），并读取 ACK */
+unsigned int mouse_write(uint8_t data) {
+	/* 1. 等控制器可以接收命令 */
+	wait_input_clear();
+	/* 2. 告诉控制器：下一个字节发给鼠标 */
+	outportb(PS2_STATUS, 0xD4);
+	/* 3. 发送实际数据 */
+	wait_input_clear();
+	outportb(PS2_DATA, data);
+	/* 4. 读 ACK */
+	wait_output_full();
+	return inportb(PS2_DATA);   /* 正常应返回 0xFA */
+}
+
+/* 设置采样率，rate 如 0x0A/0x28/0x64 */
+int mouse_set_sample_rate(uint8_t rate) {
+	if (mouse_write(0xF3) != 0xFA) return -1;  /* 命令未被确认 */
+	if (mouse_write(rate) != 0xFA) return -1;  /* 参数未被确认 */
+
+	return 0;
+}
+
+/* 设置分辨率，res 取 0x00~0x03 */
+int mouse_set_resolution(uint8_t res) {
+	if (res > 0x03) return -1;
+	if (mouse_write(0xE8) != 0xFA) return -1;
+	if (mouse_write(res) != 0xFA) return -1;
+	return 0;
+}
+
+
+
+
 void insert8042Mouse(LPMOUSEINFO mouse) {
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd3);
@@ -293,25 +348,19 @@ void setMouseResolution(int res) {
 	outportb(PS2_DATA_PORT, 0xe8);
 
 	__wait8042Empty();
-	outportb(PS2_COMMAND_PORT, 0xd4);
-
-	__wait8042Empty();
 	outportb(PS2_DATA_PORT, res);
 }
 
-
-
-void setMouseScale() {
+unsigned int setMouseScale() {
 	__wait8042Empty();
 	outportb(PS2_COMMAND_PORT, 0xd4);
 
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, 0xe6);
+
+	unsigned int ret = inportb(0x60);
+	return ret;
 }
-
-
-
-
 
 
 void setMouseSampleRate(int rate) {
@@ -321,9 +370,6 @@ void setMouseSampleRate(int rate) {
 
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, 0xf3);
-
-	__wait8042Empty();
-	outportb(PS2_COMMAND_PORT, 0xd4);
 
 	__wait8042Empty();
 	outportb(PS2_DATA_PORT, rate);
@@ -460,7 +506,7 @@ void disableMouse() {
 	outportb(PS2_DATA_PORT, 0xf5);
 }
 
-void enableMouse() {
+unsigned int enableMouse() {
 	__wait8042Empty();
 
 	outportb(PS2_COMMAND_PORT, 0xa8);
@@ -472,6 +518,10 @@ void enableMouse() {
 	__wait8042Empty();
 
 	outportb(PS2_DATA_PORT, 0xf4);
+
+	unsigned int ret = inportb(0x60);
+	return ret;
+
 }
 
 

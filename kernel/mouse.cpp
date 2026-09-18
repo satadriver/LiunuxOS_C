@@ -362,9 +362,14 @@ void __kRefreshMouseBackup() {
 void __initMouse(int x,int y) {
 
 	enableMouse();
-	setMouseScale();
-	setMouseSampleRate(200);
-	setMouseResolution(3);
+
+	//setMouseScale();
+
+	//setMouseSampleRate(200);
+	//setMouseResolution(3);
+
+	//mouse_set_sample_rate(200);  /* 200 ¥Œ/√Î */
+	//mouse_set_resolution(3);   /* 8 count/mm */
 
 	//enableMouseZAxis();
 

@@ -13,7 +13,7 @@
 void initDevices();
 void init8254();
 void initCMOS();
-void enableMouse();
+unsigned int enableMouse();
 void init8042();
 
 void init8259();
@@ -45,12 +45,16 @@ void __wait8042Full();
 
 void setMouseSampleRate(int rate);
 void setMouseResolution(int res);
-void setMouseScale();
+unsigned int setMouseScale();
 
 void enableMouseZAxis();
 void insert8042Key(char key);
 
 void insert8042Mouse(LPMOUSEINFO mouse);
+
+
+int mouse_set_sample_rate(uint8_t rate);
+int mouse_set_resolution(uint8_t res);
 
 int getMouseID();
 
