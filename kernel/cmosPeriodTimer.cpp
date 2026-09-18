@@ -32,19 +32,22 @@ void DisableCmos() {
 }
 
 unsigned char readCmosPort(unsigned char port) {
+	__asm{cli}
 	__enterSpinlock(&g_cmos_spinlock);
-
 	outportb(0x70, port|0x80);
 	unsigned char c= inportb(0x71);
 	__leaveSpinlock(&g_cmos_spinlock);
+	__asm{sti}
 	return c;
 }
 
 void writeCmosPort(unsigned char port, unsigned char value) {
+	__asm {cli}
 	__enterSpinlock(&g_cmos_spinlock);
 	outportb(0x70, port|0x80);	//bit7 =1,disable NMI,bit7=0,enable NMI
 	outportb(0x71, value);
 	__leaveSpinlock(&g_cmos_spinlock);
+	__asm {sti}
 }
 
 

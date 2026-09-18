@@ -533,7 +533,7 @@ void init8254() {
 //d3,d2,d1,d0 ,select timer,1000 = timer2,0100=timer1,0010=timer0
 
 //8042 latch command
-// d7 d6:select timer,10=timer2,01=timer1,00=timer0
+//d7 d6:select timer,10=timer2,01=timer1,00=timer0
 //d5 = 0,d4 =0,lock command
 //d3 d2 d1 d0: any value
 
@@ -555,6 +555,8 @@ int Read8254Counter(int num) {
 
 unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	
+	__asm{cli}
+
 	int v0 = Read8254Counter(0);
 	int v1 = v0;
 	while(v1 == v0){
@@ -582,8 +584,10 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 		delta = -delta;
 	}
 
+	__asm {sti}
+
 	char szout[256];
-	//__printf(szout, "%s %d delta:%I64x,value:%I64x\r\n", __FUNCTION__, __LINE__, delta, value);
+	__printf(szout, "%s %d tick:%I64x,apic tick:%I64x\r\n", __FUNCTION__, __LINE__, tick[0], delta);
 
 	return delta;
 }

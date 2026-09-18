@@ -353,7 +353,7 @@ void TrajectoryBallInit() {
 
 	ret = __drawCircle((int)g_centerX, (int)g_centerY, (int)g_radius, (int)g_radius / 2, g_circle_color, (unsigned char*)g_circle_buf);
 
-	int len = __sprintf(szout, "(X:%lf,Y:%lf) (XS:%lf,YS:%lf)				", g_centerX, g_centerY, g_x_s, g_y_s);
+	int len = __sprintf(szout, "(X:%lf,Y:%lf) (X Speed:%lf,Y Speed:%lf)				", g_centerX, g_centerY, g_x_s, g_y_s);
 	szout[len] = 0;
 	int showPos = __getpos(0, gVideoHeight - TASKBAR_HEIGHT * 2);
 	__drawGraphChar(szout, OUTPUT_INFO_COLOR, showPos, g_tb_window.color);

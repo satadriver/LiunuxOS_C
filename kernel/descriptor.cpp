@@ -566,9 +566,14 @@ int AdjustApicTimer_new() {
 
 int AdjustApicTimer() {
 
-	char szout[256];
-
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long long ticks = 0;
+	g_apic_freq[id] = GetApicTimerFreq(&ticks) / LOCAL_APIC_DIVIDE;
+	g_timer_tick[id] = ticks;
+
+	return g_apic_freq[id];
+
+	char szout[256];
 
 	//__asm {cli}
 

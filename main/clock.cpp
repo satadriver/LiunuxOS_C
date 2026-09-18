@@ -250,7 +250,7 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 		
 			char szdateTime[256];
 			char* szdayInWeek = dayOfWeek2str(dt.dayInWeek);
-			int datalen = __sprintf(szdateTime, "%d/%d/%d %d:%d:%d %s. Having a good time!", 
+			int datalen = __sprintf(szdateTime, "[%d/%d/%d %d:%d:%d] [%s]. Having a good time!", 
 				dt.year, dt.month, dt.dayInMonth, dt.hour, dt.minute, dt.second, szdayInWeek);
 			int pos = __getpos(mx - datalen*GRAPHCHAR_HEIGHT/2, my - CLOCK_RADIUS_SIZE  - GRAPHCHAR_HEIGHT*8);
 			__drawGraphChar(szdateTime, CLOCK_TEXT_COLOR, pos, window.color);

@@ -56,7 +56,7 @@ void SqaureAnimation() {
 			DWORD c = ((x - cx) * (x - cx) * (x - cx)) + ((y - cy) * (y - cy) * (y - cy)) - gBaseColor * gBaseColor * gBaseColor;
 
 #elif defined VECTOR_GRAPH_VIDEO_2
-			DWORD c = ((x - cx) * (x - cx) * 0x1) + ((y - cy) * (y - cy) * 0x1) + gBaseColor * gBaseColor;
+			DWORD c = ((x - cx) * (x - cx) ) + ((y - cy) * (y - cy) ) + gBaseColor * gBaseColor;
 			DWORD high = (c >> 16);
 			c = c + high;
 #else
@@ -133,9 +133,9 @@ extern "C" __declspec(dllexport) int SquareVector(unsigned int retaddr, int tid,
 			}
 		}
 
-		SqaureAnimation();
-
 		__sleep(0);
+
+		SqaureAnimation();
 	}
 
 	stopSqaureAnimation();
