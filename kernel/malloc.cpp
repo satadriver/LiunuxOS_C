@@ -459,6 +459,7 @@ DWORD __malloc(DWORD s) {
 	char szout[256];
 	DWORD res = 0;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	process->alloc_count++;
 	res = (DWORD)fast_heap_alloc(s);
 	if (res) {
 		return res;

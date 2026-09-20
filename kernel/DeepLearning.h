@@ -10,14 +10,20 @@
 
 
 #pragma pack(1)
-
+//cpu
+//in,out
+//device
+//memory
+//file
 struct TaskSwitchSample {
-	float tick;
+	float usage;
 	float user;
 	float window;
 	float delta;
 	float priority;
 	float authority;
+	float sleep;
+
 };
 
 struct TaskPredictParam {
