@@ -344,14 +344,12 @@ void sleep(DWORD * params) {
 
 		if (current->sleep == 0)
 		{
-			enter_task_array_lock();
-			current->authority = AUTHORITY_PRIORITY;
-			//current->priority = STATIC_PRIORITY;
-			current->delta = DYNAMIC_PRIORITY;
-			proc->authority = AUTHORITY_PRIORITY;
-			//proc->priority = STATIC_PRIORITY;
-			proc->delta = DYNAMIC_PRIORITY;
-			leave_task_array_lock();
+			//enter_task_array_lock();
+			//proc->delta = DYNAMIC_PRIORITY;
+			//current->delta = DYNAMIC_PRIORITY;
+			//proc->authority = AUTHORITY_PRIORITY;
+			//current->authority = AUTHORITY_PRIORITY;
+			//leave_task_array_lock();
 			break;
 		}
 		else {

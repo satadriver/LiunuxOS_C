@@ -248,19 +248,19 @@ void setkbdStatus(DWORD status) {
 
 
 void __kKeyboardProc() {
-	char szout[256];
+
 	unsigned char status = inportb(0x64);
 	if ( (status & 0xc0) ) {
 		inportb(0x60);
-		__printf(szout, (char*)"keyboard status %x error\r\n", status);
 		return;
 	}
 	else if ((status & 1) == 0) {
-		__printf(szout, (char*)"keyboard status %x error\r\n", status);
 		return;
 	}
 
 	unsigned int c = inportb(0x60);
+
+	char szout[256];
 
 	unsigned int result = 0;
 

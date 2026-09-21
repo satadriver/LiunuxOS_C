@@ -50,13 +50,17 @@ PROCESS_INFO* GetReadyProcess() {
 	LPPROCESS_INFO ptr = current;
 	LPPROCESS_INFO next = 0;
 
+	AlgorithmModel rate[TASK_LIMIT_TOTAL];
+	AlgorithmModel crate[TASK_LIMIT_TOTAL];
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	int window[TASK_LIMIT_TOTAL];
+
 	int user[TASK_LIMIT_TOTAL];
 	int sleep[TASK_LIMIT_TOTAL];
-	AlgorithmModel rate[TASK_LIMIT_TOTAL];
+
 	AlgorithmModel delta[TASK_LIMIT_TOTAL];
+
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
 	int count = 0;
@@ -85,33 +89,38 @@ PROCESS_INFO* GetReadyProcess() {
 			else {
 				int dynamic = ptr->delta;
 				double ratio = 0.0;
+				double cratio = 0.0;
 				if (ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
 					dynamic = DYNAMIC_PRIORITY;
 					ratio = 1.0;
+					cratio = 1.0;
 					if (ptr->param->cmd & TASK_REALTIME) {
-						ptr->authority = AUTHORITY_PRIORITY;
 						ptr->priority = STATIC_PRIORITY;
-						ptr->delta = DYNAMIC_PRIORITY;
 					}
+					ptr->authority = AUTHORITY_PRIORITY;
+					ptr->delta = DYNAMIC_PRIORITY;
 				}
 				else {
 					double diff = (double)(ptr->tick_total);
 					ratio = ((double)ptr->tick_run) / diff;
-					if (ratio > 0.9)
-					{
-						//ratio = 0.01;
+					if (ratio > 0.9){
 					}
+					diff = g_cpu_tick[cpu];
+					cratio = ((double)ptr->tick_run) / (double)diff;
 				}
 				rate[count].id = ptr->tid;
+				crate[count].id = ptr->tid;
 
 				double v = ratio * (double)STATIC_PRIORITY;
 				rate[count].v = (unsigned long long) v;
+				v = cratio * (double)STATIC_PRIORITY;
+				crate[count].v = (unsigned long long) v;
 
 				if (g_debug_tag++ % 0x1000 == 0x1000) {
 					__printf(szout, "tick_start:%lf, diff:%i64x,tick:%I64x, ratio:%lf\r\n",
 						rate[count].v, ptr->tick_total, ptr->tick_run, ratio);
 				}
-				sleep[count] = (ptr->sleep );
+
 				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
 
 				user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
@@ -121,6 +130,7 @@ PROCESS_INFO* GetReadyProcess() {
 
 				level[count].id = ptr->tid;
 				level[count].v = 0;
+				sleep[count] = ptr->sleep;
 
 				count++;
 
@@ -147,17 +157,12 @@ PROCESS_INFO* GetReadyProcess() {
 	else if (count > 1) {
 		int target_id = 0;
 
-		//QuickSort(tickc, 0, count - 1);
-		//for (int i = 0; i < count; i++) {
-		//	tickc[i].v = STATIC_PRIORITY / (count - i);
-		//}
-	
 		for (int i = 0; i < count; i++) {
-			int pid = level[i].id;
 			level[i].v += rate[i].v;
+			level[i].v += crate[i].v;
 
 			level[i].v += (window[i] + user[i]);
-			
+			int pid = level[i].id;
 			level[i].v += delta[i].v;
 			level[i].v += tss[pid].priority;
 			level[i].v += tss[pid].authority;
@@ -192,56 +197,59 @@ PROCESS_INFO* GetReadyProcess() {
 			if (pid == target_id) {
 				tp.result = i;
 			}
-			tp.task[i].usage = tick_ratio;
+			tp.task[i].timerate = tick_ratio;
+			tp.task[i].cpurate = crate[i].fv;
 			tp.task[i].user = user_ratio;
 			tp.task[i].window = window_ratio;
 			tp.task[i].delta = delta_ratio;
 			tp.task[i].priority = priority_ratio;
 			tp.task[i].authority = authority_r;
-			tp.task[i].sleep = (float)(tss[pid].sleep)*1.0;
+			tp.task[i].sleep = tss[pid].sleep;
 		}
 
 		if (num == ML_TASK_LIMIT) {
-			int index = -1;
-			for (int i = 0; i < count; i++) {
-				if (rate[i].id == target_id) {
-					index = i;
-					break;
+			if (count != ML_TASK_LIMIT) {
+				int index = -1;
+				for (int i = 0; i < count; i++) {
+					if (rate[i].id == target_id) {
+						index = i;
+						break;
+					}
 				}
-			}
-			
-			if (index >= ML_TASK_LIMIT) {
-				int pid = target_id;
-				float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
-				float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
-				float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-				float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
-				float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-				float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
+				if (index >= ML_TASK_LIMIT) {
+					int pid = rate[index].id;
+					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
+					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
+					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
+					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
-				int ri = __random(0) % ML_TASK_LIMIT;
-				tp.task[ri].usage = tss[pid].tick_run/ tss[pid].tick_total;
-				tp.task[ri].user = user_ratio;
-				tp.task[ri].window = window_ratio;
-				tp.task[ri].delta = delta_ratio;
-				tp.task[ri].priority = priority_ratio;
-				tp.task[ri].authority = authority_r;
-				tp.task[ri].sleep = (float)(tss[pid].sleep) * 1.0;
-				tp.result = ri;
-			}
-			else {
+					int ri = __random(0) % ML_TASK_LIMIT;
+					tp.task[ri].timerate = tick_ratio;
+					tp.task[ri].cpurate = crate[index].fv;
+					tp.task[ri].user = user_ratio;
+					tp.task[ri].window = window_ratio;
+					tp.task[ri].delta = delta_ratio;
+					tp.task[ri].priority = priority_ratio;
+					tp.task[ri].authority = authority_r;
+					tp.task[ri].sleep = tss[pid].sleep;
+					tp.result = ri;
 
+					rate[ri].id = pid;
+				}
 			}
 		}
 		else {
 			for (int i = num; i < ML_TASK_LIMIT; i++) {
-				tp.task[i].usage = 0.0;
+				tp.task[i].timerate = 0.0;
+				tp.task[i].cpurate = 0.0;
 				tp.task[i].user = 0.0;
 				tp.task[i].window = 0.0;
 				tp.task[i].delta = 0.0;
 				tp.task[i].priority = 0.0;
 				tp.task[i].authority = 0.0;
-				tp.task[i].sleep = 1.0;
+				tp.task[i].sleep = -1.0;
 			}
 		}
 
@@ -249,7 +257,7 @@ PROCESS_INFO* GetReadyProcess() {
 		if (g_debug_tag++ % 0x1000 == 0x1000) {
 			for (int i = 0; i < ML_TASK_LIMIT; i++) {
 				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n",
-					i, tp.task[i].usage, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority, tp.result);
+					i, tp.task[i].timerate, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority, tp.result);
 			}
 		}
 #endif
@@ -279,9 +287,7 @@ PROCESS_INFO* GetReadyProcess() {
 		for (int i = 0; i < count; i++) {
 			int tid = delta[i].id;
 			if (target_id != delta[i].id) {
-
 				tss[tid].delta += 1;
-				
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
 					tss[tid].delta = DYNAMIC_PRIORITY;
 				}

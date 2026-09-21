@@ -85,7 +85,7 @@
 extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	
-	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 	g_train_complete = 0;
 	if (g_dl_ann) {
 		free(g_dl_ann);
@@ -97,11 +97,14 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	g_ml_data_cnt = 0;
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
 		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN * sizeof(TaskPredictParam));
+		if (g_ml_data == 0) {
+			return 0;
+		}
 	}
 
 	int max_task = ML_TASK_LIMIT/2;
 
-	int sleep_time = 20;
+	int sleep_time = 100;
 
 	for (int i = 0; i < max_task; i++) {
 		char tn[256];
@@ -110,8 +113,8 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (ml_addr2) {
-			__kCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
-			__sleep(sleep_time);
+			//__kCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
+			//__sleep(sleep_time);
 		}
 	}
 

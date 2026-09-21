@@ -10,20 +10,16 @@
 
 
 #pragma pack(1)
-//cpu
-//in,out
-//device
-//memory
-//file
+
 struct TaskSwitchSample {
-	float usage;
+	float timerate;
+	float cpurate;
 	float user;
 	float window;
 	float delta;
 	float priority;
 	float authority;
 	float sleep;
-
 };
 
 struct TaskPredictParam {
@@ -46,7 +42,7 @@ extern "C" __declspec(dllexport) kann_t* g_dl_ann ;
 
 extern "C" __declspec(dllexport) int SaveMlData(TaskPredictParam*);
 
-extern "C" __declspec(dllexport) int __kMachineLearning_rnn(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
+extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
 
 extern "C" __declspec(dllexport) int TaskSwitchPrediction(TaskPredictParam* tp);
 
