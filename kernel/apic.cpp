@@ -1305,6 +1305,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	g_cpu_start_tick[cpuid] = __krdtsc();
 	g_cpu_prev_tick[cpuid] = g_cpu_start_tick[cpuid];
+	g_cpu_tick[cpuid] = 0;
 
 	g_ipi_buf[cpuid] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 	__memset(g_ipi_buf[cpuid], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
@@ -1549,6 +1550,7 @@ void BPCodeStart() {
 
 	g_cpu_start_tick[cpu] = __krdtsc();
 	g_cpu_prev_tick[cpu] = g_cpu_start_tick[cpu];
+	g_cpu_tick[cpu] = 0;
 
 	DWORD reg_cr0 = 0;
 	DWORD reg_cr4 = 0;

@@ -524,9 +524,16 @@ double strlf2lf(char* str) {
 	return v;
 }
 
+#include "math.h"
 
 int lf2strlf(double f, char* buf) {
-	
+	if (f >= DBL_MAX || f<= -DBL_MAX || (f <= DBL_EPSILON && f>= -DBL_EPSILON) ) {
+		// 处理溢出，例如返回错误或使用其他表示
+		//__strcpy(buf, "elligle");
+		buf[0] = 0;
+		return 0;
+	}
+
 	int len = 0;
 	if (f < 0) {
 		buf[0] = '-';
