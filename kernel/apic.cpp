@@ -678,7 +678,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 				else {
 
 				}
-				//break;
+				break;
 			}	
 		}
 		__leaveSpinlock(&g_ipi_lock[cpu]);

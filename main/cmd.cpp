@@ -206,13 +206,13 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		return 0;
 	}
-	else if (__strcmp(params[0], "threads") == 0)
+	else if (__strcmp(params[0], "tasks") == 0)
 	{
 		*szout = 0;
 		GetAllProcesses(szout);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "thread") == 0)
+	else if (__strcmp(params[0], "task") == 0)
 	{
 		if (paramcnt >= 2)
 		{
@@ -554,7 +554,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "mltest") == 0) {
-		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kDeepLearning_mlp", 3, 0);
+		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kDeepLearning_mlp", 3, 0);
 	}
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);

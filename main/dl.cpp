@@ -104,7 +104,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 
 	int max_task = ML_TASK_LIMIT/2;
 
-	int sleep_time = 100;
+	int sleep_time = 20;
 
 	for (int i = 0; i < max_task; i++) {
 		char tn[256];
@@ -113,7 +113,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (ml_addr2) {
-			//__kCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
+			//__ipiCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
 			//__sleep(sleep_time);
 		}
 	}
@@ -126,7 +126,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (addr) 
 		{
-			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
+			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
 			__sleep(sleep_time);
 		}
 	}
