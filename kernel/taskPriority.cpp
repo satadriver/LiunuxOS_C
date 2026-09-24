@@ -59,9 +59,15 @@ PROCESS_INFO* GetReadyProcess() {
 	int user[TASK_LIMIT_TOTAL];
 	int sleep[TASK_LIMIT_TOTAL];
 
+	double mem[TASK_LIMIT_TOTAL];
+
+	double alloc[TASK_LIMIT_TOTAL];
+
 	AlgorithmModel delta[TASK_LIMIT_TOTAL];
 
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
+
+	double total_malloc = 0;
 
 	int count = 0;
 	do {
@@ -132,6 +138,11 @@ PROCESS_INFO* GetReadyProcess() {
 				level[count].v = 0;
 				sleep[count] = ptr->sleep;
 
+				mem[count] = (*ptr->lpvasize)/ gAvailableSize;
+				alloc[count] = ptr->alloc_times;
+
+				total_malloc += ptr->alloc_times;
+
 				count++;
 
 				if (next == 0) {
@@ -166,6 +177,12 @@ PROCESS_INFO* GetReadyProcess() {
 			level[i].v += delta[i].v;
 			level[i].v += tss[pid].priority;
 			level[i].v += tss[pid].authority;
+
+			double alloc_ratio =  alloc[i] / total_malloc;
+			alloc[i] = alloc_ratio;
+			level[i].v += STATIC_PRIORITY * alloc_ratio;
+
+			level[i].v += STATIC_PRIORITY * mem[i];
 		}
 
 		QuickSort(level, 0, count - 1);
@@ -205,6 +222,8 @@ PROCESS_INFO* GetReadyProcess() {
 			tp.task[i].priority = priority_ratio;
 			tp.task[i].authority = authority_r;
 			tp.task[i].sleep = tss[pid].sleep;
+			tp.task[i].mem = mem[i];
+			tp.task[i].alloc = alloc[i];
 		}
 
 		if (num == ML_TASK_LIMIT) {
@@ -234,6 +253,8 @@ PROCESS_INFO* GetReadyProcess() {
 					tp.task[ri].priority = priority_ratio;
 					tp.task[ri].authority = authority_r;
 					tp.task[ri].sleep = tss[pid].sleep;
+					tp.task[ri].mem = mem[index];
+					tp.task[ri].alloc = alloc[index];
 					tp.result = ri;
 
 					rate[ri].id = pid;
@@ -250,6 +271,8 @@ PROCESS_INFO* GetReadyProcess() {
 				tp.task[i].priority = 0.0;
 				tp.task[i].authority = 0.0;
 				tp.task[i].sleep = -1.0;
+				tp.task[i].mem = 0.0;
+				tp.task[i].alloc = 0.0;
 			}
 		}
 

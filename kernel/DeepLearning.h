@@ -14,6 +14,8 @@
 struct TaskSwitchSample {
 	float timerate;
 	float cpurate;
+	float mem;
+	float alloc;
 	float user;
 	float window;
 	float delta;

@@ -255,77 +255,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		process->tss.link = 0;
 	}
-	else if (__strcmp(params[0], "alloc") == 0)
-	{
-		if (paramcnt >= 3)
-		{
-			int size = __strh2i((unsigned char*)params[1]);
-			int cnt = __strh2i((unsigned char*)params[2]);
-			for (int i = 0; i < cnt; i++)
-			{
-				DWORD addr = __malloc(size);
-				__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
-				ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-			}
-		}
-		else if (paramcnt >= 2)
-		{
-			int size = __strh2i((unsigned char*)params[1]);
-			DWORD addr = __malloc(size);
-			__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
-	}
-	else if (__strcmp(params[0], "free") == 0)
-	{
-		if (paramcnt >= 2)
-		{
-			DWORD addr = __strh2i((unsigned char*)params[1]);
-			int size = __free(addr);
-			__sprintf(szout, "free size:%x,address:%x\r\n", size, addr);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
-	}
-	else if (__strcmp(params[0], "dumpm") == 0)
-	{
-		if (paramcnt >= 2)
-		{
-			DWORD addr = __strh2i((unsigned char*)params[1]);
-
-			int len = 0x40;
-
-			if (paramcnt >= 3)
-			{
-				len = __strh2i((unsigned char*)params[2]);
-			}
-			__dump((char*)addr, len, TRUE, (unsigned char*)szout);
-
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
-	}
-	else if (__strcmp(params[0], "editm") == 0)
-	{
-		if (paramcnt >= 3)
-		{
-			DWORD addr = __strh2i((unsigned char*)params[1]);
-			__strcpy((char*)addr, params[2]);
-		}
-	}
-	else if (__strcmp(params[0], "memlist") == 0 && paramcnt >= 2)
-	{
-		int pid = -1;
-		int cpu = -1;
-		if (paramcnt >= 2) {
-			pid = __strh2i((unsigned char*)params[1]);
-		}
-		if (paramcnt >= 3) {
-			cpu = __strh2i((unsigned char*)params[2]);
-		}
-
-		*szout = 0;
-		int len = getmemmap(pid,cpu, szout);
-		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-	}
 	else if (__strcmp(params[0], "testdev") == 0)
 	{
 		__strcpy(taskcmd.filename, params[0]);
@@ -552,6 +481,77 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		int err = HeapAllocTest(cnt,size,&total);
 		__sprintf(szout, "HeapAlloc test count:%x, size:%x,total:%i64x,error:%d\r\n",cnt,size,total, err);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "malloc") == 0)
+	{
+		if (paramcnt >= 3)
+		{
+			int size = __strh2i((unsigned char*)params[1]);
+			int cnt = __strh2i((unsigned char*)params[2]);
+			for (int i = 0; i < cnt; i++)
+			{
+				DWORD addr = __malloc(size);
+				__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
+				ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+			}
+		}
+		else if (paramcnt >= 2)
+		{
+			int size = __strh2i((unsigned char*)params[1]);
+			DWORD addr = __malloc(size);
+			__sprintf(szout, "malloc size:%x,address:%x\r\n", size, addr);
+			ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
+		}
+	else if (__strcmp(params[0], "free") == 0)
+	{
+		if (paramcnt >= 2)
+		{
+			DWORD addr = __strh2i((unsigned char*)params[1]);
+			int size = __free(addr);
+			__sprintf(szout, "free size:%x,address:%x\r\n", size, addr);
+			ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
+	}
+	else if (__strcmp(params[0], "dumpm") == 0)
+	{
+		if (paramcnt >= 2)
+		{
+			DWORD addr = __strh2i((unsigned char*)params[1]);
+
+			int len = 0x40;
+
+			if (paramcnt >= 3)
+			{
+				len = __strh2i((unsigned char*)params[2]);
+			}
+			__dump((char*)addr, len, TRUE, (unsigned char*)szout);
+
+			ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
+	}
+	else if (__strcmp(params[0], "editm") == 0)
+	{
+		if (paramcnt >= 3)
+		{
+			DWORD addr = __strh2i((unsigned char*)params[1]);
+			__strcpy((char*)addr, params[2]);
+		}
+	}
+	else if (__strcmp(params[0], "procmem") == 0 && paramcnt >= 2)
+	{
+		int pid = -1;
+		int cpu = -1;
+		if (paramcnt >= 2) {
+			pid = __strh2i((unsigned char*)params[1]);
+		}
+		if (paramcnt >= 3) {
+			cpu = __strh2i((unsigned char*)params[2]);
+		}
+
+		*szout = 0;
+		int len = GetProcessMemory(pid, cpu, szout);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "mltest") == 0) {
 		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kDeepLearning_mlp", 3, 0);

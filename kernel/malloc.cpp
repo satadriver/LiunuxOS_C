@@ -257,7 +257,7 @@ int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid,
 }
 
 
-DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int tag) {
+DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int flag) {
 
 	DWORD res = 0;
 
@@ -346,64 +346,51 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int t
 		res = 0;
 	}
 
-#ifndef DISABLE_PAGE_MAPPING
-	if (res  && vaddr) {
+	if (res ) {
+		int tag = flag & 0x7fffffff;
 
 		DWORD addr = 0;
 		LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
 		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
-		enter_task_array_lock_id(cpu);
+		if ((flag & 0x80000000) == 0)
+			enter_task_array_lock();
 
 		if (process->pid == pid && process->cpuid == cpu)
 		{
 			addr = process->vaddr + *process->lpvasize;
-			if (vaddr != addr) {
-				__printf(szout, "%s %d addr:%x vaddr:%x error\r\n", __FUNCTION__,__LINE__,addr,vaddr);
-			}
-			if (addr < USER_SPACE_END)
-			{
-				*process->lpvasize += size;
 
+			*process->lpvasize += size;
+			if (vaddr) {
+#ifndef DISABLE_PAGE_MAPPING
 				DWORD* cr3 = (DWORD*)process->tss.cr3;
 				DWORD pagecnt = mapPhyToLinear(addr, res, size, cr3, tag);
-
 				addr = tss->vaddr + *tss->lpvasize;
-				*tss->lpvasize += size;
-
 				tss->tss.cr3 = process->tss.cr3;
-
 				res = addr;
+#endif
 			}
-			else {
-				__printf(szout, "%s size:%x vaddr:%s error\n",__FUNCTION__, size, vaddr);
-			}
+			*tss->lpvasize += size;
+			tss->alloc_times++;
+			process->alloc_times++;
 		}
 		else 
 		{
 			addr = tss->vaddr + *tss->lpvasize;
-			if (vaddr != addr) {
-				__printf(szout, "%s %d addr:%x vaddr:%x error\r\n", __FUNCTION__, __LINE__, addr, vaddr);
-			}
-
-			if (addr < USER_SPACE_END)
-			{
-				*tss->lpvasize += size;
-
+			*tss->lpvasize += size;
+			tss->alloc_times++;
+			if (vaddr) {
+#ifndef DISABLE_PAGE_MAPPING
 				DWORD* cr3 = (DWORD*)tss->tss.cr3;
 				DWORD pagecnt = mapPhyToLinear(addr, res, size, cr3, tag);
 				res = addr;
-
-			}
-			else {
-				__printf(szout, "%s size:%x vaddr:%s error\n", __FUNCTION__, size, vaddr);
+#endif
 			}
 		}
-		
-		leave_task_array_lock_id(cpu);
+		if ( (flag & 0x80000000)==0)
+			leave_task_array_lock();
 	}
-#endif
 
 	__leaveSpinlock(&gMemAllocLock);
 
@@ -458,7 +445,13 @@ int __kFree(DWORD physicalAddr) {
 DWORD __malloc(DWORD s) {
 	char szout[256];
 	DWORD res = 0;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+
+	process->alloc_times++;
+	current->alloc_times++;
+
 	res = (DWORD)fast_heap_alloc(s);
 	if (res) {
 		return res;
@@ -520,8 +513,13 @@ int __free(DWORD linearAddr) {
 	if (linearAddr == 0) {
 		return 0;
 	}
-
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+
+	process->alloc_times --;
+	current->alloc_times--;
+
 	if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {
 		return fast_heap_free((char*)linearAddr);
 	}

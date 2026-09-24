@@ -29,5 +29,3 @@ int GetMemory(char* szout,int pid);
 int GetAllProcesses(char* szout);
 
 int GetProcess(int cpuid,int pid, char* szout);
-
-int getmemmap(int pid,int cpu, char * szout);

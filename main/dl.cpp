@@ -102,7 +102,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		}
 	}
 
-	int max_task = ML_TASK_LIMIT/2;
+	int max_task = ML_TASK_LIMIT/2 ;
 
 	int sleep_time = 20;
 

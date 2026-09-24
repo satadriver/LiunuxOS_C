@@ -54,10 +54,7 @@ int getcrs(char * szout) {
 	return len;
 }
 
-int getmemmap(int pid,int cpu, char* szout) {
 
-	return GetProcessMemory(pid,cpu, szout);
-}
 
 int GetAllProcesses(char* szout) {
 	int outlen = 0;

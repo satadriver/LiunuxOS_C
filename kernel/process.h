@@ -74,6 +74,8 @@ typedef struct
 	//内存分配的虚拟地址偏移
 	DWORD * lpvasize;
 
+	int alloc_times;
+
 	DWORD errorno;
 
 	int priority;
