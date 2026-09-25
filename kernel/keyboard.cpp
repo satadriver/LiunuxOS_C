@@ -480,7 +480,6 @@ void __kKeyboardProc() {
 		return;
 	}
 
-
 // 	char szout[256];
 // 	__printf(szout, "input key:%x,status:%x\n", c, data->kbdStatus);
 

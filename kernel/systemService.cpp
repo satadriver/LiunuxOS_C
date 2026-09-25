@@ -24,15 +24,15 @@ DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 		push gs
 		push ss
 
-		push esp
-		sub esp, 4
-		push ebp
+		push esp		//the pointer to struct LIGHT_ENVIRONMENT
+		sub esp, 4		//return address in stack
+		push ebp		//ebp point to 
 		mov ebp, esp
 		sub esp, NATIVE_STACK_LIMIT
 	}
 
 	__asm {
-		push dword ptr ss:[ebp + 8]
+		push dword ptr ss:[ebp + 8]	//struct LIGHT_ENVIRONMENT
 		push edi
 		push eax
 

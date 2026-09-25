@@ -175,7 +175,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		TASKCMDPARAMS cmd;
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		__ipiCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
 		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kDeepLearning_mlp");
 		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kDeepLearning_mlp");

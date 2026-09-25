@@ -127,8 +127,8 @@ int initMemory() {
 				
 				//gAllocLimitSize = pageAlignmentSize(gAllocLimitSize, 0);
 
-				int len = __printf(szout, "available memory address:%I64x,size:%I64x,alloc limit size:%I64x\n",
-					gAvailableBase,gAvailableSize, gAllocLimitSize);
+				int len = __printf(szout, "%s %d available memory address:%I64x,available size:%I64x,alloc max size:%I64x\n",
+					__FUNCTION__, __LINE__,gAvailableBase,gAvailableSize, gAllocLimitSize);
 			}
 		}
 
@@ -266,12 +266,19 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 	DWORD size = pageAlignSize(s, 1);
 	if ( size > gAllocLimitSize)
 	{
-		__printf(szout, "__kProcessMalloc pageAlignmentSize:%x gAllocLimitSize:%x\r\n", size, gAllocLimitSize);
+		__printf(szout, "%s %d alloc size:%x exceed max size:%x\r\n", __FUNCTION__, __LINE__, size, gAllocLimitSize);
 		return FALSE;
 	}
 	else if (size < PAGE_SIZE)
 	{
 		size = PAGE_SIZE;
+	}
+
+	LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	if (vaddr == 0) {
+		vaddr = process->vaddr + *process->lpvasize;
 	}
 
 	*outSize = size;
@@ -288,7 +295,8 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 			if ( (unsigned long long)addr + size > gAvailableBase + gAvailableSize)
 			{
 				res = -1;
-				__printf(szout, "__kProcessMalloc addr:%x, size:%x exceed available addr:%I64x,size:%I64x\r\n", addr, size, gAvailableBase, gAvailableSize);
+				__printf(szout, "%s %d addr:%x, size:%x exceed available address base:%I64x,max size:%I64x\r\n", 
+					__FUNCTION__, __LINE__, addr, size, gAvailableBase, gAvailableSize);
 				break;
 			}
 
@@ -304,7 +312,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 					break;
 				}
 				else {
-					__printf(szout, "getMemAllocInfo failed\r\n");
+					__printf(szout, "%s %d failed for memory insufficient\r\n",__FUNCTION__,__LINE__);
 					res = -1;
 					break;
 				}
@@ -314,7 +322,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 					int t = info->size / size;
 
 					if (info->size % size) {
-						__printf(szout, "isAddrExist size:%x size:%x error\r\n",info->size,size);
+						__printf(szout, "%s %d size:%x size:%x error\r\n", __FUNCTION__, __LINE__,info->size,size);
 						t++;
 					}
 
@@ -348,45 +356,30 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 
 	if (res ) {
 		int tag = flag & 0x7fffffff;
-
-		DWORD addr = 0;
-		LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-
 		if ((flag & 0x80000000) == 0)
 			enter_task_array_lock();
 
 		if (process->pid == pid && process->cpuid == cpu)
 		{
-			addr = process->vaddr + *process->lpvasize;
-
 			*process->lpvasize += size;
-			if (vaddr) {
-#ifndef DISABLE_PAGE_MAPPING
-				DWORD* cr3 = (DWORD*)process->tss.cr3;
-				DWORD pagecnt = mapPhyToLinear(addr, res, size, cr3, tag);
-				addr = tss->vaddr + *tss->lpvasize;
-				tss->tss.cr3 = process->tss.cr3;
-				res = addr;
-#endif
-			}
 			*tss->lpvasize += size;
 			tss->alloc_times++;
 			process->alloc_times++;
+#ifndef DISABLE_PAGE_MAPPING
+			DWORD* cr3 = (DWORD*)process->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+			res = vaddr;
+#endif		
 		}
 		else 
 		{
-			addr = tss->vaddr + *tss->lpvasize;
 			*tss->lpvasize += size;
 			tss->alloc_times++;
-			if (vaddr) {
 #ifndef DISABLE_PAGE_MAPPING
-				DWORD* cr3 = (DWORD*)tss->tss.cr3;
-				DWORD pagecnt = mapPhyToLinear(addr, res, size, cr3, tag);
-				res = addr;
+			DWORD* cr3 = (DWORD*)tss->tss.cr3;
+			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+			res = vaddr;
 #endif
-			}
 		}
 		if ( (flag & 0x80000000)==0)
 			leave_task_array_lock();
@@ -411,7 +404,7 @@ DWORD __kMalloc(DWORD s) {
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD ret = __kProcessMalloc(s, &size, process->pid, process->cpuid, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (ret == 0) {	
-		len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d error\n",s,size,process->pid);
+		len = __printf(szout, "%s %d alloc size:%x request size:%x pid:%d error\n", __FUNCTION__, __LINE__,s,size,process->pid);
 	}
 	else {
 		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
@@ -433,7 +426,7 @@ int __kFree(DWORD physicalAddr) {
 		DWORD size = ClearMemAllocItem(info);	
 	}
 	else {	
-		int len = __printf(szout, "__kFree not found address:%x\n", physicalAddr);
+		int len = __printf(szout, "%s %d not found address:%x\n", __FUNCTION__, __LINE__, physicalAddr);
 	}
 
 	__leaveSpinlock(&gMemAllocLock);

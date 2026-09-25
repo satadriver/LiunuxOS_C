@@ -333,7 +333,6 @@ extern "C" void __declspec(naked) HpetTimerHandler(LIGHT_ENVIRONMENT * stack) {
 			//__printf(szout,"hpet timer 0\r\n");
 		}
 		
-		//why not use "else if"?
 		if (value & 2) {
 			//__printf(szout, "hpet timer 1\r\n");
 
@@ -1381,8 +1380,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	InitApicPerformMonitor();
 
-	//int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__DummyProcess", 3, 0);
 	__asm {sti}
 
 	char* reg_esp_new = 0;

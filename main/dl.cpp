@@ -102,11 +102,11 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		}
 	}
 
-	int max_task = ML_TASK_LIMIT/2 ;
+	int max_task = ML_TASK_LIMIT ;
 
 	int sleep_time = 20;
 
-	for (int i = 0; i < max_task; i++) {
+	for (int i = 0; i < max_task/2; i++) {
 		char tn[256];
 		__sprintf(tn, "TestThread%d", i);
 		TASKCMDPARAMS cmd2;

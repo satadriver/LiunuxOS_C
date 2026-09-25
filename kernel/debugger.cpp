@@ -321,7 +321,6 @@ void __kDebugger(LIGHT_ENVIRONMENT* stack) {
 
 	}
 
-
 	DWORD addr[4];
 	DWORD bptype[4];
 	DWORD bplen[4] ;

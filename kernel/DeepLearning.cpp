@@ -120,9 +120,9 @@ int TaskSwitchPrediction(TaskPredictParam* tp) {
 	const float* y1 = kann_apply1(g_dl_ann, (float*)tp);
 
 	float max = -1.0;
-	int num = 0;
+	int num = -1;
 	for (int j = 0; j < outSize; j++) {
-		if (y1[j] > max) {
+		if (y1[j] >= max) {
 			max = y1[j];
 			num = j;
 		}

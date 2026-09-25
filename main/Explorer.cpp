@@ -68,8 +68,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	int ret = 0;
 
 	char szout[1024];
-
-	__printf(szout, "__kExplorer task retaddr:%x,pid:%x,name:%s,funcname:%s,param:%x\n", retaddr, tid, filename, funcname, param);
 	
 	WINDOWCLASS window;
 	initDesktopWindow(&window, EXPLORER_TASKNAME, tid,1);
@@ -117,17 +115,16 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
-	//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
-	__MyTestTask(0, 0, 0, 0, 0);
+	__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
+	//__MyTestTask(0, 0, 0, 0, 0);
 	//displayCCPoem();
 
 	g_task_switch_toggle = 1;
-	//__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "Process_Test_Main", 3, 0);
+
+	__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
 
 	while (1)
 	{
-		//__printf(szout, "test start\r\n");
-
 		MOUSEINFO mouseinfo;
 		__memset((char*)&mouseinfo, 0, sizeof(MOUSEINFO));
 
@@ -180,19 +177,20 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 			{
 				unsigned long module = linear2phy((unsigned long)"main.dll");
 				unsigned long func = linear2phy((unsigned long)"__kConsole");
-				//__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
-				//unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
-				//if (addr) 
+
+				/*
+				unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
+				if (addr) 
 				{
-					//__printf(szout, "%s:%d to call __ipiCreateThread \r\n", __FUNCTION__, __LINE__);
-					//__ipiCreateThread(addr, (char*)MAIN_DLL_SOURCE_BASE, 0, (char*)"__kConsole");
-					//__kCreateThread(addr, (unsigned long)MAIN_DLL_SOURCE_BASE, 0, (char*)"__kConsole");
+					__printf(szout, "%s:%d to call __ipiCreateThread \r\n", __FUNCTION__, __LINE__);
+					__ipiCreateThread(addr, MAIN_DLL_SOURCE_BASE, 0, (char*)"__kConsole");
+					__kCreateThread(addr, (unsigned long)MAIN_DLL_SOURCE_BASE, 0, (char*)"__kConsole");
 					
 				}
-				//else {
-				//	__printf(szout, "%s:%d error\r\n", __FUNCTION__,__LINE__);
-				//}
+				else {
+					__printf(szout, "%s:%d error\r\n", __FUNCTION__,__LINE__);
+				}*/
 			}
 			continue;
 		}
@@ -423,7 +421,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 // 			menu.pos.y = mouseinfo.y;
 // 			menu.action = mouseinfo.status;
 		}
-		//__giveup();
+
 		__sleep(0);
 	}
 	return 0;
