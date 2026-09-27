@@ -2,7 +2,7 @@
 #include "algorithm.h"
 #include "Utils.h"
 
-void BubbleSort_ull(AlgorithmModel* arr, int count) {
+void BubbleSortd(AlgorithmModel* arr, int count) {
 	for (int i = count - 1; i > 0; i--) {
 		for (int j = 0; j < i; j++) {
 			double low = arr[j].fv;
@@ -24,15 +24,19 @@ void BubbleSort_ull(AlgorithmModel* arr, int count) {
 	}
 }
 
-void BubbleSort(unsigned int* arr, int count) {
+void BubbleSort(AlgorithmModel* arr, int count) {
 	for (int i = count - 1; i > 0 ; i--) {
 		for (int j = 0; j < i; j++) {
-			unsigned int low = arr[j] & 0x00ffffff;
-			unsigned int high = arr[j + 1] & 0x00ffffff;
+			unsigned long long low = arr[j].id;
+			unsigned long long high = arr[j + 1].v;
 			if (low > high) {
-				unsigned int temp = arr[j];
-				arr[j] = arr[j + 1];
-				arr[j + 1] = temp;
+				unsigned long long id = arr[j].id;
+				unsigned long long v = arr[j].v;
+
+				arr[j].id = arr[j + 1].id;
+				arr[j].v = arr[j + 1].v;
+				arr[j + 1].v = v;
+				arr[j + 1].id = id;
 			}
 		}
 	}

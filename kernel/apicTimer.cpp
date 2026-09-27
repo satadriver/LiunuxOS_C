@@ -126,7 +126,7 @@ void __kApicTimerProc() {
 
 
 
-#define INTER_CPU_RATE_MAX		0.3
+#define INTER_CPU_RATE_MAX		0.2
 
 
 extern "C" __declspec(dllexport)int __k8254TimerProc() {
@@ -139,20 +139,24 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 
 	char szout[256];
 
+	int res = 0;
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
 	AlgorithmModel ratio[TASK_LIMIT_TOTAL];
 	unsigned long long tick = __krdtsc();
 	for (int i = 0; i < counter; i++) {
-		int id = ids[i];
-		if (g_cpu_start_tick[id] == 0 || g_cpu_tick[id] == 0) {
-			
+		int cpuid = ids[i];
+		if (g_cpu_start_tick[cpuid] == 0 || g_cpu_tick[cpuid] == 0) {
+			//__printf(szout, "%s %d cpu:%d g_cpu_start_tick or g_cpu_tick null\r\n", __FUNCTION__, __LINE__, cpuid);
 		}
 		else {
-			double cpu_diff = tick - g_cpu_start_tick[id];
-			double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
+			double cpu_diff = tick - g_cpu_start_tick[cpuid];
+			double cpu_ratio = (double)g_cpu_tick[cpuid] / cpu_diff;
 			ratio[i].fv = cpu_ratio;
-			ratio[i].id = id;
+			ratio[i].id = cpuid;
 		}
 	}
 
@@ -160,10 +164,9 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		return 0;
 	}
 
-	BubbleSort_ull(ratio, counter);
+	BubbleSortd(ratio, counter);
 
 	int src_id = (int)ratio[counter - 1].id;
-
 	int dst_id = (int)ratio[0].id;
 	double src_fv = ratio[counter - 1].fv;
 	double dst_fv = ratio[0].fv;
@@ -175,51 +178,66 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	}
 
 	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);
+	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
 	extern int g_task_array_lock[256];
-	int ret = __GetSpinlock(&g_task_array_lock[src_id]);
-	if (ret == 0) {
+	if (id == src_id)
+	{
+		res = 1;
+	}
+	else {
+		res = __GetSpinlock(&g_task_array_lock[src_id]);
+	}
+	
+	if (res == 0) {
 		return 0;
 	}
+	int is_src_cur = 0;
+	int is_src_proc = 0;
 
 	double max = 0.0;
 	int cnt = 0;
 	int src_tid = -1;
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (src_tss[i].status == TASK_RUN) {
+		if (src_tss[i].status == TASK_RUN) {	
 			cnt++;
-			double proc_diff = tick - g_cpu_start_tick[src_id];
-			double proc_ratio = (double)src_tss[i].tick_run / proc_diff;
+			double cpu_diff = tick - g_cpu_start_tick[src_id];
+			double proc_ratio = (double)src_tss[i].tick_run / cpu_diff;
 			if (proc_ratio > max) {
-				max = proc_ratio;
-				src_tid = src_tss[i].tid;
+				if ( (src_current->tid == src_tss[i].tid) || (src_tss[i].tid == src_tss[i].pid)){
+
+				}
+				else {
+					max = proc_ratio;
+					src_tid = src_tss[i].tid;
+				}
 			}
 		}
 	}
-
-	int is_src_proc = 0;
+	
 	if (src_tss[src_tid].pid == src_tss[src_tid].tid) {
 		is_src_proc = 1;
 	}
-
-	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
-	int is_src_cur = 0;
+	
+	
 	if (src_current->tid == src_tid) {
 		is_src_cur = 1;
 	}
 
+	LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
 	if (cnt > 1 && src_tid != -1 ) {
+		if (dst_id == id) {
+			res = 1;
+		}
+		else {
+			res = __GetSpinlock(&g_task_array_lock[dst_id]);
+		}
 		
-		LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
-
-		int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-
-		ret = __GetSpinlock(&g_task_array_lock[dst_id]);
-		if (ret) {
-
+		if (res) {
 			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 				if (dst_tss[i].status == TASK_OVER) {
 					int dst_tid = i;
 
+					int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 					__memcpy((char*)&dst_tss[i], (char*)&src_tss[src_tid], tssSize);
 					dst_tss[i].cpuid = dst_id;
 
@@ -249,9 +267,8 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 					break;
 				}
 			}
-		}
-
-		leave_task_array_lock_id(dst_id);
+			leave_task_array_lock_id(dst_id);
+		}	
 	}
 
 	leave_task_array_lock_id(src_id);

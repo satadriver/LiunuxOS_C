@@ -211,7 +211,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	}
 
 	double error = 100.0 * n_err / n_samples;
-	printf("Test error rate: %lf\r\n", error);
+	printf("Test error rate: %lf%%\r\n", error);
 	//kann_delete(ann); // TODO: also to free x, y and x1
 	if (error<20.0) {
 		g_train_complete = 1;

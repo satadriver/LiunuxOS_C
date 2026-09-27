@@ -18,9 +18,9 @@ struct AlgorithmModel {
 
 void swap(unsigned long* a, unsigned long* b);
 
-void BubbleSort(unsigned int* arr, int count);
+void BubbleSort(AlgorithmModel* arr, int count);
 
-void BubbleSort_ull(AlgorithmModel* arr, int count);
+void BubbleSortd(AlgorithmModel* arr, int count);
 
 void QuickSort(AlgorithmModel* s, int low, int high);
 

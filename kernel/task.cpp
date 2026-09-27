@@ -1365,6 +1365,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	__kApicTimerProc();
 
+	//SwitchTaskCPU();
+
 	int ret = __GetSpinlock(&g_task_array_lock[id]);
 	if (ret) {
 		unsigned long long tick1 = __krdtsc();

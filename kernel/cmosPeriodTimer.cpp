@@ -127,6 +127,8 @@ void __kPeriodTimer() {
 	__drawGraphChar(( char*)szout, fontcolor, pos, TASKBARCOLOR);
 
 	__kPeriodTimerProc();
+
+	SwitchTaskCPU();
 }
 
 

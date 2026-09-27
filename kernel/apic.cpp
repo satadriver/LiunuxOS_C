@@ -1711,7 +1711,7 @@ int GetIdleProcessor() {
 		times[i].id = id;
 	}
 
-	BubbleSort_ull(times, counter);
+	BubbleSortd(times, counter);
 	
 	return (int)times[0].id;
 

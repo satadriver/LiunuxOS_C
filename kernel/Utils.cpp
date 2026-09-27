@@ -1044,7 +1044,14 @@ int __kFormat(char* buf,const char* format, DWORD* params) {
 			params += 1;
 
 			dst[dpos++] = c;
+		}
+		else if (format[spos] == '%' && format[spos + 1] == '%') {
+			spos += 2;
 
+			//char c = *(char*)params;
+			//params += 1;
+
+			dst[dpos++] = '%';
 		}
 		else {
 			dst[dpos] = format[spos];
