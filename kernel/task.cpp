@@ -316,7 +316,7 @@ TASK_LIST_ENTRY* RemoveTaskListPid(int pid) {
 		}
 	}
 
-	__kFreeProcess(pid);
+	__kFreeProcess(process);
 
 	leave_task_list_lock();
 
@@ -1508,6 +1508,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->pid = tid;
 	process0->ppid = 0;
 	process0->cpuid = id;
+	process0->vid = (id << 16) + tid;
 	process0->espbase = stacktop;
 	process0->level = 0;
 	process0->vaddr = 0;

@@ -1,5 +1,5 @@
 
-#include "malloc.h"
+
 #include "def.h"
 #include "Utils.h"
 #include "video.h"
@@ -10,6 +10,7 @@
 #include "memory.h"
 #include "heap.h"
 #include "apic.h"
+#include "malloc.h"
 
 QWORD gAvailableSize = 0;
 
@@ -219,7 +220,7 @@ int ClearMemAllocItem(LPMEMALLOCINFO item) {
 	item->addr = 0;
 	item->size = 0;
 	item->vaddr = 0;
-	item->pid = 0;
+	item->vid = 0;
 
 	return size;
 }
@@ -230,7 +231,7 @@ LPMEMALLOCINFO GetEmptyMemAllocItem() {
 	int cnt = MEMORY_ALLOC_BUFLIST_SIZE / sizeof(MEMALLOCINFO) ;
 	for ( int i = 1;i < cnt;i ++)
 	{
-		if ( item[i].size == 0 && item[i].addr == 0 && item[i].vaddr == 0 && item[i].pid == 0)
+		if ( item[i].size == 0 && item[i].addr == 0 && item[i].vaddr == 0 && item[i].vid == 0)
 		{
 			return &item[i];
 		}
@@ -239,7 +240,7 @@ LPMEMALLOCINFO GetEmptyMemAllocItem() {
 }
 
 
-int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid,int cpu) {
+int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,DWORD vid) {
 	if (vaddr)
 	{
 		item->vaddr = vaddr;
@@ -247,10 +248,9 @@ int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,int pid,
 	else {
 		item->vaddr = addr;
 	}
-	item->pid = pid;
+	item->vid = vid;
 	item->size = size;
 	item->addr = addr;
-	item->cpu = cpu;
 
 	InsertListTail(& (gMemAllocList->list), & item->list);
 	return 0;
@@ -274,11 +274,11 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		size = PAGE_SIZE;
 	}
 
-	LPPROCESS_INFO lptss = GetTaskTssBaseId(cpu);
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)lptss + pid;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO tssbase = GetTaskTssBaseId(cpu);
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)tssbase + pid;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBaseId(cpu);
 	if (vaddr == 0) {
-		vaddr = process->vaddr + *process->lpvasize;
+		vaddr = tss->vaddr + *(tss->lpvasize);
 	}
 
 	*outSize = size;
@@ -306,7 +306,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 				info = GetEmptyMemAllocItem();
 				if (info)
 				{
-					SetMemAllocItem(info, addr, vaddr, size, pid,cpu);
+					SetMemAllocItem(info, addr, vaddr, size, tss->vid);
 
 					res = addr;
 					break;
@@ -357,7 +357,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 	if (res ) {
 		int tag = flag & 0x7fffffff;
 		if ((flag & 0x80000000) == 0)
-			enter_task_array_lock();
+			enter_task_array_lock_id(cpu);
 
 		if (process->pid == pid && process->cpuid == cpu)
 		{
@@ -382,7 +382,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 #endif
 		}
 		if ( (flag & 0x80000000)==0)
-			leave_task_array_lock();
+			leave_task_array_lock_id(cpu);
 	}
 
 	__leaveSpinlock(&gMemAllocLock);
@@ -570,7 +570,7 @@ int __free(DWORD linearAddr) {
 
 
 //make sure the first in the list is not to be deleted,or else will be locked
-void freeProcessMemory(int pid,int cpu) {
+void freeProcessMemory(LPPROCESS_INFO proc) {
 
 	__enterSpinlock(&gMemAllocLock);
 
@@ -582,7 +582,7 @@ void freeProcessMemory(int pid,int cpu) {
 		{
 			break;
 		}
-		else if (info->pid == pid && info->cpu == cpu)
+		else if (info->vid == proc->vid)
 		{
 			ClearMemAllocItem(info);
 		}
@@ -629,10 +629,10 @@ int GetProcessMemory(int pid,int cpu, char* szout) {
 		if (info == 0) {
 			break;
 		}
-		if (info->pid == pid)
+		if (info->vid == (cpu<<16)+pid)
 		{
 			int len = __printf(szout + offset, 
-				"memory:%x,virtual memory:%x,size:%x,pid:%x\n", info->addr, info->vaddr, info->size, info->pid);
+				"memory:%x,virtual memory:%x,size:%x,pid:%x\n", info->addr, info->vaddr, info->size, info->vid);
 			offset += len;
 		}
 

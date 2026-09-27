@@ -119,8 +119,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	//__MyTestTask(0, 0, 0, 0, 0);
 	//displayCCPoem();
 
-	g_task_switch_toggle = 1;
-
 	__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
 
 	while (1)

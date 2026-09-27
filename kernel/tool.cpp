@@ -10,39 +10,7 @@
 
 
 
-int IpiSwitchTask(int src_tid)
-{
-	int ret = 0;
-	int dst_id = GetIdleProcessor();
 
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (dst_id == id) {
-		
-	}
-
-	enter_task_array_lock();
-
-	enter_task_array_lock_id(dst_id);
-
-	LPPROCESS_INFO src_tss = (LPPROCESS_INFO)GetTaskTssBase();
-
-	LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
-
-	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (dst_tss[i].status == TASK_OVER) {
-			__memcpy((char*)&dst_tss[i], (char*)&src_tss[src_tid], tssSize);
-			break;
-		}
-	}
-
-	leave_task_array_lock_id(dst_id);
-
-	leave_task_array_lock();
-
-	return 0;
-}
 
 
 

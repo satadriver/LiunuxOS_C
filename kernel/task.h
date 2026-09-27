@@ -56,7 +56,8 @@ typedef struct {
 #define TASK_TERMINATE			4
 #define TASK_REALTIME			8
 
-
+extern "C" int g_task_array_lock[256];
+extern "C" int g_task_list_lock[256];
 
 extern "C" int g_last_task_tid[TASK_LIMIT_TOTAL];
 

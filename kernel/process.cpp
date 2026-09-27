@@ -18,12 +18,15 @@
 #include "core.h"
 #include "systemService.h"
 
-void __kFreeProcess(int pid) {
+extern void freeProcessPages(LPPROCESS_INFO proc);
+extern void freeProcessMemory(LPPROCESS_INFO proc);
+
+void __kFreeProcess(LPPROCESS_INFO proc) {
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	freeProcessMemory(pid,cpu);
+	freeProcessMemory(proc);
 
-	freeProcessPages(pid,cpu);
+	freeProcessPages(proc);
 
 	//DestroyProcessWindow(pid,cpu);
 }
@@ -86,7 +89,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	int retvalue = 0;
 	tss[pid].sleep = 0;
 
-	__kFreeProcess(pid);
+	__kFreeProcess(process);
 
 	leave_task_array_lock();
 
@@ -135,6 +138,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	tss->pid = tid;
 	tss->tid = tid;
+	tss->vid = tid + (tss->cpuid << 16);
 	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
 	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
 	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
@@ -258,7 +262,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		if (tss->espbase == FALSE)
 		{
 			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
-			__kFreeProcess(tss->pid);
+			__kFreeProcess(tss);
 			tss->status = TASK_OVER;
 			return FALSE;
 		}
@@ -297,7 +301,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		if (tss->espbase == FALSE)
 		{
 			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
-			__kFreeProcess(tss->pid);
+			__kFreeProcess(tss);
 			tss->status = TASK_OVER;
 			return FALSE;
 		}

@@ -1,8 +1,14 @@
 #pragma once
 
+#ifndef PAGE_H_H_H
+#define PAGE_H_H_H
+
 #include "def.h"
-#include "ListEntry.h"
+//#include "process.h"
 #include "malloc.h"
+
+#include "ListEntry.h"
+
 
 
 #define PAGE_PRESENT		1
@@ -17,6 +23,10 @@
 #define PAGE64_MASK4       0X1FF000
 
 
+#pragma pack(1)
+
+#pragma pack()
+
 void initPaging();
 
 void EnablePaging32(char* pde);
@@ -27,13 +37,13 @@ LPMEMALLOCINFO getFreePageIdx();
 
 int resetPageIdx(LPMEMALLOCINFO pde);
 
-int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size, int pid,int cpu, DWORD vaddr);
+int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size, DWORD vid, DWORD vaddr);
 
 LPMEMALLOCINFO isPageIdxExist(DWORD addr, int size);
 
 LPMEMALLOCINFO findPageIdx(DWORD addr);
 
-void freeProcessPages(int pid,int cpu);
+
 
 void linearMapping();
 
@@ -50,3 +60,4 @@ extern "C"  __declspec(dllimport) DWORD __kPageAlloc(int size);
 extern "C"  __declspec(dllimport) int __kFreePage(DWORD buf);
 #endif
 
+#endif

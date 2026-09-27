@@ -150,10 +150,10 @@ int GetMemory(char * szout,int pid) {
 
 		info = (LPMEMALLOCINFO)info->list.next;
 
-		int id = info->cpu;
+		int id = info->vid >> 16;
 		cpuMem[id] += info->size;
 
-		if (pid != -1 && info->pid == pid) {
+		if (pid != -1 && (info->vid & 0xffff) == pid) {
 			procMem += info->size;
 		}
 			

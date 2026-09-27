@@ -6,6 +6,7 @@
 #include "memory.h"
 #include "apic.h"
 #include "coprocessor.h"
+#include "task.h"
 
 
 //TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
@@ -123,45 +124,50 @@ void __kApicTimerProc() {
 #include "systemService.h"
 
 
-int g_task_switch_toggle = 0;
+
+
+#define INTER_CPU_RATE_MAX		0.3
 
 
 extern "C" __declspec(dllexport)int __k8254TimerProc() {
 	return 0;
+}
 
-	if (g_task_switch_toggle == 0) {
-		return 0;
-	}
+
+
+extern "C" __declspec(dllexport)int SwitchTaskCPU() {
+
 	char szout[256];
 
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
-	AlgorithmModel times[TASK_LIMIT_TOTAL];
+	AlgorithmModel ratio[TASK_LIMIT_TOTAL];
 	unsigned long long tick = __krdtsc();
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];
 		if (g_cpu_start_tick[id] == 0 || g_cpu_tick[id] == 0) {
-			return 0;
+			
 		}
-		double cpu_diff = tick - g_cpu_start_tick[id];
-		double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
-
-		times[i].fv = cpu_ratio;
-		times[i].id = id;
+		else {
+			double cpu_diff = tick - g_cpu_start_tick[id];
+			double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
+			ratio[i].fv = cpu_ratio;
+			ratio[i].id = id;
+		}
 	}
 
 	if (counter <= 1 || counter > TASK_LIMIT_TOTAL) {
 		return 0;
 	}
 
-	BubbleSort_ull(times, counter);
+	BubbleSort_ull(ratio, counter);
 
-	int src_id = (int)times[counter - 1].id;
+	int src_id = (int)ratio[counter - 1].id;
 
-	int dst_id = (int)times[0].id;
-	double src_fv = times[counter - 1].fv;
-	double dst_fv = times[0].fv;
-	if (src_fv - dst_fv > 0.1) {
+	int dst_id = (int)ratio[0].id;
+	double src_fv = ratio[counter - 1].fv;
+	double dst_fv = ratio[0].fv;
+	if (src_fv - dst_fv >= INTER_CPU_RATE_MAX) {
 
 	}
 	else {
@@ -169,8 +175,11 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 	}
 
 	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);
-
-	enter_task_array_lock_id(src_id);
+	extern int g_task_array_lock[256];
+	int ret = __GetSpinlock(&g_task_array_lock[src_id]);
+	if (ret == 0) {
+		return 0;
+	}
 
 	double max = 0.0;
 	int cnt = 0;
@@ -178,7 +187,7 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (src_tss[i].status == TASK_RUN) {
 			cnt++;
-			double proc_diff = src_tss[i].tick_total;
+			double proc_diff = tick - g_cpu_start_tick[src_id];
 			double proc_ratio = (double)src_tss[i].tick_run / proc_diff;
 			if (proc_ratio > max) {
 				max = proc_ratio;
@@ -187,57 +196,58 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 		}
 	}
 
-	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
-
 	int is_src_proc = 0;
 	if (src_tss[src_tid].pid == src_tss[src_tid].tid) {
 		is_src_proc = 1;
 	}
 
+	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
 	int is_src_cur = 0;
 	if (src_current->tid == src_tid) {
 		is_src_cur = 1;
 	}
 
-	if (cnt > 1 && src_tid != 0 && is_src_cur == 0) {
+	if (cnt > 1 && src_tid != -1 ) {
 		
 		LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
 
 		int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 
-		enter_task_array_lock_id(dst_id);
+		ret = __GetSpinlock(&g_task_array_lock[dst_id]);
+		if (ret) {
 
-		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-			if (dst_tss[i].status == TASK_OVER) {
-				int dst_tid = i;
+			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+				if (dst_tss[i].status == TASK_OVER) {
+					int dst_tid = i;
 
-				__memcpy((char*)&dst_tss[i], (char*)&src_tss[src_tid], tssSize);
-				dst_tss[i].cpuid = dst_id;
+					__memcpy((char*)&dst_tss[i], (char*)&src_tss[src_tid], tssSize);
+					dst_tss[i].cpuid = dst_id;
 
-				char* src_fenv = (char*)g_fpu_status[src_id] + (src_tid << 9);
+					char* src_fenv = (char*)g_fpu_status[src_id] + (src_tid << 9);
+					char* dst_fenv = (char*)g_fpu_status[dst_id] + (dst_tid << 9);
+					__memcpy(dst_fenv, src_fenv, 512);
 
-				char* dst_fenv = (char*)g_fpu_status[dst_id] + (dst_tid << 9);
+					dst_tss[i].tid = dst_tid;
 
-				__memcpy(dst_fenv, src_fenv, 512);
-
-				dst_tss[i].tid = dst_tid;
-
-				if (is_src_proc) {
-					dst_tss[i].pid = dst_tid;
-					dst_tss[i].lpvasize = &dst_tss[i].va_size;
-
-					dst_tss[i].lpHeapBase = (char***)&dst_tss[i].heapBase;
+					if (is_src_proc) {
+						dst_tss[i].pid = dst_tid;
+					}
 
 					dst_tss[i].lpHeapCnt = &dst_tss[i].heapCnt;
-
 					dst_tss[i].lpheap_lock = &dst_tss[i].heap_lock;
+					dst_tss[i].lpHeapBase =(char***) &dst_tss[i].heapBase;
+					dst_tss[i].lpvasize = &dst_tss[i].va_size;
+
+					if (is_src_cur)
+					{
+						src_current->status = TASK_OVER;
+					}
+					src_tss[src_tid].status = TASK_OVER;
+
+					__printf(szout, "%s copy cpu:%d tid:%d to cpu:%d tid:%d,is_src_proc:%d,is_src_cur:%d\r\n",
+						__FUNCTION__, src_id, src_tid, dst_id, dst_tid, is_src_proc, is_src_cur);
+					break;
 				}
-
-				src_tss[src_tid].status = TASK_OVER;
-
-				__printf(szout, "%s copy cpu:%d tid:%d to cpu:%d tid:%d,is_src_proc:%d,is_src_cur:%d\r\n",
-					__FUNCTION__, src_id, src_tid, dst_id, dst_tid, is_src_proc, is_src_cur);
-				break;
 			}
 		}
 

@@ -128,6 +128,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->lpheap_lock = process->lpheap_lock;
 	tss->heap_lock = process->heap_lock;
 
+	tss->vid = freetask.number + (cpu << 16);
 	tss->pid = process->pid;
 	tss->ppid = process->pid;
 	tss->tid = freetask.number;

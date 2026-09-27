@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef PROCESS_H_H_H
+#define PROCESS_H_H_H
+
 #include "def.h"
 #include "descriptor.h"
 #include "page.h"
@@ -56,6 +60,8 @@ typedef struct
 	char copyMap;
 
 	int cpuid;
+
+	DWORD vid;
 
 	DWORD pid;
 
@@ -130,9 +136,6 @@ typedef struct
 
 
 
-
-
-
 typedef struct {
 	DWORD eip;
 	DWORD cs;
@@ -191,7 +194,7 @@ int __initProcess(LPPROCESS_INFO tss, int num, DWORD filedata, char * filename, 
 
 
 
-void __kFreeProcess(int pid);
+void __kFreeProcess(LPPROCESS_INFO proc);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) int __kCreateProcessRealtime(DWORD filedata, int filesize, char* filename, char* funcname, int syslevel);
@@ -209,3 +212,4 @@ extern "C" __declspec(dllimport)int __kCreateProcess(DWORD addr, int datasize, c
 
 
 
+#endif

@@ -68,7 +68,7 @@ void initPaging() {
 	pageList->addr = 0;
 	pageList->size = 0;
 	pageList->vaddr = 0;
-	pageList->pid = 0;
+	pageList->vid = 0;
 
 	g_page_table_base =(char*) __kMalloc(PAGE_TABLE_SIZE);
 
@@ -84,7 +84,7 @@ LPMEMALLOCINFO getFreePageIdx() {
 	int cnt = PAGE_ALLOC_LIST_SIZE / sizeof(MEMALLOCINFO);
 	for (int i = 1; i < cnt; i++)
 	{
-		if (info[i].size == 0 && info[i].addr == 0 && info[i].pid == 0 && info[i].vaddr == 0)
+		if (info[i].size == 0 && info[i].addr == 0 && info[i].vid == 0 && info[i].vaddr == 0)
 		{
 			return &info[i];
 		}
@@ -149,16 +149,16 @@ int resetPageIdx(LPMEMALLOCINFO pde) {
 	pde->addr = 0;
 	pde->size = 0;
 	pde->vaddr = 0;
-	pde->pid = 0;
+	pde->vid = 0;
 	return size;
 }
 
 
 
-int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,int pid,int cpu,DWORD vaddr ) {
+int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,DWORD vid,DWORD vaddr ) {
 	info->size = size;
 	info->addr = addr;
-	info->pid = pid;
+	info->vid = vid;
 	info->vaddr = vaddr;
 	InsertListTail( &((LPMEMALLOCINFO)PAGE_ALLOC_LIST)->list, (LPLIST_ENTRY)&info->list);
 	return TRUE;
@@ -197,7 +197,7 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 				info = getFreePageIdx();
 				if (info)
 				{
-					insertPageIdx(info, addr, size, tss->pid,cpu, addr);
+					insertPageIdx(info, addr, size, tss->vid, addr);
 					res = addr;
 				}
 				else {
@@ -269,7 +269,7 @@ extern "C"  __declspec(dllexport) int __kFreePage(DWORD addr) {
 
 
 //make sure the first in the list is not to be deleted,or else will be locked
-void freeProcessPages(int pid,int cpu) {
+void freeProcessPages(LPPROCESS_INFO proc) {
 
 	__enterSpinlock(&gPageAllocLock);
 	
@@ -279,7 +279,7 @@ void freeProcessPages(int pid,int cpu) {
 	LPMEMALLOCINFO info = base;
 	do
 	{
-		if (info->pid == pid)
+		if (info->vid == proc->vid)
 		{
 			resetPageIdx(info);
 		}

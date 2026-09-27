@@ -1,20 +1,28 @@
 #pragma once
 
+#ifndef MALLOC_H_H_H
+#define MALLOC_H_H_H
+
 #include "def.h"
 #include "ListEntry.h"
+//#include "process.h"
 
 
+//重复包含问题，该如何解决？
 
 
 #pragma pack(1)
 
-typedef struct 
+#ifdef LPMEMALLOCINFO
+#error "LPMEMALLOCINFO already defined before malloc.h"
+#endif
+
+typedef struct
 {
 	LIST_ENTRY list;
 	DWORD addr;
 	DWORD size;
-	DWORD pid;
-	int cpu;
+	DWORD vid;
 	DWORD vaddr;
 }MEMALLOCINFO,*LPMEMALLOCINFO;
 
@@ -35,13 +43,16 @@ typedef struct
 	//WORD remainder;
 }MS_HEAP_STRUCT;
 
+
+
+
 #pragma pack()
 
 
 
 QWORD getBorderAddr();
 
-int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size, int pid,int cpu);
+int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size,DWORD vid);
 
 void ClearMemAllocMap();
 
@@ -59,9 +70,9 @@ int initMemory();
 
 DWORD pageAlignSize(DWORD size,int max);
 
-DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid,int cpu, DWORD vaddr,int tag);
+DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid,int cpuid, DWORD vaddr,int tag);
 
-void freeProcessMemory(int pid,int cpu);
+//void freeProcessMemory(LPPROCESS_INFO proc);
 
 #ifdef DLL_EXPORT
 extern "C"  __declspec(dllexport) LPMEMALLOCINFO gMemAllocList ;
@@ -94,3 +105,4 @@ extern "C"  __declspec(dllimport) DWORD __kMalloc(DWORD size);
 extern "C"  __declspec(dllimport) int __kFree(DWORD buf);
 #endif
 
+#endif

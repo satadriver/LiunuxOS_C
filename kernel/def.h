@@ -2,6 +2,10 @@
 
 #pragma once
 
+#ifndef DEF_H_H_H
+
+#define DEF_H_H_H
+
 #define NULL		0
 #define TRUE		1
 #define FALSE		0
@@ -289,7 +293,7 @@
 #define PAGE_ALLOC_LIST_SIZE			0X100000			
 
 //#define PAGE_TABLE_BASE					0x1800000
-#define PAGE_TABLE_SIZE					0X1000000		
+#define PAGE_TABLE_SIZE					0X1000000	
 
 //#define PDE64_ENTRY_VALUE				0x2800000
 //#define PTE64_ENTRY_VALUE				(PDE64_ENTRY_VALUE + PAGE_SIZE)
@@ -492,3 +496,4 @@ typedef struct  {
 
 extern "C" int g_tagMsg;
 
+#endif
