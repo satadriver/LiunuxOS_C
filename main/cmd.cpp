@@ -15,7 +15,7 @@
 #include "window.h"
 #include "cmosExactTimer.h"
 #include "ata.h"
-
+#include "gdi.h"
 #include "Kernel.h"
 #include "mainUtils.h"
 #include "ac97.h"
@@ -209,9 +209,15 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "tasks") == 0)
 	{
 		*szout = 0;
-		GetAllProcesses(szout);
+		GetSimpleProcesses(szout);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "alltasks") == 0)
+	{
+		*szout = 0;
+		GetAllProcesses(szout);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
 	else if (__strcmp(params[0], "task") == 0)
 	{
 		if (paramcnt >= 2)
@@ -555,6 +561,13 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	}
 	else if (__strcmp(params[0], "mltest") == 0) {
 		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kDeepLearning_mlp", 3, 0);
+	}
+	else if (__strcmp(params[0], "poem") == 0) {
+		displayCCPoem();
+	}
+	else if (__strcmp(params[0], "test") == 0) {
+		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__MyTestTask", 3, 0);
+		//__MyTestTask(0, 0, 0, 0, 0);
 	}
 	else {
 		ret = __drawWindowChars((char*)"Unrecognized command!\r\n", CONSOLE_FONT_COLOR, window);

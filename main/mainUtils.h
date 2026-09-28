@@ -28,4 +28,6 @@ int GetMemory(char* szout,int pid);
 
 int GetAllProcesses(char* szout);
 
+int GetSimpleProcesses(char* szout);
+
 int GetProcess(int cpuid,int pid, char* szout);

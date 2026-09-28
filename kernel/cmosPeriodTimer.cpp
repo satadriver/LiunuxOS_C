@@ -128,7 +128,7 @@ void __kPeriodTimer() {
 
 	__kPeriodTimerProc();
 
-	SwitchTaskCPU();
+	SwitchTaskCPU(0);
 }
 
 

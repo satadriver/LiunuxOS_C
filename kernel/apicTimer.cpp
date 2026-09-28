@@ -135,7 +135,7 @@ extern "C" __declspec(dllexport)int __k8254TimerProc() {
 
 
 
-extern "C" __declspec(dllexport)int SwitchTaskCPU() {
+extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 
 	char szout[256];
 
@@ -180,7 +180,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);
 	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
 	extern int g_task_array_lock[256];
-	if (id == src_id)
+	if (id == src_id && lock)
 	{
 		res = 1;
 	}
@@ -225,7 +225,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 
 	LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
 	if (cnt > 1 && src_tid != -1 ) {
-		if (dst_id == id) {
+		if (dst_id == id && lock) {
 			res = 1;
 		}
 		else {

@@ -5,7 +5,7 @@
 #define DOS_SYSTIMER_ADDR		0X46C
 
 
-extern "C" __declspec(dllexport)int SwitchTaskCPU();
+extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock);
 
 #ifdef DLL_EXPORT
 //extern "C" __declspec(dllexport)int g_task_switch_toggle ;

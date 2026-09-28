@@ -126,7 +126,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (addr) 
 		{
-			__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
+			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
 			__sleep(sleep_time);
 		}
 	}

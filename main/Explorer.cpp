@@ -44,7 +44,6 @@
 #include "CubeVector.h"
 #include "SquareVector.h"
 #include "TrajectoryBall.h"
-#include "CubeVector.h"
 #include "systemService.h"
 #include "apic.h"
 #include "apicTimer.h"
@@ -114,10 +113,6 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
-
-	__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__MyTestTask", 3, 0);
-	//__MyTestTask(0, 0, 0, 0, 0);
-	//displayCCPoem();
 
 	__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
 

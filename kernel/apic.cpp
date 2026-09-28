@@ -1319,6 +1319,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	apids[seq] = cpuid;
 	*(int*)(CPU_TOTAL_ADDRESS) = seq + 1;
 
+	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveLock(&g_allocate_ap_lock);
+
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
 	int ioapic_ver = ReadIoApicReg(1) & 0xff;
@@ -1360,9 +1363,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	initDebugger();
 
 	ret = InitLocalApicTimer();
-
-	__leaveSpinlock(&g_allocate_ap_lock);
-	//__leaveLock(&g_allocate_ap_lock);
 
 	InitLocalApicErr();
 
@@ -1502,7 +1502,7 @@ void BPCodeStart() {
 #else
 	//SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
-	__sleep(0);
+	//__sleep(0);
 
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int cnt = *(int*)(CPU_TOTAL_ADDRESS);

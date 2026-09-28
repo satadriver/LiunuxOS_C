@@ -54,7 +54,39 @@ int getcrs(char * szout) {
 	return len;
 }
 
+int GetSimpleProcesses(char* szout) {
+	int outlen = 0;
+	int len = 0;
 
+	unsigned long long tick = __krdtsc();
+	int n = 0;
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+	for (int i = 0; i < cnt; i++) {
+		int cpu = cpus[i];
+		double cpu_diff = tick - g_cpu_start_tick[cpu];
+		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{
+				double proc_diff = tss[i].tick_total;
+				double proc_ratio = (double)tss[i].tick_run / proc_diff;
+				double proc_usage = (double)tss[i].tick_run / (double)g_cpu_tick[cpu];
+				double cost = tss[i].tick_switch_cost;
+				double switch_cost = cost / g_timer_tick[cpu];
+				len = __sprintf(szout + outlen,
+					"[%d].file:%s, function:%s, cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,cpu usage:%lf£¬task rate:%lf,task usage:%lf,cost rate:%lf,counter:%x,priority:%d,delta:%d,lpvasize:%x\r\n",
+					n++, tss[i].filename, tss[i].funcname,  tss[i].cpuid,
+					tss[i].pid, tss[i].ppid, tss[i].tid, tss[i].level,
+					cpu_usage, proc_ratio, proc_usage, switch_cost,  tss[i].counter, tss[i].priority, tss[i].delta, *tss[i].lpvasize);
+				outlen += len;
+			}
+		}
+	}
+
+	return outlen;
+}
 
 int GetAllProcesses(char* szout) {
 	int outlen = 0;
