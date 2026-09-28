@@ -276,14 +276,6 @@ PROCESS_INFO* GetReadyProcess() {
 			}
 		}
 
-#ifndef _DEBUG
-		if (g_debug_tag++ % 0x1000 == 0x1000) {
-			for (int i = 0; i < ML_TASK_LIMIT; i++) {
-				__printf(szout, "%d:  %f   %f   %f   %f  %f result:%d\r\n",
-					i, tp.task[i].timerate, tp.task[i].user, tp.task[i].window, tp.task[i].delta, tp.task[i].priority, tp.result);
-			}
-		}
-#endif
 		if (g_train_complete == 0) {
 			SaveMlData(&tp);
 		}
@@ -293,15 +285,14 @@ PROCESS_INFO* GetReadyProcess() {
 			if (seq >= 0 && seq < count) {
 				target_id = rate[seq].id;
 				if (g_debug_tag++ % 0x100 == 0) {
-					int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
 					LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
 					LPPROCESS_INFO tp = p + target_id;
-					__printf(szout, "TaskSwitchPrediction seq:%d,count:%d tid:%x cpu:%x function:%s filename:%s\r\n",
-						seq, count, target_id, cpu, tp->funcname, tp->filename);
+					__printf(szout, "TaskSwitchPrediction seq:%d,count:%d tid:%x cpu:%x function:%s filename:%s\r\n",seq, count, target_id, cpu, tp->funcname, tp->filename);
 				}
 			}
 			else {
 				__printf(szout, "TaskSwitchPrediction seq:%d,count:%d error\r\n", seq, count);
+				target_id = next->tid;
 			}
 
 			target_tss = tss + target_id;

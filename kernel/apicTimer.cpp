@@ -218,7 +218,6 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 		is_src_proc = 1;
 	}
 	
-	
 	if (src_current->tid == src_tid) {
 		is_src_cur = 1;
 	}
