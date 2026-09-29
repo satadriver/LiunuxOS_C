@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "D:\\liunuxos\\LiunuxOS_C\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\main\\dl.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\dl.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\taskPriority.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\DeepLearning.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\DeepLearning.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\KERNEL\\DEEPLEARNING.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:KERNEL\\DEEPLEARNING.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\main\\dl.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\dl.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\soundBlaster\\sbPlay.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -286,7 +286,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Document",
@@ -298,8 +298,7 @@
               "RelativeToolTip": "kernel\\soundBlaster\\sbPlay.h",
               "ViewState": "AgIAABcAAAAAAAAAAAAgwDMAAAAGAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:04:26.378Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:04:26.378Z"
             },
             {
               "$type": "Document",
@@ -311,8 +310,7 @@
               "RelativeToolTip": "kernel\\ext\\ext.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:04:19.067Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:04:19.067Z"
             },
             {
               "$type": "Document",
@@ -324,8 +322,7 @@
               "RelativeToolTip": "kernel\\window.h",
               "ViewState": "AgIAADwAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:04:06.034Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:04:06.034Z"
             },
             {
               "$type": "Document",
@@ -337,8 +334,7 @@
               "RelativeToolTip": "kernel\\VMM.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:04:05.282Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:04:05.282Z"
             },
             {
               "$type": "Document",
@@ -350,8 +346,7 @@
               "RelativeToolTip": "kernel\\VM86.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:04:00.977Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:04:00.977Z"
             },
             {
               "$type": "Document",
@@ -363,44 +358,41 @@
               "RelativeToolTip": "kernel\\video.h",
               "ViewState": "AgIAAA8AAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:03:58.61Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:03:58.61Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "dl.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\main\\dl.cpp",
               "RelativeDocumentMoniker": "main\\dl.cpp",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\main\\dl.cpp",
               "RelativeToolTip": "main\\dl.cpp",
-              "ViewState": "AgIAAH0AAAAAAAAAAAAAAM4AAAAkAAAAAAAAAA==",
+              "ViewState": "AgIAAFYAAAAAAAAAAAAAAGgAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-23T10:40:12.717Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-23T10:40:12.717Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "DeepLearning.h",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\DeepLearning.h",
               "RelativeDocumentMoniker": "kernel\\DeepLearning.h",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\DeepLearning.h",
               "RelativeToolTip": "kernel\\DeepLearning.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAAAkAAAAAAAAAAAAAABcAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-24T04:48:55.754Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T04:48:55.754Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "taskPriority.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp",
               "RelativeDocumentMoniker": "kernel\\taskPriority.cpp",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp",
               "RelativeToolTip": "kernel\\taskPriority.cpp",
-              "ViewState": "AgIAAEUAAAAAAAAAAAAAAFEAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAA0BAAAAAAAAAAAgwBYBAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-09-24T04:34:46.453Z",
               "EditorCaption": ""
@@ -415,8 +407,7 @@
               "RelativeToolTip": "kernel\\Utils.h",
               "ViewState": "AgIAAA8AAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:03:56.241Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:03:56.241Z"
             },
             {
               "$type": "Document",
@@ -428,8 +419,7 @@
               "RelativeToolTip": "kernel\\task.h",
               "ViewState": "AgIAABUAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:03:42.891Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:03:42.891Z"
             },
             {
               "$type": "Document",
@@ -441,8 +431,7 @@
               "RelativeToolTip": "kernel\\systemService.h",
               "ViewState": "AgIAACQAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:03:39.913Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:03:39.913Z"
             },
             {
               "$type": "Document",
@@ -454,8 +443,7 @@
               "RelativeToolTip": "kernel\\processDOS.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:03:33.34Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:03:33.34Z"
             },
             {
               "$type": "Document",
@@ -467,8 +455,7 @@
               "RelativeToolTip": "kernel\\memory.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:03:03.835Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:03:03.835Z"
             },
             {
               "$type": "Document",
@@ -480,8 +467,7 @@
               "RelativeToolTip": "kernel\\math.h",
               "ViewState": "AgIAADwAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:59.9Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:59.9Z"
             },
             {
               "$type": "Document",
@@ -493,8 +479,7 @@
               "RelativeToolTip": "kernel\\ListEntry.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:54.316Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:54.316Z"
             },
             {
               "$type": "Document",
@@ -506,8 +491,7 @@
               "RelativeToolTip": "kernel\\ListArray.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:53.625Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:53.625Z"
             },
             {
               "$type": "Document",
@@ -519,8 +503,7 @@
               "RelativeToolTip": "kernel\\taskPriority.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-24T04:34:50.387Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T04:34:50.387Z"
             },
             {
               "$type": "Document",
@@ -532,8 +515,7 @@
               "RelativeToolTip": "kernel\\keyboard.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:49.418Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:49.418Z"
             },
             {
               "$type": "Document",
@@ -545,8 +527,7 @@
               "RelativeToolTip": "kernel\\Kernel.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:47.577Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:47.577Z"
             },
             {
               "$type": "Document",
@@ -558,8 +539,7 @@
               "RelativeToolTip": "kernel\\ISR.h",
               "ViewState": "AgIAAB4AAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:42.924Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:42.924Z"
             },
             {
               "$type": "Document",
@@ -571,8 +551,7 @@
               "RelativeToolTip": "kernel\\heap.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:41.185Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:41.185Z"
             },
             {
               "$type": "Document",
@@ -584,8 +563,7 @@
               "RelativeToolTip": "kernel\\process.h",
               "ViewState": "AgIAAIMAAAAAAAAAAAAvwEcAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-24T04:14:10.857Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T04:14:10.857Z"
             },
             {
               "$type": "Document",
@@ -597,8 +575,7 @@
               "RelativeToolTip": "kernel\\hardware.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:02:39.555Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:02:39.555Z"
             },
             {
               "$type": "Document",
@@ -610,8 +587,7 @@
               "RelativeToolTip": "kernel\\file.h",
               "ViewState": "AgIAAA8AAAAAAAAAAADwvxEAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:01:49.523Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:01:49.523Z"
             },
             {
               "$type": "Document",
@@ -623,8 +599,7 @@
               "RelativeToolTip": "kernel\\malloc.h",
               "ViewState": "AgIAAAUAAAAAAAAAAAApwD0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-24T04:13:34.236Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T04:13:34.236Z"
             },
             {
               "$type": "Document",
@@ -636,8 +611,7 @@
               "RelativeToolTip": "kernel\\exception.h",
               "ViewState": "AgIAAB4AAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:01:46.058Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:01:46.058Z"
             },
             {
               "$type": "Document",
@@ -649,8 +623,7 @@
               "RelativeToolTip": "kernel\\elf.h",
               "ViewState": "AgIAAEUAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:01:42.565Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:01:42.565Z"
             },
             {
               "$type": "Document",
@@ -662,8 +635,7 @@
               "RelativeToolTip": "kernel\\device.h",
               "ViewState": "AgIAAAkAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:01:40.386Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:01:40.386Z"
             },
             {
               "$type": "Document",
@@ -675,8 +647,7 @@
               "RelativeToolTip": "kernel\\libc.h",
               "ViewState": "AgIAALMAAAAAAAAAAAAowIMAAAAuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T04:12:44.822Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T04:12:44.822Z"
             },
             {
               "$type": "Document",
@@ -688,8 +659,7 @@
               "RelativeToolTip": "kernel\\descriptor.h",
               "ViewState": "AgIAABsAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:01:35.73Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:01:35.73Z"
             },
             {
               "$type": "Document",
@@ -701,8 +671,7 @@
               "RelativeToolTip": "kernel\\def.h",
               "ViewState": "AgIAANYBAAAAAAAAAAAvwLoBAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T07:36:06.112Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T07:36:06.112Z"
             },
             {
               "$type": "Document",
@@ -714,8 +683,7 @@
               "RelativeToolTip": "kernel\\debugger.h",
               "ViewState": "AgIAAAwAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:01:03.796Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:01:03.796Z"
             },
             {
               "$type": "Document",
@@ -727,8 +695,7 @@
               "RelativeToolTip": "kernel\\core.h",
               "ViewState": "AgIAAIQAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:00:56.042Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:00:56.042Z"
             },
             {
               "$type": "Document",
@@ -740,8 +707,7 @@
               "RelativeToolTip": "kernel\\coprocessor.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:00:53.379Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:00:53.379Z"
             },
             {
               "$type": "Document",
@@ -753,8 +719,7 @@
               "RelativeToolTip": "kernel\\cmosPeriodTimer.h",
               "ViewState": "AgIAAAYAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:00:50.482Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:00:50.482Z"
             },
             {
               "$type": "Document",
@@ -766,8 +731,7 @@
               "RelativeToolTip": "kernel\\cmosExactTimer.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:00:46.929Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:00:46.929Z"
             },
             {
               "$type": "Document",
@@ -779,8 +743,7 @@
               "RelativeToolTip": "kernel\\cmosAlarm.h",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:00:43.698Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:00:43.698Z"
             },
             {
               "$type": "Document",
@@ -792,8 +755,7 @@
               "RelativeToolTip": "kernel\\apic.h",
               "ViewState": "AgIAACoAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T08:00:31.171Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T08:00:31.171Z"
             },
             {
               "$type": "Document",
@@ -805,8 +767,7 @@
               "RelativeToolTip": "kernel\\apic.cpp",
               "ViewState": "AgIAAPMFAAAAAAAAAAAAAB8CAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-23T10:46:59.046Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-23T10:46:59.046Z"
             },
             {
               "$type": "Document",
@@ -818,8 +779,7 @@
               "RelativeToolTip": "kernel\\DeepLearning.cpp",
               "ViewState": "AgIAAEYAAAAAAAAAAAAvwFUAAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:23.03Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:23.03Z"
             },
             {
               "$type": "Document",
@@ -831,8 +791,7 @@
               "RelativeToolTip": "kernel\\apicTimer.h",
               "ViewState": "AgIAAA8AAAAAAAAAAAAAAAcAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-28T02:02:40.423Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T02:02:40.423Z"
             },
             {
               "$type": "Document",
@@ -844,8 +803,7 @@
               "RelativeToolTip": "kernel\\apicTimer.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAOUAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T02:00:53.597Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T02:00:53.597Z"
             },
             {
               "$type": "Document",
@@ -857,8 +815,7 @@
               "RelativeToolTip": "kernel\\libc.cpp",
               "ViewState": "AgIAAAsAAAAAAAAAAAAgwBYAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T04:12:38.909Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T04:12:38.909Z"
             },
             {
               "$type": "Document",
@@ -870,8 +827,7 @@
               "RelativeToolTip": "kernel\\debugger.cpp",
               "ViewState": "AgIAACwBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:20.439Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:20.439Z"
             },
             {
               "$type": "Document",
@@ -883,8 +839,7 @@
               "RelativeToolTip": "kernel\\core.cpp",
               "ViewState": "AgIAAKwDAAAAAAAAAAAAAAcAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:03.956Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:03.956Z"
             },
             {
               "$type": "Document",
@@ -896,8 +851,7 @@
               "RelativeToolTip": "kernel\\coprocessor.cpp",
               "ViewState": "AgIAAAgBAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:54.035Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:54.035Z"
             },
             {
               "$type": "Document",
@@ -909,8 +863,7 @@
               "RelativeToolTip": "kernel\\atapi.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:52.181Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:52.181Z"
             },
             {
               "$type": "Document",
@@ -922,8 +875,7 @@
               "RelativeToolTip": "kernel\\acpi.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:48.5Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:48.5Z"
             },
             {
               "$type": "Document",
@@ -935,8 +887,7 @@
               "RelativeToolTip": "kernel\\file.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:36.101Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:36.101Z"
             },
             {
               "$type": "Document",
@@ -948,8 +899,7 @@
               "RelativeToolTip": "kernel\\descriptor.cpp",
               "ViewState": "AgIAAKEAAAAAAAAAAAAAALIAAAAPAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:27.388Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:27.388Z"
             },
             {
               "$type": "Document",
@@ -961,8 +911,7 @@
               "RelativeToolTip": "kernel\\exception.cpp",
               "ViewState": "AgIAACQAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:33.271Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:33.271Z"
             },
             {
               "$type": "Document",
@@ -974,8 +923,7 @@
               "RelativeToolTip": "kernel\\elf.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:31.573Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:31.573Z"
             },
             {
               "$type": "Document",
@@ -987,8 +935,7 @@
               "RelativeToolTip": "kernel\\device.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T03:23:29.915Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T03:23:29.915Z"
             },
             {
               "$type": "Document",
@@ -1000,8 +947,7 @@
               "RelativeToolTip": "main\\Explorer.cpp",
               "ViewState": "AgIAAHoBAAAAAAAAAAAQwIABAAAHAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-23T10:35:43.42Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-23T10:35:43.42Z"
             },
             {
               "$type": "Document",
@@ -1013,8 +959,7 @@
               "RelativeToolTip": "main\\cmd.cpp",
               "ViewState": "AgIAAGEAAAAAAAAAAAAQwGcAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-23T10:40:58.469Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-23T10:40:58.469Z"
             },
             {
               "$type": "Document",
@@ -1026,8 +971,7 @@
               "RelativeToolTip": "kernel\\Thread.cpp",
               "ViewState": "AgIAACQBAAAAAAAAAAAQwCoBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-24T06:59:49.203Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T06:59:49.203Z"
             },
             {
               "$type": "Document",
@@ -1039,8 +983,7 @@
               "RelativeToolTip": "kernel\\process.cpp",
               "ViewState": "AgIAALABAAAAAAAAAAAQwMUBAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-23T10:58:47.698Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-23T10:58:47.698Z"
             },
             {
               "$type": "Document",
@@ -1052,8 +995,7 @@
               "RelativeToolTip": "kernel\\kernel.cpp",
               "ViewState": "AgIAAK4AAAAAAAAAAAAQwLQAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-23T10:36:00.467Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-23T10:36:00.467Z"
             },
             {
               "$type": "Document",
@@ -1065,8 +1007,7 @@
               "RelativeToolTip": "main\\mainUtils.cpp",
               "ViewState": "AgIAAEAAAAAAAAAAAAAiwE0AAAAjAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-24T04:05:51.674Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T04:05:51.674Z"
             },
             {
               "$type": "Document",
@@ -1078,8 +1019,7 @@
               "RelativeToolTip": "main\\mainUtils.h",
               "ViewState": "AgIAAA0AAAAAAAAAAAAvwB4AAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-09-24T04:06:23.892Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-24T04:06:23.892Z"
             },
             {
               "$type": "Document",
@@ -1091,8 +1031,7 @@
               "RelativeToolTip": "main\\console.cpp",
               "ViewState": "AgIAAJkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T02:52:18.077Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T02:52:18.077Z"
             },
             {
               "$type": "Document",
@@ -1104,8 +1043,7 @@
               "RelativeToolTip": "kernel\\cmosPeriodTimer.cpp",
               "ViewState": "AgIAAHoAAAAAAAAAAAApwIQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T02:02:58.074Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T02:02:58.074Z"
             },
             {
               "$type": "Document",
@@ -1117,8 +1055,7 @@
               "RelativeToolTip": "kernel\\tool.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvw8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T01:59:38.229Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T01:59:38.229Z"
             },
             {
               "$type": "Document",
@@ -1130,8 +1067,7 @@
               "RelativeToolTip": "kernel\\Utils.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-09-28T01:59:37.151Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-28T01:59:37.151Z"
             },
             {
               "$type": "Document",
