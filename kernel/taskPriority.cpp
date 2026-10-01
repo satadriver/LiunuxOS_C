@@ -214,7 +214,7 @@ PROCESS_INFO* GetReadyProcess() {
 			if (pid == target_id) {
 				tp.result = i;
 			}
-			tp.task[i].timerate = tick_ratio;
+			tp.task[i].tickrate = tick_ratio;
 			tp.task[i].cpurate = crate[i].fv;
 			tp.task[i].user = user_ratio;
 			tp.task[i].window = window_ratio;
@@ -245,7 +245,7 @@ PROCESS_INFO* GetReadyProcess() {
 					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
 					int ri = __random(0) % ML_TASK_LIMIT;
-					tp.task[ri].timerate = tick_ratio;
+					tp.task[ri].tickrate = tick_ratio;
 					tp.task[ri].cpurate = crate[index].fv;
 					tp.task[ri].user = user_ratio;
 					tp.task[ri].window = window_ratio;
@@ -263,7 +263,7 @@ PROCESS_INFO* GetReadyProcess() {
 		}
 		else {
 			for (int i = num; i < ML_TASK_LIMIT; i++) {
-				tp.task[i].timerate = 0.0;
+				tp.task[i].tickrate = 0.0;
 				tp.task[i].cpurate = 0.0;
 				tp.task[i].user = 0.0;
 				tp.task[i].window = 0.0;
@@ -301,7 +301,7 @@ PROCESS_INFO* GetReadyProcess() {
 		for (int i = 0; i < count; i++) {
 			int tid = delta[i].id;
 			if (target_id != delta[i].id) {
-				tss[tid].delta += 1;
+				tss[tid].delta += DELTA_UNIT_PRIORITY;
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
 					tss[tid].delta = DYNAMIC_PRIORITY;
 				}

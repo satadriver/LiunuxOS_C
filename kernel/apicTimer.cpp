@@ -126,7 +126,7 @@ void __kApicTimerProc() {
 
 
 
-#define INTER_CPU_RATE_MAX		0.2
+#define INTER_CPU_RATE_MAX		0.1
 
 
 extern "C" __declspec(dllexport)int __k8254TimerProc() {

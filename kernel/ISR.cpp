@@ -148,7 +148,7 @@ void __declspec(naked) NmiInterrupt(LIGHT_ENVIRONMENT* stack) {
 
 		char szout[256];
 		__printf(szout, (char*)"NMI interruption 0x61 port:%x, 0x92 port:%x,0x70 port:%x\r\n", v1, v2,v3);
-		//__kException((const char*)"NmiInterrupt", 2, stack);
+		__kException((const char*)"NmiInterrupt", 2, stack);
 
 	}
 	__asm {
@@ -302,8 +302,8 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 			__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", __FUNCTION__, __LINE__,cpu,proc->tid,proc->filename,proc->funcname);
 		}
 
-		__kCoprocessor();
-		//__kException((const char*)"UndefinedOpcode", 6, stack);
+		//__kCoprocessor();
+		__kException((const char*)"UndefinedOpcode", 6, stack);
 	}
 
 	__asm {
@@ -1325,7 +1325,8 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 
 
-
+//在主片初始化时（通过 ICW3）告知了它“IRQ2 上挂着从片”，主片就不会把 IRQ2 当作一个普通的、需要提供向量的外部中断源。
+//它只负责“传话”（转发请求）和“认人”（通过级联线选中正确的从片）。
 
 void __declspec(naked) Com2IntProc(LIGHT_ENVIRONMENT* stack) {
 

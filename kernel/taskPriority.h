@@ -21,6 +21,8 @@
 
 #define KEYBOARD_PRIORITY			1
 
+#define DELTA_UNIT_PRIORITY			3
+
 unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key);
 
 PROCESS_INFO* GetReadyProcess();

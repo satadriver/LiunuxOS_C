@@ -1849,8 +1849,16 @@ void EOICommand(int pin) {
 			outportb(0x20, 0x20);
 		}
 		else if ((pin >= INTR_8259_SLAVE) && (pin < INTR_8259_SLAVE + 8)) {
-			outportb(0x20, 0x20);
+			
 			outportb(0xa0, 0x20);
+
+			int isr = pic_get_isr();
+			if (isr & 0xff00) {
+
+			}
+			else {
+				outportb(0x20, 0x20);
+			}
 		}
 	}
 

@@ -753,7 +753,7 @@ void init8259() {
 	outportb(0x21, 0x40);	//ocw1
 	outportb(0xa1, 0xc0);
 
-	//outportb(0x20, 0x20);	//ocw2
+	//outportb(0x20, 0x20);	//ocw2, to set EOI
 	//outportb(0xa0, 0x20);
 
 	//0: level trigger,1: pulse trigger
