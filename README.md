@@ -1,12 +1,12 @@
 # LiunuxOS
 
-liunuxos包含两个工程，liunuxos和liunuxos_c。liunuxos是基于masm的汇编代码，liunuxos_c是基于vs的c、c++代码。
+liunuxos包含两个工程：liunuxos和liunuxos_c。liunuxos基于masm汇编工程，liunuxos_c是基于visual studio的c、c++工程。
 
-编译方法：
+1.  编译
 
-1.利用masm生成mb.com, loader.com, liunuxos.exe。
+1.1  masm生成MBR.com、loader.com、liunuxos.exe
 
-切换到linuxos目录，在windows xp、windows 7 32位command/cmd执行：
+在windows xp、windows 7 等32位操作系统下，切换到linuxos目录，打开command或者cmd，执行命令：
 
 masm mbr;
 
@@ -30,9 +30,15 @@ link kernel;
 
 上述2条命令生成kernel.exe
 
-2. visual studio下编译生成kernel.dll、main.dll、liunuxsetup.exe。注意要关闭代码优化、GS、c++异常等编译选项。
-3. 将kernel.dll、main.dll、liunuxsetup.exe、mbr.com、loader.com，kernel.exe等文件放在c盘下，比如新建一个liunux文件下，目录为c:\liunux，在windows/linux系统中打开文件夹，并执行liunuxset.exe，即可将系统安装到当前系统中，重启后会进入liunuxos。
-   
+1.2  visual studio下编译生成kernel.dll、main.dll、liunuxsetup.exe。注意要关闭代码优化、GS、c++异常等编译选项。
+
+2.  安装LiunuxOS
+
+2.1  windows下安装。将kernel.dll、main.dll、liunuxsetup.exe、MBR.com、loader.com，kernel.exe、font.db等文件放在c盘liunux目录下(目录为c:\liunux)，执行liunuxset.exe
+
+2.2  linux(Ubuntu centos等任何x86系统)安装。gcc编译linuxsetup，将kernel.dll、main.dll、MBR.com、loader.com，kernel.exe、font.db等文件放到同一目录下，执行linuxsetup。
+
+系统安装成功后，重启后会进入liunuxos
 
 
 
