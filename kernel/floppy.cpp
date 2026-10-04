@@ -197,10 +197,7 @@ void __declspec(naked) FloppyIntProc(LIGHT_ENVIRONMENT* stack) {
 		char szout[256];
 		__printf(szout, (char*)"FloppyIntProc!\r\n");
 
-		
-
 		EOICommand(INTR_8259_MASTER + 5);
-
 	}
 
 	__asm {

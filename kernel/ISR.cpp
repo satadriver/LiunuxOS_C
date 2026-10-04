@@ -515,7 +515,7 @@ void __declspec(naked) InvalidTss(LIGHT_ENVIRONMENT* stack) {
 
 		add esp, 4
 
-		clts
+		//clts
 		iretd
 		jmp InvalidTss
 	}

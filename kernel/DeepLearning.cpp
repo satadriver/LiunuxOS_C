@@ -89,11 +89,13 @@ int g_ml_data_cnt = 0;
 
 kann_t* g_dl_ann = 0;
 
+double g_dl_rate = 0.0;
+
 
 int SaveMlData(TaskPredictParam * tp)
 {
 
-	if (g_ml_data != 0 && g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
+	if (g_ml_data != 0 && g_ml_data_cnt < TASK_DISPATCH_SAMPLE) {
 		__memcpy((char*)&g_ml_data[g_ml_data_cnt], (char*)tp,sizeof(TaskPredictParam));
 
 		if (g_ml_data_cnt % 100 == 0) {
@@ -111,11 +113,14 @@ int SaveMlData(TaskPredictParam * tp)
 
 
 int TaskSwitchPrediction(TaskPredictParam* tp) {
-	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
-	int n_samples = TASK_PREDICTION_TRAIN;
+	//int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
+	//int n_samples = TASK_DISPATCH_SAMPLE;
+	if (g_train_complete == 0 || g_dl_rate == 0.0) {
+		return -1;
+	}
 	int outSize = ML_TASK_LIMIT;
 	
-	int n_err = 0;
+	//int n_err = 0;
 
 	const float* y1 = kann_apply1(g_dl_ann, (float*)tp);
 

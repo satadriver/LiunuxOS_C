@@ -35,6 +35,10 @@
 #define SVC_CLI					26
 #define SVC_STI					27
 
+#define SVC_READCR				28
+#define SVC_WRITECR				29
+
+
 #ifdef DLL_EXPORT
 
 #else
@@ -45,10 +49,12 @@
 
 int __kYield();
 
+int getcrs(char * szout);
+
 
 
 #ifdef DLL_EXPORT
-
+extern "C" __declspec(dllexport) unsigned long long g_tick_persec;
 extern "C" __declspec(dllexport) char* g_hlt_addr;
 extern "C" __declspec(dllexport) int CpuTemperature(DWORD * temp);
 extern "C" __declspec(dllexport) int __kVm86IntProc();
@@ -56,6 +62,10 @@ extern "C"  __declspec(dllexport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllexport) DWORD vm86IntProc(LIGHT_ENVIRONMENT* stack);
 
 extern "C" __declspec(dllexport) DWORD ServiceEntry(LIGHT_ENVIRONMENT* stack);
+
+extern "C" __declspec(dllexport) unsigned long long tscps();
+
+extern "C" __declspec(dllexport) int readcrs(char * szout);
 
 extern "C" __declspec(dllexport) void sleep(DWORD* params);
 
@@ -100,13 +110,20 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module
 
 extern "C"  __declspec(dllexport)void __kcli();
 extern "C"  __declspec(dllexport)void __ksti();
+
+extern "C"  __declspec(dllexport)unsigned long long getsecond();
 #else
+extern "C" __declspec(dllimport) unsigned long long g_tick_persec;
 extern "C" __declspec(dllimport) char* g_hlt_addr;
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) int CpuTemperature(DWORD * temp);
 extern "C" __declspec(dllimport) int __kVm86IntProc();
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) DWORD vm86IntProc(LIGHT_ENVIRONMENT * stack);
+
+extern "C" __declspec(dllimport) unsigned long long tscps();
+
+extern "C" __declspec(dllimport) int readcrs(char * szout);
 
 extern "C" __declspec(dllimport) DWORD ServiceEntry(LIGHT_ENVIRONMENT * stack);
 
@@ -151,4 +168,5 @@ extern "C"  __declspec(dllimport) int __ipiCreateProcess(DWORD base, int size, c
 extern "C"  __declspec(dllimport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p, char* func);
 extern "C"  __declspec(dllimport)void __kcli();
 extern "C"  __declspec(dllimport)void __ksti();
+extern "C"  __declspec(dllimport)unsigned long long getsecond();
 #endif

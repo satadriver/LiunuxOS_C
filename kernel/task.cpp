@@ -637,7 +637,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		__printf(szout, "%s prev tss status %d/%d error!\r\n", prev->status, proc->status);
 	}
 	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", proc->status, prev->status);
+		__printf(szout, "%s process status:%d, prev status:%d error\r\n", __FUNCTION__, proc->status, prev->status);
 		goto __SingleTssSchedule_end;
 	}
 #ifdef TASK_SWITCH_PRIORITY
@@ -1058,7 +1058,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		//prev->status = TASK_SUSPEND;
 	}
 	else {
-		__printf(szout, "__kTaskSchedule process status:%d, prev status:%d error\r\n", process->status, current->status);
+		__printf(szout, "%s process status:%d, prev status:%d error\r\n",__FUNCTION__, process->status, current->status);
 		goto __MultipleTssSchedule_end;
 	}
 #ifdef TASK_SWITCH_PRIORITY
@@ -1400,12 +1400,12 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 #ifndef SINGLE_TASK_TSS
 		__asm {
-			clts			//multiple tss for task switch,must to do this
+			//clts			//multiple tss for task switch,must to do this
 		}
 #endif
 
 		if (prev->tid != current->tid) {
-			__printf(szout, "__kTaskSchedule process tid:%d, prev tid:%d not same\r\n", prev->tid, current->tid);
+			__printf(szout, "%s %d process tid:%d, prev tid:%d not same\r\n",__FUNCTION__,__LINE__, prev->tid, current->tid);
 			//return 0;
 		}
 
@@ -1541,9 +1541,9 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->large_heap_size = 0;
 	process0->fast_heap_large = 0;
 
-	process0->delta = 0;
 	process0->priority = 0;
-	process0->authority = 0;
+	process0->delta = DYNAMIC_PRIORITY;
+	process0->authority = AUTHORITY_PRIORITY;
 
 	process0->tick_run = 0;
 	process0->prev_tick = 0;
@@ -1652,7 +1652,7 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 		mov esp, ss: [esp - 20]
 
-		clts
+		//clts
 
 		iretd
 
@@ -1689,7 +1689,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 			pop ds
 			popad
 
-			clts
+			//clts
 
 			iretd
 		}
@@ -1723,7 +1723,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
 		mov esp, ss: [esp - 20]
 
-		clts
+		//clts
 
 		iretd
 	}

@@ -26,6 +26,7 @@
 #include "systemService.h"
 #include "pci.h"
 #include "apic.h"
+#include "taskpriority.h"
 
 #pragma comment(linker, "/STACK:0x100000")
 
@@ -180,7 +181,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		else if (__strcmp(params[1], "crx") == 0)
 		{
 			*szout = 0;
-			getcrs(szout);
+			readcrs(szout);
 			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 		}
 		else if (__strcmp(params[1], "general") == 0)
@@ -272,13 +273,24 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		DWORD intpersec = InterruptPerSec();
 		__sprintf(szout, "%u\r\n", intpersec);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
-		}
+	}
 	else if (__strcmp(params[0], "tscps") == 0)
 	{
 		unsigned long long tsc = tscps();
-		__sprintf(szout, "time stamp counter:%I64x\n", tsc);
+		__sprintf(szout, "time stamp persecond:%I64x\n", tsc);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
+	}
+	else if (__strcmp(params[0], "tpcost") == 0)
+	{
+		double rate = (double)g_task_pre_cost / (double)g_tick_persec;
+		__sprintf(szout, "time stamp persecond:%I64x,task switch cost:%i64x, rate:%lf\n", g_tick_persec, g_task_pre_cost, rate);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "tdcost") == 0)
+	{
+		__sprintf(szout, "task dispatch cost:%I64x\r\n", g_td_tickcost);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
 	else if (__strcmp(params[0], "8254ps") == 0) {
 		unsigned long v = Get8254TickCount();
 		__sprintf(szout, "%x\r\n", v);

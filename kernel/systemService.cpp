@@ -10,6 +10,9 @@
 #include "apic.h"
 
 
+unsigned long long g_tick_persec = 0;
+
+
 DWORD g_random_seed = 0;
 
 extern "C" __declspec(dllexport)char* g_hlt_addr = 0;
@@ -217,6 +220,9 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			}
 			break;
 		}
+		case SVC_READCR: {
+			getcrs((char*)params[0]);
+		}
 		default: {
 			r = 0;
 			break;
@@ -262,6 +268,9 @@ int __kAdjustApicTimer() {
 	}
 	return result;
 }
+
+
+
 
 
 extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
@@ -365,6 +374,12 @@ int __kYield() {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	SetIcr(cpu, TASK_SCHEDULE_VECTOR, 0, 0);
 	return 0;
+}
+
+
+
+extern "C"  __declspec(dllexport)unsigned long long getsecond() {
+	return g_tick_persec;
 }
 
 
@@ -636,6 +651,82 @@ DWORD __timestamp(unsigned long* params) {
 	}
 }
 
+unsigned long long tscps() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = tick;
+	while (tick2 == tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sleep(0);
+	}
+
+	tick2 = tick + 1;
+
+	unsigned long long tsc1 = __krdtsc();
+
+	while (tick2 != tick) {
+		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		__sleep(0);
+	}
+
+	unsigned long long tsc2 = __krdtsc();
+	g_tick_persec = tsc2 - tsc1;
+	return tsc2 - tsc1;
+}
+
+
+int readcrs(char * szout) {
+	__asm {
+		mov edi,szout
+		mov eax, SVC_READCR
+		int 0xff
+	}
+	return 0;
+}
+
+int getcrs(char * szout) {
+
+	if (szout)
+	{
+		*szout = 0;
+	}
+	else {
+		return 0;
+	}
+
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	int dsreg = process->tss.cs;
+	if (dsreg & 3)
+	{
+		__sprintf(szout, "you have no privilege to get crs\r\n");
+		return 0;
+	}
+
+	DWORD rcr0 = 0;
+	DWORD rcr2 = 0;
+	DWORD rcr3 = 0;
+	DWORD rcr4 = 0;
+
+	__asm {
+		mov eax, cr0
+			mov rcr0, eax
+
+			mov eax, cr2
+			mov rcr2, eax
+
+			mov eax, cr3
+			mov rcr3, eax
+
+			//mov eax, cr4	//db 0fh, 20h, 0e0h
+			__emit 0xf
+			__emit 0x20
+			__emit 0xe0
+			mov rcr4, eax
+	}
+
+	int len = __sprintf(szout, "cr0:%x,cr2:%x,cr3:%x,cr4:%x\n", rcr0, rcr2, rcr3, rcr4);
+	return len;
+}
 
 //通过DTS获取温度并不是直接得到CPU的实际温度，而是两个温度的差。
 //第一个叫做Tjmax，这个Intel叫TCC activation temperature，

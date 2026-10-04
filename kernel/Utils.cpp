@@ -529,9 +529,10 @@ double strlf2lf(char* str) {
 int lf2strlf(double f, char* buf) {
 	if (f >= DBL_MAX || f<= -DBL_MAX || (f <= DBL_EPSILON && f>= -DBL_EPSILON) ) {
 		// 处理溢出，例如返回错误或使用其他表示
-		//__strcpy(buf, "elligle");
-		buf[0] = 0;
-		return 0;
+		__strcpy(buf, "NULL");
+		//buf[0] = '0';
+		//buf[1] = 0;
+		return 4;
 	}
 
 	int len = 0;

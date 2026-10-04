@@ -82,11 +82,17 @@
 
 
 
+
 extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
 {
 	
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	//printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+	__asm{cli}
 	g_train_complete = 0;
+	g_dl_rate = 0.0;
+	__asm {sti}
+
 	if (g_dl_ann) {
 		free(g_dl_ann);
 	}
@@ -96,7 +102,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	}
 	g_ml_data_cnt = 0;
 	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_PREDICTION_TRAIN * sizeof(TaskPredictParam));
+		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * sizeof(TaskPredictParam));
 		if (g_ml_data == 0) {
 			return 0;
 		}
@@ -107,14 +113,16 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	int sleep_time = 0;
 
 	for (int i = 0; i < max_task/2; i++) {
+		break;
+
 		char tn[256];
 		__sprintf(tn, "TestThread%d", i);
 		TASKCMDPARAMS cmd2;
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
 		if (ml_addr2) {
-			//__ipiCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
-			//__sleep(sleep_time);
+			__ipiCreateThread((unsigned int)ml_addr2, MAIN_DLL_SOURCE_BASE, (DWORD)&cmd2, tn);
+			__sleep(sleep_time);
 		}
 	}
 
@@ -131,9 +139,11 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		}
 	}
 
-	while (g_ml_data_cnt < TASK_PREDICTION_TRAIN) {
+	while (g_ml_data_cnt < TASK_DISPATCH_SAMPLE) {
 		__sleep(1000);
 	}
+	DWORD tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD sampleTime = tick2 - tick1;
 
 	char szout[256];
 
@@ -141,7 +151,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	int cnt = 0;
 	int i = 0;
 	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
-	int n_samples = TASK_PREDICTION_TRAIN;
+	int n_samples = TASK_DISPATCH_SAMPLE;
 	int outSize = ML_TASK_LIMIT;
 	float** x, ** y, max, * x1;
 	kad_node_t* t;
@@ -179,7 +189,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	kann_train_fnn1(g_dl_ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
 
 	// predict
-	n_samples = TASK_PREDICTION_TRAIN;
+	n_samples = TASK_DISPATCH_SAMPLE;
 	x1 = (float*)calloc(inSize, sizeof(float));
 	int n_err = 0;
 	for (i = 0; i < n_samples; ++i) {
@@ -210,10 +220,15 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		}
 	}
 
+	tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD trainTime = tick1 - tick2;
+
 	double error = 100.0 * n_err / n_samples;
-	printf("Test error rate: %lf%%\r\n", error);
+	printf("Task Prediction sample:%d, input dimension:%d, output dimension:%d, error rate: %lf%%, sample seconds:%d, train seconds:%d\r\n", 
+		TASK_DISPATCH_SAMPLE, inSize,outSize,error, sampleTime,trainTime);
+	g_dl_rate = error;
 	//kann_delete(ann); // TODO: also to free x, y and x1
-	if (error<20.0) {
+	if (error< TASK_DISPATCH_ERROR_RATE) {
 		g_train_complete = 1;
 	}
 
@@ -295,7 +310,7 @@ extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, i
 	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
 	int blockSize = sizeof(TaskPredictParam) - sizeof(float);
 
-	int n_samples = TASK_PREDICTION_TRAIN;
+	int n_samples = TASK_DISPATCH_SAMPLE;
 	int outSize = 1;
 
 	kad_node_t* t;
@@ -303,14 +318,14 @@ extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, i
 	if (norm) rnn_flag |= KANN_RNN_NORM;
 	bit_data_t *d = (bit_data_t*)malloc(sizeof(bit_data_t));
 	d->n_in = inSize;
-	d->m = TASK_PREDICTION_TRAIN;
-	d->n = TASK_PREDICTION_TRAIN;
+	d->m = TASK_DISPATCH_SAMPLE;
+	d->n = TASK_DISPATCH_SAMPLE;
 	d->ulen = 32;
-	d->x = (unsigned long long*)malloc(inSize*sizeof(float) * TASK_PREDICTION_TRAIN);
-	d->y = (unsigned long long*)malloc(sizeof(float)* TASK_PREDICTION_TRAIN);
+	d->x = (unsigned long long*)malloc(inSize*sizeof(float) * TASK_DISPATCH_SAMPLE);
+	d->y = (unsigned long long*)malloc(sizeof(float)* TASK_DISPATCH_SAMPLE);
 
 	if (g_ml_data == 0) {
-		g_ml_data = (TaskPredictParam*)malloc(TASK_PREDICTION_TRAIN *sizeof(TaskPredictParam));
+		g_ml_data = (TaskPredictParam*)malloc(TASK_DISPATCH_SAMPLE *sizeof(TaskPredictParam));
 	}
 
 	for (i = 0; i < n_samples; ++i) {
@@ -897,7 +912,7 @@ extern "C" __declspec(dllexport) int TestProcess31(unsigned int retaddr, int tid
 
 #define DEFINE_TEST_PROCESS(N) \
     extern "C" __declspec(dllexport) void TestProcess_##N() { \
-        while(g_train_complete == 0){__sleep(0); } \
+        while(g_train_complete == 0 && g_dl_rate == 0.0){__sleep(0); } \
     }
 
 DEFINE_TEST_PROCESS(0)

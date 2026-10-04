@@ -18,7 +18,7 @@
 #include "systemService.h"
 #include "deeplearning.h"
 #include "apicTimer.h"
-
+#include "taskPriority.h"
 
 DWORD * gOicBase = 0;
 
@@ -40,6 +40,8 @@ LPPROCESS_INFO g_ap_tss_base[256];
 unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
 
 unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
+
+
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -98,8 +100,6 @@ void setIoRedirect(int idx, int id, int vector, int mode) {
 	iomfence();
 	WriteIoApicReg(idx + 1, ((id & 0x0ff) << 24));
 	
-
-
 }
 
 
@@ -231,10 +231,6 @@ int getLocalApicID() {
 		mov eax,edx
 	}
 }
-
-
-
-
 
 
 
@@ -604,7 +600,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
-		cli
+		//cli
 		pushad
 		push ds
 		push es
@@ -703,7 +699,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
-
+extern "C" __declspec(dllexport) unsigned long long g_td_tickcost = 0;
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
@@ -729,14 +725,16 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		MOV ss, AX
 
 #ifndef SINGLE_TASK_TSS
-		clts
+		//clts
 #endif
 	}
 
 	{
-		char szout[256];
+		//char szout[256];
 
 		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
+
+		unsigned long long tick1 = __krdtsc();
 
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
 
@@ -745,6 +743,10 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
+
+		unsigned long long tick2 = __krdtsc();
+
+		g_td_tickcost = (g_td_tickcost + tick2 - tick1) / 2;
 	}
 	
 	__asm {
@@ -988,12 +990,6 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 //https://zhuanlan.zhihu.com/p/406213995
 //https://zhuanlan.zhihu.com/p/678582090
 //https://www.zhihu.com/question/594531181/answer/2982337869
-
-
-
-
-
-
 
 
 
@@ -1258,7 +1254,7 @@ int InitLocalApicTimer() {
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	freq = freq * 2 / 3;
+	freq = freq * 2 / 8;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
@@ -1272,7 +1268,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)freq;
 
 	char szout[256];
-	__printf(szout, "apic timer init value:%I64x\r\n", freq);
+	//__printf(szout, "apic timer init value:%I64x\r\n", freq);
 
 	return 0;
 }
@@ -1333,7 +1329,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	char * lpidt = InitIDT();
 
 	char procname[64];
-	__sprintf(procname, "Apic_Process_%d", cpuid);
+	__sprintf(procname, "AP_%d_Process", cpuid);
 	int mytid = __initTask0((char*)LIUNUX_KERNEL32_DLL, procname,0, GRAPHCHAR_HEIGHT * cpuid * 16 + 256);
 
 	EnablePaging32((char*)PDE_ENTRY_VALUE);
@@ -1406,8 +1402,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		__emit 0xe0
 	}
 
-	__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
-		cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
+	//__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
+		//cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
 	do {
 		__sleep(0);
@@ -1416,7 +1412,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	} while (ret == 0);
 
 	while (1) {
-		__sleep(0);
+		ret = PredictionTask();
+		if (ret == 0) {
+			__sleep(0);
+		}
 		__asm {
 			//hlt
 		}
@@ -1564,8 +1563,7 @@ void BPCodeStart() {
 		__emit 0x22
 		__emit 0xe0
 	}
-	__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", 
-		cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
+	//__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;
 }
@@ -1604,23 +1602,7 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)(TASK_TSS_BASE + tssSize * id);
 	return process;
-	/*
-	int cnt = *(int*)CPU_TOTAL_ADDRESS;
-	if (cnt)
-	{
-		int* apids = (int*)CPU_ID_ADDRESS;
-		for (int i = 0; i < cnt; i++) {
-			if (apids[i] == id)
-			{
-				LPPROCESS_INFO process = (LPPROCESS_INFO)(AP_TASK_TSS_BASE + tsssize * id);
-				return process;
-			}
-		}
-	}
 
-	__printf(szout, "%s error,cpu:%d,ap count:%d\r\n", __FUNCTION__, id, cnt);
-	return 0;
-	*/
 }
 
 
@@ -1690,11 +1672,6 @@ int GetCpu(int* out, int size) {
 
 
 
-
-
-
-
-
 int GetIdleProcessor() {
 
 	int* ids = (int*)CPU_ID_ADDRESS;
@@ -1714,82 +1691,7 @@ int GetIdleProcessor() {
 	BubbleSortd(times, counter);
 	
 	return (int)times[0].id;
-
-	/*
-	gAllocateAp++;
-	if (gAllocateAp >= counter) {
-		gAllocateAp = 0;
-
-	}
-	int cpuid = ids[gAllocateAp];
-	return cpuid;
-	
-	char szout[256];
-
-	unsigned int cpuStatus[256];
-	__memset((char*)cpuStatus, 0, 256);
-
-	int total = 0;
-	int bspid = *(int*)CPU_ID_ADDRESS;
-	int cnt = *(int*)CPU_TOTAL_ADDRESS;
-	if (cnt <= 1) {
-		return bspid;
-	}
-	
-	int* apids = (int*)CPU_ID_ADDRESS;
-
-	for (int num = 0; num < cnt; num++) {
-		
-		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-			int cpuid = apids[num];
-			LPPROCESS_INFO proc = (LPPROCESS_INFO)g_ap_tss_base[cpuid];
-			if (proc[i].status == TASK_RUN) {
-				
-				if (cpuid < 0 || cpuid >= 256 || cpuid != proc[i].cpuid) {
-					__printf(szout, "%s cpuid:%d error\r\n", __FUNCTION__, cpuid);
-					break;
-				}
-				unsigned int c = cpuStatus[cpuid] & 0xffffff;
-				unsigned int num = cpuid << 24;
-				c++;
-				cpuStatus[cpuid] = (num) | (c);
-				total++;
-			}
-		}
-	}
-
-	if (total) {
-		BubbleSort(cpuStatus, cnt );
-	}
-
-	for (int i = 0; i < cnt ; i++) {
-		unsigned int c = cpuStatus[i] & 0xffffff;
-		unsigned int num = (cpuStatus[i] & 0xff000000) >> 24;
-		if (num == bspid) {
-			if (i < (cnt + 1) / 2) {
-				int n1 = cpuStatus[i] & 0xffffff;
-				int n2 = cpuStatus[i + 1] & 0xffffff;
-				if (n2 > 2 * n1) {
-					return num;
-				}
-				else {
-
-				}
-			}
-			else {
-				return num;
-			}
-		}
-		else {
-			return num;
-		}
-	}
-
-	return bspid;
-	*/
 }
-
-
 
 
 
@@ -1832,13 +1734,6 @@ int GetCongestion(int * procs) {
 
 
 
-
-
-
-
-
-
-
 void EOICommand(int pin) {
 	if (g_apic_int_tag) {
 		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
@@ -1861,5 +1756,4 @@ void EOICommand(int pin) {
 			}
 		}
 	}
-
 }

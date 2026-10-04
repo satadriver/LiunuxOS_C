@@ -98,8 +98,6 @@ void setIoApicID(int id);
 
 int IsBspProcessor();
 
-
-
 int GetIdleProcessor();
 
 void EOICommand(int pin);
@@ -138,7 +136,7 @@ extern "C" __declspec(dllexport) unsigned long long g_timer_tick[TASK_LIMIT_TOTA
 extern "C" __declspec(dllexport) int g_ipi_lock[256] ;
 extern "C" __declspec(dllexport) char* g_ipi_buf[256] ;
 
-
+extern "C" __declspec(dllexport) unsigned long long g_td_tickcost;
 
 extern "C"  __declspec(dllexport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllexport) int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p);
@@ -156,7 +154,7 @@ extern "C" __declspec(dllimport) unsigned long long g_timer_tick[TASK_LIMIT_TOTA
 extern "C" __declspec(dllimport) int g_ipi_lock[256];
 extern "C" __declspec(dllimport) char* g_ipi_buf[256];
 
-
+extern "C" __declspec(dllimport) unsigned long long g_td_tickcost;
 
 extern "C"  __declspec(dllimport) int IpiCreateThread(char* addr, char* module, unsigned long p, char* funname);
 extern "C"  __declspec(dllimport) int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsigned long p);

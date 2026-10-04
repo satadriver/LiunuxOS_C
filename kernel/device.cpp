@@ -637,7 +637,7 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	__asm {sti}
 
 	char szout[256];
-	__printf(szout, "%s %d tick:%I64x,apic tick:%I64x\r\n", __FUNCTION__, __LINE__, tick[0], delta);
+	//__printf(szout, "%s %d tick:%I64x,apic tick:%I64x\r\n", __FUNCTION__, __LINE__, tick[0], delta);
 
 	return delta;
 }
@@ -658,7 +658,7 @@ int delay() {
 }
 
 void __delay() {
-	for (int i = 0; i < 0x10; i++) {
+	for (int i = 0; i < 0x100; i++) {
 		__asm {
 			nop
 			pause

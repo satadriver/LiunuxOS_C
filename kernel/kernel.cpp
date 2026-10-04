@@ -47,6 +47,7 @@
 #include "rc4.h"
 #include "libc.h"
 #include "tool.h"
+#include "taskPriority.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -207,13 +208,16 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
 		LIUNUXOS_VERSION, reg_esp, reg_ebp);
 
+	tscps();
 	int adjust = 0;
+
 	while (1)
 	{
-		__sleep(0);
-		__asm {
-			//hlt
+		ret = PredictionTask();
+		if (ret == 0) {
+			__sleep(0);
 		}
+
 		if (adjust == 0) {
 			//adjust = AdjustApicTimer();
 		}

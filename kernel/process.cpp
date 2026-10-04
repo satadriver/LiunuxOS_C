@@ -17,6 +17,7 @@
 #include "apic.h"
 #include "core.h"
 #include "systemService.h"
+#include "taskPriority.h"
 
 extern void freeProcessPages(LPPROCESS_INFO proc);
 extern void freeProcessMemory(LPPROCESS_INFO proc);
@@ -389,9 +390,13 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	else {
 		tss->slice = TASK_SLICE_KERNEL; // TASK_SLICE_USER
 	}
-	tss->delta = 0;
+
 	tss->priority = 0;
-	tss->authority = 0;
+	if (tss->param->cmd & TASK_REALTIME) {
+		tss->priority = STATIC_PRIORITY;
+	}
+	tss->delta = DYNAMIC_PRIORITY;
+	tss->authority = AUTHORITY_PRIORITY;
 
 	tss->frac_slice = 0;
 	tss->tick_run = 0;

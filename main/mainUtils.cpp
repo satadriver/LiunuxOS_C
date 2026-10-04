@@ -10,49 +10,7 @@
 #include "systemService.h"
 #include "libc.h"
 
-int getcrs(char * szout) {
 
-	if (szout)
-	{
-		*szout = 0;
-	}
-	else {
-		return 0;
-	}
-
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	int dsreg = process->tss.cs;
-	if (dsreg & 3)
-	{
-		__printf(szout,"you have no privilege to get crs\r\n");
-		return 0;
-	}
-
-	DWORD rcr0 = 0;
-	DWORD rcr2 = 0;
-	DWORD rcr3 = 0;
-	DWORD rcr4 = 0;
-
-	__asm {
-		mov eax, cr0
-		mov rcr0, eax
-
-		mov eax, cr2
-		mov rcr2, eax
-
-		mov eax, cr3
-		mov rcr3, eax
-
-		//mov eax, cr4	//db 0fh, 20h, 0e0h
-		__emit 0xf
-		__emit 0x20
-		__emit 0xe0
-		mov rcr4, eax
-	}
-
-	int len = __printf(szout, "cr0:%x,cr2:%x,cr3:%x,:%x\n", rcr0, rcr2, rcr3, rcr4);
-	return len;
-}
 
 int GetSimpleProcesses(char* szout) {
 	int outlen = 0;
@@ -321,27 +279,6 @@ int GetCpuRatio(char* szout) {
 	return outlen;
 }
 
-unsigned long long tscps() {
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-	DWORD tick2 = tick;
-	while (tick2 == tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-		__sleep(0);
-	}
-
-	tick2 = tick + 1;
-
-	unsigned long long tsc1 = __krdtsc();
-
-	while (tick2 != tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-		__sleep(0);
-	}
-
-	unsigned long long tsc2 = __krdtsc();
-	return tsc2 - tsc1;
-}
 
 
 DWORD InterruptPerSec() {

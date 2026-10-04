@@ -9,6 +9,7 @@
 #include "window.h"
 #include "core.h"
 #include "systemService.h"
+#include "taskpriority.h"
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -268,9 +269,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->errorno = 0;
 
-	tss->delta = 0;
+	tss->delta = DYNAMIC_PRIORITY;
+	tss->authority = AUTHORITY_PRIORITY;
 	tss->priority = process->priority;
-	tss->authority = 0;
 
 	tss->tick_run = 0;
 	tss->prev_tick = 0;
