@@ -283,7 +283,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "tpcost") == 0)
 	{
 		double rate = (double)g_task_pre_cost / (double)g_tick_persec;
-		__sprintf(szout, "time stamp persecond:%I64x,task switch cost:%i64x, rate:%lf\n", g_tick_persec, g_task_pre_cost, rate);
+		__sprintf(szout, "time stamp persecond:%I64x,task prediction cost:%i64x, rate:%lf\n", g_tick_persec, g_task_pre_cost, rate);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "tdcost") == 0)
