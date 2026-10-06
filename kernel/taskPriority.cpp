@@ -320,6 +320,7 @@ PROCESS_INFO* GetReadyProcess() {
 
 		if (g_train_complete == 0) {
 			SaveMlData(&tp);
+			g_task_other_hit++;
 		}
 		else {
 			int seq = TaskSwitchPrediction(&tp);

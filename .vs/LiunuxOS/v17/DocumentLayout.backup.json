@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "D:\\liunuxos\\LiunuxOS_C\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\taskPriority.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -262,7 +262,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
@@ -279,13 +279,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "taskPriority.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp",
               "RelativeDocumentMoniker": "kernel\\taskPriority.cpp",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp",
               "RelativeToolTip": "kernel\\taskPriority.cpp",
-              "ViewState": "AgIAADoCAAAAAAAAAAAAAFMBAAAMAAAAAAAAAA==",
+              "ViewState": "AgIAAGQBAAAAAAAAAAAAAHkBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-09-24T04:34:46.453Z",
               "EditorCaption": ""
@@ -357,7 +357,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "cmd.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\main\\cmd.cpp",
               "RelativeDocumentMoniker": "main\\cmd.cpp",
