@@ -4,9 +4,17 @@
 #include "algorithm.h"
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport)  unsigned long long g_task_pre_hit;
+extern "C" __declspec(dllexport)  unsigned long long g_task_pre_total;
 extern "C" __declspec(dllexport)  unsigned long long g_task_pre_cost ;
+extern "C" __declspec(dllexport) unsigned long long g_task_other_hit;
+extern "C" __declspec(dllexport) unsigned long long g_task_dl_hit ;
 #else
+extern "C" __declspec(dllimport)  unsigned long long g_task_pre_hit;
+extern "C" __declspec(dllimport)  unsigned long long g_task_pre_total;
 extern "C" __declspec(dllimport)  unsigned long long g_task_pre_cost;
+extern "C" __declspec(dllimport) unsigned long long g_task_other_hit;
+extern "C" __declspec(dllimport) unsigned long long g_task_dl_hit;
 #endif
 
 #define STATIC_PRIORITY				16

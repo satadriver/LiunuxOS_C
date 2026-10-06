@@ -101,7 +101,7 @@ extern "C"  __declspec(dllexport) double __pow(double a, int b)
 
 extern "C"  __declspec(dllexport) double __sqrt(double x)
 {
-	if (x == 0)
+	if (x == 0.0)
 	{
 		printf("%s %d value:%lf is 0!\r\n", __FUNCTION__, __LINE__, x);
 		return DBL_EPSILON;
@@ -444,11 +444,11 @@ int GetSin(int angle) {
  * 其中 m 在 [1, 2) 区间
  */
 double __log(double x) {
-	if (x <= 0) {
+	if (x <= 0.0) {
 		printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
 		return -x;
 	}
-	if (x == 1) 
+	if (x == 1.0) 
 		return 0.0;
 
 	// 归一化
@@ -480,10 +480,10 @@ double __log(double x) {
 
 
 double __logn(double base,double exp) {
-	if (base <= 0) return base;
+	if (base <= 0.0) return base;
 	if (base == 1) return 0;
 
-	if (exp == 0) return 0;
+	if (exp == 0.0) return 0;
 
 	double v1 = __log(base);
 
@@ -497,7 +497,7 @@ double __logn(double base,double exp) {
 
 double __exp(double x) {
 	// 处理负数: e^(-x) = 1/e^x
-	if (x < 0) {
+	if (x < 0.0) {
 		return 1.0 / __exp(-x);
 	}
 

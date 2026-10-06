@@ -9,7 +9,7 @@
 #include "VM86.h"
 #include "apic.h"
 
-
+unsigned long long g_tick_prev = 0;
 unsigned long long g_tick_persec = 0;
 
 

@@ -143,7 +143,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		sti
 	}
 
-	initFileSystem();
+	int fir = initFileSystem();
 
 	initDll();
 
@@ -160,12 +160,12 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	//initNIC();
 
 	//pcnetInit();
-
+	if (fir == 0) {
 #ifdef VM86_PROCESS_TASK
-	//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
+		//__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
-
 #endif
+	}
 	
 	//EnterLongMode();
 

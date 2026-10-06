@@ -51,7 +51,7 @@ int __kYield();
 
 int getcrs(char * szout);
 
-
+extern unsigned long long g_tick_prev ;
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) unsigned long long g_tick_persec;

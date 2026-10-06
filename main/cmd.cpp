@@ -282,13 +282,17 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	}
 	else if (__strcmp(params[0], "tpcost") == 0)
 	{
-		double rate = (double)g_task_pre_cost / (double)g_tick_persec;
-		__sprintf(szout, "time stamp persecond:%I64x,task prediction cost:%i64x, rate:%lf\n", g_tick_persec, g_task_pre_cost, rate);
+		double prerate = (double)g_task_pre_hit / (double)g_task_pre_total;
+		double dlrate = (double)g_task_dl_hit / (double)g_task_pre_total;
+		double otherrate = (double)g_task_other_hit / (double)g_task_pre_total;
+		__sprintf(szout, "total:%I64x,pre:%i64x,dl:%i64x,other:%i64x, pre tick:%i64x,pre rate:%lf,dl rate:%lf,other rate:%lf\r\n", 
+			g_task_pre_total, g_task_pre_hit, g_task_dl_hit, g_task_other_hit, g_task_pre_cost, prerate, dlrate,otherrate);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "tdcost") == 0)
 	{
-		__sprintf(szout, "task dispatch cost:%I64x\r\n", g_td_tickcost);
+		double rate = (double)g_td_tickcost / (double)g_tick_persec;
+		__sprintf(szout, "TSC/second:%I64x,task dispatch cost:%I64x,rate:%lf\r\n", g_tick_persec, g_td_tickcost, rate);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "8254ps") == 0) {

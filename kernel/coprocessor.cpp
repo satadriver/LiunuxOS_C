@@ -206,36 +206,35 @@ void __kCoprocessor() {
 
 	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	//LPPROCESS_INFO prev = pb + g_last_task_tid[id];
+	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
 
-	char* fenv = (char*)g_fpu_status[id] + (proc->tid << 9);
-	
 	if (proc->fpu == 0)
 	{
 		current->fpu = 1;
 		proc->fpu = 1;
+	}
+	else {
+	}
 
+	__asm {
+		clts
+	}
+
+	if (proc->tid != prev->tid) {
+		char* fprevenv = (char*)g_fpu_status[id] + (prev->tid << 9);
+
+		char* fenv = (char*)g_fpu_status[id] + (proc->tid << 9);
 		__asm {
+			mov eax, fprevenv
+			fxsave ds : [eax]
+
 			//fnclex
 			//fwait
-			fninit
-
-			clts
+			//fninit
 
 			mov eax, fenv
 			//fsave [fenv]
-			fxsave ds:[eax]
-
-			//fxrstor ds : [eax]
-		}
-	}
-	else {		
-		__asm {
-			fninit
-			clts
-			mov eax,fenv
-			//frstor [fenv]
-			fxrstor ds:[eax]
+			fxrstor ds : [eax]
 		}
 	}
 }

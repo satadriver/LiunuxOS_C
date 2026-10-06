@@ -81,6 +81,7 @@ extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, c
 				window.showY = window.pos.y + window.capHeight + (window.frameSize >> 1);
 			}
 
+			__strlwr(( char*)szcmd);
 			__cmd((char*)szcmd, &window, filename, tid);
 
 			cmdptr = 0;

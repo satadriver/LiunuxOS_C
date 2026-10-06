@@ -269,7 +269,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		//*(WORD*)(tss->tss.esp + addr) = 0;
 
 		__printf(szout, "%s %d DOS com format file:%s\r\n\r\n",__FUNCTION__, __LINE__,filename);
-
 	}
 
 #ifdef SINGLE_TASK_TSS

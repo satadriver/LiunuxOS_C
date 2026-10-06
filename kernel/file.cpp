@@ -67,7 +67,7 @@ int initFileSystem() {
 		ret = InitExt4();
 	}
 	else {
-		return 0;
+		return -1;
 	}
 
 	char szout[256];

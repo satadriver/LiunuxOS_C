@@ -33,7 +33,13 @@ int g_tp_debug = 0;
 
 int g_tp_lock[256];
 
+unsigned long long g_task_pre_total = 0;
+unsigned long long g_task_pre_hit = 0;
 unsigned long long g_task_pre_cost = 0;
+
+unsigned long long g_task_other_hit = 0;
+unsigned long long g_task_dl_hit = 0;
+
 
 LPPROCESS_INFO g_prediction_task[256][TASK_PREDICTION_BUF_SIZE];
 
@@ -54,6 +60,8 @@ PROCESS_INFO* GetReadyProcess() {
 
 	char szout[256];
 
+	g_task_pre_total++;
+
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	LPPROCESS_INFO target_tss = 0;
 
@@ -68,6 +76,7 @@ PROCESS_INFO* GetReadyProcess() {
 		}	
 		__leaveSpinlock(&g_tp_lock[cpu]);
 		if (target_tss) {
+			g_task_pre_hit++;
 			return target_tss;
 		}
 	}
@@ -183,9 +192,11 @@ PROCESS_INFO* GetReadyProcess() {
 
 	if (count == 1) {
 		target_tss = next;
+		g_task_other_hit++;
 	}
 	else if (count <= 0) {
 		target_tss = current;
+		g_task_other_hit++;
 		//__printf(szout, "%s %d count:%d\r\n", __FUNCTION__, __LINE__);
 	}
 	else if (count > 1) {
@@ -311,10 +322,7 @@ PROCESS_INFO* GetReadyProcess() {
 			SaveMlData(&tp);
 		}
 		else {
-			unsigned long long tick1 = __krdtsc();
 			int seq = TaskSwitchPrediction(&tp);
-			unsigned long long tick2 = __krdtsc();
-			g_task_pre_cost = (g_task_pre_cost + tick2 - tick1)/2;
 			if (seq >= 0 && seq < count) {
 #ifdef PREDICTION_DEEPLEARNING
 				target_id = rate[seq].id;
@@ -329,16 +337,20 @@ PROCESS_INFO* GetReadyProcess() {
 				QuickSort(level, 0, count - 1);
 				target_id = level[count - 1].id;
 				target_tss = tss + target_id;
+				g_task_dl_hit++;
 #endif
 				if (g_tp_debug++ % 0x100 == 0) {
 					LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
 					LPPROCESS_INFO tp = p + target_id;
-					__printf(szout, "Task Prediction seq:%d,count:%d tid:%x cpu:%x function:%s filename:%s\r\n",seq, count, target_id, cpu, tp->funcname, tp->filename);
+					//__printf(szout, "%s %d seq:%d,count:%d, tid:%x, cpu:%x, function:%s, cost:%i64x\r\n",
+					//	__FUNCTION__,__LINE__,seq, count, target_id, cpu, tp->funcname, g_task_pre_cost);
 				}
 			}
 			else {
 				target_id = next->tid;	
-				__printf(szout, "Task Prediction seq:%d,count:%d error,tick:%i64x\r\n", seq, count,tick2-tick1);
+				//__printf(szout, "%s %d seq:%d,count:%d error,cost:%i64x\r\n", 
+				//	__FUNCTION__, __LINE__, seq, count, g_task_pre_cost);
+				g_task_other_hit++;
 			}
 
 			target_tss = tss + target_id;
@@ -613,14 +625,24 @@ int PredictionTask() {
 						tp.task[i].alloc = 0.0;
 					}
 				}		
-
+				
 				int seq = TaskSwitchPrediction(&tp);
+
 				if (seq >= 0 && seq < count) {
 					target_id = rate[seq].id;
+					//g_task_dl_hit++;
+					if (g_tp_debug++ % 0x100 == 0) {
+						LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
+						LPPROCESS_INFO tp = p + target_id;
+						//__printf(szout, "%s %d seq:%d,count:%d, tid:%x, cpu:%x, function:%s, cost:%i64x\r\n",
+						//	__FUNCTION__, __LINE__, seq, count, target_id, cpu, tp->funcname, g_task_pre_cost);
+					}
 				}
 				else {
-					__printf(szout, "Task Prediction seq:%d,count:%d error\r\n", seq, count);
+					//__printf(szout, "%s %d seq:%d,count:%d, error,cost:%i64x\r\n",
+					//	__FUNCTION__, __LINE__, seq, count, g_task_pre_cost);
 					target_id = next->tid;
+					
 				}
 
 				target_tss = tss + target_id;

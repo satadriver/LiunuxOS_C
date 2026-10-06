@@ -20,7 +20,7 @@
 #include "Pe.h"
 #include "Thread.h"
 #include "process.h"
-
+#include "taskPriority.h"
 #include "libc.h"
 #include "malloc.h"
 
@@ -113,6 +113,7 @@ int SaveMlData(TaskPredictParam * tp)
 
 
 int TaskSwitchPrediction(TaskPredictParam* tp) {
+	unsigned long long tick1 = __krdtsc();
 	//int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
 	//int n_samples = TASK_DISPATCH_SAMPLE;
 	if (g_train_complete == 0 || g_dl_rate == 0.0) {
@@ -132,6 +133,8 @@ int TaskSwitchPrediction(TaskPredictParam* tp) {
 			num = j;
 		}
 	}
+	unsigned long long tick2 = __krdtsc();
+	g_task_pre_cost = (g_task_pre_cost + tick2 - tick1) / 2;
 	return num;
 }
 

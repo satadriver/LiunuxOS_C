@@ -1602,7 +1602,6 @@ LPPROCESS_INFO GetCurrentTaskTssBase() {
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)(TASK_TSS_BASE + tssSize * id);
 	return process;
-
 }
 
 

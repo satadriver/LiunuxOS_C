@@ -752,6 +752,15 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			FxSAVE[eax]
 		}
 	}
+
+#define TASK_SWITCH_COPROCESSOR_LAZY
+#ifdef TASK_SWITCH_COPROCESSOR_LAZY
+	__asm {
+		mov eax, cr0
+		or eax, 8; 设置 bit 3 (TS)
+		mov cr0, eax
+	}
+#else
 	__asm {
 		mov eax, fenvprev
 		FxSAVE[eax]
@@ -761,7 +770,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 	}
-
+#endif
 	
 	if (prev->copyMap == 0) {	
 		int off = OFFSETOF(TSS, intMap);
@@ -948,11 +957,15 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			FxSAVE[eax]
 		}
 	}
+#define TASK_SWITCH_COPROCESSOR_LAZY
+#ifdef TASK_SWITCH_COPROCESSOR_LAZY
 	__asm {
-		//fninit
-		//FNCLEX
-		////fwait
-
+		mov eax, cr0
+		or eax, 8; 设置 bit 3 (TS)
+		mov cr0, eax
+	}
+#else
+	__asm {
 		mov eax, fenvprev
 		FxSAVE ds:[eax]
 		////fsave [fenv]
@@ -961,7 +974,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor ds:[eax]
 	}
-
+#endif
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)process, off);
@@ -1143,11 +1156,15 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			FxSAVE[eax]
 		}
 	}
+#define TASK_SWITCH_COPROCESSOR_LAZY
+#ifdef TASK_SWITCH_COPROCESSOR_LAZY
 	__asm {
-		//fninit
-		//FNCLEX
-		////fwait
-
+		mov eax, cr0
+		or eax, 8; 设置 bit 3 (TS)
+		mov cr0, eax
+	}
+#else
+	__asm {
 		mov eax, fenvprev
 		FxSAVE[eax]
 		////fsave [fenv]
@@ -1156,7 +1173,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 	}
-
+#endif
 	if (current->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)current, (char*)process, off);
@@ -1311,11 +1328,15 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			FxSAVE[eax]
 		}
 	}
+#define TASK_SWITCH_COPROCESSOR_LAZY
+#ifdef TASK_SWITCH_COPROCESSOR_LAZY
 	__asm {
-		//fninit
-		//FNCLEX
-		////fwait
-
+		mov eax, cr0
+		or eax, 8; 设置 bit 3 (TS)
+		mov cr0, eax
+	}
+#else
+	__asm {
 		mov eax, fenvprev
 		FxSAVE[eax]
 		////fsave [fenv]
@@ -1324,7 +1345,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		////frstor [fenv]
 		fxrstor[eax]
 	}
-
+#endif
 	if (prev->copyMap == 0) {
 		int off = OFFSETOF(TSS, intMap);
 		__memcpy((char*)prev, (char*)proc, off);

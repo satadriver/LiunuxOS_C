@@ -9,7 +9,7 @@
 #include "window.h"
 #include "apic.h"
 #include "systemService.h"
-
+#include "math.h"
 
 
 int __isprint(int c) {
@@ -524,10 +524,16 @@ double strlf2lf(char* str) {
 	return v;
 }
 
-#include "math.h"
+
+
+#define MAX_I64_AS_DOUBLE 9223372036854775807.0
 
 int lf2strlf(double f, char* buf) {
-	if (f >= DBL_MAX || f<= -DBL_MAX || (f <= DBL_EPSILON && f>= -DBL_EPSILON) ) {
+	if (f <= DBL_EPSILON && f >= -DBL_EPSILON) {
+		__strcpy(buf, "0.0");
+		return 3;
+	}
+	if (f >= MAX_I64_AS_DOUBLE || f<= -MAX_I64_AS_DOUBLE) {
 		// 处理溢出，例如返回错误或使用其他表示
 		__strcpy(buf, "NULL");
 		//buf[0] = '0';

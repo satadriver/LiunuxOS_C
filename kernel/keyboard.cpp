@@ -93,7 +93,10 @@ unsigned int __kGetKbd(int wid) {
 		data->kbdBufTail = 0;
 	}
 
-	if (status & (SHIFTLEFT_SET_FLAG | SHIFTRIGHT_SET_FLAG))
+	if ((status & SHIFTLEFT_SET_FLAG) && (status & SHIFTRIGHT_SET_FLAG)) {
+		ch = ScanCodesBuf[ch];
+	}
+	else if (status & (SHIFTLEFT_SET_FLAG | SHIFTRIGHT_SET_FLAG))
 	{
 		ch= shiftScanCodesTransBuf[ch];
 	}
@@ -290,7 +293,6 @@ void __kKeyboardProc() {
 		data->kbdStatus = data->kbdStatus ^ ALTLEFT_SET_FLAG;
 		return;
 	}
-
 	else if (c == 0x3a )
 	{
 		data->kbdStatus = data->kbdStatus ^ CAPSLOCK_SET_FLAG;
@@ -302,7 +304,6 @@ void __kKeyboardProc() {
 	{
 		return;
 	}
-
 	else if (c == 0x45)
 	{
 		data->kbdStatus = data->kbdStatus ^ NUMSLOCK_SET_FLAG;
@@ -314,7 +315,6 @@ void __kKeyboardProc() {
 	{
 		return;
 	}
-
 	else if (c == 0x46 )
 	{
 		data->kbdStatus = data->kbdStatus ^ SCROLLLOCK_SET_FLAG;
@@ -326,7 +326,6 @@ void __kKeyboardProc() {
 	{
 		return;
 	}
-
 	else if (c == 0x53 )	//delete
 	{
 		if ( (data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || 
@@ -348,7 +347,6 @@ void __kKeyboardProc() {
 		result = numsLockProc(c);
 		return;
 	}
-
 	else if (c == 0xe0)
 	{
 		c = c << 8;
@@ -386,8 +384,7 @@ void __kKeyboardProc() {
 		}else if (c == 0xe0d2)
 		{
 			return;
-		}
-		
+		}		
 		else if (c == 0xe02a)
 		{
 			c = c << 8;
