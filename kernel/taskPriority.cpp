@@ -135,8 +135,8 @@ PROCESS_INFO* GetReadyProcess() {
 				double cratio = 0.0;
 				if (ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
 					dynamic = DYNAMIC_PRIORITY;
-					ratio = 1.0;
-					cratio = 1.0;
+					ratio = 0.01;
+					cratio = 0.01;
 				}
 				else {
 					double diff = (double)(ptr->tick_total);
@@ -211,8 +211,10 @@ PROCESS_INFO* GetReadyProcess() {
 				level[i].v += crate[i].v;
 
 				level[i].v += (window[i] + user[i]);
-				int pid = level[i].id;
 				level[i].v += delta[i];
+
+				int pid = level[i].id;
+				
 				level[i].v += tss[pid].priority;
 				level[i].v += tss[pid].authority;
 				level[i].v += STATIC_PRIORITY * alloc_ratio;
@@ -224,7 +226,6 @@ PROCESS_INFO* GetReadyProcess() {
 		{
 			QuickSort(level, 0, count - 1);
 			target_id = level[count - 1].id;
-			target_tss = tss + target_id;
 		}
 
 		TaskPredictParam tp;
@@ -332,9 +333,7 @@ PROCESS_INFO* GetReadyProcess() {
 						}
 					}
 					QuickSort(level, 0, count - 1);
-
 					target_id = level[count - 1].id;
-					target_tss = tss + target_id;
 				}
 				else {
 					target_id = rate[seq].id;
@@ -350,7 +349,6 @@ PROCESS_INFO* GetReadyProcess() {
 				g_task_other_hit++;
 				g_tp_error2++;
 			}
-			target_tss = tss + target_id;
 		}
 
 		for (int i = 0; i < count; i++) {
@@ -365,6 +363,8 @@ PROCESS_INFO* GetReadyProcess() {
 				tss[tid].delta = 0;
 			}
 		}
+
+		target_tss = tss + target_id;
 	}
 
 	target_tss->delta = 0;
@@ -453,8 +453,8 @@ int PredictionTask() {
 						double cratio = 0.0;
 						if (ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
 							dynamic = DYNAMIC_PRIORITY;
-							ratio = 1.0;
-							cratio = 1.0;
+							ratio = 0.01;
+							cratio = 0.01;
 						}
 						else {
 							double diff = (double)(ptr->tick_total);

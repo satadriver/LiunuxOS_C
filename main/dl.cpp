@@ -169,8 +169,8 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	t = kann_layer_input(inSize);
 
 	t = kad_relu(kann_layer_dense(t, 64));
-	t = kad_relu(kann_layer_dense(t, 64));
-	t = kad_relu(kann_layer_dense(t, 64));
+	//t = kad_relu(kann_layer_dense(t, 64));
+	//t = kad_relu(kann_layer_dense(t, 64));
 
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 	t = kann_layer_cost(t, outSize, KANN_C_CEM); // output uses 1-hot encoding
