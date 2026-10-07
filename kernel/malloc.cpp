@@ -307,7 +307,6 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 				if (info)
 				{
 					SetMemAllocItem(info, addr, vaddr, size, tss->vid);
-
 					res = addr;
 					break;
 				}
@@ -331,15 +330,11 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 					while (n >= factor) {
 						factor = factor << 1;
 					}
-
-					continue;
 				}
 				else {
-					//
+					n++;
 				}
-			}
-
-			n++;
+			}	
 		}
 
 		if (res) {

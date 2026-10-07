@@ -129,8 +129,10 @@ void __kPeriodTimer() {
 	__kPeriodTimerProc();
 
 	SwitchTaskCPU(0);
+
 	if (g_tick_persec == 0 && g_tick_prev == 0) {
 		g_tick_prev = __krdtsc();
+		g_tick_persec = 0;
 	}
 	else {
 		unsigned long long tick_now = __krdtsc();

@@ -47,7 +47,7 @@
 
 
 
-int __kYield();
+int __kYield_ipi();
 
 int getcrs(char * szout);
 
@@ -91,7 +91,7 @@ extern "C"  __declspec(dllexport)void WrMsr(DWORD num, DWORD low, DWORD high);
 
 extern "C"  __declspec(dllexport)void Halt();
 
-extern "C"  __declspec(dllexport) int __yield2();
+extern "C"  __declspec(dllexport) int __yield_ipi();
 
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllexport) unsigned __int64 __cpuFreq(DWORD* cpu, DWORD* max, DWORD* bus);
@@ -151,7 +151,7 @@ extern "C"  __declspec(dllimport)void WrMsr(DWORD num, DWORD low, DWORD high);
 
 extern "C"  __declspec(dllimport)void Halt();
 
-extern "C"  __declspec(dllimport) int __yield2();
+extern "C"  __declspec(dllimport) int __yield_ipi();
 
 //https://www.felixcloutier.com/x86/cpuid
 extern "C" __declspec(dllimport) unsigned __int64 __cpuFreq(DWORD * cpu, DWORD * max, DWORD * bus);

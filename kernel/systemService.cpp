@@ -89,7 +89,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			break;
 		}
 		case SVC_IPI_YIELD: {
-			__kYield();
+			__kYield_ipi();
 			break;
 		}
 		case SVC_KBD_OUTPUT:
@@ -338,9 +338,12 @@ void sleep(DWORD * params) {
 		g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
 		g_cpu_prev_tick[id] = tick1;
 	}
-		
+	
+
 	while(1)
 	{	
+		//__yield();
+		
 		__asm {
 			hlt
 			__hlt_addr:
@@ -351,13 +354,16 @@ void sleep(DWORD * params) {
 			__hlt_addr_end:
 		}
 
+		//current->sleep--;
+		//proc->sleep--;
+
 		if (current->sleep == 0)
 		{
 			//enter_task_array_lock();
-			//proc->delta = DYNAMIC_PRIORITY;
-			//current->delta = DYNAMIC_PRIORITY;
-			//proc->authority = AUTHORITY_PRIORITY;
-			//current->authority = AUTHORITY_PRIORITY;
+			proc->delta = DYNAMIC_PRIORITY;
+			current->delta = DYNAMIC_PRIORITY;
+			proc->authority = AUTHORITY_PRIORITY;
+			current->authority = AUTHORITY_PRIORITY;
 			//leave_task_array_lock();
 			break;
 		}
@@ -370,7 +376,7 @@ void sleep(DWORD * params) {
 }
 
 
-int __kYield() {
+int __kYield_ipi() {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	SetIcr(cpu, TASK_SCHEDULE_VECTOR, 0, 0);
 	return 0;
@@ -383,7 +389,7 @@ extern "C"  __declspec(dllexport)unsigned long long getsecond() {
 }
 
 
-int __yield2() {
+int __yield_ipi() {
 	__asm {
 		mov eax, SVC_IPI_YIELD
 		int 80h

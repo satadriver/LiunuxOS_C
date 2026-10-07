@@ -26,14 +26,16 @@ char * gRcbaBase = 0;
 
 DWORD* gHpetBase = 0;
 
-int g_ipi_cmd_lock = 0;
-
 int g_allocate_ap_lock = 0;
 
 int g_ipi_lock[256] = { 0 };
 char* g_ipi_buf[256] = { 0 };
 
 int g_apic_int_tag = 0;
+
+unsigned long long g_td_tickcost = 0;
+
+unsigned long long g_td_pre_tickcost = 0;
 
 LPPROCESS_INFO g_ap_tss_base[256];
 
@@ -699,7 +701,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	}
 }
 
-extern "C" __declspec(dllexport) unsigned long long g_td_tickcost = 0;
+
 
 extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	__asm {
@@ -746,7 +748,12 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 		unsigned long long tick2 = __krdtsc();
 
-		g_td_tickcost = (g_td_tickcost + tick2 - tick1) / 2;
+		if (g_tp_cache) {
+			g_td_pre_tickcost = (g_td_pre_tickcost + tick2 - tick1) / 2;
+		}
+		else {
+			g_td_tickcost = (g_td_tickcost + tick2 - tick1) / 2;
+		}
 	}
 	
 	__asm {
@@ -1254,7 +1261,7 @@ int InitLocalApicTimer() {
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	freq = freq * 2 / 8;
+	freq = freq * 2 / 4;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;

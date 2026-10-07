@@ -70,7 +70,7 @@ extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, c
 			char* sztab = "    ";
 			__drawWindowChars(( char*)sztab, DEFAULT_FONT_COLOR, &window);
 		}
-		else if (asc == 0x0d)
+		else if (asc == 0x0d || asc == 0x0a)
 		{
 			window.showX = (window.pos.x + (window.frameSize >> 1));
 

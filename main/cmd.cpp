@@ -27,6 +27,7 @@
 #include "pci.h"
 #include "apic.h"
 #include "taskpriority.h"
+#include "DeepLearning.h"
 
 #pragma comment(linker, "/STACK:0x100000")
 
@@ -276,23 +277,40 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	}
 	else if (__strcmp(params[0], "tscps") == 0)
 	{
-		unsigned long long tsc = tscps();
+		unsigned long long tsc = getsecond();
 		__sprintf(szout, "time stamp persecond:%I64x\n", tsc);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "tpcost") == 0)
+	else if (__strcmp(params[0], "entpc") == 0)
 	{
+		g_tp_cache = 1;
+	}
+	else if (__strcmp(params[0], "distpc") == 0)
+	{
+		g_tp_cache = 0;
+	}
+	else if (__strcmp(params[0], "entpm") == 0)
+	{
+		g_dl_tp_mix = 1;
+	}
+	else if (__strcmp(params[0], "distpm") == 0)
+	{
+		g_dl_tp_mix = 0;
+	}
+	else if (__strcmp(params[0], "tpcost") == 0)
+	{	
 		double prerate = (double)g_task_pre_hit / (double)g_task_pre_total;
 		double dlrate = (double)g_task_dl_hit / (double)g_task_pre_total;
 		double otherrate = (double)g_task_other_hit / (double)g_task_pre_total;
-		__sprintf(szout, "total:%I64x,pre:%i64x,dl:%i64x,other:%i64x, pre tick:%i64x,pre rate:%lf,dl rate:%lf,other rate:%lf\r\n", 
-			g_task_pre_total, g_task_pre_hit, g_task_dl_hit, g_task_other_hit, g_task_pre_cost, prerate, dlrate,otherrate);
+		__sprintf(szout, "Total:%I64x,PRE:%i64x,DL:%i64x,OTHER:%i64x,PRE tick:%i64x,PRE rate:%lf,DL rate:%lf,OTHER rate:%lf,error1:%i64x,error2:%i64x\r\n", 
+			g_task_pre_total, g_task_pre_hit, g_task_dl_hit, g_task_other_hit, g_task_pre_cost, prerate, dlrate,otherrate, g_tp_error1, g_tp_error2);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "tdcost") == 0)
 	{
 		double rate = (double)g_td_tickcost / (double)g_tick_persec;
-		__sprintf(szout, "TSC/second:%I64x,task dispatch cost:%I64x,rate:%lf\r\n", g_tick_persec, g_td_tickcost, rate);
+		__sprintf(szout, "TSC:%I64x,task schedule cost:%I64x,task predict schedule cost:%i64x, rate:%lf\r\n", 
+			g_tick_persec, g_td_tickcost, g_td_pre_tickcost, rate);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "8254ps") == 0) {
@@ -576,7 +594,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "mltest") == 0) {
-		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kDeepLearning_mlp", 3, 0);
+		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "DlMLPTraining", 3, 0);
 	}
 	else if (__strcmp(params[0], "poem") == 0) {
 		displayCCPoem();

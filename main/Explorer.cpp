@@ -114,7 +114,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
 
-	__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
+	//__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
 
 	while (1)
 	{

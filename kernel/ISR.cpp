@@ -350,13 +350,13 @@ void __declspec(naked) DeviceNotAvailable(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		char szout[256];
-		if (g_dev_not_available++ < 5) {
+		if (g_dev_not_available++ == 0) {
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-			__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", __FUNCTION__, __LINE__, cpu, proc->tid, proc->filename, proc->funcname);
+			//__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", __FUNCTION__, __LINE__, cpu, proc->tid, proc->filename, proc->funcname);
 		}
 		__kCoprocessor();		//store old task sse/mmx environment and restore new task sse/mmx environment
 		//__kException((const char*)"DeviceUnavailable", 7, stack);

@@ -160,7 +160,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	//initNIC();
 
 	//pcnetInit();
-	if (fir == 0) {
+
+	if (fir == 0) 
+	{
 #ifdef VM86_PROCESS_TASK
 		__createDosCodeProc(gV86VMIEntry, gV86VMISize, "V86VMIEntry");
 #else
@@ -178,9 +180,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
 		__ipiCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
-		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "__kDeepLearning_mlp");
+		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "DlMLPTraining");
 		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kDeepLearning_mlp");
-		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "__kDeepLearning_mlp", 3, 0);
+		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");
@@ -208,7 +210,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
 		LIUNUXOS_VERSION, reg_esp, reg_ebp);
 
-	tscps();
+	//tscps();
 	int adjust = 0;
 
 	while (1)

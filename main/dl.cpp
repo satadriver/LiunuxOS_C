@@ -13,8 +13,6 @@
 #include "Thread.h"
 #include "utils.h"
 
-
-
 #else
 #include "math.h"
 #include "systemService.h"
@@ -83,40 +81,45 @@
 
 
 
-extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) 
+extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
-	
+	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+
 	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-	//printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
-	__asm{cli}
-	g_train_complete = 0;
+
+	__enterSpinlock(&g_dl_lock);
+
+	g_dl_train_complete = 0;
 	g_dl_rate = 0.0;
-	__asm {sti}
 
 	if (g_dl_ann) {
 		free(g_dl_ann);
 	}
-	if (g_ml_data) {
-		free(g_ml_data);
-		g_ml_data = 0;
+	if (g_dl_data) {
+		free(g_dl_data);
+		g_dl_data = 0;
 	}
-	g_ml_data_cnt = 0;
-	if (g_ml_data == 0 && g_ml_data_cnt == 0) {
-		g_ml_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * sizeof(TaskPredictParam));
-		if (g_ml_data == 0) {
-			return 0;
-		}
+	g_dl_data_cnt = 0;
+	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
+		g_dl_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * sizeof(TaskPredictParam));
+	}
+	__leaveSpinlock(&g_dl_lock);
+
+	if (g_dl_data == 0) {
+		return 0;
 	}
 
-	int max_task = ML_TASK_LIMIT ;
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+
+	int max_task = ML_TASK_LIMIT - *(int*)(CPU_TOTAL_ADDRESS);
 
 	int sleep_time = 0;
 
-	for (int i = 0; i < max_task/2; i++) {
+	for (int i = 0; i < max_task; i++) {
 		break;
 
 		char tn[256];
-		__sprintf(tn, "TestThread%d", i);
+		__sprintf(tn, "TestThread_%d", i);
 		TASKCMDPARAMS cmd2;
 		__memset((char*)&cmd2, 0, sizeof(TASKCMDPARAMS));
 		DWORD ml_addr2 = getAddrFromName(MAIN_DLL_BASE, tn);
@@ -139,15 +142,21 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 		}
 	}
 
-	while (g_ml_data_cnt < TASK_DISPATCH_SAMPLE) {
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+
+	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
 		__sleep(1000);
 	}
+
+	//__enterSpinlock(&g_dl_lock);
+
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+
 	DWORD tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 	DWORD sampleTime = tick2 - tick1;
 
 	char szout[256];
 
-	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	int cnt = 0;
 	int i = 0;
 	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
@@ -160,8 +169,8 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	t = kann_layer_input(inSize);
 
 	t = kad_relu(kann_layer_dense(t, 64));
-	//t = kad_relu(kann_layer_dense(t, 64));
-	//t = kad_relu(kann_layer_dense(t, 64));
+	t = kad_relu(kann_layer_dense(t, 64));
+	t = kad_relu(kann_layer_dense(t, 64));
 
 	//t = kann_layer_cost(t, 1, KANN_C_CEM); // output uses 1-hot encoding
 	t = kann_layer_cost(t, outSize, KANN_C_CEM); // output uses 1-hot encoding
@@ -174,26 +183,28 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	for (i = 0; i < n_samples; ++i) {
 
 		x[i] = (float*)calloc(inSize, sizeof(float));
-		__memcpy((char*)x[i], (char*) & g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
+		__memcpy((char*)x[i], (char*) & g_dl_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		y[i] = (float*)calloc(outSize, sizeof(float));
 		for (int j = 0; j < outSize; j++) {
 			y[i][j] = 0.0;
 		}
-		int idx  = g_ml_data[i].result;
+		int idx  = g_dl_data[i].result;
 		if(idx != -1)
 			y[i][idx] = 1.0;
 	}
 
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// train
 	kann_train_fnn1(g_dl_ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
 
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// predict
 	n_samples = TASK_DISPATCH_SAMPLE;
 	x1 = (float*)calloc(inSize, sizeof(float));
 	int n_err = 0;
 	for (i = 0; i < n_samples; ++i) {
-		__memcpy((char*)x1, (char*)&g_ml_data[i], sizeof(TaskPredictParam) - sizeof(float));
+		__memcpy((char*)x1, (char*)&g_dl_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
 		const float* y1 = kann_apply1(g_dl_ann, x1);
 
@@ -213,8 +224,8 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 				g_ml_data[i].task[j].delta, g_ml_data[i].task[j].priority,max, g_ml_data[i].result,num);
 		}
 #endif
-		if (g_ml_data[i].result != -1) {
-			if (num != g_ml_data[i].result) {
+		if (g_dl_data[i].result != -1) {
+			if (num != g_dl_data[i].result) {
 				n_err++;
 			}
 		}
@@ -229,8 +240,10 @@ extern "C" __declspec(dllexport) int __kDeepLearning_mlp(unsigned int retaddr, i
 	g_dl_rate = error;
 	//kann_delete(ann); // TODO: also to free x, y and x1
 	if (error< TASK_DISPATCH_ERROR_RATE) {
-		g_train_complete = 1;
+		g_dl_train_complete = 1;
 	}
+
+	//__leaveSpinlock(&g_dl_lock);
 
 	return 0;
 }
@@ -300,7 +313,7 @@ static void train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_e
 
 
 
-extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	int i, c, seed = 11, n_h_layers = 1, n_h_neurons = 64, mini_size = 64, max_epoch = 30, to_apply = 0, norm = 1, n_threads = 1;
 	float lr = 0.01f, dropout = 0.2f;
@@ -324,15 +337,15 @@ extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, i
 	d->x = (unsigned long long*)malloc(inSize*sizeof(float) * TASK_DISPATCH_SAMPLE);
 	d->y = (unsigned long long*)malloc(sizeof(float)* TASK_DISPATCH_SAMPLE);
 
-	if (g_ml_data == 0) {
-		g_ml_data = (TaskPredictParam*)malloc(TASK_DISPATCH_SAMPLE *sizeof(TaskPredictParam));
+	if (g_dl_data == 0) {
+		g_dl_data = (TaskPredictParam*)malloc(TASK_DISPATCH_SAMPLE *sizeof(TaskPredictParam));
 	}
 
 	for (i = 0; i < n_samples; ++i) {
 
-		__memcpy((char*)d->x + i* blockSize, (char*)&g_ml_data[i], blockSize);
+		__memcpy((char*)d->x + i* blockSize, (char*)&g_dl_data[i], blockSize);
 
-		int idx = g_ml_data[i].result;
+		int idx = g_dl_data[i].result;
 		d->y[i] = idx*1.0;
 	}
 
@@ -351,570 +364,27 @@ extern "C" __declspec(dllexport) int __kDeepLearning_rnn(unsigned int retaddr, i
 
 
 
-extern "C" __declspec(dllexport) int TestThread0(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	
-	while (g_train_complete==0) {
-		__sleep(0);
-	}
 
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
-{
-	float f1 = PI;
-	while (g_train_complete == 0) {
-		f1 = sin(f1/3);
-		if(f1 < 0.00001f && f1 > -0.00001f) {
-			f1 = PI;
-		}
-		__sleep(0);
-	}
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
 
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
 
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread4(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
 
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread5(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
 
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread6(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
 
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
 
-extern "C" __declspec(dllexport) int TestThread7(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-
-	while (g_train_complete == 0) {
-		__sleep(0);
-	}
-
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread9(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
-{
-	float f1 = PI;
-	while (g_train_complete == 0) {
-		f1 = sin(f1 / 3);
-		if (f1 < 0.00001f && f1 > -0.00001f) {
-			f1 = PI;
-		}
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread10(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread11(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread12(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread13(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-extern "C" __declspec(dllexport) int TestThread14(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestThread15(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-extern "C" __declspec(dllexport) int TestProcess0(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess1(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-
-	}
-
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess2(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
-{
-	float f1 = PI;
-	while (g_train_complete == 0) {
-		f1 = __sinf(f1 / 3);
-		if (f1 < 0.00001f && f1 > -0.00001f) {
-			f1 = PI;
-		}
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess3(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess4(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess5(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess6(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess7(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess8(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess9(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess10(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess11(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess12(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess13(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess14(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess15(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-
-extern "C" __declspec(dllexport) int TestProcess16(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess17(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-
-	}
-
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess18(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
-{
-	float f1 = PI;
-	while (g_train_complete == 0) {
-		f1 = __sinf(f1 / 3);
-		if (f1 < 0.00001f && f1 > -0.00001f) {
-			f1 = PI;
-		}
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess19(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess20(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess21(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess22(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess23(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess24(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess25(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess26(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess27(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess28(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess29(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess30(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
-
-extern "C" __declspec(dllexport) int TestProcess31(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
-	char buf[1024];
-
-	while (g_train_complete == 0) {
-		DWORD tick = __random(0);
-		__memset(buf, (unsigned char)tick, sizeof(buf));
-		__sleep(0);
-	}
-	return 0;
-}
 
 
 
 
 #define DEFINE_TEST_PROCESS(N) \
     extern "C" __declspec(dllexport) void TestProcess_##N() { \
-        while(g_train_complete == 0 && g_dl_rate == 0.0){__sleep(0); } \
+        while(g_dl_train_complete == 0 && g_dl_rate == 0.0){__sleep(0); } \
     }
-
 DEFINE_TEST_PROCESS(0)
 DEFINE_TEST_PROCESS(1)
 DEFINE_TEST_PROCESS(2)
@@ -979,3 +449,195 @@ DEFINE_TEST_PROCESS(60)
 DEFINE_TEST_PROCESS(61)
 DEFINE_TEST_PROCESS(62)
 DEFINE_TEST_PROCESS(63)
+DEFINE_TEST_PROCESS(64)
+DEFINE_TEST_PROCESS(65)
+DEFINE_TEST_PROCESS(66)
+DEFINE_TEST_PROCESS(67)
+DEFINE_TEST_PROCESS(68)
+DEFINE_TEST_PROCESS(69)
+DEFINE_TEST_PROCESS(70)
+DEFINE_TEST_PROCESS(71)
+DEFINE_TEST_PROCESS(72)
+DEFINE_TEST_PROCESS(73)
+DEFINE_TEST_PROCESS(74)
+DEFINE_TEST_PROCESS(75)
+DEFINE_TEST_PROCESS(76)
+DEFINE_TEST_PROCESS(77)
+DEFINE_TEST_PROCESS(78)
+DEFINE_TEST_PROCESS(79)
+DEFINE_TEST_PROCESS(80)
+DEFINE_TEST_PROCESS(81)
+DEFINE_TEST_PROCESS(82)
+DEFINE_TEST_PROCESS(83)
+DEFINE_TEST_PROCESS(84)
+DEFINE_TEST_PROCESS(85)
+DEFINE_TEST_PROCESS(86)
+DEFINE_TEST_PROCESS(87)
+DEFINE_TEST_PROCESS(88)
+DEFINE_TEST_PROCESS(89)
+DEFINE_TEST_PROCESS(90)
+DEFINE_TEST_PROCESS(91)
+DEFINE_TEST_PROCESS(92)
+DEFINE_TEST_PROCESS(93)
+DEFINE_TEST_PROCESS(94)
+DEFINE_TEST_PROCESS(95)
+DEFINE_TEST_PROCESS(96)
+DEFINE_TEST_PROCESS(97)
+DEFINE_TEST_PROCESS(98)
+DEFINE_TEST_PROCESS(99)
+DEFINE_TEST_PROCESS(100)
+DEFINE_TEST_PROCESS(101)
+DEFINE_TEST_PROCESS(102)
+DEFINE_TEST_PROCESS(103)
+DEFINE_TEST_PROCESS(104)
+DEFINE_TEST_PROCESS(105)
+DEFINE_TEST_PROCESS(106)
+DEFINE_TEST_PROCESS(107)
+DEFINE_TEST_PROCESS(108)
+DEFINE_TEST_PROCESS(109)
+DEFINE_TEST_PROCESS(110)
+DEFINE_TEST_PROCESS(111)
+DEFINE_TEST_PROCESS(112)
+DEFINE_TEST_PROCESS(113)
+DEFINE_TEST_PROCESS(114)
+DEFINE_TEST_PROCESS(115)
+DEFINE_TEST_PROCESS(116)
+DEFINE_TEST_PROCESS(117)
+DEFINE_TEST_PROCESS(118)
+DEFINE_TEST_PROCESS(119)
+DEFINE_TEST_PROCESS(120)
+DEFINE_TEST_PROCESS(121)
+DEFINE_TEST_PROCESS(122)
+DEFINE_TEST_PROCESS(123)
+DEFINE_TEST_PROCESS(124)
+DEFINE_TEST_PROCESS(125)
+DEFINE_TEST_PROCESS(126)
+DEFINE_TEST_PROCESS(127)
+DEFINE_TEST_PROCESS(128)
+DEFINE_TEST_PROCESS(129)
+DEFINE_TEST_PROCESS(130)
+DEFINE_TEST_PROCESS(131)
+DEFINE_TEST_PROCESS(132)
+DEFINE_TEST_PROCESS(133)
+DEFINE_TEST_PROCESS(134)
+DEFINE_TEST_PROCESS(135)
+DEFINE_TEST_PROCESS(136)
+DEFINE_TEST_PROCESS(137)
+DEFINE_TEST_PROCESS(138)
+DEFINE_TEST_PROCESS(139)
+DEFINE_TEST_PROCESS(140)
+DEFINE_TEST_PROCESS(141)
+DEFINE_TEST_PROCESS(142)
+DEFINE_TEST_PROCESS(143)
+DEFINE_TEST_PROCESS(144)
+DEFINE_TEST_PROCESS(145)
+DEFINE_TEST_PROCESS(146)
+DEFINE_TEST_PROCESS(147)
+DEFINE_TEST_PROCESS(148)
+DEFINE_TEST_PROCESS(149)
+DEFINE_TEST_PROCESS(150)
+DEFINE_TEST_PROCESS(151)
+DEFINE_TEST_PROCESS(152)
+DEFINE_TEST_PROCESS(153)
+DEFINE_TEST_PROCESS(154)
+DEFINE_TEST_PROCESS(155)
+DEFINE_TEST_PROCESS(156)
+DEFINE_TEST_PROCESS(157)
+DEFINE_TEST_PROCESS(158)
+DEFINE_TEST_PROCESS(159)
+DEFINE_TEST_PROCESS(160)
+DEFINE_TEST_PROCESS(161)
+DEFINE_TEST_PROCESS(162)
+DEFINE_TEST_PROCESS(163)
+DEFINE_TEST_PROCESS(164)
+DEFINE_TEST_PROCESS(165)
+DEFINE_TEST_PROCESS(166)
+DEFINE_TEST_PROCESS(167)
+DEFINE_TEST_PROCESS(168)
+DEFINE_TEST_PROCESS(169)
+DEFINE_TEST_PROCESS(170)
+DEFINE_TEST_PROCESS(171)
+DEFINE_TEST_PROCESS(172)
+DEFINE_TEST_PROCESS(173)
+DEFINE_TEST_PROCESS(174)
+DEFINE_TEST_PROCESS(175)
+DEFINE_TEST_PROCESS(176)
+DEFINE_TEST_PROCESS(177)
+DEFINE_TEST_PROCESS(178)
+DEFINE_TEST_PROCESS(179)
+DEFINE_TEST_PROCESS(180)
+DEFINE_TEST_PROCESS(181)
+DEFINE_TEST_PROCESS(182)
+DEFINE_TEST_PROCESS(183)
+DEFINE_TEST_PROCESS(184)
+DEFINE_TEST_PROCESS(185)
+DEFINE_TEST_PROCESS(186)
+DEFINE_TEST_PROCESS(187)
+DEFINE_TEST_PROCESS(188)
+DEFINE_TEST_PROCESS(189)
+DEFINE_TEST_PROCESS(190)
+DEFINE_TEST_PROCESS(191)
+DEFINE_TEST_PROCESS(192)
+DEFINE_TEST_PROCESS(193)
+DEFINE_TEST_PROCESS(194)
+DEFINE_TEST_PROCESS(195)
+DEFINE_TEST_PROCESS(196)
+DEFINE_TEST_PROCESS(197)
+DEFINE_TEST_PROCESS(198)
+DEFINE_TEST_PROCESS(199)
+DEFINE_TEST_PROCESS(200)
+DEFINE_TEST_PROCESS(201)
+DEFINE_TEST_PROCESS(202)
+DEFINE_TEST_PROCESS(203)
+DEFINE_TEST_PROCESS(204)
+DEFINE_TEST_PROCESS(205)
+DEFINE_TEST_PROCESS(206)
+DEFINE_TEST_PROCESS(207)
+DEFINE_TEST_PROCESS(208)
+DEFINE_TEST_PROCESS(209)
+DEFINE_TEST_PROCESS(210)
+DEFINE_TEST_PROCESS(211)
+DEFINE_TEST_PROCESS(212)
+DEFINE_TEST_PROCESS(213)
+DEFINE_TEST_PROCESS(214)
+DEFINE_TEST_PROCESS(215)
+DEFINE_TEST_PROCESS(216)
+DEFINE_TEST_PROCESS(217)
+DEFINE_TEST_PROCESS(218)
+DEFINE_TEST_PROCESS(219)
+DEFINE_TEST_PROCESS(220)
+DEFINE_TEST_PROCESS(221)
+DEFINE_TEST_PROCESS(222)
+DEFINE_TEST_PROCESS(223)
+DEFINE_TEST_PROCESS(224)
+DEFINE_TEST_PROCESS(225)
+DEFINE_TEST_PROCESS(226)
+DEFINE_TEST_PROCESS(227)
+DEFINE_TEST_PROCESS(228)
+DEFINE_TEST_PROCESS(229)
+DEFINE_TEST_PROCESS(230)
+DEFINE_TEST_PROCESS(231)
+DEFINE_TEST_PROCESS(232)
+DEFINE_TEST_PROCESS(233)
+DEFINE_TEST_PROCESS(234)
+DEFINE_TEST_PROCESS(235)
+DEFINE_TEST_PROCESS(236)
+DEFINE_TEST_PROCESS(237)
+DEFINE_TEST_PROCESS(238)
+DEFINE_TEST_PROCESS(239)
+DEFINE_TEST_PROCESS(240)
+DEFINE_TEST_PROCESS(241)
+DEFINE_TEST_PROCESS(242)
+DEFINE_TEST_PROCESS(243)
+DEFINE_TEST_PROCESS(244)
+DEFINE_TEST_PROCESS(245)
+DEFINE_TEST_PROCESS(246)
+DEFINE_TEST_PROCESS(247)
+DEFINE_TEST_PROCESS(248)
+DEFINE_TEST_PROCESS(249)
+DEFINE_TEST_PROCESS(250)
+DEFINE_TEST_PROCESS(251)
+DEFINE_TEST_PROCESS(252)
+DEFINE_TEST_PROCESS(253)
+DEFINE_TEST_PROCESS(254)
+DEFINE_TEST_PROCESS(255)

@@ -3,8 +3,6 @@
 #include "def.h"
 #include "process.h"
 #include "apic.h"
-
-
 #include "hardware.h"
 #include "Utils.h"
 #include "descriptor.h"
@@ -25,11 +23,13 @@
 #include "apicTimer.h"
 #include "taskPriority.h"
 
-//#define PREDICTION_DEEPLEARNING
 
-#define TASK_PREDICTION_BUF_SIZE	16
 
-int g_tp_debug = 0;
+int g_tp_cache = 0;
+
+unsigned long long g_tp_error1 = 0;
+
+unsigned long long g_tp_error2 = 0;
 
 int g_tp_lock[256];
 
@@ -40,8 +40,7 @@ unsigned long long g_task_pre_cost = 0;
 unsigned long long g_task_other_hit = 0;
 unsigned long long g_task_dl_hit = 0;
 
-
-LPPROCESS_INFO g_prediction_task[256][TASK_PREDICTION_BUF_SIZE];
+LPPROCESS_INFO g_task_predict_buf[256][TASK_PREDICTION_BUF_SIZE];
 
 
 
@@ -68,9 +67,9 @@ PROCESS_INFO* GetReadyProcess() {
 	int ret = __GetSpinlock(&g_tp_lock[cpu]);
 	if (ret) {
 		for (int i = TASK_PREDICTION_BUF_SIZE -1; i >= 0; i--) {
-			if (g_prediction_task[cpu][i]) {
-				target_tss = g_prediction_task[cpu][i];
-				g_prediction_task[cpu][i] = 0;
+			if (g_task_predict_buf[cpu][i]) {
+				target_tss = g_task_predict_buf[cpu][i];
+				g_task_predict_buf[cpu][i] = 0;
 				break;
 			}
 		}	
@@ -99,7 +98,7 @@ PROCESS_INFO* GetReadyProcess() {
 
 	double alloc[TASK_LIMIT_TOTAL];
 
-	AlgorithmModel delta[TASK_LIMIT_TOTAL];
+	int delta[TASK_LIMIT_TOTAL];
 
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
@@ -155,14 +154,12 @@ PROCESS_INFO* GetReadyProcess() {
 				if (v > STATIC_PRIORITY/2)
 					v = STATIC_PRIORITY/2;
 				crate[count].v = (unsigned long long) v;
-				//__printf(szout, "tick_start:%lf, diff:%i64x,tick:%I64x, ratio:%lf\r\n",rate[count].v, ptr->tick_total, ptr->tick_run, ratio);
+
 				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
 
 				user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
 
-				delta[count].v = dynamic;
-				delta[count].id = ptr->tid;
-
+				delta[count] = dynamic;
 				level[count].id = ptr->tid;
 				level[count].v = 0;
 
@@ -197,7 +194,6 @@ PROCESS_INFO* GetReadyProcess() {
 	else if (count <= 0) {
 		target_tss = current;
 		g_task_other_hit++;
-		//__printf(szout, "%s %d count:%d\r\n", __FUNCTION__, __LINE__);
 	}
 	else if (count > 1) {
 		int target_id = -1;
@@ -216,7 +212,7 @@ PROCESS_INFO* GetReadyProcess() {
 
 				level[i].v += (window[i] + user[i]);
 				int pid = level[i].id;
-				level[i].v += delta[i].v;
+				level[i].v += delta[i];
 				level[i].v += tss[pid].priority;
 				level[i].v += tss[pid].authority;
 				level[i].v += STATIC_PRIORITY * alloc_ratio;
@@ -224,13 +220,12 @@ PROCESS_INFO* GetReadyProcess() {
 			}
 		}	
 	
-		if (g_train_complete == 0) 
+		//if (g_dl_train_complete == 0) 
 		{
 			QuickSort(level, 0, count - 1);
 			target_id = level[count - 1].id;
 			target_tss = tss + target_id;
 		}
-		//extern int g_train_complete;
 
 		TaskPredictParam tp;
 		tp.result = -1;
@@ -248,7 +243,7 @@ PROCESS_INFO* GetReadyProcess() {
 			float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+			float delta_ratio = (float)delta[i] / (float)STATIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 			float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
@@ -269,6 +264,7 @@ PROCESS_INFO* GetReadyProcess() {
 
 		if (num == ML_TASK_LIMIT) {
 			if (count != ML_TASK_LIMIT) {
+				__printf("%s %d counter:%d exceed\r\n", __FUNCTION__, __LINE__, count);
 				int index = -1;
 				for (int i = 0; i < count; i++) {
 					if (rate[i].id == target_id) {
@@ -281,7 +277,7 @@ PROCESS_INFO* GetReadyProcess() {
 					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)delta[index] / (float)STATIC_PRIORITY;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
@@ -318,48 +314,48 @@ PROCESS_INFO* GetReadyProcess() {
 			}
 		}
 
-		if (g_train_complete == 0) {
-			SaveMlData(&tp);
+		if (g_dl_train_complete == 0) {
+			CollectDlSample(&tp);
 			g_task_other_hit++;
 		}
 		else {
-			int seq = TaskSwitchPrediction(&tp);
+			int old_id = target_id;
+
+			int seq = TaskSchedulePredict(&tp);
 			if (seq >= 0 && seq < count) {
-#ifdef PREDICTION_DEEPLEARNING
-				target_id = rate[seq].id;
-#else
-				int id = rate[seq].id;
-				for (int i = 0; i < count; i++) {
-					if (id == level[i].id) {
-						level[i].v += PREDICTION_PRIORITY;
-						break;
+				if (g_dl_tp_mix) {
+					int id = rate[seq].id;
+					for (int i = 0; i < count; i++) {
+						if (id == level[i].id) {
+							level[i].v += PREDICTION_PRIORITY;
+							break;
+						}
 					}
+					QuickSort(level, 0, count - 1);
+
+					target_id = level[count - 1].id;
+					target_tss = tss + target_id;
 				}
-				QuickSort(level, 0, count - 1);
-				target_id = level[count - 1].id;
-				target_tss = tss + target_id;
+				else {
+					target_id = rate[seq].id;
+				}
+
+				if (old_id != target_id){
+					g_tp_error1++;
+				}
 				g_task_dl_hit++;
-#endif
-				if (g_tp_debug++ % 0x100 == 0) {
-					LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
-					LPPROCESS_INFO tp = p + target_id;
-					//__printf(szout, "%s %d seq:%d,count:%d, tid:%x, cpu:%x, function:%s, cost:%i64x\r\n",
-					//	__FUNCTION__,__LINE__,seq, count, target_id, cpu, tp->funcname, g_task_pre_cost);
-				}
 			}
 			else {
 				target_id = next->tid;	
-				//__printf(szout, "%s %d seq:%d,count:%d error,cost:%i64x\r\n", 
-				//	__FUNCTION__, __LINE__, seq, count, g_task_pre_cost);
 				g_task_other_hit++;
+				g_tp_error2++;
 			}
-
 			target_tss = tss + target_id;
 		}
 
 		for (int i = 0; i < count; i++) {
-			int tid = delta[i].id;
-			if (target_id != delta[i].id) {
+			int tid = rate[i].id;
+			if (target_id != rate[i].id) {	
 				tss[tid].delta += DELTA_UNIT_PRIORITY;
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
 					tss[tid].delta = DYNAMIC_PRIORITY;
@@ -384,10 +380,12 @@ PROCESS_INFO* GetReadyProcess() {
 
 int PredictionTask() {
 
-	//return 0;
+	if (g_tp_cache == 0) {
+		return 0;
+	}
 
 	char szout[256];
-	if (g_train_complete == 0 || g_dl_rate == 0.0) {
+	if (g_dl_train_complete == 0 || g_dl_rate == 0.0) {
 		return 0;
 	}
 	LPPROCESS_INFO target_tss = 0;
@@ -411,7 +409,7 @@ int PredictionTask() {
 
 	double alloc[TASK_LIMIT_TOTAL];
 
-	AlgorithmModel delta[TASK_LIMIT_TOTAL];
+	int delta[TASK_LIMIT_TOTAL];
 
 	double total_malloc = 0.0;
 
@@ -424,8 +422,7 @@ int PredictionTask() {
 
 	for (int num = 0; num < TASK_PREDICTION_BUF_SIZE; num++) {
 
-		if (g_prediction_task[cpu][num] == 0) {
-			total++;
+		if (g_task_predict_buf[cpu][num] == 0) {
 
 			int count = 0;
 			do {
@@ -448,7 +445,7 @@ int PredictionTask() {
 				}
 				else if (ptr->status == TASK_RUN) {
 					if (ptr->sleep) {
-						ptr->sleep--;
+						//ptr->sleep--;
 					}
 					else {
 						int dynamic = ptr->delta;
@@ -480,9 +477,7 @@ int PredictionTask() {
 
 						user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
 
-						delta[count].v = dynamic;
-						delta[count].id = ptr->tid;
-
+						delta[count] = dynamic;
 						sleep[count] = ptr->sleep;
 
 						mem[count] = (*ptr->lpvasize);
@@ -512,7 +507,6 @@ int PredictionTask() {
 			}
 			else if (count <= 0) {
 				target_tss = current;
-				//__printf(szout, "%s %d count:%d\r\n", __FUNCTION__, __LINE__);
 			}
 			else if (count > 1) {
 
@@ -525,7 +519,6 @@ int PredictionTask() {
 				}
 
 				int target_id = -1;
-
 				TaskPredictParam tp;
 				tp.result = -1;
 
@@ -542,7 +535,7 @@ int PredictionTask() {
 					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)delta[i] / (float)STATIC_PRIORITY;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
@@ -560,7 +553,7 @@ int PredictionTask() {
 
 				if (num == ML_TASK_LIMIT) {
 					if (count != ML_TASK_LIMIT) {
-						//__printf("%s %d counter:%d exceed\r\n", __FUNCTION__, __LINE__, count);
+						__printf("%s %d counter:%d exceed\r\n", __FUNCTION__, __LINE__, count);
 						AlgorithmModel level[TASK_LIMIT_TOTAL];
 						for (int i = 0; i < count; i++) {
 							level[i].id = rate[i].id;
@@ -569,7 +562,7 @@ int PredictionTask() {
 
 							level[i].v += (window[i] + user[i]);
 							int pid = level[i].id;
-							level[i].v += delta[i].v;
+							level[i].v += delta[i];
 							level[i].v += tss[pid].priority;
 							level[i].v += tss[pid].authority;
 							level[i].v += STATIC_PRIORITY * mem[i];
@@ -590,7 +583,7 @@ int PredictionTask() {
 							float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 							float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 							float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-							float delta_ratio = (float)GetValueFromArray(delta, count, pid) / (float)STATIC_PRIORITY;
+							float delta_ratio = (float)delta[index] / (float)STATIC_PRIORITY;
 							float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 							float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
@@ -627,30 +620,21 @@ int PredictionTask() {
 					}
 				}		
 				
-				int seq = TaskSwitchPrediction(&tp);
-
+				int seq = TaskSchedulePredict(&tp);
 				if (seq >= 0 && seq < count) {
 					target_id = rate[seq].id;
-					//g_task_dl_hit++;
-					if (g_tp_debug++ % 0x100 == 0) {
-						LPPROCESS_INFO p = GetTaskTssBaseId(cpu);
-						LPPROCESS_INFO tp = p + target_id;
-						//__printf(szout, "%s %d seq:%d,count:%d, tid:%x, cpu:%x, function:%s, cost:%i64x\r\n",
-						//	__FUNCTION__, __LINE__, seq, count, target_id, cpu, tp->funcname, g_task_pre_cost);
-					}
+					total++;
+					//g_tp_error1++;
 				}
 				else {
-					//__printf(szout, "%s %d seq:%d,count:%d, error,cost:%i64x\r\n",
-					//	__FUNCTION__, __LINE__, seq, count, g_task_pre_cost);
-					target_id = next->tid;
-					
+					target_id = next->tid;		
+					g_tp_error2++;
 				}
-
 				target_tss = tss + target_id;
 
 				for (int i = 0; i < count; i++) {
-					int tid = delta[i].id;
-					if (target_id != delta[i].id) {
+					int tid = rate[i].id;
+					if (target_id != rate[i].id) {
 						tss[tid].delta += DELTA_UNIT_PRIORITY;
 						if (tss[tid].delta > DYNAMIC_PRIORITY) {
 							tss[tid].delta = DYNAMIC_PRIORITY;
@@ -665,7 +649,7 @@ int PredictionTask() {
 			target_tss->delta = 0;
 			target_tss->authority = target_tss->authority / 2;
 
-			g_prediction_task[cpu][num] = target_tss;
+			g_task_predict_buf[cpu][num] = target_tss;
 		}
 	}
 

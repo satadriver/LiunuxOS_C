@@ -104,7 +104,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 			//hlt
 		}
 
-		//__yield2();
+		//__yield_ipi();
 
 		__sleep(-1);
 	}
