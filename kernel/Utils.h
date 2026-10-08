@@ -94,6 +94,8 @@ extern "C"  __declspec(dllexport) int __i2stru(unsigned int h, char * strd);
 
 extern "C"  __declspec(dllexport) int __strd2i(char * istr);
 
+extern "C"  __declspec(dllexport) int hex2str(unsigned char * hex, int size, char * dst);
+
 extern "C" __declspec(dllexport) double strlf2lf(char* str);
 
 extern "C" __declspec(dllexport) int lf2strlf(double f, char* buf);
@@ -193,6 +195,8 @@ extern "C"  __declspec(dllimport) int __strh2i(unsigned char * str);
 extern "C"  __declspec(dllimport) int __i2strd( int h, char * strd);
 
 extern "C"  __declspec(dllimport) int __strd2i(char * istr);
+
+extern "C"  __declspec(dllimport) int hex2str(unsigned char * hex, int size, char * dst);
 
 extern "C"  __declspec(dllimport) int __i2stru(unsigned int h, char* strd);
 

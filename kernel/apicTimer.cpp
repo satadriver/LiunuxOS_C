@@ -7,7 +7,8 @@
 #include "apic.h"
 #include "coprocessor.h"
 #include "task.h"
-
+#include "algorithm.h"
+#include "systemService.h"
 
 //TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
 TIMER_PROC_PARAM * gApicTimer = 0;
@@ -120,11 +121,10 @@ void __kApicTimerProc() {
 }
 
 
-#include "algorithm.h"
-#include "systemService.h"
 
 
 
+AlgorithmModel  * g_ratio_buf = 0;
 
 #define INTER_CPU_RATE_MAX		0.1
 
@@ -132,6 +132,7 @@ void __kApicTimerProc() {
 extern "C" __declspec(dllexport)int __k8254TimerProc() {
 	return 0;
 }
+
 
 
 
@@ -143,9 +144,19 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	
+	if (g_ratio_buf == 0) {
+		int allocSize = sizeof(AlgorithmModel) * 256;
+		unsigned long alignSize = 0;
+		g_ratio_buf = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, id, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+
+	//AlgorithmModel   g_ratio_buf[256];
+
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
-	AlgorithmModel ratio[TASK_LIMIT_TOTAL];
+	
 	unsigned long long tick = __krdtsc();
 	for (int i = 0; i < counter; i++) {
 		int cpuid = ids[i];
@@ -155,8 +166,8 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 		else {
 			double cpu_diff = tick - g_cpu_start_tick[cpuid];
 			double cpu_ratio = (double)g_cpu_tick[cpuid] / cpu_diff;
-			ratio[i].fv = cpu_ratio;
-			ratio[i].id = cpuid;
+			g_ratio_buf[i].fv = cpu_ratio;
+			g_ratio_buf[i].id = cpuid;
 		}
 	}
 
@@ -164,12 +175,12 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 		return 0;
 	}
 
-	BubbleSortd(ratio, counter);
+	BubbleSortd(g_ratio_buf, counter);
 
-	int src_id = (int)ratio[counter - 1].id;
-	int dst_id = (int)ratio[0].id;
-	double src_fv = ratio[counter - 1].fv;
-	double dst_fv = ratio[0].fv;
+	int src_id = (int)g_ratio_buf[counter - 1].id;
+	int dst_id = (int)g_ratio_buf[0].id;
+	double src_fv = g_ratio_buf[counter - 1].fv;
+	double dst_fv = g_ratio_buf[0].fv;
 	if (src_fv - dst_fv >= INTER_CPU_RATE_MAX) {
 
 	}

@@ -857,7 +857,29 @@ int __strd2i(char * istr) {
 }
 
 
+int hex2str(unsigned char * hex, int size, char * dst) {
+	int len = 0;
+	for (int i = 0; i < size; i++) {
+		unsigned char low = hex[i] & 0xf;
+		unsigned char high = (hex[i] & 0xf0) >> 4;
+		if (low > 9)
+			low += 55;
+		else
+			low += 0x30;
 
+		if (high > 9)
+			high += 55;
+		else
+			high += 0x30;
+
+		dst[len++] = high;
+		dst[len++] = low;
+		dst[len++] = ' ';
+	}
+
+	dst[len] = 0;
+	return len;
+}
 
 
 int __kFormat(char* buf,const char* format, DWORD* params) {

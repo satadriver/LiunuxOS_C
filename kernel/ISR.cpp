@@ -58,8 +58,6 @@ __declspec(naked) void DivideError(LIGHT_ENVIRONMENT* stack) {
 		pop ds
 		popad
 
-//caution here!!!!!
-
 		iretd
 	}
 
@@ -299,7 +297,12 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-			__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", __FUNCTION__, __LINE__,cpu,proc->tid,proc->filename,proc->funcname);
+
+			char * code = (char*) stack->eip;
+			char strcode[256];
+			hex2str((unsigned char*)code, 16, strcode);
+			__printf(szout, "%s %d cpu:%d, tid:%d, eip:%x,cs:%x,eflags:%x,code:%s, filename:%s, function:%s\r\n",
+				__FUNCTION__, __LINE__,cpu,proc->tid,stack->eip,stack->cs,stack->eflags, strcode, proc->filename,proc->funcname);
 		}
 
 		//__kCoprocessor();

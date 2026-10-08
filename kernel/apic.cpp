@@ -1322,8 +1322,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	apids[seq] = cpuid;
 	*(int*)(CPU_TOTAL_ADDRESS) = seq + 1;
 
-	InitTaskScheduleBuf();
-
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
@@ -1385,7 +1383,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	InitApicPerformMonitor();
 
-	
+	InitTaskScheduleBuf();
 
 	__asm {sti}
 

@@ -121,12 +121,12 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enableMCE();
 	enableTSD();
 
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	
 
 	initDebugger();
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	
 	initWindowList();
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	
 	getCpuInfo((char*)CPU_INFO_ADDR);
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	InitPm();
@@ -168,7 +168,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #else
 #endif
 	}
-	
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	//EnterLongMode();
 
 	int imageSize = getSizeOfImage((char*)KERNEL_DLL_BASE);
@@ -178,17 +178,17 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 		TASKCMDPARAMS cmd;
 		__memset((char*)&cmd, 0, sizeof(TASKCMDPARAMS));
 		//__kCreateThread((DWORD)__kSpeakerProc, (DWORD)&cmd, "__kSpeakerProc");
-		__ipiCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
+		__kCreateThread((unsigned int)kernelMain, KERNEL_DLL_BASE, (DWORD)&cmd, "__kKernelMain");
 
 		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "DlMLPTraining");
 		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kDeepLearning_mlp");
-		__ipiCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");
 	
 	//ret = loadLibRunFun(LIUNUX_BASE_PATH "main.dll", "__kMainProcess");
-
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	char* reg_esp = 0;
 	char* reg_ebp = 0;
 	__asm {
@@ -201,10 +201,11 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 	WaitOrKey(0, window.id, 0x1b);
 
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	if (__findProcessFuncName(EXPLORER_TASKNAME) == FALSE)
 	{
 		imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
-		__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
+		__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", EXPLORER_TASKNAME, 3, 0);
 	}
 
 	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
@@ -216,6 +217,9 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	while (1)
 	{
 		ret = PredictionTask();
+
+		__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+
 		if (ret == 0) {
 			__sleep(0);
 		}
