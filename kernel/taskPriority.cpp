@@ -30,7 +30,7 @@ int g_tp_cache = 0;
 unsigned long long g_tp_error1 = 0;
 
 unsigned long long g_tp_error2 = 0;
-
+unsigned long long g_tp_error3 = 0;
 int g_tp_lock[256];
 
 unsigned long long g_task_pre_total = 0;
@@ -43,6 +43,14 @@ unsigned long long g_task_dl_hit = 0;
 LPPROCESS_INFO g_task_predict_buf[256][TASK_PREDICTION_BUF_SIZE];
 
 
+double* g_mem_buf[256] ;
+double* g_alloc_buf[256];
+AlgorithmModel* g_rate_buf[256];
+AlgorithmModel* g_crate_buf[256];
+AlgorithmModel* g_level_buf[256];
+
+TaskPredictParam* g_tpp_buf[256];
+
 
 unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key) {
 	for (int i = 0; i < size; i++) {
@@ -53,7 +61,41 @@ unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key) {
 	return 0;
 }
 
+void InitTaskScheduleBuf() {
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	int allocSize = TASK_LIMIT_TOTAL * sizeof(double);
+	unsigned long alignSize = 0;
+	if (g_mem_buf[cpu] == 0) {
+		g_mem_buf[cpu] = (double*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+	if (g_alloc_buf[cpu] == 0) {
+		g_alloc_buf[cpu] = (double*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+	if (g_level_buf[cpu] == 0) {
 
+		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
+		g_level_buf[cpu] = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+	if (g_crate_buf[cpu] == 0) {
+		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
+		g_crate_buf[cpu] = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+	if (g_rate_buf[cpu] == 0) {
+		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
+		g_rate_buf[cpu] = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+
+	if (g_tpp_buf[cpu] == 0) {
+		allocSize = sizeof(TaskPredictParam);
+		g_tpp_buf[cpu] = (TaskPredictParam*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
+			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	}
+}
 
 PROCESS_INFO* GetReadyProcess() {
 
@@ -62,6 +104,7 @@ PROCESS_INFO* GetReadyProcess() {
 	g_task_pre_total++;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
 	LPPROCESS_INFO target_tss = 0;
 
 	int ret = __GetSpinlock(&g_tp_lock[cpu]);
@@ -86,26 +129,19 @@ PROCESS_INFO* GetReadyProcess() {
 	LPPROCESS_INFO ptr = current;
 	LPPROCESS_INFO next = 0;
 
-	AlgorithmModel rate[TASK_LIMIT_TOTAL];
-	AlgorithmModel crate[TASK_LIMIT_TOTAL];
-	
-	int window[TASK_LIMIT_TOTAL];
-
-	int user[TASK_LIMIT_TOTAL];
-	int sleep[TASK_LIMIT_TOTAL];
-
-	double mem[TASK_LIMIT_TOTAL];
-
-	double alloc[TASK_LIMIT_TOTAL];
-
-	int delta[TASK_LIMIT_TOTAL];
-
-	AlgorithmModel level[TASK_LIMIT_TOTAL];
+	//AlgorithmModel rate[TASK_LIMIT_TOTAL];
+	//AlgorithmModel crate[TASK_LIMIT_TOTAL];
+	//int window[TASK_LIMIT_TOTAL];
+	//int user[TASK_LIMIT_TOTAL];
+	//int sleep[TASK_LIMIT_TOTAL];
+	//double mem[TASK_LIMIT_TOTAL];
+	//double alloc[TASK_LIMIT_TOTAL];
+	//int delta[TASK_LIMIT_TOTAL];
+	//AlgorithmModel level[TASK_LIMIT_TOTAL];
 
 	double total_malloc = 0.0;
-
 	double total_mem = 0.0;
-
+	double total_sleep = 0.0;
 	int count = 0;
 	do {
 		ptr++;
@@ -144,33 +180,32 @@ PROCESS_INFO* GetReadyProcess() {
 					diff = g_cpu_tick[cpu];
 					cratio = ((double)ptr->tick_run) / (double)diff;
 				}
-				rate[count].id = ptr->tid;
-				crate[count].id = ptr->tid;
+				g_rate_buf[cpu][count].id = ptr->tid;
+				g_crate_buf[cpu][count].id = ptr->tid;
 				double v = 1.0 / ratio ;
 				if (v > STATIC_PRIORITY/2)
 					v = STATIC_PRIORITY/2;
-				rate[count].v = (unsigned long long) v;
+				g_rate_buf[cpu][count].v = (unsigned long long) v;
 				v = 1.0 / cratio ;
 				if (v > STATIC_PRIORITY/2)
 					v = STATIC_PRIORITY/2;
-				crate[count].v = (unsigned long long) v;
+				g_crate_buf[cpu][count].v = (unsigned long long) v;
 
-				window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
+				//window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
+				//user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
+				//delta[count] = dynamic;
+				ptr->delta = dynamic;
+				g_level_buf[cpu][count].id = ptr->tid;
+				g_level_buf[cpu][count].v = 0;
 
-				user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
+				//sleep[count] = ptr->sleep;
 
-				delta[count] = dynamic;
-				level[count].id = ptr->tid;
-				level[count].v = 0;
-
-				sleep[count] = ptr->sleep;
-
-				mem[count] = (*ptr->lpvasize);
-				alloc[count] = ptr->alloc_times;
-
+				g_mem_buf[cpu][count] = (*ptr->lpvasize);
+				g_alloc_buf[cpu][count] = ptr->alloc_times;
 				total_malloc += ptr->alloc_times;
-
 				total_mem += (*ptr->lpvasize);
+
+				total_sleep += ptr->sleep;
 
 				count++;
 
@@ -199,37 +234,38 @@ PROCESS_INFO* GetReadyProcess() {
 		int target_id = -1;
 		
 		for (int i = 0; i < count; i++) {
-			double alloc_ratio =  alloc[i] / total_malloc;
-			alloc[i] = alloc_ratio;		
+			double alloc_ratio =  g_alloc_buf[cpu][i] / total_malloc;
+			g_alloc_buf[cpu][i] = alloc_ratio;
 
-			double mem_ratio = mem[i] / total_mem;
-			mem[i] = mem_ratio;
-			
+			double mem_ratio = g_mem_buf[cpu][i] / total_mem;
+			g_mem_buf[cpu][i] = mem_ratio;
+			int pid = g_level_buf[cpu][i].id;
 			//if (g_train_complete == 0) 
 			{
-				level[i].v += rate[i].v;
-				level[i].v += crate[i].v;
-
-				level[i].v += (window[i] + user[i]);
-				level[i].v += delta[i];
-
-				int pid = level[i].id;
+				g_level_buf[cpu][i].v += g_rate_buf[cpu][i].v;
+				g_level_buf[cpu][i].v += g_crate_buf[cpu][i].v;
+				int window_priority = (tss[pid].window == 0 ? 0 : WINDOW_PRIORITY);
+				int user_priority = (tss[pid].level == 0 ? USER_PRIORITY : 0);
+				g_level_buf[cpu][i].v += (window_priority + user_priority);
+				g_level_buf[cpu][i].v += tss[pid].delta;
 				
-				level[i].v += tss[pid].priority;
-				level[i].v += tss[pid].authority;
-				level[i].v += STATIC_PRIORITY * alloc_ratio;
-				level[i].v += STATIC_PRIORITY * mem_ratio;
+				g_level_buf[cpu][i].v += tss[pid].priority;
+				g_level_buf[cpu][i].v += tss[pid].authority;
+				g_level_buf[cpu][i].v += STATIC_PRIORITY * alloc_ratio;
+				g_level_buf[cpu][i].v += STATIC_PRIORITY * mem_ratio;
+
+				g_level_buf[cpu][i].v += (tss[pid].sleep / total_sleep) * STATIC_PRIORITY;
 			}
 		}	
 	
 		//if (g_dl_train_complete == 0) 
 		{
-			QuickSort(level, 0, count - 1);
-			target_id = level[count - 1].id;
+			QuickSort(g_level_buf[cpu], 0, count - 1);
+			target_id = g_level_buf[cpu][count - 1].id;
 		}
 
-		TaskPredictParam tp;
-		tp.result = -1;
+		//TaskPredictParam tp;
+		g_tpp_buf[cpu]->result = -1;
 
 		int num = 0;
 		if (count >= ML_TASK_LIMIT) {
@@ -240,27 +276,27 @@ PROCESS_INFO* GetReadyProcess() {
 		}
 
 		for (int i = 0; i < num; i++) {
-			int pid = rate[i].id;
-			float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
+			int pid = g_rate_buf[cpu][i].id;
+			float tick_ratio = (float)GetValueFromArray(g_rate_buf[cpu], count, pid) / (float)STATIC_PRIORITY;
 			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float delta_ratio = (float)delta[i] / (float)STATIC_PRIORITY;
+			float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 			float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
 			if (pid == target_id) {
-				tp.result = i;
+				g_tpp_buf[cpu]->result = i;
 			}
-			tp.task[i].tickrate = tick_ratio;
-			tp.task[i].cpurate = crate[i].fv;
-			tp.task[i].user = user_ratio;
-			tp.task[i].window = window_ratio;
-			tp.task[i].delta = delta_ratio;
-			tp.task[i].priority = priority_ratio;
-			tp.task[i].authority = authority_r;
-			tp.task[i].sleep = tss[pid].sleep;
-			tp.task[i].mem = mem[i];
-			tp.task[i].alloc = alloc[i];
+			g_tpp_buf[cpu]->task[i].tickrate = tick_ratio;
+			g_tpp_buf[cpu]->task[i].cpurate = (float)g_crate_buf[cpu][i].fv/ (float)STATIC_PRIORITY;
+			g_tpp_buf[cpu]->task[i].user = user_ratio;
+			g_tpp_buf[cpu]->task[i].window = window_ratio;
+			g_tpp_buf[cpu]->task[i].delta = delta_ratio;
+			g_tpp_buf[cpu]->task[i].priority = priority_ratio;
+			g_tpp_buf[cpu]->task[i].authority = authority_r;
+			g_tpp_buf[cpu]->task[i].sleep = (double)tss[pid].sleep/ (double)total_sleep;
+			g_tpp_buf[cpu]->task[i].mem = g_mem_buf[cpu][i];
+			g_tpp_buf[cpu]->task[i].alloc = g_alloc_buf[cpu][i];
 		}
 
 		if (num == ML_TASK_LIMIT) {
@@ -268,92 +304,96 @@ PROCESS_INFO* GetReadyProcess() {
 				__printf("%s %d counter:%d exceed\r\n", __FUNCTION__, __LINE__, count);
 				int index = -1;
 				for (int i = 0; i < count; i++) {
-					if (rate[i].id == target_id) {
+					if (g_rate_buf[cpu][i].id == target_id) {
 						index = i;
 						break;
 					}
 				}
 				if (index >= ML_TASK_LIMIT) {
-					int pid = rate[index].id;
-					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
+					int pid = g_rate_buf[cpu][index].id;
+					float tick_ratio = (float)GetValueFromArray(g_rate_buf[cpu], count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)delta[index] / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
 					int ri = __random(0) % ML_TASK_LIMIT;
-					tp.task[ri].tickrate = tick_ratio;
-					tp.task[ri].cpurate = crate[index].fv;
-					tp.task[ri].user = user_ratio;
-					tp.task[ri].window = window_ratio;
-					tp.task[ri].delta = delta_ratio;
-					tp.task[ri].priority = priority_ratio;
-					tp.task[ri].authority = authority_r;
-					tp.task[ri].sleep = tss[pid].sleep;
-					tp.task[ri].mem = mem[index];
-					tp.task[ri].alloc = alloc[index];
-					tp.result = ri;
+					g_tpp_buf[cpu]->task[ri].tickrate = tick_ratio;
+					g_tpp_buf[cpu]->task[ri].cpurate = (float)g_crate_buf[cpu][index].fv / (float)STATIC_PRIORITY;
+					g_tpp_buf[cpu]->task[ri].user = user_ratio;
+					g_tpp_buf[cpu]->task[ri].window = window_ratio;
+					g_tpp_buf[cpu]->task[ri].delta = delta_ratio;
+					g_tpp_buf[cpu]->task[ri].priority = priority_ratio;
+					g_tpp_buf[cpu]->task[ri].authority = authority_r;
+					g_tpp_buf[cpu]->task[ri].sleep = (double)tss[pid].sleep / (double)total_sleep;
+					g_tpp_buf[cpu]->task[ri].mem = g_mem_buf[cpu][index];
+					g_tpp_buf[cpu]->task[ri].alloc = g_alloc_buf[cpu][index];
+					g_tpp_buf[cpu]->result = ri;
 
-					rate[ri].id = pid;
-					rate[ri].v = rate[index].v;
+					g_rate_buf[cpu][ri].id = pid;
+					g_rate_buf[cpu][ri].v = g_rate_buf[cpu][index].v;
 				}
 			}
 		}
 		else {
 			for (int i = num; i < ML_TASK_LIMIT; i++) {
-				tp.task[i].tickrate = 0.0;
-				tp.task[i].cpurate = 0.0;
-				tp.task[i].user = 0.0;
-				tp.task[i].window = 0.0;
-				tp.task[i].delta = 0.0;
-				tp.task[i].priority = 0.0;
-				tp.task[i].authority = 0.0;
-				tp.task[i].sleep = -1.0;
-				tp.task[i].mem = 0.0;
-				tp.task[i].alloc = 0.0;
+				g_tpp_buf[cpu]->task[i].tickrate = 1.0;
+				g_tpp_buf[cpu]->task[i].cpurate = 1.0;
+				g_tpp_buf[cpu]->task[i].user = 0.0;
+				g_tpp_buf[cpu]->task[i].window = 0.0;
+				g_tpp_buf[cpu]->task[i].delta = 0.0;
+				g_tpp_buf[cpu]->task[i].priority = 0.0;
+				g_tpp_buf[cpu]->task[i].authority = 0.0;
+				g_tpp_buf[cpu]->task[i].sleep = 1.0;
+				g_tpp_buf[cpu]->task[i].mem = 0.0;
+				g_tpp_buf[cpu]->task[i].alloc = 0.0;
 			}
 		}
 
 		if (g_dl_train_complete == 0) {
-			CollectDlSample(&tp);
+			CollectDlSample(g_tpp_buf[cpu]);
 			g_task_other_hit++;
 		}
 		else {
-			int old_id = target_id;
+			int old_h1 = g_level_buf[cpu][count - 1].id;
+			int old_h2 = g_level_buf[cpu][count - 2].id;
 
-			int seq = TaskSchedulePredict(&tp);
+			int seq = TaskSchedulePredict(g_tpp_buf[cpu]);
 			if (seq >= 0 && seq < count) {
 				if (g_dl_tp_mix) {
-					int id = rate[seq].id;
+					int id = g_rate_buf[cpu][seq].id;
 					for (int i = 0; i < count; i++) {
-						if (id == level[i].id) {
-							level[i].v += PREDICTION_PRIORITY;
+						if (id == g_level_buf[cpu][i].id) {
+							g_level_buf[cpu][i].v += PREDICTION_PRIORITY;
 							break;
 						}
 					}
-					QuickSort(level, 0, count - 1);
-					target_id = level[count - 1].id;
+					QuickSort(g_level_buf[cpu], 0, count - 1);
+					target_id = g_level_buf[cpu][count - 1].id;
 				}
 				else {
-					target_id = rate[seq].id;
+					target_id = g_rate_buf[cpu][seq].id;
 				}
 
-				if (old_id != target_id){
+				if (old_h1 != target_id){
 					g_tp_error1++;
+					if (count >= 2 && target_id != old_h2) {
+						g_tp_error2++;
+					}
 				}
 				g_task_dl_hit++;
 			}
 			else {
 				target_id = next->tid;	
 				g_task_other_hit++;
-				g_tp_error2++;
+				g_tp_error3++;
 			}
 		}
 
 		for (int i = 0; i < count; i++) {
-			int tid = rate[i].id;
-			if (target_id != rate[i].id) {	
+			int tid = g_rate_buf[cpu][i].id;
+			if (target_id != g_rate_buf[cpu][i].id) {
 				tss[tid].delta += DELTA_UNIT_PRIORITY;
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
 					tss[tid].delta = DYNAMIC_PRIORITY;
@@ -403,7 +443,7 @@ int PredictionTask() {
 	int authority[TASK_LIMIT_TOTAL];
 
 	int user[TASK_LIMIT_TOTAL];
-	int sleep[TASK_LIMIT_TOTAL];
+	double sleep[TASK_LIMIT_TOTAL];
 
 	double mem[TASK_LIMIT_TOTAL];
 
@@ -414,7 +454,7 @@ int PredictionTask() {
 	double total_malloc = 0.0;
 
 	double total_mem = 0.0;
-
+	double total_sleep = 0.0;
 	//__asm{cli}
 	__enterSpinlock(&g_tp_lock[cpu]);
 
@@ -486,6 +526,7 @@ int PredictionTask() {
 						total_malloc += ptr->alloc_times;
 
 						total_mem += (*ptr->lpvasize);
+						total_sleep += ptr->sleep;
 
 						count++;
 
@@ -516,6 +557,8 @@ int PredictionTask() {
 
 					double mem_ratio = mem[i] / total_mem;
 					mem[i] = mem_ratio;
+
+					sleep[i] = sleep[i] / total_sleep;
 				}
 
 				int target_id = -1;
@@ -540,7 +583,7 @@ int PredictionTask() {
 					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
 					tp.task[i].tickrate = tick_ratio;
-					tp.task[i].cpurate = crate[i].fv;
+					tp.task[i].cpurate = crate[i].fv / (float)STATIC_PRIORITY;
 					tp.task[i].user = user_ratio;
 					tp.task[i].window = window_ratio;
 					tp.task[i].delta = delta_ratio;
@@ -589,7 +632,7 @@ int PredictionTask() {
 
 							int ri = __random(0) % ML_TASK_LIMIT;
 							tp.task[ri].tickrate = tick_ratio;
-							tp.task[ri].cpurate = crate[index].fv;
+							tp.task[ri].cpurate = crate[index].fv / (float)STATIC_PRIORITY;
 							tp.task[ri].user = user_ratio;
 							tp.task[ri].window = window_ratio;
 							tp.task[ri].delta = delta_ratio;
@@ -607,14 +650,14 @@ int PredictionTask() {
 				}
 				else {
 					for (int i = num; i < ML_TASK_LIMIT; i++) {
-						tp.task[i].tickrate = 0.0;
-						tp.task[i].cpurate = 0.0;
+						tp.task[i].tickrate = 1.0;
+						tp.task[i].cpurate = 1.0;
 						tp.task[i].user = 0.0;
 						tp.task[i].window = 0.0;
 						tp.task[i].delta = 0.0;
 						tp.task[i].priority = 0.0;
 						tp.task[i].authority = 0.0;
-						tp.task[i].sleep = -1.0;
+						tp.task[i].sleep = 1.0;
 						tp.task[i].mem = 0.0;
 						tp.task[i].alloc = 0.0;
 					}

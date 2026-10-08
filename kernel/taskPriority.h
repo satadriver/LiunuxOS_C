@@ -7,6 +7,7 @@
 extern "C" __declspec(dllexport)  int g_tp_cache;
 extern "C" __declspec(dllexport)  unsigned long long g_tp_error1;
 extern "C" __declspec(dllexport)  unsigned long long g_tp_error2;
+extern "C" __declspec(dllexport)  unsigned long long g_tp_error3;
 extern "C" __declspec(dllexport)  unsigned long long g_task_pre_hit;
 extern "C" __declspec(dllexport)  unsigned long long g_task_pre_total;
 extern "C" __declspec(dllexport)  unsigned long long g_task_pre_cost ;
@@ -16,6 +17,7 @@ extern "C" __declspec(dllexport) unsigned long long g_task_dl_hit ;
 extern "C" __declspec(dllimport)  int g_tp_cache;
 extern "C" __declspec(dllimport)  unsigned long long g_tp_error1;
 extern "C" __declspec(dllimport)  unsigned long long g_tp_error2;
+extern "C" __declspec(dllimport)  unsigned long long g_tp_error3;
 extern "C" __declspec(dllimport)  unsigned long long g_task_pre_hit;
 extern "C" __declspec(dllimport)  unsigned long long g_task_pre_total;
 extern "C" __declspec(dllimport)  unsigned long long g_task_pre_cost;
@@ -50,5 +52,7 @@ extern "C" __declspec(dllimport) unsigned long long g_task_dl_hit;
 unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key);
 
 PROCESS_INFO* GetReadyProcess();
+
+void InitTaskScheduleBuf();
 
 int PredictionTask();

@@ -1322,6 +1322,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	apids[seq] = cpuid;
 	*(int*)(CPU_TOTAL_ADDRESS) = seq + 1;
 
+	InitTaskScheduleBuf();
+
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
@@ -1382,6 +1384,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	InitApicThermalMonitor();
 
 	InitApicPerformMonitor();
+
+	
 
 	__asm {sti}
 
@@ -1463,6 +1467,7 @@ void BPCodeStart() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
 
+	InitTaskScheduleBuf();
 	__asm {sti}
 
 	//in bsp the bit 8 of LOCAL_APIC_BASE is set

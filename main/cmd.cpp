@@ -302,8 +302,8 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		double prerate = (double)g_task_pre_hit / (double)g_task_pre_total;
 		double dlrate = (double)g_task_dl_hit / (double)g_task_pre_total;
 		double otherrate = (double)g_task_other_hit / (double)g_task_pre_total;
-		__sprintf(szout, "Total:%I64x,PRE:%i64x,DL:%i64x,OTHER:%i64x,PRE tick:%i64x,PRE rate:%lf,DL rate:%lf,OTHER rate:%lf,error1:%i64x,error2:%i64x\r\n", 
-			g_task_pre_total, g_task_pre_hit, g_task_dl_hit, g_task_other_hit, g_task_pre_cost, prerate, dlrate,otherrate, g_tp_error1, g_tp_error2);
+		__sprintf(szout, "Total:%I64x,PRE:%i64x,DL:%i64x,OTHER:%i64x,PRE tick:%i64x,PRE rate:%lf,DL rate:%lf,OTHER rate:%lf,error1:%i64x,error2:%i64x,error3:%i64x\r\n", 
+			g_task_pre_total, g_task_pre_hit, g_task_dl_hit, g_task_other_hit, g_task_pre_cost, prerate, dlrate,otherrate, g_tp_error1, g_tp_error2, g_tp_error3);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "tdcost") == 0)
