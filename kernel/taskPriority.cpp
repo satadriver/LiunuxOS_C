@@ -27,10 +27,11 @@
 
 int g_tp_cache = 0;
 
-unsigned long long g_tp_error1 = 0;
+unsigned long long g_tp_correct0 = 0;
+unsigned long long g_tp_correct1 = 0;
+unsigned long long g_tp_correct2 = 0;
+unsigned long long g_tp_correct3 = 0;
 
-unsigned long long g_tp_error2 = 0;
-unsigned long long g_tp_error3 = 0;
 
 int g_tp_lock[256];
 
@@ -351,6 +352,7 @@ PROCESS_INFO* GetReadyProcess() {
 		else {
 			int old_h1 = g_level_buf[cpu][count - 1].id;
 			int old_h2 = g_level_buf[cpu][count - 2].id;
+			int old_h3 = g_level_buf[cpu][count - 3].id;
 
 			int seq = TaskSchedulePredict(g_tpp_buf[cpu]);
 			if (seq >= 0 && seq < count) {
@@ -369,18 +371,22 @@ PROCESS_INFO* GetReadyProcess() {
 					target_id = g_rate_buf[cpu][seq].id;
 				}
 
-				if (old_h1 != target_id){
-					g_tp_error1++;
-					if (count >= 2 && target_id != old_h2) {
-						g_tp_error2++;
-					}
+				if (old_h1 == target_id) {
+					g_tp_correct1++;
 				}
+				else if (count >= 2 && target_id == old_h2) {
+					g_tp_correct2++;
+				}
+				else if (count >= 3 && target_id == old_h3) {
+					g_tp_correct3++;
+				}
+				
 				g_task_dl_hit++;
 			}
 			else {
 				target_id = next->tid;	
 				g_task_other_hit++;
-				g_tp_error3++;
+				g_tp_correct0++;
 			}
 		}
 

@@ -3,9 +3,9 @@
 #include "def.h"
 #include "kann-master/kann.h"
 
-#define		TASK_DISPATCH_SAMPLE		(2048)
+#define		TASK_DISPATCH_SAMPLE		(1024)
 
-#define		ML_TASK_LIMIT				32
+#define		ML_TASK_LIMIT				128
 
 #define		TASK_DISPATCH_ERROR_RATE	(20.0)		
 
