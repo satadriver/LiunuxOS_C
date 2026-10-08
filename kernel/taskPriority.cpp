@@ -31,6 +31,7 @@ unsigned long long g_tp_error1 = 0;
 
 unsigned long long g_tp_error2 = 0;
 unsigned long long g_tp_error3 = 0;
+
 int g_tp_lock[256];
 
 unsigned long long g_task_pre_total = 0;
@@ -640,7 +641,7 @@ int PredictionTask() {
 				}
 				else {
 					target_id = next->tid;		
-					g_tp_error2++;
+					//g_tp_error2++;
 				}
 				target_tss = tss + target_id;
 
