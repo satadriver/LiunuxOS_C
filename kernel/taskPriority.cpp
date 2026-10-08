@@ -43,8 +43,8 @@ unsigned long long g_task_dl_hit = 0;
 LPPROCESS_INFO g_task_predict_buf[256][TASK_PREDICTION_BUF_SIZE];
 
 
-double* g_mem_buf[256] ;
-double* g_alloc_buf[256];
+//double* g_mem_buf[256] ;
+//double* g_alloc_buf[256];
 AlgorithmModel* g_rate_buf[256];
 AlgorithmModel* g_crate_buf[256];
 AlgorithmModel* g_level_buf[256];
@@ -65,14 +65,6 @@ void InitTaskScheduleBuf() {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	int allocSize = TASK_LIMIT_TOTAL * sizeof(double);
 	unsigned long alignSize = 0;
-	if (g_mem_buf[cpu] == 0) {
-		g_mem_buf[cpu] = (double*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
-			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
-	}
-	if (g_alloc_buf[cpu] == 0) {
-		g_alloc_buf[cpu] = (double*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
-			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
-	}
 	if (g_level_buf[cpu] == 0) {
 
 		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
@@ -139,7 +131,7 @@ PROCESS_INFO* GetReadyProcess() {
 	//int delta[TASK_LIMIT_TOTAL];
 	//AlgorithmModel level[TASK_LIMIT_TOTAL];
 
-	double total_malloc = 0.0;
+	double total_alloc = 0.0;
 	double total_mem = 0.0;
 	double total_sleep = 0.0;
 	int count = 0;
@@ -199,12 +191,10 @@ PROCESS_INFO* GetReadyProcess() {
 				g_level_buf[cpu][count].v = 0;
 
 				//sleep[count] = ptr->sleep;
-
-				g_mem_buf[cpu][count] = (*ptr->lpvasize);
-				g_alloc_buf[cpu][count] = ptr->alloc_times;
-				total_malloc += ptr->alloc_times;
+				//g_mem_buf[cpu][count] = (*ptr->lpvasize);
+				//g_alloc_buf[cpu][count] = ptr->alloc_times;
+				total_alloc += ptr->alloc_times;
 				total_mem += (*ptr->lpvasize);
-
 				total_sleep += ptr->sleep;
 
 				count++;
@@ -234,12 +224,14 @@ PROCESS_INFO* GetReadyProcess() {
 		int target_id = -1;
 		
 		for (int i = 0; i < count; i++) {
-			double alloc_ratio =  g_alloc_buf[cpu][i] / total_malloc;
-			g_alloc_buf[cpu][i] = alloc_ratio;
-
-			double mem_ratio = g_mem_buf[cpu][i] / total_mem;
-			g_mem_buf[cpu][i] = mem_ratio;
 			int pid = g_level_buf[cpu][i].id;
+
+			double alloc_ratio = tss[pid].alloc_times / total_alloc;
+			//g_alloc_buf[cpu][i] = alloc_ratio;
+
+			double mem_ratio = (*tss[pid].lpvasize) / total_mem;
+			//g_mem_buf[cpu][i] = mem_ratio;
+			
 			//if (g_train_complete == 0) 
 			{
 				g_level_buf[cpu][i].v += g_rate_buf[cpu][i].v;
@@ -295,8 +287,8 @@ PROCESS_INFO* GetReadyProcess() {
 			g_tpp_buf[cpu]->task[i].priority = priority_ratio;
 			g_tpp_buf[cpu]->task[i].authority = authority_r;
 			g_tpp_buf[cpu]->task[i].sleep = (double)tss[pid].sleep/ (double)total_sleep;
-			g_tpp_buf[cpu]->task[i].mem = g_mem_buf[cpu][i];
-			g_tpp_buf[cpu]->task[i].alloc = g_alloc_buf[cpu][i];
+			g_tpp_buf[cpu]->task[i].mem = *tss[pid].lpvasize / total_mem ;
+			g_tpp_buf[cpu]->task[i].alloc = tss[pid].alloc_times/total_alloc;
 		}
 
 		if (num == ML_TASK_LIMIT) {
@@ -327,8 +319,8 @@ PROCESS_INFO* GetReadyProcess() {
 					g_tpp_buf[cpu]->task[ri].priority = priority_ratio;
 					g_tpp_buf[cpu]->task[ri].authority = authority_r;
 					g_tpp_buf[cpu]->task[ri].sleep = (double)tss[pid].sleep / (double)total_sleep;
-					g_tpp_buf[cpu]->task[ri].mem = g_mem_buf[cpu][index];
-					g_tpp_buf[cpu]->task[ri].alloc = g_alloc_buf[cpu][index];
+					g_tpp_buf[cpu]->task[ri].mem = (double)(*tss[pid].lpvasize) / (double)total_mem;
+					g_tpp_buf[cpu]->task[ri].alloc = (double)tss[pid].alloc_times / (double)total_alloc;
 					g_tpp_buf[cpu]->result = ri;
 
 					g_rate_buf[cpu][ri].id = pid;
@@ -439,20 +431,14 @@ int PredictionTask() {
 	AlgorithmModel crate[TASK_LIMIT_TOTAL];
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	int window[TASK_LIMIT_TOTAL];
-	int authority[TASK_LIMIT_TOTAL];
+	//int window[TASK_LIMIT_TOTAL];
+	//int user[TASK_LIMIT_TOTAL];
+	//double sleep[TASK_LIMIT_TOTAL];
+	//double mem[TASK_LIMIT_TOTAL];
+	//double alloc[TASK_LIMIT_TOTAL];
+	//int delta[TASK_LIMIT_TOTAL];
 
-	int user[TASK_LIMIT_TOTAL];
-	double sleep[TASK_LIMIT_TOTAL];
-
-	double mem[TASK_LIMIT_TOTAL];
-
-	double alloc[TASK_LIMIT_TOTAL];
-
-	int delta[TASK_LIMIT_TOTAL];
-
-	double total_malloc = 0.0;
-
+	double total_alloc = 0.0;
 	double total_mem = 0.0;
 	double total_sleep = 0.0;
 	//__asm{cli}
@@ -513,18 +499,9 @@ int PredictionTask() {
 							v = STATIC_PRIORITY / 2;
 						crate[count].v = (unsigned long long) v;
 
-						window[count] = (ptr->window == 0 ? 0 : WINDOW_PRIORITY);
+						ptr->delta = dynamic;
 
-						user[count] = (ptr->level == 0 ? USER_PRIORITY : 0);
-
-						delta[count] = dynamic;
-						sleep[count] = ptr->sleep;
-
-						mem[count] = (*ptr->lpvasize);
-						alloc[count] = ptr->alloc_times;
-
-						total_malloc += ptr->alloc_times;
-
+						total_alloc += ptr->alloc_times;
 						total_mem += (*ptr->lpvasize);
 						total_sleep += ptr->sleep;
 
@@ -550,17 +527,6 @@ int PredictionTask() {
 				target_tss = current;
 			}
 			else if (count > 1) {
-
-				for (int i = 0; i < count; i++) {
-					double alloc_ratio = alloc[i] / total_malloc;
-					alloc[i] = alloc_ratio;
-
-					double mem_ratio = mem[i] / total_mem;
-					mem[i] = mem_ratio;
-
-					sleep[i] = sleep[i] / total_sleep;
-				}
-
 				int target_id = -1;
 				TaskPredictParam tp;
 				tp.result = -1;
@@ -578,7 +544,7 @@ int PredictionTask() {
 					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)delta[i] / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
@@ -589,9 +555,9 @@ int PredictionTask() {
 					tp.task[i].delta = delta_ratio;
 					tp.task[i].priority = priority_ratio;
 					tp.task[i].authority = authority_r;
-					tp.task[i].sleep = tss[pid].sleep;
-					tp.task[i].mem = mem[i];
-					tp.task[i].alloc = alloc[i];
+					tp.task[i].sleep = tss[pid].sleep/total_sleep;
+					tp.task[i].mem = *(tss[pid].lpvasize) / (double)total_mem;
+					tp.task[i].alloc = tss[pid].alloc_times / total_alloc;
 				}
 
 				if (num == ML_TASK_LIMIT) {
@@ -599,17 +565,20 @@ int PredictionTask() {
 						__printf("%s %d counter:%d exceed\r\n", __FUNCTION__, __LINE__, count);
 						AlgorithmModel level[TASK_LIMIT_TOTAL];
 						for (int i = 0; i < count; i++) {
+							int pid = rate[i].id;
 							level[i].id = rate[i].id;
 							level[i].v += rate[i].v;
 							level[i].v += crate[i].v;
-
-							level[i].v += (window[i] + user[i]);
-							int pid = level[i].id;
-							level[i].v += delta[i];
+							int windowlevel = (tss[pid].window == 0 ? 0 : WINDOW_PRIORITY);
+							int userlevel = (tss[pid].level == 0 ? USER_PRIORITY : 0);
+							level[i].v += (windowlevel + userlevel);
+	
+							level[i].v += tss[pid].delta;
 							level[i].v += tss[pid].priority;
 							level[i].v += tss[pid].authority;
-							level[i].v += STATIC_PRIORITY * mem[i];
-							level[i].v += STATIC_PRIORITY * alloc[i];
+							level[i].v += STATIC_PRIORITY * (*(tss[pid].lpvasize) / (double)total_mem);
+							level[i].v += STATIC_PRIORITY * (tss[pid].alloc_times / total_alloc);
+							level[i].v += (tss[pid].sleep / total_sleep) * STATIC_PRIORITY;
 						}
 						QuickSort(level, 0, count - 1);
 						target_id = level[count - 1].id;
@@ -626,7 +595,7 @@ int PredictionTask() {
 							float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 							float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 							float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-							float delta_ratio = (float)delta[index] / (float)STATIC_PRIORITY;
+							float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
 							float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
 							float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
 
@@ -638,9 +607,9 @@ int PredictionTask() {
 							tp.task[ri].delta = delta_ratio;
 							tp.task[ri].priority = priority_ratio;
 							tp.task[ri].authority = authority_r;
-							tp.task[ri].sleep = tss[pid].sleep;
-							tp.task[ri].mem = mem[index];
-							tp.task[ri].alloc = alloc[index];
+							tp.task[ri].sleep = tss[pid].sleep/ total_sleep;
+							tp.task[ri].mem = (*(tss[pid].lpvasize) / (double)total_mem);
+							tp.task[ri].alloc = (tss[pid].alloc_times / total_alloc);
 							tp.result = ri;
 
 							rate[ri].id = pid;

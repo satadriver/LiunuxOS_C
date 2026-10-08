@@ -110,7 +110,7 @@ unsigned long Ext4FileReader(DWORD nodenum, int* filesize, char** lpdata) {
 	//0x4000 dir
 	//0x2000 blocks
 	//0x1000 pipe
-	if (node->i_mode & 0x8000 != 0x8000) {
+	if ( (node->i_mode & 0x8000) != 0x8000) {
 		__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
 		return 0;
 	}
@@ -173,7 +173,7 @@ int ReadExt4Dirs(DWORD nodenum, LPFILEBROWSER files) {
 	char nodebuf[256];
 	ret = GetNextInode(nodenum, nodebuf);
 	ext2_inode* node = (ext2_inode*)(nodebuf );
-	if (node->i_mode & 0x4000 == 0) {
+	if ( (node->i_mode & 0x4000) == 0) {
 		__printf(szout, "%s %d error\r\n",__FUNCTION__, __LINE__);
 		return 0;
 	}
