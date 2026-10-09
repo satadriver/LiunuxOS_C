@@ -1708,3 +1708,13 @@ int GetCPUTask() {
 	__drawGraphChar((char*)szbuf, 0, pos, TASKBARCOLOR);
 	return outlen;
 }
+
+
+
+void TriggerOverflow() {
+	__asm {
+		mov eax,0x7fffffff
+		add eax,1
+		into
+	}
+}

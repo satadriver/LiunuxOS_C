@@ -171,6 +171,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	//EnterLongMode();
 
+	TriggerOverflow();
+
 	int imageSize = getSizeOfImage((char*)KERNEL_DLL_BASE);
 	DWORD kernelMain = getAddrFromName(KERNEL_DLL_BASE, "__kKernelMain");
 	if (kernelMain)

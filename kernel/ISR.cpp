@@ -784,7 +784,7 @@ void __declspec(naked) FloatPointError(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[256];
 		__printf(szout, "%s %d!\r\n", __FUNCTION__, __LINE__);
-		//__kException((const char*)"FloatPointError", 16, stack);
+		__kException((const char*)"FloatPointError", 16, stack);
 		//__kCoprocessor();
 	}
 
@@ -936,7 +936,7 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 				__FUNCTION__, __LINE__, cpu, proc->tid, proc->filename, proc->funcname);
 		}
 		//__kCoprocessor();
-		//__kException((const char*)"SIMDException", 19, stack);
+		__kException((const char*)"SIMDException", 19, stack);
 	}
 
 	__asm {

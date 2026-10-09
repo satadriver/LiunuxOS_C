@@ -556,7 +556,7 @@ int __drawGraphChars( char* str, int color) {
 	if (g_ScreenMode == 0) {
 		return FALSE;
 	}
-#ifdef LIUNUX_DEBUG_LOG_ON
+#ifndef LIUNUX_DEBUG_LOG_ON
 
 	int* x = 0;
 	int* y = 0;
@@ -584,7 +584,7 @@ int __drawGraphChars( char* str, int color) {
 		*x = 0;
 	}
 #else
-	logInMem((char*)font, __strlen((char*)font));
+	logInMem((char*)str, __strlen((char*)color));
 #endif
 	return 0;
 }

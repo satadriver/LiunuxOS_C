@@ -1216,6 +1216,7 @@ unsigned long long ApicTimerFreq() {
 	return g_apic_freq[id] ;
 }
 
+#define APICTIMER_FREQ 100000000
 
 int InitLocalApicTimer() {
 
@@ -1452,7 +1453,7 @@ void BPCodeStart() {
 	if(ret == 0){
 		return;
 	}
-	__memset((char*)IPI_MSG_BASE, 0, 0x10000);
+	//__memset((char*)IPI_MSG_BASE, 0, 0x10000);
 	__asm {cli}
 
 	enableLocalApic();
@@ -1708,7 +1709,7 @@ int GetIdleProcessor() {
 			}
 		}
 
-		rate[i].fv = rate[i].fv * 0.9 + tasks/100 * 0.1;
+		rate[i].fv = rate[i].fv * 0.9 + tasks/10 * 0.1;
 	}
 
 	BubbleSortd(rate, counter);

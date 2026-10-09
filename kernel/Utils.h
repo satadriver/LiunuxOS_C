@@ -41,7 +41,7 @@ void logInMem(char* data, int len);
 
 int __kFormat(char* buf, const char* format, DWORD* params);
 
-
+void TriggerOverflow();
 int GetCPUTask();
 
 #ifdef DLL_EXPORT

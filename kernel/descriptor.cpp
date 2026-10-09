@@ -480,7 +480,7 @@ int GetCpuRate() {
 //IA32_APERF	//0xe8
 //IA32_MPERF	//0xe7
 
-
+/*
 IPI_MSG_PARAM* GetIpiMsg() {
 	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)IPI_MSG_BASE;
 
@@ -505,7 +505,7 @@ IPI_MSG_PARAM* SetIpiMsg() {
 		}
 	}
 	return 0;
-}
+}*/
 
 
 int IncreaseDelta(int v) {
