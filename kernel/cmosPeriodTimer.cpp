@@ -128,6 +128,8 @@ void __kPeriodTimer() {
 
 	__kPeriodTimerProc();
 
+	GetCPUTask();
+
 	SwitchTaskCPU(0);
 
 	if (g_tick_persec == 0 && g_tick_prev == 0) {

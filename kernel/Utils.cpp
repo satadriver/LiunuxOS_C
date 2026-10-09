@@ -546,7 +546,7 @@ int __i64ToStru64_old(__int64 v, char* buf) {
 	return len;
 }
 
-#define MAX_I64_AS_DOUBLE 9223372036854775807.0
+
 
 
 #define MAX_I64_AS_DOUBLE 9223372036854775808.0   /* 2^63 */
@@ -1678,3 +1678,31 @@ char* getVGAInfo() {
 }
 
 
+int GetCPUTask() {
+
+	int outlen = 0;
+	int len = 0;
+	char szbuf[256];
+
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+	for (int i = 0; i < cnt; i++) {
+		int cpu = cpus[i];
+
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
+		int k = 0;
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{
+				k++;
+			}
+		}
+		len = __sprintf(szbuf + outlen, "cpu:%d,tasks:%d  ", cpu,k );
+		outlen += len;
+		szbuf[outlen] = 0;
+	}
+
+	int pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 4) * gVideoWidth * gBytesPerPixel +(gVideoWidth / 2) * gBytesPerPixel;
+	__drawGraphChar((char*)szbuf, 0, pos, TASKBARCOLOR);
+	return outlen;
+}

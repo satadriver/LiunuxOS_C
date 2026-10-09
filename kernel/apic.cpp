@@ -1685,21 +1685,33 @@ int GetIdleProcessor() {
 
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int counter = *(int*)(CPU_TOTAL_ADDRESS);
-	AlgorithmModel times[TASK_LIMIT_TOTAL];
+	AlgorithmModel rate[TASK_LIMIT_TOTAL];
+
 	unsigned long long tick = __krdtsc();
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];	
 		double cpu_diff = tick - g_cpu_start_tick[id];
 		double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
-		//times[i].v = g_cpu_tick[id];
-		//__memcpy((char*)&times[i].v,(char*) & cpu_ratio, sizeof(double));
-		times[i].fv = cpu_ratio;
-		times[i].id = id;
+		//rate[i].v = g_cpu_tick[id];
+		//__memcpy((char*)&rate[i].v,(char*) & cpu_ratio, sizeof(double));
+		rate[i].fv = cpu_ratio;
+		rate[i].id = id;
+
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
+		float tasks = 0.0;
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{
+				tasks+=1.0;
+			}
+		}
+
+		rate[i].fv = rate[i].fv * 0.9 + tasks * 0.1;
 	}
 
-	BubbleSortd(times, counter);
+	BubbleSortd(rate, counter);
 	
-	return (int)times[0].id;
+	return (int)rate[0].id;
 }
 
 

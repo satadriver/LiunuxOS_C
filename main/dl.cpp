@@ -129,7 +129,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	int sleep_cnt = ML_TASK_LIMIT - *(int*)(CPU_TOTAL_ADDRESS);
+	int sleep_cnt = ML_TASK_LIMIT/2 - *(int*)(CPU_TOTAL_ADDRESS);
 	for(int i = 0; i < sleep_cnt; ++i) {
 		//break;
 		char tn[256];
@@ -143,9 +143,9 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 		}
 	}
 
-	int workcnt = *(int*)(CPU_TOTAL_ADDRESS)*2;
+	int workcnt = ML_TASK_LIMIT / 2;
 	for (int i = 0; i < workcnt; ++i) {
-		break;
+		//break;
 		char tn[256];
 		__sprintf(tn, "TestProcess_work_%d", i);
 

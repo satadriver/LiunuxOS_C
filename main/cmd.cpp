@@ -436,42 +436,39 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		{
 			for (int i = 0; i < cnt; )
 			{
-				char szout[1024];
 				__sprintf(szout, "\npci type:%x,device:%x\n", devbuf[i], devbuf[i + 1]);
-
 				i += 2;
-
 				ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 			}
 		}
 	}
 	else if (__strcmp(params[0], "hdseq") == 0) {
-		char seq[1024];
-		getIdeSeq(seq);
-		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+
+		getIdeSeq(szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "hdver") == 0) {
-		char seq[1024];
-		getIdeFirmVersion(seq);
-		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+
+		getIdeFirmVersion(szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "hdtype") == 0) {
-		char seq[1024];
-		getIdeType(seq);
-		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+
+		getIdeType(szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "hdmedium") == 0) {
-		char seq[1024];
-		getIdeMediumSeq(seq);
-		ret = __drawWindowChars((char*)&seq, CONSOLE_FONT_COLOR, window);
+
+		getIdeMediumSeq(szout);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "vga") == 0) {
 		ret = __drawWindowChars((char*)getVGAInfo(), CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "vesa") == 0) {
-		char mode[1024];
-		__sprintf(mode,"mode:%x,width:%x,height:%x,color:%x\r\n", gVideoMode,gVideoWidth,gVideoHeight,gBytesPerPixel<<3);
-		ret = __drawWindowChars((char*)mode, CONSOLE_FONT_COLOR, window);
+
+		__sprintf(szout,"mode:%x,width:%x,height:%x,color:%x\r\n", gVideoMode,gVideoWidth,gVideoHeight,gBytesPerPixel<<3);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "windows") == 0) {
 		int len =traversalWindow(szout);
@@ -482,7 +479,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "ratio") == 0) {
-		GetCpuRatio(szout);
+		GetTaskRatio(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "memory") == 0) {

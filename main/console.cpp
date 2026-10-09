@@ -26,7 +26,7 @@
 #include "cmd.h"
 #include "apictimer.h"
 
-
+#define MAX_HISTORY_CMD 64
 
 extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param) {
 	int ret = 0;
@@ -37,6 +37,9 @@ extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, c
 	unsigned char szcmd[MAX_PATH_SIZE];
 	__memset((char*)szcmd, 0, MAX_PATH_SIZE);
 	int cmdptr = 0;
+
+	char history[MAX_HISTORY_CMD][256];
+	int historynum = 0;
 
 	WINDOWCLASS window;
 	initConsoleWindow(&window, __FUNCTION__, tid);
@@ -84,8 +87,32 @@ extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, c
 			__strlwr(( char*)szcmd);
 			__cmd((char*)szcmd, &window, filename, tid);
 
+			if(historynum >= MAX_HISTORY_CMD)
+			{
+				historynum = 0;
+			}
+			__strcpy(history[historynum++], (char*)szcmd);
+
 			cmdptr = 0;
 			szcmd[cmdptr] = 0;
+		}
+		else if (asc == VK_UP) {
+			historynum--;
+			if(historynum < 0)
+			{
+				historynum = 0;
+			}
+			__strcpy((char*)szcmd, history[historynum]);
+			ret = __drawWindowChars((char*)szcmd, CONSOLE_FONT_COLOR, &window);
+		}
+		else if (asc == VK_DOWN ) {
+			historynum++;
+			if(historynum >= MAX_HISTORY_CMD)
+			{
+				historynum = MAX_HISTORY_CMD - 1;
+			}
+			__strcpy((char*)szcmd, history[historynum]);
+			ret = __drawWindowChars((char*)szcmd, CONSOLE_FONT_COLOR, &window);		
 		}
 		else if (asc == 0x1b)
 		{

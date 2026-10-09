@@ -18,7 +18,7 @@ DWORD InterruptPerSec();
 
 //unsigned long long tscps();
 
-int GetCpuRatio(char* szout);
+int GetTaskRatio(char* szout);
 
 int CpuUsage(char* buf);
 

@@ -208,9 +208,9 @@ int CpuUsage(char* buf) {
 	for (int i = 0; i < counter; i++) {
 		int id = ids[i];
 
-		unsigned long long alive = tick - g_cpu_start_tick[id];
+		unsigned long long total = tick - g_cpu_start_tick[id];
 
-		double diff = alive;
+		double diff = total;
 
 		double usage = g_cpu_tick[id];
 
@@ -237,8 +237,8 @@ int CpuUsage(char* buf) {
 		}
 		
 		len = __sprintf(buf + offset, 
-			"[%d]. cpu:%d,active:%i64x,alive:%i64x,rate:%lf,g_timer_cost:%i64x,g_apic_freq:%i64x,aperf:%i64x,mperf:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
-			i,id, g_cpu_tick[id], alive, usage, g_timer_tick[id], g_apic_freq[id], aperf, mperf,load, g_pm_enable);
+			"[%d]. cpu:%d,active:%i64x,total:%i64x,rate:%lf,g_timer_tick:%i64x,g_apic_freq:%i64x,aperf:%i64x,mperf:%i64x,load:%lf,g_pm_enable:%d\r\n\r\n",
+			i,id, g_cpu_tick[id], total, usage, g_timer_tick[id], g_apic_freq[id], aperf, mperf,load, g_pm_enable);
 		offset += len;
 	}
 	return offset;
@@ -246,7 +246,7 @@ int CpuUsage(char* buf) {
 
 
 
-int GetCpuRatio(char* szout) {
+int GetTaskRatio(char* szout) {
 
 	int outlen = 0;
 	int len = 0;
@@ -264,13 +264,13 @@ int GetCpuRatio(char* szout) {
 			if (tss[i].status == TASK_RUN)
 			{
 				double proc_diff = tss[i].tick_total;
-				double proc_ratio = (double)tss[i].tick_run / proc_diff;
+				double proc_alive = (double)tss[i].tick_run / proc_diff;
 				double cost = tss[i].tick_switch_cost;
 				double switch_cost = cost / g_timer_tick[cpu];
-				double proc_usage = (double)tss[i].tick_run / (double)g_cpu_tick[cpu];
+				double proc_cpu = (double)tss[i].tick_run / (double)g_cpu_tick[cpu];
 				len = __sprintf(szout + outlen,
-					"[%d]. funcname:%s, cpu:%d,pid:%d,tid:%d,g_cpu_tick:%i64x,cpu usage:%lf,tick_run:%i64x,task ratio:%lf,task usage:%lf,switch_cost:%lf\r\n",
-					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_usage, tss[i].tick_run, proc_ratio, proc_usage,switch_cost);
+					"[%d]. funcname:%s, cpu:%d,pid:%d,tid:%d,g_cpu_tick:%i64x,cpu usage:%lf,tick_run:%i64x,task alive:%lf,task cpu:%lf,switch_cost:%lf\r\n",
+					n++,tss[i].funcname,  tss[i].cpuid,tss[i].pid,tss[i].tid, g_cpu_tick[cpu], cpu_usage, tss[i].tick_run, proc_alive, proc_cpu,switch_cost);
 				outlen += len;
 			}
 		}
