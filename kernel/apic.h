@@ -148,7 +148,7 @@ extern "C" __declspec(dllexport)  LPPROCESS_INFO GetCurrentTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO GetTaskTssBase();
 extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
 
-extern "C" __declspec(dllimport)  unsigned long long ApicTimerFreq();
+extern "C" __declspec(dllexport)  unsigned long long ApicTimerFreq();
 #else
 extern "C" __declspec(dllimport) unsigned long long g_td_tickcost;
 

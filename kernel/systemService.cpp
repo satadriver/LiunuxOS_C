@@ -318,7 +318,7 @@ void sleep(DWORD * params) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO current = tss + tid;
 	
-	current->sleep += times ;
+	current->sleep = times ;
 	proc->sleep = current->sleep;
 
 	current->sleep_total += times;

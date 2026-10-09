@@ -99,8 +99,8 @@ int CollectDlSample(TaskPredictParam * tp)
 	__enterSpinlock(&g_dl_lock);
 
 	if (g_dl_data != 0 && g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
-		__memcpy((char*)&g_dl_data[g_dl_data_cnt], (char*)tp,sizeof(TaskPredictParam));
 
+		__memcpy((char*)&g_dl_data[g_dl_data_cnt], (char*)tp,sizeof(TaskPredictParam));
 		g_dl_data_cnt++;
 	}
 
