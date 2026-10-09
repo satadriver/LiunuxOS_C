@@ -224,7 +224,10 @@ PROCESS_INFO* GetReadyProcess() {
 	}
 	else if (count > 1) {
 		int target_id = -1;
-		
+
+		if(total_sleep == 0)
+			total_sleep = 1;
+
 		for (int i = 0; i < count; i++) {
 			int pid = g_level_buf[cpu][i].id;
 

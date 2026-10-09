@@ -108,11 +108,19 @@ int CollectDlSample(TaskPredictParam * tp)
 
 	//printf("%s %d g_dl_data_cnt:%d\r\n", __FUNCTION__, __LINE__, g_dl_data_cnt);
 
-	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2) * gBytesPerPixel;
+	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2) * gBytesPerPixel;
+
 	char szout[256];
 	__sprintf(szout, (char*)"g_dl_data_cnt:%x ", g_dl_data_cnt);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 
+	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
+	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf", 
+		tp->task[0].alloc, tp->task[0].mem, tp->task[0].authority, tp->task[0].delta,tp->task[0].priority,
+		tp->task[0].cpurate, tp->task[0].tickrate,
+		tp->task[0].sleep, 
+		tp->task[0].user, tp->task[0].window);
+	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 	return g_dl_data_cnt;
 }
 

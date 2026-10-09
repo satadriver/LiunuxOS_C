@@ -524,11 +524,109 @@ double strlf2lf(char* str) {
 	return v;
 }
 
+int __i64ToStru64_old(__int64 v, char* buf) {
+	char strd[256];
+	*strd = 0;
 
+	int len = 0;
+	__int64 h = v;
+	do {
+		__int64 i = h % 10;
+
+		h = h / 10;
+
+		strd[len++] = (unsigned char)i + 0x30;
+
+	} while (h);
+
+	strd[len] = 0;
+
+	swapStr(buf, strd);
+
+	return len;
+}
 
 #define MAX_I64_AS_DOUBLE 9223372036854775807.0
 
+
+#define MAX_I64_AS_DOUBLE 9223372036854775808.0   /* 2^63 */
+
+int __i64ToStru64(__int64 v, char* buf) {
+	char strd[256];
+	int len = 0;
+	int neg = 0;
+	unsigned __int64 h;
+
+	if (v < 0) {
+		neg = 1;
+		h = (unsigned __int64)(-(v + 1)) + 1;
+	}
+	else {
+		h = (unsigned __int64)v;
+	}
+
+	do {
+		unsigned __int64 i = h % 10;
+		h /= 10;
+		strd[len++] = (char)('0' + (int)i);
+	} while (h);
+
+	if (neg) strd[len++] = '-';
+	strd[len] = 0;
+
+	int out = 0;
+	for (int i = len - 1; i >= 0; i--) {
+		buf[out++] = strd[i];
+	}
+	buf[out] = 0;
+	return out;
+}
+
 int lf2strlf(double f, char* buf) {
+	if (f == 0.0) {
+		__strcpy(buf, "0.0");
+		return 3;
+	}
+	if (f >= MAX_I64_AS_DOUBLE || f < -MAX_I64_AS_DOUBLE) {
+		__strcpy(buf, "NULL");
+		return 4;
+	}
+
+	int len = 0;
+	if (f < 0) {
+		buf[len++] = '-';
+		f = -f;
+	}
+
+	__int64 i = (__int64)f;
+	len += __i64ToStru64(i, buf + len);
+	buf[len++] = '.';
+
+	double s = f - (double)i;
+	const int PREC = 6;
+	char frac[PREC + 1];
+	for (int k = 0; k < PREC; k++) {
+		s *= 10.0;
+		int d = (int)s;
+		if (d < 0) d = 0;
+		if (d > 9) d = 9;
+		frac[k] = (char)('0' + d);
+		s -= d;
+	}
+	frac[PREC] = 0;
+
+	int flen = PREC;
+	while (flen > 1 && frac[flen - 1] == '0') flen--;
+
+	for (int k = 0; k < flen; k++) {
+		buf[len++] = frac[k];
+	}
+
+	buf[len] = 0;
+	return len;
+}
+
+int lf2strlf_old(double f, char* buf) {
 	if (f <= DBL_EPSILON && f >= -DBL_EPSILON) {
 		__strcpy(buf, "0.0");
 		return 3;
@@ -625,27 +723,7 @@ int __i64ToStrd64( __int64 v, char* buf) {
 }
 
 
-int __i64ToStru64(__int64 v, char* buf) {
-	char strd[256];
-	*strd = 0;
 
-	int len = 0;
-	__int64 h = v;
-	do {
-		__int64 i = h % 10;
-
-		h = h / 10;
-
-		strd[len++] = (unsigned char)i + 0x30;
-
-	} while (h);
-
-	strd[len] = 0;
-
-	swapStr(buf, strd);
-
-	return len;
-}
 
 int __i2strh(unsigned int n, int lowercase, unsigned char* buf) {
 	buf[0] = 0x30;

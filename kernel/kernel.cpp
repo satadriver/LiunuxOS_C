@@ -218,7 +218,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	{
 		ret = PredictionTask();
 
-		__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+		//__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 		if (ret == 0) {
 			__sleep(0);
