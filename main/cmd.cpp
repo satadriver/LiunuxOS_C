@@ -297,6 +297,11 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	{
 		g_dl_tp_mix = 0;
 	}
+	else if (__strcmp(params[0], "dlrate") == 0)
+	{
+		__sprintf(szout, "%lf\r\n", g_dl_rate);
+		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
+	}
 	else if (__strcmp(params[0], "tpcost") == 0)
 	{	
 		double prerate = (double)g_task_pre_hit / (double)g_task_pre_total;
