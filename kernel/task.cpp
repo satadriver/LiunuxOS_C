@@ -619,6 +619,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			proc->sleep = prev->sleep;
 		}
 
+		prev->counter++;
 		proc->counter++;
 
 		proc->frac_slice++;
@@ -1055,9 +1056,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			current->sleep--;
 			process->sleep = current->sleep;
 		}
-
+		current->counter++;
 		process->counter++;
-		
 		process->frac_slice++;
 		if (process->frac_slice >= process->slice) {
 			process->frac_slice = 0;
@@ -1197,7 +1197,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	else {
 		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
 	}
-
+	
 	//tasktest();
 
 	__MultipleTssSchedule_end:

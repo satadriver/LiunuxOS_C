@@ -1494,6 +1494,8 @@ void BPCodeStart() {
 #endif
 	__sleep(0);
 
+	//SetIcr(0, 0, 5, 3);
+
 #if 0
 	WaitIcrFree();
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);

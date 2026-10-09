@@ -1691,18 +1691,20 @@ int GetCPUTask() {
 
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		int k = 0;
+		unsigned long long counter = 0;
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
 				k++;
+				counter += tss[i].counter;
 			}
 		}
-		len = __sprintf(szbuf + outlen, "cpu:%d,tasks:%d  ", cpu,k );
+		len = __sprintf(szbuf + outlen, "cpu:%d,tasks:%d,counter:%i64x  ", cpu,k,counter );
 		outlen += len;
 		szbuf[outlen] = 0;
 	}
 
-	int pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 4) * gVideoWidth * gBytesPerPixel +(gVideoWidth / 2) * gBytesPerPixel;
+	int pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 4) * gVideoWidth * gBytesPerPixel;
 	__drawGraphChar((char*)szbuf, 0, pos, TASKBARCOLOR);
 	return outlen;
 }

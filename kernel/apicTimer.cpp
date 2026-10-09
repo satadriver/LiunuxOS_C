@@ -4,7 +4,6 @@
 #include "utils.h"
 #include "apic.h"
 #include "memory.h"
-#include "apic.h"
 #include "coprocessor.h"
 #include "task.h"
 #include "algorithm.h"
