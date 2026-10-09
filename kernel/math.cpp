@@ -104,7 +104,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 	if (x == 0.0)
 	{
 		printf("%s %d value:%lf is 0!\r\n", __FUNCTION__, __LINE__, x);
-		return DBL_EPSILON;
+		return 0.0;
 	}
 	else if (x < 0) {
 		printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
