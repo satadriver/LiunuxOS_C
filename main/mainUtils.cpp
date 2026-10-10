@@ -398,10 +398,10 @@ int getgdt(char * szout) {
 	char strgdt[8] = { 0 };
 	
 	__asm {
-		sgdt fword ptr[strgdt];
+		sgdt fword ptr [strgdt];
 	}
 
-	int l = 0;
+	int len = 0;
 	int outlen = 0;
 
 	int gdtlen = *(WORD*)strgdt + 1;
@@ -414,8 +414,15 @@ int getgdt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		l = __sprintf(szout + outlen, "gdt %d:%I64x\n", i, pgdts[i]);
-		outlen += l;
+		if ( pgdts[i] || i == 0) {
+			len = __sprintf(szout + outlen, "gdt %d:%I64x\n", i, pgdts[i]);
+			outlen += len;
+		}
+		else {
+			if (i == 0)
+				continue;
+			break;
+		}
 	}
 
 	return outlen;
@@ -429,7 +436,7 @@ int getidt(char * szout) {
 		sidt fword ptr[stridt];
 	}
 
-	int l = 0;
+	int len = 0;
 
 	int outlen = 0;
 
@@ -443,9 +450,8 @@ int getidt(char * szout) {
 
 	for (int i = 0; i < cnt; i++)
 	{
-		l =  __sprintf(szout + outlen, "idt %d:%I64x\n", i, pidts[i]);
-		outlen += l;
-
+		len =  __sprintf(szout + outlen, "idt %d:%I64x\n", i, pidts[i]);
+		outlen += len;
 	}
 
 	return outlen;

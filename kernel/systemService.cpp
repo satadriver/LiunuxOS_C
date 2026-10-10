@@ -683,7 +683,7 @@ unsigned long long tscps() {
 
 int readcrs(char * szout) {
 	__asm {
-		mov edi,szout
+		lea edi,szout
 		mov eax, SVC_READCR
 		int 0x80
 	}
@@ -704,8 +704,8 @@ int getcrs(char * szout) {
 	int dsreg = process->tss.cs;
 	if (dsreg & 3)
 	{
-		__sprintf(szout, "you have no privilege to get crs\r\n");
-		return 0;
+		//__sprintf(szout, "you have no privilege to get crs\r\n");
+		//return 0;
 	}
 
 	DWORD rcr0 = 0;

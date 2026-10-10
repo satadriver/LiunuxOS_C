@@ -387,7 +387,7 @@ PROCESS_INFO* GetReadyProcess() {
 				g_task_dl_hit++;
 			}
 			else {
-				target_id = next->tid;	
+				target_id = next->tid;
 				g_task_other_hit++;
 				g_tp_correct0++;
 			}

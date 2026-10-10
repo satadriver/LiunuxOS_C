@@ -10,13 +10,9 @@ int getidt(char * szout);
 
 int getgdt(char * szout);
 
-//int getcrs(char * szout);
-
 int getGeneralRegs(char * szout);
 
 DWORD InterruptPerSec();
-
-//unsigned long long tscps();
 
 int GetTaskRatio(char* szout);
 
