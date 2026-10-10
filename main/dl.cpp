@@ -79,37 +79,9 @@
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
 
+void DlTestProcess(int tag) {
 
-
-extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
-{
-	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
-
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
-
-	__enterSpinlock(&g_dl_lock);
-
-	g_dl_train_complete = 0;
-	g_dl_rate = 0.0;
-
-	if (g_dl_ann) {
-		free(g_dl_ann);
-	}
-	if (g_dl_data) {
-		free(g_dl_data);
-		g_dl_data = 0;
-	}
-	g_dl_data_cnt = 0;
-	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
-		g_dl_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * sizeof(TaskPredictParam));
-	}
-	__leaveSpinlock(&g_dl_lock);
-
-	if (g_dl_data == 0) {
-		return 0;
-	}
-
-	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+	g_dl_proc_tag = tag;
 
 	int thread_cnt = ML_TASK_LIMIT - *(int*)(CPU_TOTAL_ADDRESS);
 
@@ -129,14 +101,13 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	int sleep_cnt = ML_TASK_LIMIT/2 - *(int*)(CPU_TOTAL_ADDRESS);
-	for(int i = 0; i < sleep_cnt; ++i) {
-		//break;
+	int sleep_cnt = ML_TASK_LIMIT / 2 - *(int*)(CPU_TOTAL_ADDRESS);
+	for (int i = 0; i < sleep_cnt; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestProcess_sleep_%d", i);
 
 		DWORD addr = getAddrFromName(MAIN_DLL_BASE, tn);
-		if (addr) 
+		if (addr)
 		{
 			__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", tn, 3, 0);
 			__sleep(sleep_time);
@@ -145,7 +116,6 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	int workcnt = ML_TASK_LIMIT / 2;
 	for (int i = 0; i < workcnt; ++i) {
-		//break;
 		char tn[256];
 		__sprintf(tn, "TestProcess_work_%d", i);
 
@@ -156,6 +126,41 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 			__sleep(sleep_time);
 		}
 	}
+}
+
+
+extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
+{
+	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+
+	__enterSpinlock(&g_dl_lock);
+
+	g_dl_train_complete = 0;
+	g_dl_rate = 0.0;
+
+	if (g_dl_ann) {
+		free(g_dl_ann);
+		g_dl_ann = 0;
+	}
+	if (g_dl_data) {
+		free(g_dl_data);
+		g_dl_data = 0;
+	}
+	g_dl_data_cnt = 0;
+	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
+		g_dl_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * sizeof(TaskPredictParam));
+	}
+	__leaveSpinlock(&g_dl_lock);
+
+	if (g_dl_data == 0) {
+		return 0;
+	}
+
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+
+	DlTestProcess(0);
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
@@ -211,7 +216,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// train
-	kann_train_fnn1(g_dl_ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(g_dl_ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// predict
@@ -382,7 +387,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 
 
-
+int g_dl_proc_tag = 0;
 
 
 
@@ -394,14 +399,20 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 #define DEFINE_TEST_PROCESS_SLEEP(N) \
     extern "C" __declspec(dllexport) void TestProcess_sleep_##N() { \
-        while(g_dl_train_complete == 0 && g_dl_rate == 0.0){__sleep(0);} \
+        while( (g_dl_train_complete == 0 && g_dl_rate == 0.0) || g_dl_proc_tag ){\
+			__sleep(0);\
+		} \
     }
 
 
 
 #define DEFINE_TEST_PROCESS_WORK(N) \
     extern "C" __declspec(dllexport) void TestProcess_work_##N() { \
-        while(g_dl_train_complete == 0 && g_dl_rate == 0.0){char data[1024]; __memset(data,0,1024); __sleep(0); } \
+        while( (g_dl_train_complete == 0 && g_dl_rate == 0.0)||g_dl_proc_tag  )\
+		{\
+			char data[1024]; \
+			__memset(data,0,1024); \
+		 } \
     }
 
 DEFINE_TEST_PROCESS_WORK(0)

@@ -685,7 +685,7 @@ int readcrs(char * szout) {
 	__asm {
 		mov edi,szout
 		mov eax, SVC_READCR
-		int 0xff
+		int 0x80
 	}
 	return 0;
 }

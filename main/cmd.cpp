@@ -28,6 +28,7 @@
 #include "apic.h"
 #include "taskpriority.h"
 #include "DeepLearning.h"
+#include "dl.h"
 
 #pragma comment(linker, "/STACK:0x100000")
 
@@ -159,40 +160,33 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout, "mouse id:%x\r\n", gMouseID);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "regs") == 0 && paramcnt >= 2)
+	else if (__strcmp(params[0], "reg") == 0 )
 	{
-		if (__strcmp(params[1], "idt") == 0)
-		{
-			*szout = 0;
-			getidt(szout);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
+		*szout = 0;
+		if (paramcnt >= 2) {
+			if (__strcmp(params[1], "idt") == 0)
+			{
+				getidt(szout);
+			}
+			else if (__strcmp(params[1], "gdt") == 0)
+			{
+				getgdt(szout);
+			}
+			else if (__strcmp(params[1], "ldt") == 0)
+			{
+				getldt(szout);
+			}
+			else if (__strcmp(params[1], "cr") == 0)
+			{
+				readcrs(szout);
+			}
 		}
-		else if (__strcmp(params[1], "gdt") == 0)
-		{
-			*szout = 0;
-			getgdt(szout);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
+		else {
+			getGeneralRegs(szout);		
 		}
-		else if (__strcmp(params[1], "ldt") == 0)
-		{
-			*szout = 0;
-			getldt(szout);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
-		else if (__strcmp(params[1], "crx") == 0)
-		{
-			*szout = 0;
-			readcrs(szout);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
-		else if (__strcmp(params[1], "general") == 0)
-		{
-			*szout = 0;
-			getGeneralRegs(szout);
-			ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		}
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
-	else if (__strcmp(params[0], "loadfiles") == 0)
+	else if (__strcmp(params[0], "boot") == 0)
 	{
 		DATALOADERINFO* info = (DATALOADERINFO*)(gKernelData << 4);
 		__sprintf(szout,
@@ -280,6 +274,12 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		unsigned long long tsc = getsecond();
 		__sprintf(szout, "time stamp persecond:%I64x\n", tsc);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
+	else if (__strcmp(params[0], "endltp") == 0) {
+		DlTestProcess(1);
+	}
+	else if (__strcmp(params[0], "disdltp") == 0) {
+		g_dl_proc_tag = 0;
 	}
 	else if (__strcmp(params[0], "entpc") == 0)
 	{
