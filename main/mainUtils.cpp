@@ -412,7 +412,7 @@ int getgdt(char * szout) {
 
 	int cnt = gdtlen >> 3;
 
-	for (int i = 0; i < cnt; i++)
+	for (int i = 0; i < 64; i++)
 	{
 		if ( pgdts[i] || i == 0) {
 			len = __sprintf(szout + outlen, "gdt %d:%I64x\n", i, pgdts[i]);
@@ -421,7 +421,7 @@ int getgdt(char * szout) {
 		else {
 			if (i == 0)
 				continue;
-			break;
+			//break;
 		}
 	}
 

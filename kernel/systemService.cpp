@@ -479,7 +479,7 @@ DWORD	__cputype(unsigned long * params) {
 		mov ecx,0
 		cpuid
 		; ebx:edx:ecx = intel or else
-		mov ds : [edi] , ebx
+		mov ds : [edi + 0] , ebx
 		mov ds : [edi + 4] , edx
 		mov ds : [edi + 8] , ecx
 		mov dword ptr ds : [edi + 12] , 0
@@ -505,7 +505,7 @@ DWORD __cpuinfo(unsigned long* params) {
 		mov		ecx, 0
 		; dw 0a20fh
 		cpuid
-		mov     dword ptr[edi], eax
+		mov     dword ptr[edi + 0], eax
 		mov     dword ptr[edi + 4], ebx
 		mov     dword ptr[edi + 8], ecx
 		mov     dword ptr[edi + 12], edx
@@ -715,19 +715,19 @@ int getcrs(char * szout) {
 
 	__asm {
 		mov eax, cr0
-			mov rcr0, eax
+		mov rcr0, eax
 
-			mov eax, cr2
-			mov rcr2, eax
+		mov eax, cr2
+		mov rcr2, eax
 
-			mov eax, cr3
-			mov rcr3, eax
+		mov eax, cr3
+		mov rcr3, eax
 
-			//mov eax, cr4	//db 0fh, 20h, 0e0h
-			__emit 0xf
-			__emit 0x20
-			__emit 0xe0
-			mov rcr4, eax
+		//mov eax, cr4	//db 0fh, 20h, 0e0h
+		__emit 0xf
+		__emit 0x20
+		__emit 0xe0
+		mov rcr4, eax
 	}
 
 	int len = __sprintf(szout, "cr0:%x,cr2:%x,cr3:%x,cr4:%x\n", rcr0, rcr2, rcr3, rcr4);

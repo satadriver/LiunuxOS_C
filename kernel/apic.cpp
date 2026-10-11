@@ -1246,7 +1246,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 3;
+	int times = 5;
 	unsigned  long long ticks = 0;
 	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {

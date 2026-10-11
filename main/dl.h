@@ -16,7 +16,7 @@ extern "C" __declspec(dllexport) int g_dl_proc_tag;
 
 
 
-void DlTestProcess(int tag);
+void DlTestProcess(int tag,int cnt);
 
 extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param);
 

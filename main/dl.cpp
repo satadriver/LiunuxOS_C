@@ -79,14 +79,13 @@
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
 
-void DlTestProcess(int tag) {
+void DlTestProcess(int tag,int cnt) {
 
-	g_dl_proc_tag = tag;
-
-	int thread_cnt = ML_TASK_LIMIT - *(int*)(CPU_TOTAL_ADDRESS);
+	//g_dl_proc_tag = tag;
 
 	int sleep_time = 0;
 
+	int thread_cnt = cnt  - *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < thread_cnt; i++) {
 		break;
 		char tn[256];
@@ -101,7 +100,7 @@ void DlTestProcess(int tag) {
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	int sleep_cnt = ML_TASK_LIMIT / 2 - *(int*)(CPU_TOTAL_ADDRESS);
+	int sleep_cnt = cnt / 2 - *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < sleep_cnt; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestProcess_sleep_%d", i);
@@ -114,7 +113,7 @@ void DlTestProcess(int tag) {
 		}
 	}
 
-	int workcnt = ML_TASK_LIMIT / 2;
+	int workcnt = cnt / 2;
 	for (int i = 0; i < workcnt; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestProcess_work_%d", i);
@@ -160,7 +159,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
-	DlTestProcess(0);
+	DlTestProcess(0, ML_TASK_LIMIT);
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
@@ -216,7 +215,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// train
-	kann_train_fnn1(g_dl_ann, 0.001f, 64, 50, 10, 0.1f, n_samples, x, y);
+	kann_train_fnn1(g_dl_ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// predict
@@ -387,13 +386,33 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 
 
-int g_dl_proc_tag = 0;
+int g_dl_proc_tag = 1;
 
 
 
+#define DEFINE_TEST_THREAD(N) \
+    extern "C" __declspec(dllexport) void TestThread_##N() { \
+        while( 1 ){\
+			__sleep(0);\
+		} \
+    }
 
-
-
+DEFINE_TEST_THREAD(0)
+DEFINE_TEST_THREAD(1)
+DEFINE_TEST_THREAD(2)
+DEFINE_TEST_THREAD(3)
+DEFINE_TEST_THREAD(4)
+DEFINE_TEST_THREAD(5)
+DEFINE_TEST_THREAD(6)
+DEFINE_TEST_THREAD(7)
+DEFINE_TEST_THREAD(8)
+DEFINE_TEST_THREAD(9)
+DEFINE_TEST_THREAD(10)
+DEFINE_TEST_THREAD(11)
+DEFINE_TEST_THREAD(12)
+DEFINE_TEST_THREAD(13)
+DEFINE_TEST_THREAD(14)
+DEFINE_TEST_THREAD(15)
 
 
 

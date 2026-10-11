@@ -658,7 +658,7 @@ int delay() {
 }
 
 void __delay() {
-	for (int i = 0; i < 0x100; i++) {
+	for (int i = 0; i < 0x1000; i++) {
 		__asm {
 			nop
 			pause
@@ -728,6 +728,7 @@ void initCMOS() {
 	{
 	}
 	outportb(CMOS_DATA_PORT, 0X2A);
+	//outportb(CMOS_DATA_PORT, 0X2f);
 
 	outportb(CMOS_NUM_PORT, 0X0B | 0x80);
 	//delay();
