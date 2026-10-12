@@ -28,4 +28,6 @@ int GetSimpleProcesses(char* szout);
 
 int GetProcessNum();
 
+int GetMaxProcessNum(int * cpu);
+
 int GetProcess(int cpuid,int pid, char* szout);

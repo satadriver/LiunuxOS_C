@@ -32,11 +32,17 @@ struct TaskPredictParam {
 
 #pragma pack()
 
-
-int CollectRNNSample(char* tp);
+int CollectRNNSample(TaskPredictParam* tp);
 
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport)int g_tasks_cpu_array[ML_TASK_LIMIT];
+
+extern "C" __declspec(dllexport) int g_rnn_sample_cpu;
+
+extern "C" __declspec(dllexport) int g_rnn_task_count;
+
+extern "C" __declspec(dllexport) int g_dl_lock;
+
+extern "C" __declspec(dllexport)int g_tasks_cpu_array[256];
 extern "C" __declspec(dllexport) int g_task_total;
 extern "C" __declspec(dllexport) int g_dl_tp_mix;
 
@@ -57,7 +63,11 @@ extern "C" __declspec(dllexport) int CollectDlSample(TaskPredictParam*);
 extern "C" __declspec(dllexport) int TaskSchedulePredict(TaskPredictParam* tp);
 
 #else
-extern "C" __declspec(dllimport) int g_tasks_cpu_array[ML_TASK_LIMIT];
+extern "C" __declspec(dllimport) int g_rnn_sample_cpu;
+
+extern "C" __declspec(dllimport) int g_rnn_task_count;
+
+extern "C" __declspec(dllimport) int g_tasks_cpu_array[256];
 extern "C" __declspec(dllimport) int g_task_total;
 extern "C" __declspec(dllimport) int g_dl_tp_mix;
 

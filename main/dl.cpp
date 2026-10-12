@@ -274,7 +274,6 @@ typedef struct {
 	int n_in;
 	int ulen;
 	int n;
-
 	float* x;      // 输入：n_samples × T × N × 10 个 float
 	float* y;      // 标签：n_samples × N 个 float
 } bit_data_t;
@@ -291,7 +290,7 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 	int epoch, j, n_var, * shuf;
 	kann_t* ua;
 
-	int N = g_task_total;
+	int N = g_rnn_task_count;
 
 	n_var = kann_size_var(ann);
 	r = (float*)calloc(n_var, sizeof(float));
@@ -300,7 +299,6 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 	for (j = 0; j < d->ulen; ++j) {
 		x[j] = (float*)calloc(mini_size * N* d->n_in, sizeof(float));
 		y[j] = (float*)calloc(mini_size * N*2, sizeof(float));
-
 	}
 	shuf = (int*)calloc(d->n, sizeof(int));
 	kann_shuffle(d->n, shuf);
@@ -317,14 +315,12 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 		for (j = 0; j < d->n - mini_size; j += mini_size) {
 			int i, b, k;
 
-
 			for (k = 0; k < d->ulen; ++k) {           // 时间步
 				for (b = 0; b < mini_size; ++b) {     // batch 里的第 b 个样本
 					int s = shuf[j + b];              // 样本索引
 					for (int n = 0; n < N; ++n) {     // 第 n 个线程
 						for (i = 0; i < d->n_in; ++i) {
-							x[k][(b * N + n) * d->n_in + i] =
-								d->x[((s * SLIDE_SIZE + k) * N + n) * d->n_in + i];
+							x[k][(b * N + n) * d->n_in + i] = d->x[((s * SLIDE_SIZE + k) * N + n) * d->n_in + i];
 						}
 						// 标签：第 s 个样本、第 n 个线程
 						y[k][(b * N + n) * 2] = y[k][(b * N + n) * 2 + 1] = 0.0f;
@@ -332,7 +328,6 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 					}
 				}
 			}
-
 
 			int n_total = 0;
 			cost += kann_cost(ua, 0, 1) * mini_size * N;
@@ -361,20 +356,15 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
+	//g_task_total = GetProcessNum();
 
-
-	g_task_total = GetProcessNum();
-
+	g_rnn_task_count = GetMaxProcessNum(&g_rnn_sample_cpu);
 
 	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
 
+	//int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
 
-
-	// 计算布局参数
-	int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
-	int step = g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float);
-
-
+	int step = g_rnn_task_count * sizeof(TaskSwitchSample) +  sizeof(int);
 
 	__enterSpinlock(&g_dl_lock);
 
@@ -392,7 +382,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	g_dl_data_cnt = 0;
 	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
 
-		g_dl_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * step);
+		g_dl_data = (TaskPredictParam*)__kMalloc((TASK_DISPATCH_SAMPLE + SLIDE_SIZE) * step);
 	}
 	__leaveSpinlock(&g_dl_lock);
 
@@ -406,7 +396,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
-	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE* g_task_total) {
+	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
 		__sleep(1000);
 	}
 
@@ -419,71 +409,32 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	int n_samples = TASK_DISPATCH_SAMPLE - SLIDE_SIZE ;
 	
 	int rnn_flag = KANN_RNN_VAR_H0;
-	if (norm) rnn_flag |= KANN_RNN_NORM;
+	if (norm) 
+		rnn_flag |= KANN_RNN_NORM;
+
 	bit_data_t *d = (bit_data_t*)malloc(sizeof(bit_data_t));
 	d->n_in = inSize;
-
 	d->n = n_samples;
 	d->ulen = SLIDE_SIZE;
+	d->x = (float*)malloc(sizeof(float) * n_samples * SLIDE_SIZE* g_rnn_task_count*inSize);
+	d->y = (float*)malloc(sizeof(float)* n_samples* g_rnn_task_count*2);
 
-	d->x = (float*)malloc(sizeof(float) * n_samples * SLIDE_SIZE* g_task_total*inSize);
-	d->y = (float*)malloc(sizeof(float)* n_samples* g_task_total);
-
-
-
-	// 构造 CPU 映射表
-	int cpu_start[ML_TASK_LIMIT];
-	int cpu_count[ML_TASK_LIMIT];
-	int cpu_num = 0;
-	int* cpus = (int*)CPU_ID_ADDRESS;
-	int offset = 0;
-	for (int i = 0; i < ML_TASK_LIMIT; i++) {
-		int cpu = cpus[i];
-		if (g_tasks_cpu_array[cpu] > 0) {
-			cpu_start[cpu_num] = offset;
-			cpu_count[cpu_num] = g_tasks_cpu_array[cpu];
-			offset += g_tasks_cpu_array[cpu];
-			cpu_num++;
-		}
-	}
-
-	// 填充数据
 	for (i = 0; i < n_samples; ++i) {
-		// 输入
 		for (int k = 0; k < SLIDE_SIZE; ++k) {
 			char* base = (char*)g_dl_data + (i + k) * step;
-			for (int b = 0; b < g_task_total; ++b) {
-				memcpy(
-					&d->x[((i * SLIDE_SIZE + k) * g_task_total + b) * inSize],
-					base + b * sizeof(TaskSwitchSample),
-					inSize * sizeof(float)
-				);
+			for (int b = 0; b < g_rnn_task_count; ++b) {
+				memcpy(&d->x[((i * SLIDE_SIZE + k) * g_rnn_task_count + b) * inSize],base + b * sizeof(TaskSwitchSample),inSize * sizeof(float));
 			}
 		}
 
-		// 标签
-		char* label_base = (char*)g_dl_data + (i + SLIDE_SIZE) * step
-			+ g_task_total * sizeof(TaskSwitchSample);
-		float* results = (float*)label_base;
+		char* label_base = (char*)g_dl_data + (i + SLIDE_SIZE) * step + g_rnn_task_count * sizeof(TaskSwitchSample);
+		int* results = (int*)label_base;
+		int local_result = (int)results[0];
 
-		for (int b = 0; b < g_task_total; ++b) {
-			int cpu_idx = -1;
-			for (int c = 0; c < cpu_num; c++) {
-				if (b >= cpu_start[c] && b < cpu_start[c] + cpu_count[c]) {
-					cpu_idx = c;
-					break;
-				}
-			}
-
-			if (cpu_idx < 0) {
-				d->y[i * g_task_total + b] = 0.0f;
-				continue;
-			}
-
-			int local_result = (int)results[cpu_idx];
-			int global_result = cpu_start[cpu_idx] + local_result;
-
-			d->y[i * g_task_total + b] = (b == global_result) ? 1.0f : 0.0f;
+		for (int b = 0; b < g_rnn_task_count; ++b) {
+			int idx = (i * g_rnn_task_count + b) * 2;
+			d->y[idx] = (b == local_result) ? 0.0f : 1.0f;
+			d->y[idx + 1] = (b == local_result) ? 1.0f : 0.0f;
 		}
 	}
 

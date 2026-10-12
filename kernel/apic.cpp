@@ -1709,7 +1709,7 @@ int GetIdleProcessor() {
 			}
 		}
 
-		rate[i].fv = rate[i].fv * 0.9 + tasks/10 * 0.1;
+		rate[i].fv = rate[i].fv * 0.9 + tasks * 0.1;
 	}
 
 	BubbleSortd(rate, counter);

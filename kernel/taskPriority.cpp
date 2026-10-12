@@ -349,7 +349,8 @@ PROCESS_INFO* GetReadyProcess() {
 		}
 
 		if (g_dl_train_complete == 0) {
-			CollectDlSample(g_tpp_buf[cpu]);
+			//CollectDlSample(g_tpp_buf[cpu]);
+			CollectRNNSample(g_tpp_buf[cpu]);
 			g_task_other_hit++;
 		}
 		else {

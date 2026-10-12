@@ -12,6 +12,34 @@
 #include "DeepLearning.h"
 
 
+
+int GetMaxProcessNum(int * cpuid) {
+
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+
+	int id = -1;
+	int max = -1;
+	for (int num = 0; num < cnt; num++) {
+		int cpu = cpus[num];
+
+		int counter = 0;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{
+				counter++;
+			}
+		}
+		if (counter > 1 && counter > max) {
+			max = counter;
+			id = cpu;
+		}
+	}
+	*cpuid = id;
+	return max;
+}
+
 int GetProcessNum() {
 	int n = 0;
 	int cpus[256];

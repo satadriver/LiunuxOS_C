@@ -79,6 +79,9 @@
 
 // to compile and run: gcc -O2 this-prog.c kann.c kautodiff.c -lm && ./a.out
 
+int g_rnn_task_count = 0;
+int g_rnn_sample_cpu = 0;
+
 int g_dl_tp_mix = 0;
 
 int g_dl_lock = 0;
@@ -174,7 +177,6 @@ int GetSamplePos(int cpu,int * label) {
 			break;
 		}
 		else {
-			//pos += g_tasks_cpu_array[i]* sizeof(TaskSwitchSample);
 			pos += g_tasks_cpu_array[cpus[i]] * sizeof(TaskSwitchSample);
 			subpos +=sizeof(float);
 		}
@@ -189,37 +191,45 @@ int CollectRNNSample(TaskPredictParam* tp)
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	/*
 	int label = 0;
-	int start_off = GetSamplePos(id,&label);
-
+	int offset = GetSamplePos(id,&label);
 	int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
-
 	int num = g_task_cpu_sample_num[id];	
-
 	int size = g_tasks_cpu_array[id] * sizeof(TaskSwitchSample) ;
+	*/
+	if (g_rnn_sample_cpu == id) {
 
-	if (g_dl_data != 0 && num < TASK_DISPATCH_SAMPLE) {
-		char* buf = (char*)g_dl_data + 
-			num * (g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float)) + start_off;
-		__memcpy((char*)buf, (char*)tp, size);
+		if (g_dl_data != 0 && g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
 
-		buf = (char*)g_dl_data +
-			num * (g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float)) + 
-			g_task_total * sizeof(TaskSwitchSample) + label;
+			// 每个时间步的大小 = g_rnn_task_count 个 TaskSwitchSample + 1 个 int
+			int size = g_rnn_task_count * sizeof(TaskSwitchSample) + sizeof(int);
 
-		__memcpy((char*)buf, (char*)&tp->result, sizeof(float));
+			// 定位到第 g_dl_data_cnt 个时间步
+			char* buf = (char*)g_dl_data + g_dl_data_cnt * size;
 
-		g_task_cpu_sample_num[id]++;
+			// 拷贝 g_rnn_task_count 个 TaskSwitchSample
+			__memcpy(buf, (char*)tp->task, g_rnn_task_count * sizeof(TaskSwitchSample));
 
-		g_dl_data_cnt += g_tasks_cpu_array[id];
+			// 拷贝 result
+			__memcpy(buf + g_rnn_task_count * sizeof(TaskSwitchSample), (char*)&tp->result, sizeof(int));
+
+			// 时间步计数 +1
+			g_dl_data_cnt += 1;
+
+			//char* buf = (char*)g_dl_data + num * (g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float)) + offset;
+			//buf = (char*)g_dl_data +num * (g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float)) + g_task_total * sizeof(TaskSwitchSample) + label;
+			//__memcpy((char*)buf, (char*)&tp->result, sizeof(float));
+			//g_task_cpu_sample_num[id]++;
+			//g_dl_data_cnt += g_tasks_cpu_array[id];
+		}
 	}
-
 	__leaveSpinlock(&g_dl_lock);
 
 	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2) * gBytesPerPixel;
 
 	char szout[256];
-	__sprintf(szout, (char*)"g_dl_data_cnt:%x ", num);
+	__sprintf(szout, (char*)"g_dl_data_cnt:%x ", g_dl_data_cnt);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 
 	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
@@ -227,7 +237,7 @@ int CollectRNNSample(TaskPredictParam* tp)
 		tp->task[0].alloc, tp->task[0].mem, tp->task[0].authority, tp->task[0].delta, tp->task[0].priority,
 		tp->task[0].cpurate, tp->task[0].tickrate, tp->task[0].sleep, tp->task[0].user, tp->task[0].window);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
-	return num;
+	return g_dl_data_cnt;
 }
 
 
