@@ -25,6 +25,9 @@
 #include "malloc.h"
 #include "deepLearning.h"
 #endif
+#include "mainUtils.h"
+#include "DeepLearning.h"
+
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
@@ -268,31 +271,43 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 }
 
 typedef struct {
-	int n_in, ulen;
-	int n, m;
-	uint64_t* x, * y;
+	int n_in;
+	int ulen;
+	int n;
+
+	float* x;      // 输入：n_samples × T × N × 10 个 float
+	float* y;      // 标签：n_samples × N 个 float
 } bit_data_t;
 
-static void train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_epoch, const char* fn, int n_threads)
+
+#define  SLIDE_SIZE 32
+
+static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_epoch, const char* fn, int n_threads)
 {
+	double rate = 0.0;
+	int inSize = sizeof(TaskSwitchSample) / sizeof(float);
+
 	float** x, ** y, * r, best_cost = 1e30f;
 	int epoch, j, n_var, * shuf;
 	kann_t* ua;
+
+	int N = g_task_total;
 
 	n_var = kann_size_var(ann);
 	r = (float*)calloc(n_var, sizeof(float));
 	x = (float**)malloc(d->ulen * sizeof(float*));
 	y = (float**)malloc(d->ulen * sizeof(float*));
 	for (j = 0; j < d->ulen; ++j) {
-		x[j] = (float*)calloc(mini_size * d->n_in, sizeof(float));
-		y[j] = (float*)calloc(mini_size * 2, sizeof(float));
+		x[j] = (float*)calloc(mini_size * N* d->n_in, sizeof(float));
+		y[j] = (float*)calloc(mini_size * N*2, sizeof(float));
+
 	}
 	shuf = (int*)calloc(d->n, sizeof(int));
 	kann_shuffle(d->n, shuf);
 
 	ua = kann_unroll(ann, d->ulen);
-	kann_set_batch_size(ua, mini_size);
-	kann_mt(ua, n_threads, mini_size);
+	kann_set_batch_size(ua, mini_size * N);
+	kann_mt(ua, n_threads, mini_size*N);
 	kann_feed_bind(ua, KANN_F_IN, 0, x);
 	kann_feed_bind(ua, KANN_F_TRUTH, 0, y);
 	kann_switch(ua, 1);
@@ -301,82 +316,191 @@ static void train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_e
 		int tot = 0, tot_base = 0, n_cerr = 0;
 		for (j = 0; j < d->n - mini_size; j += mini_size) {
 			int i, b, k;
-			for (k = 0; k < d->ulen; ++k) {
-				for (b = 0; b < mini_size; ++b) {
-					int s = shuf[j + b];
-					for (i = 0; i < d->n_in; ++i)
-						x[k][b * d->n_in + i] = (float)(d->x[s * d->n_in + i] >> k & 1);
-					y[k][b * 2] = y[k][b * 2 + 1] = 0.0f;
-					y[k][b * 2 + (d->y[s] >> k & 1)] = 1.0f;
+
+
+			for (k = 0; k < d->ulen; ++k) {           // 时间步
+				for (b = 0; b < mini_size; ++b) {     // batch 里的第 b 个样本
+					int s = shuf[j + b];              // 样本索引
+					for (int n = 0; n < N; ++n) {     // 第 n 个线程
+						for (i = 0; i < d->n_in; ++i) {
+							x[k][(b * N + n) * d->n_in + i] =
+								d->x[((s * SLIDE_SIZE + k) * N + n) * d->n_in + i];
+						}
+						// 标签：第 s 个样本、第 n 个线程
+						y[k][(b * N + n) * 2] = y[k][(b * N + n) * 2 + 1] = 0.0f;
+						y[k][(b * N + n) * 2 + (d->y[s * N + n] > 0.5f ? 1 : 0)] = 1.0f;
+					}
 				}
 			}
-			cost += kann_cost(ua, 0, 1) * d->ulen * mini_size;
-			n_cerr += kann_class_error(ua, &k);
-			tot_base += k;
-			//kad_check_grad(ua->n, ua->v, ua->n-1);
+
+
+			int n_total = 0;
+			cost += kann_cost(ua, 0, 1) * mini_size * N;
+			n_cerr += kann_class_error(ua, &n_total);
+			tot_base += n_total;
 			kann_RMSprop(n_var, lr, 0, 0.9f, ua->g, ua->x, r);
-			tot += d->ulen * mini_size;
+			tot += mini_size * N;
 		}
 		if (cost < best_cost) {
 			best_cost = cost;
 			if (fn) kann_save(fn, ann);
 		}
-		fprintf(stderr, "epoch: %d; cost: %g (class error: %.2f%%)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
+		printf( "epoch: %d; cost: %g (class error: %.2f%%)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
+		rate = 100.0f * n_cerr / tot_base;
 	}
 
 	for (j = 0; j < d->ulen; ++j) {
 		free(y[j]); free(x[j]);
 	}
 	free(y); free(x); free(r); free(shuf);
+	return rate;
 }
-
 
 
 extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
-	int i, c, seed = 11, n_h_layers = 1, n_h_neurons = 64, mini_size = 64, max_epoch = 30, to_apply = 0, norm = 1, n_threads = 1;
+	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+
+
+
+	g_task_total = GetProcessNum();
+
+
+	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+
+
+
+	// 计算布局参数
+	int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
+	int step = g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float);
+
+
+
+	__enterSpinlock(&g_dl_lock);
+
+	g_dl_train_complete = 0;
+	g_dl_rate = 0.0;
+
+	if (g_dl_ann) {
+		kann_delete(g_dl_ann);
+		g_dl_ann = 0;
+	}
+	if (g_dl_data) {
+		free(g_dl_data);
+		g_dl_data = 0;
+	}
+	g_dl_data_cnt = 0;
+	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
+
+		g_dl_data = (TaskPredictParam*)__kMalloc(TASK_DISPATCH_SAMPLE * step);
+	}
+	__leaveSpinlock(&g_dl_lock);
+
+	if (g_dl_data == 0) {
+		return 0;
+	}
+
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+
+	DlTestProcess(0, ML_TASK_LIMIT);
+
+	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
+
+	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE* g_task_total) {
+		__sleep(1000);
+	}
+
+	int i, c,  n_h_layers = 1, n_h_neurons = 64, mini_size = SLIDE_SIZE, max_epoch = 30, norm = 1, n_threads = 1;
 	float lr = 0.01f, dropout = 0.2f;
-	kann_t* ann = 0;
+
 	char* fn_in = 0, * fn_out = 0;
 
-	int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
-	int blockSize = sizeof(TaskPredictParam) - sizeof(float);
-
-	int n_samples = TASK_DISPATCH_SAMPLE;
-	int outSize = 1;
-
-	kad_node_t* t;
+	int inSize = sizeof(TaskSwitchSample) / sizeof(float) ;
+	int n_samples = TASK_DISPATCH_SAMPLE - SLIDE_SIZE ;
+	
 	int rnn_flag = KANN_RNN_VAR_H0;
 	if (norm) rnn_flag |= KANN_RNN_NORM;
 	bit_data_t *d = (bit_data_t*)malloc(sizeof(bit_data_t));
 	d->n_in = inSize;
-	d->m = TASK_DISPATCH_SAMPLE;
-	d->n = TASK_DISPATCH_SAMPLE;
-	d->ulen = 32;
-	d->x = (unsigned long long*)malloc(inSize*sizeof(float) * TASK_DISPATCH_SAMPLE);
-	d->y = (unsigned long long*)malloc(sizeof(float)* TASK_DISPATCH_SAMPLE);
 
-	if (g_dl_data == 0) {
-		g_dl_data = (TaskPredictParam*)malloc(TASK_DISPATCH_SAMPLE *sizeof(TaskPredictParam));
+	d->n = n_samples;
+	d->ulen = SLIDE_SIZE;
+
+	d->x = (float*)malloc(sizeof(float) * n_samples * SLIDE_SIZE* g_task_total*inSize);
+	d->y = (float*)malloc(sizeof(float)* n_samples* g_task_total);
+
+
+
+	// 构造 CPU 映射表
+	int cpu_start[ML_TASK_LIMIT];
+	int cpu_count[ML_TASK_LIMIT];
+	int cpu_num = 0;
+	int* cpus = (int*)CPU_ID_ADDRESS;
+	int offset = 0;
+	for (int i = 0; i < ML_TASK_LIMIT; i++) {
+		int cpu = cpus[i];
+		if (g_tasks_cpu_array[cpu] > 0) {
+			cpu_start[cpu_num] = offset;
+			cpu_count[cpu_num] = g_tasks_cpu_array[cpu];
+			offset += g_tasks_cpu_array[cpu];
+			cpu_num++;
+		}
 	}
 
+	// 填充数据
 	for (i = 0; i < n_samples; ++i) {
+		// 输入
+		for (int k = 0; k < SLIDE_SIZE; ++k) {
+			char* base = (char*)g_dl_data + (i + k) * step;
+			for (int b = 0; b < g_task_total; ++b) {
+				memcpy(
+					&d->x[((i * SLIDE_SIZE + k) * g_task_total + b) * inSize],
+					base + b * sizeof(TaskSwitchSample),
+					inSize * sizeof(float)
+				);
+			}
+		}
 
-		__memcpy((char*)d->x + i* blockSize, (char*)&g_dl_data[i], blockSize);
+		// 标签
+		char* label_base = (char*)g_dl_data + (i + SLIDE_SIZE) * step
+			+ g_task_total * sizeof(TaskSwitchSample);
+		float* results = (float*)label_base;
 
-		int idx = g_dl_data[i].result;
-		d->y[i] = idx*1.0;
+		for (int b = 0; b < g_task_total; ++b) {
+			int cpu_idx = -1;
+			for (int c = 0; c < cpu_num; c++) {
+				if (b >= cpu_start[c] && b < cpu_start[c] + cpu_count[c]) {
+					cpu_idx = c;
+					break;
+				}
+			}
+
+			if (cpu_idx < 0) {
+				d->y[i * g_task_total + b] = 0.0f;
+				continue;
+			}
+
+			int local_result = (int)results[cpu_idx];
+			int global_result = cpu_start[cpu_idx] + local_result;
+
+			d->y[i * g_task_total + b] = (b == global_result) ? 1.0f : 0.0f;
+		}
 	}
 
-	t = kann_layer_input(d->n_in);
+	kad_node_t* t = kann_layer_input(d->n_in);
 	for (i = 0; i < n_h_layers; ++i) {
 		t = kann_layer_gru(t, n_h_neurons, rnn_flag);
 		t = kann_layer_dropout(t, dropout);
 	}
-	ann = kann_new(kann_layer_cost(t, 2, KANN_C_CEM), 0);
+	g_dl_ann = kann_new(kann_layer_cost(t, 2, KANN_C_CEM), 0);
 	
-	train(ann, d, lr, mini_size, max_epoch, fn_out, n_threads);
-
+	g_dl_rate = rnn_train(g_dl_ann, d, lr, mini_size, max_epoch, fn_out, n_threads);
+	if (g_dl_rate < TASK_DISPATCH_ERROR_RATE) {
+		g_dl_train_complete = 1;
+	}
+	free(d->x);
+	free(d->y);
+	free(d);
 	return 0;
 }
 

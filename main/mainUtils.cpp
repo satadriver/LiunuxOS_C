@@ -9,7 +9,30 @@
 #include "apic.h"
 #include "systemService.h"
 #include "libc.h"
+#include "DeepLearning.h"
 
+
+int GetProcessNum() {
+	int n = 0;
+	int cpus[256];
+	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
+	for (int num = 0; num < cnt; num++) {
+		int cpu = cpus[num];
+		
+		int counter = 0;
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
+		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+			if (tss[i].status == TASK_RUN)
+			{		
+				counter++;
+			}
+		}
+		g_tasks_cpu_array[cpu] = counter;
+		n += counter;
+	}
+
+	return n;
+}
 
 
 int GetSimpleProcesses(char* szout) {
@@ -20,8 +43,8 @@ int GetSimpleProcesses(char* szout) {
 	int n = 0;
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
-	for (int i = 0; i < cnt; i++) {
-		int cpu = cpus[i];
+	for (int num = 0; num < cnt; num++) {
+		int cpu = cpus[num];
 		double cpu_diff = tick - g_cpu_start_tick[cpu];
 		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
@@ -54,8 +77,8 @@ int GetAllProcesses(char* szout) {
 	int n = 0;
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
-	for (int i = 0; i < cnt; i++) {
-		int cpu = cpus[i];
+	for (int num = 0; num < cnt; num++) {
+		int cpu = cpus[num];
 		double cpu_diff = tick - g_cpu_start_tick[cpu];
 		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
@@ -86,9 +109,9 @@ int GetProcess(int cpuid,int pid, char* szout) {
 
 	unsigned long long tick = __krdtsc();
 
-	for (int i = 0; i < cnt; i++) {
+	for (int num = 0; num < cnt; num++) {
 		
-		int cpu = cpus[i];
+		int cpu = cpus[num];
 		if (cpu == cpuid) {
 			double cpu_diff = tick - g_cpu_start_tick[cpu];
 			double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
@@ -255,8 +278,8 @@ int GetTaskRatio(char* szout) {
 
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
-	for (int i = 0; i < cnt; i++) {
-		int cpu = cpus[i];
+	for (int num = 0; num < cnt; num++) {
+		int cpu = cpus[num];
 		double cpu_diff = tick - g_cpu_start_tick[cpu];
 		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);

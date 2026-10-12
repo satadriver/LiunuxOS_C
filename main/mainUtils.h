@@ -26,4 +26,6 @@ int GetAllProcesses(char* szout);
 
 int GetSimpleProcesses(char* szout);
 
+int GetProcessNum();
+
 int GetProcess(int cpuid,int pid, char* szout);

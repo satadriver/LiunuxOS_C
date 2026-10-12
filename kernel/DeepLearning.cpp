@@ -94,6 +94,13 @@ kann_t* g_dl_ann = 0;
 double g_dl_rate = 0.0;
 
 
+int g_task_total = 0;
+
+int g_tasks_cpu_array[256];
+
+int g_task_cpu_sample_num[256];
+
+
 int CollectDlSample(TaskPredictParam * tp)
 {
 	__enterSpinlock(&g_dl_lock);
@@ -156,5 +163,71 @@ int TaskSchedulePredict(TaskPredictParam* tp) {
 }
 
 
+
+int GetSamplePos(int cpu,int * label) {
+	int pos = 0;
+	int subpos = 0;
+	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
+	int* cpus = (int*)CPU_ID_ADDRESS;
+	for(int i = 0;i < cnt; i++) {
+		if (cpus[i] == cpu) {
+			break;
+		}
+		else {
+			//pos += g_tasks_cpu_array[i]* sizeof(TaskSwitchSample);
+			pos += g_tasks_cpu_array[cpus[i]] * sizeof(TaskSwitchSample);
+			subpos +=sizeof(float);
+		}
+	}
+	*label = subpos;
+	return pos;
+}
+
+int CollectRNNSample(TaskPredictParam* tp)
+{
+	__enterSpinlock(&g_dl_lock);
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	int label = 0;
+	int start_off = GetSamplePos(id,&label);
+
+	int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
+
+	int num = g_task_cpu_sample_num[id];	
+
+	int size = g_tasks_cpu_array[id] * sizeof(TaskSwitchSample) ;
+
+	if (g_dl_data != 0 && num < TASK_DISPATCH_SAMPLE) {
+		char* buf = (char*)g_dl_data + 
+			num * (g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float)) + start_off;
+		__memcpy((char*)buf, (char*)tp, size);
+
+		buf = (char*)g_dl_data +
+			num * (g_task_total * sizeof(TaskSwitchSample) + cpucnt * sizeof(float)) + 
+			g_task_total * sizeof(TaskSwitchSample) + label;
+
+		__memcpy((char*)buf, (char*)&tp->result, sizeof(float));
+
+		g_task_cpu_sample_num[id]++;
+
+		g_dl_data_cnt += g_tasks_cpu_array[id];
+	}
+
+	__leaveSpinlock(&g_dl_lock);
+
+	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2) * gBytesPerPixel;
+
+	char szout[256];
+	__sprintf(szout, (char*)"g_dl_data_cnt:%x ", num);
+	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
+
+	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
+	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf        ",
+		tp->task[0].alloc, tp->task[0].mem, tp->task[0].authority, tp->task[0].delta, tp->task[0].priority,
+		tp->task[0].cpurate, tp->task[0].tickrate, tp->task[0].sleep, tp->task[0].user, tp->task[0].window);
+	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
+	return num;
+}
 
 
