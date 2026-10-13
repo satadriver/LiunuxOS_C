@@ -203,7 +203,11 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	x = (float**)calloc(n_samples, sizeof(float*));
 	y = (float**)calloc(n_samples, sizeof(float*));
 	for (i = 0; i < n_samples; ++i) {
-
+		int idx = g_dl_data[i].result;
+		if (idx == -1) {
+			printf("%s %d skip sample %d\r\n", __FUNCTION__, __LINE__, i);
+			continue;
+		}
 		x[i] = (float*)calloc(inSize, sizeof(float));
 		__memcpy((char*)x[i], (char*) & g_dl_data[i], sizeof(TaskPredictParam) - sizeof(float));
 
@@ -211,14 +215,16 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 		for (int j = 0; j < outSize; j++) {
 			y[i][j] = 0.0;
 		}
-		int idx  = g_dl_data[i].result;
-		if(idx != -1)
-			y[i][idx] = 1.0;
+		y[i][idx] = 1.0;
 	}
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// train
 	kann_train_fnn1(g_dl_ann, 0.001f, 64, 30, 10, 0.1f, n_samples, x, y);
+	//int n_var = kann_size_var(g_dl_ann);
+	//for (int v = 0; v < n_var; v++) {
+	//	g_dl_ann->x[v] *= 0.9999f;
+	//}
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 	// predict
@@ -311,7 +317,7 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 	kann_switch(ua, 1);
 	for (epoch = 0; epoch < max_epoch; ++epoch) {
 		double cost = 0.0;
-		int tot = 0, tot_base = 0, n_cerr = 0;
+		long long  tot = 0, tot_base = 0, n_cerr = 0;
 		for (j = 0; j < d->n - mini_size; j += mini_size) {
 			int i, b, k;
 
@@ -324,24 +330,56 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 						}
 						// 标签：第 s 个样本、第 n 个线程
 						y[k][(b * N + n) * 2] = y[k][(b * N + n) * 2 + 1] = 0.0f;
-						y[k][(b * N + n) * 2 + (d->y[s * N + n] > 0.5f ? 1 : 0)] = 1.0f;
+						//y[k][(b * N + n) * 2 + (d->y[s * N + n] > 0.5f ? 1 : 0)] = 1.0f;
+						int label = (d->y[(s * N + n) * 2 + 1] > 0.5f) ? 1 : 0;
+						y[k][(b * N + n) * 2 + label] = 1.0f;
 					}
 				}
 			}
 
 			int n_total = 0;
-			cost += kann_cost(ua, 0, 1) * mini_size * N;
-			n_cerr += kann_class_error(ua, &n_total);
+			
+			float c = kann_cost(ua, 0, 1);
+			int n_err = kann_class_error(ua, &n_total);
+
+			if (j<5) {
+				printf("epoch %d,j:%d : cost=%lf, n_err=%d, n_total=%d\n", epoch, j,c, n_err, n_total);
+			}
+			if (n_total <= 0) {
+				break;
+			}
+			cost += c * mini_size * N;
+
+			n_cerr += n_err;
 			tot_base += n_total;
+			float clip = 0.001f;
+			for (int v = 0; v < n_var; v++) {
+				if (ua->g[v] > clip) ua->g[v] = clip;
+				if (ua->g[v] < -clip) ua->g[v] = -clip;
+			}
+
 			kann_RMSprop(n_var, lr, 0, 0.9f, ua->g, ua->x, r);
+			for (int v = 0; v < n_var; v++) {
+				ua->x[v] *= 0.9999f;
+			}
+
 			tot += mini_size * N;
 		}
 		if (cost < best_cost) {
 			best_cost = cost;
 			if (fn) kann_save(fn, ann);
 		}
-		printf( "epoch: %d; cost: %g (class error: %.2f%%)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
+		printf( "epoch: %d; cost: %lf (class error: %lf)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
 		rate = 100.0f * n_cerr / tot_base;
+
+		if (epoch % 4 == 0) {
+			float xmax = -1e30, xmin = 1e30;
+			for (int v = 0; v < n_var; v++) {
+				if (ua->x[v] > xmax) xmax = ua->x[v];
+				if (ua->x[v] < xmin) xmin = ua->x[v];
+			}
+			printf("epoch %d: param range [%f, %f]\n", epoch, xmin, xmax);
+		}
 	}
 
 	for (j = 0; j < d->ulen; ++j) {
@@ -400,8 +438,8 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 		__sleep(1000);
 	}
 
-	int i, c,  n_h_layers = 1, n_h_neurons = 64, mini_size = SLIDE_SIZE, max_epoch = 30, norm = 1, n_threads = 1;
-	float lr = 0.01f, dropout = 0.2f;
+	int i, c,  n_h_layers = 1, n_h_neurons = 64, mini_size = 8, max_epoch = 16, norm = 1, n_threads = 1;
+	float lr = 0.000001f, dropout = 0.2f;
 
 	char* fn_in = 0, * fn_out = 0;
 
@@ -430,7 +468,8 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 		char* label_base = (char*)g_dl_data + (i + SLIDE_SIZE) * step + g_rnn_task_count * sizeof(TaskSwitchSample);
 		int* results = (int*)label_base;
 		int local_result = (int)results[0];
-
+		//KANN_C_CEM 是 softmax + 交叉熵，要求每个样本的标签是 2 类 one-hot 编码。[0,1] 表示被调度，[1,0] 表示不被调度。
+		//KANN_C_CEB是sigmoid + 二分类交叉熵，要求每个样本的标签是 0 或 1。
 		for (int b = 0; b < g_rnn_task_count; ++b) {
 			int idx = (i * g_rnn_task_count + b) * 2;
 			d->y[idx] = (b == local_result) ? 0.0f : 1.0f;

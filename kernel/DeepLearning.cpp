@@ -187,9 +187,11 @@ int GetSamplePos(int cpu,int * label) {
 
 int CollectRNNSample(TaskPredictParam* tp)
 {
-	__enterSpinlock(&g_dl_lock);
-
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (g_rnn_sample_cpu != id) {
+		return 0;
+	}
+	__enterSpinlock(&g_dl_lock);
 
 	/*
 	int label = 0;
