@@ -277,9 +277,9 @@ PROCESS_INFO* GetReadyProcess() {
 			float tick_ratio = (float)GetValueFromArray(g_rate_buf[cpu], count, pid) / (float)STATIC_PRIORITY;
 			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
+			float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
 			float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-			float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
+			float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
 
 			if (pid == target_id) {
 				g_tpp_buf[cpu]->result = i;
@@ -311,9 +311,9 @@ PROCESS_INFO* GetReadyProcess() {
 					float tick_ratio = (float)GetValueFromArray(g_rate_buf[cpu], count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
+					float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
 
 					int ri = __random(0) % ML_TASK_LIMIT;
 					g_tpp_buf[cpu]->task[ri].tickrate = tick_ratio;
@@ -349,8 +349,8 @@ PROCESS_INFO* GetReadyProcess() {
 		}
 
 		if (g_dl_train_complete == 0) {
-			//CollectDlSample(g_tpp_buf[cpu]);
-			CollectRNNSample(g_tpp_buf[cpu]);
+			CollectDlSample(g_tpp_buf[cpu]);
+			//CollectRNNSample(g_tpp_buf[cpu]);
 			g_task_other_hit++;
 		}
 		else {
@@ -564,9 +564,9 @@ int PredictionTask() {
 					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
+					float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
+					float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
 
 					tp.task[i].tickrate = tick_ratio;
 					tp.task[i].cpurate = crate[i].fv / (float)STATIC_PRIORITY;
@@ -615,9 +615,9 @@ int PredictionTask() {
 							float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 							float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 							float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-							float delta_ratio = (float)tss[pid].delta / (float)STATIC_PRIORITY;
+							float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
 							float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-							float authority_r = (float)tss[pid].authority / (float)STATIC_PRIORITY;
+							float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
 
 							int ri = __random(0) % ML_TASK_LIMIT;
 							tp.task[ri].tickrate = tick_ratio;

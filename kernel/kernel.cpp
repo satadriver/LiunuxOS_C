@@ -184,8 +184,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 
 		DWORD ml_addr = getAddrFromName(MAIN_DLL_BASE, "DlMLPTraining");
 		//__kCreateThread((unsigned int)ml_addr, MAIN_DLL_BASE, (DWORD)&cmd, "__kDeepLearning_mlp");
-		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
-		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlRNNTraining", 3, 0);
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
+		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlRNNTraining", 3, 0);
 	}
 
 	//logFile("__kernelEntry\n");
