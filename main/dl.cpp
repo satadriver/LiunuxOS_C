@@ -86,7 +86,7 @@ void DlTestProcess(int tag,int cnt) {
 
 	//g_dl_proc_tag = tag;
 
-	int sleep_time = 0;
+	int sleep_time = 20;
 
 	int thread_cnt = cnt  - *(int*)(CPU_TOTAL_ADDRESS);
 	for (int i = 0; i < thread_cnt; i++) {
@@ -276,6 +276,47 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	return 0;
 }
 
+static void check_labels(const kann_t* ann) {
+	for (int i = 0; i < ann->n; ++i) {
+		kad_node_t* p = ann->v[i];
+		if (((p->op == 13 && (p->n_child == 2 || p->n_child == 3)) ||
+			(p->op == 22 && p->n_child == 2)) && p->n_d == 0) {
+			kad_node_t* x = p->child[0], * t = p->child[1];
+			if (!x || !t || !x->x || !t->x) {
+				printf("SKIP: i=%d x=%p t=%p x->x=%p t->x=%p\n",
+					i, x, t, x ? x->x : 0, t ? t->x : 0);
+				continue;
+			}
+			if (t->n_d <= 0) {
+				printf("SKIP: i=%d t->n_d=%d\n", i, t->n_d);
+				continue;
+			}
+			int n = t->d[t->n_d - 1];
+			if (n <= 0) {
+				printf("SKIP: i=%d n=%d\n", i, n);
+				continue;
+			}
+			int m = kad_len(t) / n;
+			for (int j = 0, off = 0; j < m; ++j, off += n) {
+				float t_sum = 0.0f, t_min = 1.0f, x_min = 1.0f, x_max = 0.0f;
+				for (int k = 0; k < n; ++k) {
+					float xk = x->x[off + k], tk = t->x[off + k];
+					t_sum += tk;
+					t_min = t_min < tk ? t_min : tk;
+					x_min = x_min < xk ? x_min : xk;
+					x_max = x_max < xk ? xk : x_max;
+				}
+				if (t_sum - 1.0f != 0 || t_min < 0 || x_min < 0 || x_max > 1) {
+					printf("FAIL: i=%d j=%d t_sum=%.9f t_min=%.9f x_min=%.9f x_max=%.9f\n",
+						i, j, t_sum, t_min, x_min, x_max);
+					return;
+				}
+			}
+		}
+	}
+	printf("check_labels: all OK\n");
+}
+
 typedef struct {
 	int n_in;
 	int ulen;
@@ -337,30 +378,80 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 				}
 			}
 
+
+			if (epoch == 0 && j == 0) {
+				for (int ii = 0; ii < ua->n; ++ii) {
+					kad_node_t* p = ua->v[ii];
+					if (p->op == 13 || p->op == 22) {
+						kad_node_t* t = p->child[1];
+						int n = t->d[t->n_d - 1];
+						int m = kad_len(t) / n;
+						printf("node %d: op=%d n_child=%d n_d=%d n=%d m=%d\n",
+							ii, p->op, p->n_child, p->n_d, n, m);
+					}
+				}
+				printf("find label 0  -> %d\n", kann_find(ua, KANN_F_COST, 0));
+				printf("find label -1 -> %d\n", kann_find(ua, KANN_F_COST, -1));
+				printf("y[0][0..3] = %f %f %f %f\n",
+					y[0][0], y[0][1], y[0][2], y[0][3]);
+				check_labels(ua);
+			}
+
 			int n_total = 0;
-			
+
 			float c = kann_cost(ua, 0, 1);
+			//int cost_label = kann_find(ua, KANN_F_COST, 0);
+			//if (cost_label < 0) cost_label = kann_find(ua, KANN_F_COST, -1);
+			//printf("cost_label = %d\n", cost_label);   // 打一次
+			//float c = kann_cost(ua, cost_label, 1);
+
+
+			/*
+			// 找 cost 节点索引
+			int i_cost = -1;
+			for (int ii = 0; ii < ua->n; ++ii) {
+				kad_node_t* p = ua->v[ii];
+				if ((p->op == 13 && (p->n_child == 2 || p->n_child == 3)) ||
+					(p->op == 22 && p->n_child == 2)) {
+					i_cost = ii;
+					break;
+				}
+			}
+			float c;
+			if (i_cost >= 0) {
+				c = *kad_eval_at(ua->n, ua->v, i_cost);   // 求 cost
+				kad_grad(ua->n, ua->v, i_cost);           // 算梯度
+			}
+			else {
+				printf("FATAL: no cost node found\n");
+				break;
+			}
+			
+			*/
+						
 			int n_err = kann_class_error(ua, &n_total);
 
 			if (j<5) {
 				printf("epoch %d,j:%d : cost=%lf, n_err=%d, n_total=%d\n", epoch, j,c, n_err, n_total);
 			}
 			if (n_total <= 0) {
-				break;
+				//break;
 			}
 			cost += c * mini_size * N;
 
 			n_cerr += n_err;
 			tot_base += n_total;
-			float clip = 0.001f;
-			for (int v = 0; v < n_var; v++) {
-				if (ua->g[v] > clip) ua->g[v] = clip;
-				if (ua->g[v] < -clip) ua->g[v] = -clip;
-			}
+
+			//float clip = 0.001f;
+			//for (int v = 0; v < n_var; v++) {
+			//	if (ua->g[v] > clip) ua->g[v] = clip;
+			//	if (ua->g[v] < -clip) ua->g[v] = -clip;
+			//}
 
 			kann_RMSprop(n_var, lr, 0, 0.9f, ua->g, ua->x, r);
+
 			for (int v = 0; v < n_var; v++) {
-				ua->x[v] *= 0.9999f;
+				//ua->x[v] *= 0.9999f;
 			}
 
 			tot += mini_size * N;
@@ -372,14 +463,7 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 		printf( "epoch: %d; cost: %lf (class error: %lf)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
 		rate = 100.0f * n_cerr / tot_base;
 
-		if (epoch % 4 == 0) {
-			float xmax = -1e30, xmin = 1e30;
-			for (int v = 0; v < n_var; v++) {
-				if (ua->x[v] > xmax) xmax = ua->x[v];
-				if (ua->x[v] < xmin) xmin = ua->x[v];
-			}
-			printf("epoch %d: param range [%f, %f]\n", epoch, xmin, xmax);
-		}
+
 	}
 
 	for (j = 0; j < d->ulen; ++j) {
@@ -393,6 +477,9 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+
+	DlTestProcess(0, ML_TASK_LIMIT);
+	__sleep(1000);
 
 	//g_task_total = GetProcessNum();
 
@@ -430,7 +517,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
-	DlTestProcess(0, ML_TASK_LIMIT);
+	
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 

@@ -32,6 +32,12 @@
 
 #pragma comment(linker, "/STACK:0x100000")
 
+/*
+AuthenticAMD
+GenuineIntel
+FS	0xC0000100	IA32_FS_BASE
+GS	0xC0000101	IA32_GS_BASE
+*/
 
 extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char* pidname, int pid) {
 

@@ -349,8 +349,11 @@ PROCESS_INFO* GetReadyProcess() {
 		}
 
 		if (g_dl_train_complete == 0) {
+#ifdef MODEL_TYPE_RNN
+			CollectRNNSample(g_tpp_buf[cpu]);		
+#else
 			CollectDlSample(g_tpp_buf[cpu]);
-			//CollectRNNSample(g_tpp_buf[cpu]);
+#endif
 			g_task_other_hit++;
 		}
 		else {
