@@ -1641,21 +1641,18 @@ LPPROCESS_INFO GetTaskTssBase() {
 LPPROCESS_INFO SetTaskTssBase() {
 	char szout[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (id == 0) {
-		int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-		unsigned long size = tssSize * TASK_LIMIT_TOTAL;
-		g_ap_tss_base[id] = (LPPROCESS_INFO)(AP_TASK_TSS_ARRAY + id * size);
+	if (g_ap_tss_base[id]) {
+		return 0;
 	}
-	else {
-		int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-		unsigned long size = tssSize* TASK_LIMIT_TOTAL;
-		char * buf =(char*) __kProcessMalloc(size, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		g_ap_tss_base[id] = (LPPROCESS_INFO)buf;
-		if (buf == 0) {
-			__printf(szout,"%s %d error\r\n", __FUNCTION__, __LINE__);
-		}
+
+	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
+	unsigned long size = tssSize* TASK_LIMIT_TOTAL;
+	char * buf =(char*) __kProcessMalloc(size, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	g_ap_tss_base[id] = (LPPROCESS_INFO)buf;
+	if (buf == 0) {
+		__printf(szout,"%s %d error\r\n", __FUNCTION__, __LINE__);
 	}
-	
+
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
 }
 
@@ -1726,42 +1723,7 @@ int GetIdleProcessor() {
 
 
 
-int GetCongestion(int * procs) {
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	unsigned long long tick = __krdtsc();
-	double cpu_diff = tick - g_cpu_start_tick[id];
-	double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
 
-	int max_tid = -1;
-	double max_ratio = 0.0;
-
-	int n = 0;
-
-	int cnt = 0;
-
-	if (cpu_ratio > 0.5) {
-		LPPROCESS_INFO tss = GetTaskTssBase();
-		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-			if (tss[i].status == TASK_RUN) {
-				n++;
-
-				double proc_cpu_ratio = (double)tss[i].tick_run / cpu_diff;
-				if (proc_cpu_ratio > max_ratio) {
-					max_ratio = proc_cpu_ratio;
-					max_tid = tss[i].tid;
-				}
-
-				double proc_diff = tss[i].tick_total;
-				double proc_ratio = (double)tss[i].tick_run / proc_diff;
-				if (proc_ratio > 0.5) {
-					procs[cnt++] = tss[i].tid;
-				}
-			}
-		}
-	}
-
-	return cnt;
-}
 
 
 

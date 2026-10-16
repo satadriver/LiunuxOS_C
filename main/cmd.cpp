@@ -257,6 +257,8 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			pushfd
 			pop eflags
 		}
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		//char* lpgdt = g_gdt_base[i];
 		TssDescriptor* descrptor = (TssDescriptor*)(GDT_BASE + kTssTaskSelector);
 		__sprintf(szout, "tid:%d, pid:%d ,link:%d,NT:%x,busy:%x\r\n",
 			process->tid, process->pid, process->tss.link, process->tss.trap, eflags & 0x4000, descrptor->type & 2);

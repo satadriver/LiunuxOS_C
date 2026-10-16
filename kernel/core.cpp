@@ -309,13 +309,7 @@ void initKernelTss(TSS* tss, DWORD esp0, DWORD reg_esp, DWORD eip, DWORD cr3, DW
 char* SetIdtBase() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if (g_idt_base[id] == 0) {
-
-		if (IsBspProcessor()) {
-			g_idt_base[id] = (char*)GDT_BASE;
-		}
-		else {
-			g_idt_base[id] = (char*)__kMalloc(0x10000);
-		}
+		g_idt_base[id] = (char*)__kMalloc(0x10000);	
 	}
 	return g_idt_base[id];
 }
@@ -323,15 +317,11 @@ char* SetIdtBase() {
 
 char* SetGdtBase() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	return g_gdt_base[id];
+	
 	if (g_gdt_base[id] == 0) {
-		if (IsBspProcessor()) {
-			g_gdt_base[id] = (char*)GDT_BASE;
-		}
-		else {
-			g_gdt_base[id] = (char*)__kMalloc(0x10000);
-		}
+		g_gdt_base[id] = (char*)__kMalloc(0x10000);
 	}
+	return g_gdt_base[id];
 }
 
 char* GetIdtBase() {
@@ -350,14 +340,8 @@ char* InitGdt() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	if (g_gdt_base[id] == 0) {
-		if (IsBspProcessor()) {
-			g_gdt_base[id] = (char*) GDT_BASE;
-		}
-		else {
-			g_gdt_base[id] = (char*)__kMalloc(0x10000);
-		}	
+		g_gdt_base[id] = (char*)__kMalloc(0x10000);
 	}
-	//char* lpgdt = (char*)(GDT_BASE + id * 0x10000);
 
 	char* lpgdt = g_gdt_base[id];
 	DescriptTableReg gdtbase;
@@ -368,7 +352,6 @@ char* InitGdt() {
 	char szout[256];
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-
 	//__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
 	//__memcpy((char*)lpgdt, (char*)gdtbase.addr, gdtbase.size + 1);
 
@@ -394,19 +377,14 @@ char* InitGdt() {
 	*/
 
 	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
-
-	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 	
-	unsigned long stack0top = 0;
-	if (IsBspProcessor()) {
-		g_stack0_base[id] = (char*)TASKS_STACK0_BASE;
-		stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
-	}
-	else {
-		g_stack0_base[id] = (char*)__kMalloc(TASK_STACK0_SIZE*TASK_LIMIT_TOTAL);
-		stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
+	if (g_stack0_base[id] == 0) {
+		g_stack0_base[id] = (char*)__kMalloc(TASK_STACK0_SIZE * TASK_LIMIT_TOTAL);
 	}
 
+	unsigned long stack0top = 0;
+	stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
+	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 	initKernelTss(&proc->tss,stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));
 
@@ -491,12 +469,7 @@ char* InitIDT() {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if (g_idt_base[id] == 0) {
-		if (IsBspProcessor()) {
-			g_idt_base[id] = (char*)IDT_BASE;
-		}
-		else {
-			g_idt_base[id] =(char*) __kMalloc(0x10000);
-		}
+		g_idt_base[id] = (char*)__kMalloc(0x10000);
 	}
 
 	//char* lpidt = (char*)(IDT_BASE + id * 0x10000);

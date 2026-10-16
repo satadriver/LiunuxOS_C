@@ -1517,7 +1517,6 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	int tid = freeTss.number;
 
 	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
-	//unsigned long stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
 
 	//why not use process0 but lpproc?
 	LPPROCESS_INFO process0  = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -1572,22 +1571,13 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->tick_total = 0;
 	process0->tick_switch_cost = 0;
 
-	int bsp = IsBspProcessor();
-	if (bsp) {
-		process0->heapBase[0] = (char*)BSP_HEAP_BASE;
-		//__printf(szout,"%s %d process0->lpHeapBase[0]:%x\r\n", __FUNCTION__, __LINE__, process0->lpHeapBase[0]);
-		process0->heapsize = HEAP_SIZE; 
-		process0->fast_heap = (char*)BSP_FAST_HEAP;
-	}
-	else {
-		DWORD size = HEAP_SIZE;
-		char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		//__printf(szout,"%s %d __kProcessMalloc heap base:%x\r\n", __FUNCTION__, __LINE__, buf);
-		process0->heapBase[0] = (char*)buf;
-		process0->heapsize = HEAP_SIZE;
-		process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-		
-	}
+	DWORD size = HEAP_SIZE;
+	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	//__printf(szout,"%s %d __kProcessMalloc heap base:%x\r\n", __FUNCTION__, __LINE__, buf);
+	process0->heapBase[0] = (char*)buf;
+	process0->heapsize = HEAP_SIZE;
+	process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);	
+	
 	__memset((char*) process0->heapBase[0], 0, HEAP_SIZE);
 	__memset(process0->fast_heap, 0, HEAP_SIZE);
 

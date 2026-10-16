@@ -91,6 +91,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gGraphBase =(DWORD)( vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	SetTaskVideoBase(vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
+
+	initMemory();
+
+	initPaging();
 	
 	InitGdt();
 	InitIDT();
@@ -98,10 +102,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__initTask0((char*)LIUNUX_KERNEL32_DLL,"__kKernel",0, GRAPHCHAR_HEIGHT * id * 16 + 64);
 
 	SetIVTVector();
-
-	initMemory();
-
-	initPaging();
 
 	initCoprocessor();
 
@@ -184,7 +184,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #ifdef MODEL_TYPE_RNN
 		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlRNNTraining", 3, 0);	
 #else
-		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
+		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
 #endif
 	}
 
