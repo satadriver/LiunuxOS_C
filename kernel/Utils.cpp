@@ -1686,8 +1686,8 @@ int GetCPUTask() {
 
 	int cpus[256];
 	int cnt = GetCpu(cpus, sizeof(cpus) / sizeof(cpus[0]));
-	for (int i = 0; i < cnt; i++) {
-		int cpu = cpus[i];
+	for (int n = 0; n < cnt; n++) {
+		int cpu = cpus[n];
 
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		int k = 0;

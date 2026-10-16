@@ -120,8 +120,6 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	enableMCE();
 	enableTSD();
 
-	
-
 	initDebugger();
 	
 	initWindowList();

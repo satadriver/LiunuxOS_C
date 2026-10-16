@@ -216,15 +216,11 @@ extern "C"  __declspec(dllexport) DWORD __kPageAlloc(int size) {
 					while (n >= factor) {
 						factor = factor << 1;
 					}
-					
-					continue;
 				}
 				else {
-					//
+					n++;
 				}
-			}
-
-			n++;
+			}	
 		}
 
 		if(res) {

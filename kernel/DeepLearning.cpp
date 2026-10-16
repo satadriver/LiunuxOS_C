@@ -106,6 +106,8 @@ int g_task_cpu_sample_num[256];
 
 int CollectDlSample(TaskPredictParam * tp)
 {
+	if (g_task_total < ML_TASK_LIMIT)
+		return 0;
 	__enterSpinlock(&g_dl_lock);
 
 	if (g_dl_data != 0 && g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {

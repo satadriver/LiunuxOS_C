@@ -411,7 +411,7 @@ PROCESS_INFO* GetReadyProcess() {
 			if (target_id != g_rate_buf[cpu][i].id) {
 				tss[tid].delta += DELTA_UNIT_PRIORITY;
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
-					tss[tid].delta = DYNAMIC_PRIORITY;
+					//tss[tid].delta = DYNAMIC_PRIORITY;
 				}
 			}
 			else {
@@ -672,7 +672,7 @@ int PredictionTask() {
 					if (target_id != rate[i].id) {
 						tss[tid].delta += DELTA_UNIT_PRIORITY;
 						if (tss[tid].delta > DYNAMIC_PRIORITY) {
-							tss[tid].delta = DYNAMIC_PRIORITY;
+							//tss[tid].delta = DYNAMIC_PRIORITY;
 						}
 					}
 					else {

@@ -605,7 +605,7 @@ int Read8254Counter(int num) {
 
 unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	
-	__asm{cli}
+	//__asm{cli}
 
 	int v0 = Read8254Counter(0);
 	int v1 = v0;
@@ -634,7 +634,7 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 		delta = -delta;
 	}
 
-	__asm {sti}
+	//__asm {sti}
 
 	char szout[256];
 	//__printf(szout, "%s %d tick:%I64x,apic tick:%I64x\r\n", __FUNCTION__, __LINE__, tick[0], delta);

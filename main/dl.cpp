@@ -167,6 +167,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
 	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
+		g_task_total = GetProcessNum();
 		__sleep(1000);
 	}
 
@@ -526,7 +527,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	}
 
 	int i, c,  n_h_layers = 1, n_h_neurons = 64, mini_size = 8, max_epoch = 16, norm = 1, n_threads = 1;
-	float lr = 0.000001f, dropout = 0.2f;
+	float lr = 0.001f, dropout = 0.2f;
 
 	char* fn_in = 0, * fn_out = 0;
 
@@ -632,6 +633,7 @@ DEFINE_TEST_THREAD(15)
 		{\
 			char data[1024]; \
 			__memset(data,0,1024); \
+			__sleep(0);\
 		 } \
     }
 

@@ -1262,7 +1262,7 @@ int InitLocalApicTimer() {
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	freq = freq * 2 / 4;
+	freq = freq * 2 / 3;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
@@ -1316,8 +1316,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//__enterLock(&g_allocate_ap_lock);
 	__enterSpinlock(&g_allocate_ap_lock);
 
-	//__printf(szout, "cpu:%d enter lock\r\n", cpuid);
-
 	int seq = *(int*)CPU_TOTAL_ADDRESS;
 	int* apids = (int*)CPU_ID_ADDRESS;
 	apids[seq] = cpuid;
@@ -1366,15 +1364,15 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableTSD();
 	initDebugger();
 
+	__enterSpinlock(&g_allocate_ap_lock);
 	ret = InitLocalApicTimer();
+	__leaveSpinlock(&g_allocate_ap_lock);
 
 	InitLocalApicErr();
 
 	InitLocalApicCmci();
 
 	//*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
-
-	//__asm{int APIC_IPI_VECTOR}
 
 	InitPm();
 
@@ -1453,7 +1451,7 @@ void BPCodeStart() {
 	if(ret == 0){
 		return;
 	}
-	//__memset((char*)IPI_MSG_BASE, 0, 0x10000);
+
 	__asm {cli}
 
 	enableLocalApic();
@@ -1469,7 +1467,6 @@ void BPCodeStart() {
 	InitTaskScheduleBuf();
 	__asm {sti}
 
-	//in bsp the bit 8 of LOCAL_APIC_BASE is set
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	*(DWORD*)CPU_ID_ADDRESS = cpu;
 	*(int*)(CPU_TOTAL_ADDRESS) = 1;
@@ -1554,8 +1551,6 @@ void BPCodeStart() {
 	g_apic_int_tag = 1;
 	__asm {sti}
 #endif
-
-	//ret = InitLocalApicTimer();
 
 	g_cpu_start_tick[cpu] = __krdtsc();
 	g_cpu_prev_tick[cpu] = g_cpu_start_tick[cpu];
@@ -1687,32 +1682,44 @@ int GetCpu(int* out, int size) {
 int GetIdleProcessor() {
 
 	int* ids = (int*)CPU_ID_ADDRESS;
-	int counter = *(int*)(CPU_TOTAL_ADDRESS);
+	int cpu_cnt = *(int*)(CPU_TOTAL_ADDRESS);
 	AlgorithmModel rate[TASK_LIMIT_TOTAL];
 
+	unsigned long long dcnt[TASK_LIMIT_TOTAL];
+
+	double total_counter = 0.0;
+
 	unsigned long long tick = __krdtsc();
-	for (int i = 0; i < counter; i++) {
-		int id = ids[i];	
+	for (int num = 0; num < cpu_cnt; num++) {
+		int id = ids[num];
 		double cpu_diff = tick - g_cpu_start_tick[id];
 		double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
-		//rate[i].v = g_cpu_tick[id];
-		//__memcpy((char*)&rate[i].v,(char*) & cpu_ratio, sizeof(double));
-		rate[i].fv = cpu_ratio;
-		rate[i].id = id;
+
+		rate[num].fv = cpu_ratio;
+		rate[num].id = id;
 
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
 		float tasks = 0.0;
+		double cnt = 0;
+		
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
 				tasks+=1.0;
+				cnt += tss[i].counter;
+				total_counter += tss[i].counter;
 			}
 		}
 
-		rate[i].fv = rate[i].fv * 0.9 + tasks * 0.1;
+		dcnt[num] = cnt;
+		rate[num].fv = ( rate[num].fv * 0.8 + tasks * 0.1) ;
 	}
 
-	BubbleSortd(rate, counter);
+	for (int num = 0; num < cpu_cnt; num++) {
+
+		rate[num].fv = rate[num].fv + 0.1* (total_counter/dcnt[num] );
+	}
+	BubbleSortd(rate, cpu_cnt);
 	
 	return (int)rate[0].id;
 }
