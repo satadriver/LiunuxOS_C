@@ -67,7 +67,7 @@ TASK_LIST_ENTRY* gTasksListPos[256];
 
 TASK_LIST_ENTRY* GetTaskListHeader() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	TASK_LIST_ENTRY *  list = (TASK_LIST_ENTRY*)(TASKS_LIST_BASE + sizeof(TASK_LIST_ENTRY) * TASK_LIMIT_TOTAL * id);
+	TASK_LIST_ENTRY *  list = (TASK_LIST_ENTRY*)gTasksListPtr[ id];
 	return list;
 }
 
@@ -90,7 +90,9 @@ void InitTaskList() {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	gTasksListPtr[id] = (TASK_LIST_ENTRY*)( TASKS_LIST_BASE + sizeof(TASK_LIST_ENTRY) * TASK_LIMIT_TOTAL * id);
+	int size = sizeof(TASK_LIST_ENTRY) * TASK_LIMIT_TOTAL;
+
+	gTasksListPtr[id] = (TASK_LIST_ENTRY*)__kMalloc(size);
 	gTasksListPtr[id]->valid = 0;
 	
 	InitListEntry(&gTasksListPtr[id]->list);
@@ -152,7 +154,7 @@ TASK_LIST_ENTRY* GetFreeTaskList() {
 	TASK_LIST_ENTRY* result = 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)(TASKS_LIST_BASE + sizeof(TASK_LIST_ENTRY) * TASK_LIMIT_TOTAL * id);
+	TASK_LIST_ENTRY * list = (TASK_LIST_ENTRY*)gTasksListPtr[id];
 
 	int cnt = TASK_LIMIT_TOTAL;
 	for (int i = 1; i < cnt; i++)
@@ -179,7 +181,7 @@ TASK_LIST_ENTRY* InsertTaskList(int tid) {
 	TASK_LIST_ENTRY* result = 0;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	TASK_LIST_ENTRY* list = (TASK_LIST_ENTRY*)(TASKS_LIST_BASE + sizeof(TASK_LIST_ENTRY) * TASK_LIMIT_TOTAL * id);
+	TASK_LIST_ENTRY* list = (TASK_LIST_ENTRY*)gTasksListPtr[id];
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 

@@ -214,13 +214,10 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	__printf(szout, "Hello world Liunux!Version:%s,reg esp:%x,ebp:%x\r\nPress any key to continue...\r\n",
 		LIUNUXOS_VERSION, reg_esp, reg_ebp);
 
-	//tscps();
 	int adjust = 0;
-
 	while (1)
 	{
 		ret = PredictionTask();
-		//__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 		if (ret == 0) {
 			__sleep(0);
 		}

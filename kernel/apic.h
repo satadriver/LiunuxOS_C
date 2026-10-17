@@ -114,6 +114,8 @@ int ActiveApTask(int intnum);
 
 void WaitIcrFree();
 
+int GetTssSize();
+
 extern "C" void __declspec(dllexport) __kApInitProc();
 
 extern "C" void __declspec(dllexport) HpetTimerHandler(LIGHT_ENVIRONMENT* stack);

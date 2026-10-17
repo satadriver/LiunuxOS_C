@@ -146,9 +146,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 	
 	if (g_ratio_buf == 0) {
 		int allocSize = sizeof(AlgorithmModel) * 256;
-		unsigned long alignSize = 0;
-		g_ratio_buf = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, id, 0,
-			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+		g_ratio_buf = (AlgorithmModel*)__kProcessMalloc(allocSize, 0, 0, id, 0,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	}
 
 	//AlgorithmModel   g_ratio_buf[256];

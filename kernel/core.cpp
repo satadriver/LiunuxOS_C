@@ -352,8 +352,6 @@ char* InitGdt() {
 	char szout[256];
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	//__memset((char*)GDT_BASE, 0, sizeof(SegDescriptor) * 8192);
-	//__memcpy((char*)lpgdt, (char*)gdtbase.addr, gdtbase.size + 1);
 
 	SegDescriptor* gdt = (SegDescriptor*)lpgdt;
 	*(unsigned long long*)gdt = 0;
@@ -367,7 +365,6 @@ char* InitGdt() {
 	/*
 	makeLDTDescriptor(LDT_BASE, 3, 0x27, (TssDescriptor*)(lpgdt + ldtSelector));
 
-	__memset((char*)LDT_BASE, 0, sizeof(SegDescriptor) * 8192);
 	SegDescriptor* ldt = (SegDescriptor*)LDT_BASE;
 	//ldt sequence number start form 1 not like gdt starting from 0
 	makeCodeSegDescriptor(0, 0, 32, 0, 1, ldt + 0);
@@ -377,19 +374,7 @@ char* InitGdt() {
 	*/
 
 	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
-	
-	//if (g_stack0_base[id] == 0) {
-	//	g_stack0_base[id] = (char*)__kMalloc(TASK_STACK0_SIZE * TASK_LIMIT_TOTAL);
-	//}
-
-	//unsigned long esp0 = __kProcessMalloc(KTASK_STACK_SIZE, 0, 0, 0, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
-	//unsigned long esp0Top = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
-	//unsigned long stack0top = 0;
-	//stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
-	unsigned long esp0Top = 0;
-	unsigned long stacktop = 0;
-	//unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
-	initKernelTss(&proc->tss, esp0Top,stacktop, 0, PDE_ENTRY_VALUE, 0);
+	initKernelTss(&proc->tss, 0,0, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));
 
 	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
@@ -401,20 +386,12 @@ char* InitGdt() {
 	initKernelTss((TSS*)(APICTIMER_TSS_BASE+id* tssSize), TSSAPICTIMER_STACK0_TOP+id* TASK_STACK0_SIZE, TSSAPICTIMER_STACK_TOP+id* KTASK_STACK_SIZE,
 		(DWORD)LVTTimerIntHandler, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)(APICTIMER_TSS_BASE+id* tssSize), 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
-
 #endif
 
 #ifdef TASK_SWITCH_TASKGATE
 	initKernelTss((TSS*)TIMER_TSS_BASE, TSSTIMER_STACK0_TOP, TSSTIMER_STACK_TOP, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 #endif
-	
-	for (int i = 0; i < 8; i++) {
-		//initV86Tss((TSS*)(DOS_TSS_BASE + i* tssSize), TSSDOS_STACK0_TOP+i* TASK_STACK0_SIZE,
-		//	TSSDOS_STACK_TOP+i* KTASK_STACK_SIZE, (DWORD)TimerInterrupt, PDE_ENTRY_VALUE, 0);
-		//makeTssDescriptor((DWORD)(DOS_TSS_BASE + i * tssSize), 3, sizeof(TSS) - 1,
-		//	(TssDescriptor*)(lpgdt + kTssDosSelector* sizeof(TaskGateDescriptor)*i));
-	}
 
 	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
@@ -461,7 +438,7 @@ char* InitGdt() {
 	}
 
 	unsigned long long tssdesc = *(unsigned long long*)( lpgdt + kTssTaskSelector);
-	__printf(szout, "cpu:%d,gdt:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, esp0Top, stacktop);
+	__printf(szout, "cpu:%d,gdt:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, 0, 0);
 	return lpgdt;
 }
 
@@ -472,11 +449,10 @@ char* InitGdt() {
 char* InitIDT() {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	int idtsize = 256 * sizeof(SegDescriptor) ;
 	if (g_idt_base[id] == 0) {
-		g_idt_base[id] = (char*)__kMalloc(0x10000);
+		g_idt_base[id] = (char*)__kMalloc(idtsize);
 	}
-
-	//char* lpidt = (char*)(IDT_BASE + id * 0x10000);
 
 	IntTrapGateDescriptor* descriptor = (IntTrapGateDescriptor*)g_idt_base[id];
 
@@ -518,7 +494,6 @@ char* InitIDT() {
 	makeTrapGateDescriptor((DWORD)VMMCommException, KERNEL_MODE_CODE, 3, descriptor + 29);
 	makeTrapGateDescriptor((DWORD)SecurityException, KERNEL_MODE_CODE, 3, descriptor + 30);
 
-	
 #ifdef TASK_SWITCH_TASKGATE
 	makeTaskGateDescriptor((DWORD)kTssTimerSelector, 3, (TaskGateDescriptor*)(descriptor + INTR_8259_MASTER + 0));
 #else
@@ -766,136 +741,137 @@ void DisablePAE() {
 void EnterLongMode() {
 	char szout[256];
 	int ret = Is64Supported();
-	if (ret) {
-		char* libbuf = (char*)__kMalloc(0x100000);
-		ret = readFile(LIUNUX_BASE_PATH "liunuxos64.dll", &libbuf);
-		char* lib64 = (char*)MemLoadDll64((char*)libbuf, (char*)KERNEL64_DLL_BASE);
-		typedef int (*ptrfunction)();
-		ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(lib64, "__kKernelEntry64");
+	if (ret == 0) {
+		return ;
+	}
+	char* libbuf = (char*)__kMalloc(0x100000);
+	ret = readFile(LIUNUX_BASE_PATH "liunuxos64.dll", &libbuf);
+	char* lib64 = (char*)MemLoadDll64((char*)libbuf, (char*)KERNEL64_DLL_BASE);
+	typedef int (*ptrfunction)();
+	ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(lib64, "__kKernelEntry64");
 		
-		__printf(szout, "__kKernelEntry64:%x\r\n", kernel64Entry);
+	__printf(szout, "__kKernelEntry64:%x\r\n", kernel64Entry);
 
-		DisablePaging32();
+	DisablePaging32();
 
-		int gdtlen = InitGdt64();
+	int gdtlen = InitGdt64();
 
-		//InitIdt64();
+	//InitIdt64();
 
-		char * pde64 = (char*)__kMalloc(0x1000000);
+	char * pde64 = (char*)__kMalloc(0x1000000);
 
-		InitPage64((QWORD*)pde64);
+	InitPage64((QWORD*)pde64);
 
-		InitPAE();
+	InitPAE();
 
-		unsigned char jmpstub[16];
-		JUMP_FAR_STUB* stub = (JUMP_FAR_STUB*)jmpstub;
-		jmpstub[0] = 0xea;
-		jmpstub[5] = KERNEL_MODE_CODE;
-		jmpstub[6] = 0;
-		* (DWORD*)(jmpstub + 1) =(DWORD) kernel64Entry;
+	unsigned char jmpstub[16];
+	JUMP_FAR_STUB* stub = (JUMP_FAR_STUB*)jmpstub;
+	jmpstub[0] = 0xea;
+	jmpstub[5] = KERNEL_MODE_CODE;
+	jmpstub[6] = 0;
+	* (DWORD*)(jmpstub + 1) =(DWORD) kernel64Entry;
 
-		DWORD kernel64Entry32 = (DWORD)kernel64Entry;
+	DWORD kernel64Entry32 = (DWORD)kernel64Entry;
 
-		//EnablePage64();
+	//EnablePage64();
 
-		//SetLongMode();
+	//SetLongMode();
 
-		DescriptTableReg gdtbase;
-		gdtbase.size = gdtlen - 1;
-		gdtbase.addr = GDT64_BASE_ADDR;
+	DescriptTableReg gdtbase;
+	gdtbase.size = gdtlen - 1;
+	gdtbase.addr = GDT64_BASE_ADDR;
 
-		short troffset = 5* sizeof(Tss64Descriptor);
+	short troffset = 5* sizeof(Tss64Descriptor);
 
-		unsigned long oldEbp = 0;
-		unsigned long oldEsp = 0;
+	unsigned long oldEbp = 0;
+	unsigned long oldEsp = 0;
 
-		__asm {
-			lea eax, __bit64EntryOffset
-			mov edx, kernel64Entry32
-			mov  ds : [eax] , edx
+	__asm {
+		lea eax, __bit64EntryOffset
+		mov edx, kernel64Entry32
+		mov  ds : [eax] , edx
 
-			mov ax, KERNEL_MODE_CODE
-			mov word ptr ds:[__bit64EntryOffset+4],ax
+		mov ax, KERNEL_MODE_CODE
+		mov word ptr ds:[__bit64EntryOffset+4],ax
 
-			mov eax, pde64
-			mov cr3, eax
+		mov eax, pde64
+		mov cr3, eax
 
-			mov ecx, 0xC0000080; EFER MSR
-			rdmsr
-			or eax, 1 << 8	;LME
-			wrmsr
+		mov ecx, 0xC0000080			; EFER MSR
+		rdmsr
+		or eax, 1 << 8				;LME
+		wrmsr
 
-			mov eax, cr0
-			or eax, 0x80000000
-			mov cr0, eax
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
 
-			lgdt gdtbase
+		lgdt gdtbase
 
-			mov ax, troffset
-			ltr ax
+		mov ax, troffset
+		ltr ax
 
-			pushad
+		pushad
 
-			lea ecx, __win64_leave
-			mov edx,esp
+		lea ecx, __win64_leave
+		mov edx,esp
 
-			_emit 0xea
-		__bit64EntryOffset:
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0
-			_emit 0	
+		_emit 0xea
+	__bit64EntryOffset:
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0
+		_emit 0	
 
-			push dword ptr KERNEL_MODE_CODE
-			push dword ptr kernel64Entry32
-			retf
+		push dword ptr KERNEL_MODE_CODE
+		push dword ptr kernel64Entry32
+		retf
 
-			lea eax,jmpstub
-			jmp eax
+		lea eax,jmpstub
+		jmp eax
 
-		__win64_leave:
-			mov eax, cr0
-			and eax, 7fffffffh
-			mov cr0, eax
+	__win64_leave:
+		mov eax, cr0
+		and eax, 7fffffffh
+		mov cr0, eax
 
-			mov ecx, 0C0000080h
-			rdmsr
-			and eax, 0fffffeffh
-			wrmsr
+		mov ecx, 0C0000080h
+		rdmsr
+		and eax, 0fffffeffh
+		wrmsr
 
-			__emit 0x0f
-			__emit 0x20
-			__emit 0xe0
-			//mov eax, cr4
-			//mov eax, cr4
-			and eax, 0xffffffdf
-			//mov cr4, eax
-			//mov cr4, eax
-			__emit 0x0f
-			__emit 0x22
-			__emit 0xe0
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
+		//mov eax, cr4
+		//mov eax, cr4
+		and eax, 0xffffffdf
+		//mov cr4, eax
+		//mov cr4, eax
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
 			
-			mov ax, KERNEL_MODE_CODE
-			mov ss,ax
-			mov ds,ax
-			mov es,ax
-			mov fs,ax
-			mov gs,ax
+		mov ax, KERNEL_MODE_CODE
+		mov ss,ax
+		mov ds,ax
+		mov es,ax
+		mov fs,ax
+		mov gs,ax
 
-			mov eax, PDE_ENTRY_VALUE
-			mov cr3, eax
+		mov eax, PDE_ENTRY_VALUE
+		mov cr3, eax
 
-			mov eax, cr0
-			or eax, 0x80000000
-			mov cr0, eax
+		mov eax, cr0
+		or eax, 0x80000000
+		mov cr0, eax
 
-			mov ax, kTssTaskSelector
-			ltr ax
+		mov ax, kTssTaskSelector
+		ltr ax
 
-			popad
-		}
+		popad
 	}
 }
 

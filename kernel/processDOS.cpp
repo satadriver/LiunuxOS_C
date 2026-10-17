@@ -232,7 +232,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		*/
 
 		//__printf(szout, "__kCreateTask in file dos file:%s\r\n", filename);
-		//__drawGraphChars((unsigned char*)szout, 0);
 	}
 	else if (__memcmp((char*)addr, "MZ", 2) == 0)
 	{
@@ -253,7 +252,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		tss->tss.gs = dospsp;
 
 		//__printf(szout, "__kCreateTask dos exe file:%s\r\n", filename);
-		//__drawGraphChars((unsigned char*)szout, 0);
 	}
 	else {
 		tss->tss.eip = 0x100;

@@ -116,7 +116,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #else
 	tss->tss.trap = 0;
 #endif
-	tss->tss.trap = 0;
 
 	tss->tss.cr3 = process->tss.cr3;
 
@@ -167,11 +166,9 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	if (tss->level) {
 		unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, process->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 		tss->tss.esp0 = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
-		//tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tss->tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	}
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
-	DWORD espsize = 0;
 	DWORD vaddr = tss->vaddr + *tss->lpvasize;
 	LPTASKPARAMS params = 0;
 	if (tss->level == 0)
@@ -183,7 +180,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, process->pid,tss->cpuid,vaddr, 
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, 0, process->pid,tss->cpuid,vaddr, 
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 		if (tss->espbase == FALSE)
 		{
@@ -220,7 +217,7 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 		tss->tss.cs = USER_MODE_CODE | tss->level;
 		tss->tss.ss = USER_MODE_STACK | tss->level;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, &espsize,process->pid,tss->cpuid,vaddr, 
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, 0,process->pid,tss->cpuid,vaddr, 
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 		if (tss->espbase == FALSE)
 		{

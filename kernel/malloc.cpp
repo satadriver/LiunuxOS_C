@@ -278,11 +278,12 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)tssbase + pid;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBaseId(cpu);
 	if (vaddr == 0) {
-		vaddr = tss->vaddr + *(tss->lpvasize);
+		//vaddr = tss->vaddr + *(tss->lpvasize);
 	}
 
-	if(outSize)
+	if (outSize) {
 		*outSize = size;
+	}
 
 	__enterSpinlock(&gMemAllocLock);
 
@@ -362,19 +363,23 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 			tss->alloc_times++;
 			process->alloc_times++;
 #ifndef DISABLE_PAGE_MAPPING
-			DWORD* cr3 = (DWORD*)process->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
-			res = vaddr;
+			if (vaddr != 0) {
+				DWORD* cr3 = (DWORD*)process->tss.cr3;
+				DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+				res = vaddr;
+			}
 #endif		
 		}
-		else 
+		else
 		{
 			*tss->lpvasize += size;
 			tss->alloc_times++;
 #ifndef DISABLE_PAGE_MAPPING
-			DWORD* cr3 = (DWORD*)tss->tss.cr3;
-			DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
-			res = vaddr;
+			if (vaddr != 0) {
+				DWORD* cr3 = (DWORD*)tss->tss.cr3;
+				DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
+				res = vaddr;
+			}
 #endif
 		}
 		if ( (flag & 0x80000000)==0)
