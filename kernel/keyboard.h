@@ -147,7 +147,7 @@ typedef struct {
 
 
 
-
+extern char * g_kbd_buf;
 
 
 void kbdtest();

@@ -1636,7 +1636,8 @@ int __yield() {
 	}
 }
 
-char* gLogDataPtr = (char*)LOG_BUFFER_BASE;
+char* gLogDataPtr = 0;
+char* gLogDataBase = 0;
 
 void logInMem(char* data, int len) {
 	if (len >= 1024)
@@ -1644,9 +1645,14 @@ void logInMem(char* data, int len) {
 		return;
 	}
 
-	if ((DWORD)gLogDataPtr + len >= LOG_BUFFER_BASE + 0x10000)
+	if (gLogDataPtr == 0 && gLogDataBase == 0) {
+		gLogDataPtr = (char*)__kMalloc(0x10000);
+		gLogDataBase = gLogDataPtr;
+	}
+
+	if ((DWORD)gLogDataPtr + len >= (DWORD)gLogDataBase + 0x10000)
 	{
-		gLogDataPtr = (char*)LOG_BUFFER_BASE;
+		gLogDataPtr = (char*)gLogDataBase;
 	}
 	__memcpy(gLogDataPtr, data, len);
 	gLogDataPtr += len;

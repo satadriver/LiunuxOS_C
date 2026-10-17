@@ -651,16 +651,16 @@ int InitGdt64() {
 	gdt[3] = 0x0020fa0000000000;			//code3		0x0000f20000000000
 	gdt[4] = 0x0020f20000000000;			//data3
 	gdt[5] = 0x0000000000000000;			//tr
-	gdt[6] = 0x00cffa0000000000;			
-	gdt[7] = 0x00cff20000000000;
-	gdt[8] = 0x0000000000000000;
+	gdt[6] = 0x0000000000000000;			
+	gdt[7] = 0x00cffa0000000000;
+	gdt[8] = 0x00cff20000000000;
 
 	short tss_offset = 5 * sizeof (SegDescriptor);
 
 	initTss64((TSS64_DATA*)KERNEL64_TSS_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
 	makeTss64Descriptor(KERNEL64_TSS_ADDRESS, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
 
-	return 8 * sizeof(Tss64Descriptor);
+	return 9 * sizeof(Tss64Descriptor);
 }
 
 int Is64Supported() {
@@ -745,8 +745,10 @@ void EnterLongMode() {
 		return ;
 	}
 	char* libbuf = (char*)__kMalloc(0x100000);
+
+	char* dllbuf = (char*)__kMalloc(0x100000);
 	ret = readFile(LIUNUX_BASE_PATH "liunuxos64.dll", &libbuf);
-	char* lib64 = (char*)MemLoadDll64((char*)libbuf, (char*)KERNEL64_DLL_BASE);
+	char* lib64 = (char*)MemLoadDll64((char*)libbuf, (char*)dllbuf);
 	typedef int (*ptrfunction)();
 	ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(lib64, "__kKernelEntry64");
 		

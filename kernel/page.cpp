@@ -6,6 +6,9 @@
 #include "memory.h"
 #include "apic.h"
 
+#define PAGE_ALLOC_LIST_SIZE		0X100000
+#define PAGE_TABLE_SIZE				0X1000000	
+
 //BIOS:
 //https://blog.csdn.net/x86ipc/article/details/5303760
 
@@ -58,8 +61,8 @@ void EnablePaging32(char * pde) {
 
 void initPaging() {
 
-	gPageAllocList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
-	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	gPageAllocList = (LPMEMALLOCINFO)__kMalloc(PAGE_ALLOC_LIST_SIZE);
+	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)gPageAllocList;
 	int cnt = 0x100000 / sizeof(MEMALLOCINFO);
 	for (int i = 0; i < cnt; i++) {
 		__memset((char*)&pageList[i], 0, sizeof(MEMALLOCINFO));
@@ -80,7 +83,7 @@ void initPaging() {
 
 LPMEMALLOCINFO getFreePageIdx() {
 
-	LPMEMALLOCINFO info = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO info = (LPMEMALLOCINFO)gPageAllocList;
 	int cnt = PAGE_ALLOC_LIST_SIZE / sizeof(MEMALLOCINFO);
 	for (int i = 1; i < cnt; i++)
 	{
@@ -94,7 +97,7 @@ LPMEMALLOCINFO getFreePageIdx() {
 
 LPMEMALLOCINFO findPageIdx(DWORD addr) {
 
-	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)gPageAllocList;
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(base->list.next);
 	LPMEMALLOCINFO hdr = info;
 
@@ -118,7 +121,7 @@ LPMEMALLOCINFO findPageIdx(DWORD addr) {
 
 LPMEMALLOCINFO isPageIdxExist(DWORD addr,int size) {
 
-	LPMEMALLOCINFO base = (LPMEMALLOCINFO)PAGE_ALLOC_LIST;
+	LPMEMALLOCINFO base = (LPMEMALLOCINFO)gPageAllocList;
 	LPMEMALLOCINFO info = (LPMEMALLOCINFO)(base->list.next);
 	LPMEMALLOCINFO hdr = info;
 
@@ -160,7 +163,7 @@ int insertPageIdx(LPMEMALLOCINFO info, DWORD addr, int size,DWORD vid,DWORD vadd
 	info->addr = addr;
 	info->vid = vid;
 	info->vaddr = vaddr;
-	InsertListTail( &((LPMEMALLOCINFO)PAGE_ALLOC_LIST)->list, (LPLIST_ENTRY)&info->list);
+	InsertListTail( &((LPMEMALLOCINFO)gPageAllocList)->list, (LPLIST_ENTRY)&info->list);
 	return TRUE;
 }
 
@@ -366,12 +369,13 @@ void InitPage64(QWORD * base) {
 	}
 }
 
-
+char * g_pte_entry = 0;
 
 
 void linearMapping() {
-
-	DWORD* idx = (DWORD*)PTE_ENTRY_VALUE;
+	g_pte_entry = (char*)__kMalloc(0x400000);
+	
+	DWORD* idx = (DWORD*)g_pte_entry;
 	DWORD* entry = (DWORD*)PDE_ENTRY_VALUE;
 
 	DWORD buf = PAGE_PRESENT | PAGE_READWRITE| PAGE_USERPRIVILEGE;

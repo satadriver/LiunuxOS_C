@@ -13,9 +13,9 @@
 #include "apic.h"
 #include "taskPriority.h"
 
+char * g_mouse_buf = 0;
 
-
- DWORD gMouseTest = 1;
+DWORD gMouseTest = 1;
 
 DWORD gMouseID = 0;
 
@@ -74,14 +74,14 @@ void drawMouse() {
 }
 
 void invalidMouse() {
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	data->bInvalid = TRUE;
 }
 
 
 int g_mouse_error_cnt = 0;
 int g_mouse_packet_cnt = 0;
-int* g_mouse_pos = (int*) MOUSE_BUFFER;
+int* g_mouse_pos = (int*)g_mouse_buf;
 
 //bit7: 1=Y overflow, 0=Y no overflow
 //bit6: 1=X overflow, 0=X no overflow
@@ -111,7 +111,7 @@ void __kMouseProc() {
 			inportb(0x60);
 
 			g_mouse_packet_cnt = 0;
-			g_mouse_pos = (int*)MOUSE_BUFFER;
+			g_mouse_pos = (int*)g_mouse_buf;
 			continue;
 		}
 
@@ -134,10 +134,10 @@ void __kMouseProc() {
 	}
 
 	g_mouse_packet_cnt = 0;
-	g_mouse_pos = (int*)MOUSE_BUFFER;
+	g_mouse_pos = (int*)g_mouse_buf;
 	
 	//https://wiki.osdev.org/PS/2_Mouse
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	int state = data->mintrData.status;
 
 	data->mintrData.x = data->mintrData.x - ((state << 4) & 0x100);
@@ -212,7 +212,7 @@ void __kMouseProc() {
 
 
 int isGeometryMouse(int x,int y) {
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	if ( (6 * y >= 4 * x) && (6 * y <= 9 * x) ) {
 		if ( (y > data->mouseWidth *2 / 3) && (x > data->mouseWidth * 2 / 3) ) {
 			return FALSE;
@@ -223,7 +223,7 @@ int isGeometryMouse(int x,int y) {
 }
 
 int isGeometryBorder(int x, int y) {
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	if ( (y + MOUSE_BORDER_WIDTH >= data->mouseWidth * 2 / 3) && (x + MOUSE_BORDER_WIDTH >= data->mouseWidth * 2 / 3) ) {
 		return TRUE;
 	}
@@ -235,7 +235,7 @@ int isGeometryBorder(int x, int y) {
 }
 
 void __kDrawMouse() {
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
 
 	int h = data->mouseHeight;
@@ -289,7 +289,7 @@ void __kDrawMouse() {
 
 void __kRestoreMouse() {
 
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
 
 	int h = data->mouseHeight;
@@ -330,7 +330,7 @@ void __kRestoreMouse() {
 void __kRefreshMouseBackup() {
 	return;
 
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	int pos = __getpos(data->mouseX, data->mouseY) + gGraphBase;
 
 	unsigned char * storebuf = (unsigned char*)data->mouseCoverData;
@@ -378,7 +378,7 @@ void __initMouse(int x,int y) {
 	__printf(szout, (char*)"keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
 	//gMouseID = 0;
 
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	data->mouseX = x/2;
 	data->mouseY = y/2;
 
@@ -399,7 +399,7 @@ void __initMouse(int x,int y) {
 
 void insertMouse(MOUSEINFO * info) {
 	__kRestoreMouse();
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	data->mouseX += info->x;
 	data->mouseY += info->y;
 	data->mintrData.status = info->status;
@@ -421,7 +421,7 @@ void insertMouse(MOUSEINFO * info) {
 }
 
 int GetMousePacket(LPMOUSEINFO lpmouse) {
-	LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	lpmouse->status = data->mintrData.status;
 	lpmouse->x = data->mintrData.x;
 	lpmouse->y = data->mintrData.y;
@@ -433,7 +433,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 
 	if (isTopWindow(wid))
 	{
-		LPMOUSEDATA data = (LPMOUSEDATA)MOUSE_BUFFER;
+		LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 		if (data->mouseBufHdr == data->mouseBufTail)
 		{
 			return FALSE;

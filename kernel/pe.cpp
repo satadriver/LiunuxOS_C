@@ -11,10 +11,10 @@
 #include "kernel.h"
 
 
+char * g_dll_info_buf = 0;
 
 
-
-
+#define LIB_INFO_SIZE	0x10000
 
 
 
@@ -325,6 +325,7 @@ DWORD memLoadDll(char* filedata, char* addr) {
 
 
 void initDll() {
+	g_dll_info_buf = (char*) __kMalloc(0x10000);
 
 	DATALOADERINFO* dl = (DATALOADERINFO*)(gKernelData<<4);
 
@@ -332,7 +333,7 @@ void initDll() {
 	//__memcpy((char*)KERNEL_DLL_SOURCE_BASE, (char*)VSKDLL_LOAD_ADDRESS, ks);
 
 	int cnt = 0x10000 / sizeof(DLLMODULEINFO);
-	DLLMODULEINFO* dllptr = (DLLMODULEINFO*)LIB_INFO_BASE;
+	DLLMODULEINFO* dllptr = (DLLMODULEINFO*)g_dll_info_buf;
 	for (int i = 0; i < cnt; i++)
 	{
 		dllptr[i].addr = 0;
@@ -451,7 +452,7 @@ DWORD loadLibFun(char * dllname, char * funcname) {
 
 
 void __kRemoveModule(char * filename) {
-	LPDLLMODULEINFO module = (LPDLLMODULEINFO)LIB_INFO_BASE;
+	LPDLLMODULEINFO module = (LPDLLMODULEINFO)g_dll_info_buf;
 	int size = LIB_INFO_SIZE / sizeof(DLLMODULEINFO);
 	for (int i = 0; i < size; i++)
 	{
@@ -470,7 +471,7 @@ void __kRemoveModule(char * filename) {
 
 
 DWORD __kGetModule(char * filename) {
-	LPDLLMODULEINFO module = (LPDLLMODULEINFO)LIB_INFO_BASE;
+	LPDLLMODULEINFO module = (LPDLLMODULEINFO)g_dll_info_buf;
 	int size = LIB_INFO_SIZE / sizeof(DLLMODULEINFO);
 	for (int i = 0; i < size; i++)
 	{
@@ -489,7 +490,7 @@ DWORD __kGetModule(char * filename) {
 
 
 void __kStoreModule(char * filename, DWORD addr) {
-	LPDLLMODULEINFO module = (LPDLLMODULEINFO)LIB_INFO_BASE;
+	LPDLLMODULEINFO module = (LPDLLMODULEINFO)g_dll_info_buf;
 	int size = LIB_INFO_SIZE / sizeof(DLLMODULEINFO);
 	for (int i = 0; i < size; i++)
 	{

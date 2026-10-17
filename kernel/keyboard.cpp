@@ -12,6 +12,8 @@
 
 DWORD gKbdTest = FALSE;
 
+char * g_kbd_buf = 0;
+
 int gKeyboardID = 0;
 
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
@@ -78,7 +80,7 @@ unsigned int __kGetKbd(int wid) {
 		return FALSE;
 	}
 
-	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
+	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 	if (data->kbdBufHdr == data->kbdBufTail)
 	{
 		return 0;
@@ -127,7 +129,7 @@ unsigned int __kGetKbdAndStatus(int wid,DWORD *status) {
 		return FALSE;
 	}
 
-	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
+	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 	if (data->kbdBufHdr == data->kbdBufTail)
 	{
 		return 0;
@@ -170,7 +172,7 @@ void __kPutKbd(unsigned char c,int wid) {
 		//return;
 	}
 
-	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
+	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 	data->kbdBuf[data->kbdBufHdr] = c;
 	data->kbdStatusBuf[data->kbdBufHdr] = 0;
 
@@ -191,7 +193,7 @@ int numsLockProc(unsigned int c) {
 		return FALSE;
 	}
 
-	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
+	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 
 	if (c == 0x45)
 	{
@@ -267,7 +269,7 @@ void __kKeyboardProc() {
 
 	unsigned int result = 0;
 
-	LPKBDBUFDATA data = (LPKBDBUFDATA)KEYBOARD_BUFFER;
+	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 	if (c == 1 && (data->kbdStatus & CTRLLEFT_SET_FLAG))
 	{
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();

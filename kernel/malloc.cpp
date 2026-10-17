@@ -12,6 +12,8 @@
 #include "apic.h"
 #include "malloc.h"
 
+#define MEMORY_ALLOC_BUFLIST_SIZE	0X100000
+
 QWORD gAvailableSize = 0;
 
 QWORD gAvailableBase = 0;

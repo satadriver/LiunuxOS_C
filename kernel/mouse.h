@@ -45,7 +45,7 @@ typedef struct {
 
 #pragma pack()
 
-
+extern char * g_mouse_buf;
 
 void mousetest();
 

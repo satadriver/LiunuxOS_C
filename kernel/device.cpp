@@ -211,6 +211,9 @@ int getMouseIDBasic() {
 
 void initDevices() {
 
+	g_mouse_buf = (char*) __kMalloc(0x10000);
+	g_kbd_buf = (char*)__kMalloc(0x10000);
+
 	init8259();
 	init8254();
 	init8042();
