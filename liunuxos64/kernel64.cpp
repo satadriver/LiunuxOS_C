@@ -22,6 +22,8 @@ extern "C"  __declspec(dllexport)  int Bit64EntryCPP() {
 	return 0;
 }
 
+#define GDT_BASE 0
+
 extern "C" __declspec(dllexport) int __kKernelLeave64(unsigned long retaddr32, unsigned long regebp32) {
 
 	int ret = 0;

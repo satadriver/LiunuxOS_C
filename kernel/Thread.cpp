@@ -164,7 +164,11 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tss->tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	if (tss->level) {
+		unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, process->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+		tss->tss.esp0 = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+		//tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tss->tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	}
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	DWORD espsize = 0;

@@ -242,7 +242,10 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
 
-	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( tid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	if (tss->level) {
+		unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, tss->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+		tss->tss.esp0 = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	}
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	vaddr = tss->vaddr + *tss->lpvasize;
@@ -258,8 +261,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid,tss->cpuid, vaddr, 
-			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, &espsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 		if (tss->espbase == FALSE)
 		{
 			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
@@ -297,8 +299,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 		tss->tss.cs = USER_MODE_CODE | syslevel ;
 		tss->tss.ss = USER_MODE_STACK | syslevel ;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid,tss->cpuid, vaddr,
-			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE,&espsize, tss->pid,tss->cpuid, vaddr,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 		if (tss->espbase == FALSE)
 		{
 			__printf(szout, "%s %d ERROR\n", __FUNCTION__, __LINE__);
@@ -341,8 +342,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	heapsize = HEAP_SIZE;
 
 	tss->lpHeapBase = (char***)&tss->heapBase;
-	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, 
-		PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	DWORD heapbase = __kProcessMalloc(heapsize, &heapsize, tss->pid,tss->cpuid, vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	__memset((char*)heapbase, 0, HEAP_SIZE);
 
 #ifndef DISABLE_PAGE_MAPPING
@@ -358,8 +358,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
-	tss->fast_heap = (char*)__kProcessMalloc(heapsize, &heapsize, tss->pid, tss->cpuid, vaddr,
-		PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	tss->fast_heap = (char*)__kProcessMalloc(heapsize, &heapsize, tss->pid, tss->cpuid, vaddr,PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	__memset(tss->fast_heap, 0, HEAP_SIZE);
 	
 	DWORD funTerminate = (DWORD)getAddrFromName(KERNEL_DLL_BASE, "__terminateProcess");

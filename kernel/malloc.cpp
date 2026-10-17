@@ -281,7 +281,8 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		vaddr = tss->vaddr + *(tss->lpvasize);
 	}
 
-	*outSize = size;
+	if(outSize)
+		*outSize = size;
 
 	__enterSpinlock(&gMemAllocLock);
 

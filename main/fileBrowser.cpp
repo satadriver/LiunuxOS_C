@@ -179,7 +179,6 @@ int doOpenFile(int partitionType,LPFILEBROWSER files) {
 		//return __kCreateThread((DWORD)thread, MAIN_DLL_BASE, (DWORD)&cmd, "__kShowWindow_bmp");
 
 		return __ipiCreateProcess(MAIN_DLL_SOURCE_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
-		//return __kCreateProcess(MAIN_DLL_BASE, 0x100000, "main.dll", "__kShowWindow", 3, (DWORD)&cmd);
 	}
 	else if (__memcmp(files->pathname + fnlen - 4, ".wav", 4) == 0)
 	{

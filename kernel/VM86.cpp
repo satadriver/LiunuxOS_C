@@ -220,7 +220,10 @@ int v86Int255Read(unsigned int secnum, DWORD secnumHigh,unsigned int seccnt,char
 		int 255
 	}
 
-	TssDescriptor* lptssd = (TssDescriptor*)(GDT_BASE + kTssV86Selector);
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	char* lpgdt = g_gdt_base[id];
+	TssDescriptor* lptssd = (TssDescriptor*)(lpgdt + kTssV86Selector);
 	if ((lptssd->type & 2)) {
 		lptssd->type = lptssd->type & 0x0d;
 	}
@@ -286,7 +289,11 @@ int v86Int255Write(unsigned int secnum, DWORD secnumhigh, unsigned short seccnt,
 int v86Process(int reax, int recx, int redx, int rebx, int resi, int redi, int rds, int res, int cmd) {
 
 	do {
-		TssDescriptor* lptssd = (TssDescriptor*)(GDT_BASE + kTssV86Selector);
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+		char* lpgdt = g_gdt_base[id];
+
+		TssDescriptor* lptssd = (TssDescriptor*)(lpgdt[id] + kTssV86Selector);
 		TSS* tss = (TSS*)V86_TSS_BASE;
 		if ((lptssd->type & 2) || (tss->link)) {
 			__sleep(0);

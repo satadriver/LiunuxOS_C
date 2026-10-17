@@ -676,7 +676,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 				}
 				break;
-			}	
+			}
 		}
 		__leaveSpinlock(&g_ipi_lock[cpu]);
 
@@ -733,16 +733,11 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		//char szout[256];
-
 		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
 
 		unsigned long long tick1 = __krdtsc();
 
 		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
-
-		//LPPROCESS_INFO next = SingleTssSchedule(stack);
-
-		//*(DWORD*)(LOCAL_APIC_BASE + 390) = 0;
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 
@@ -757,12 +752,11 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 	}
 	
 	__asm {
-		
 #ifdef SINGLE_TASK_TSS
-		call GetCurrentTaskTssBase
-		mov edx, eax
-		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
+		//call GetCurrentTaskTssBase
+		//mov edx, eax
+		//mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		//mov cr3, eax
 #endif
 		
 		mov esp, ebp
@@ -827,8 +821,6 @@ extern "C" void __declspec(naked) LVTTemperatureIntHandler(LIGHT_ENVIRONMENT* st
 		writemsr(0x19c, low, high);
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
-
-
 	}
 
 	__asm {

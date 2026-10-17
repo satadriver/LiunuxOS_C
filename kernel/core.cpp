@@ -26,7 +26,7 @@
 #include "device.h"
 
 
-char* g_stack0_base[TASK_LIMIT_TOTAL];
+//char* g_stack0_base[TASK_LIMIT_TOTAL];
 
 char* g_gdt_base[TASK_LIMIT_TOTAL];
 
@@ -378,14 +378,18 @@ char* InitGdt() {
 
 	LPPROCESS_INFO proc = GetCurrentTaskTssBase();
 	
-	if (g_stack0_base[id] == 0) {
-		g_stack0_base[id] = (char*)__kMalloc(TASK_STACK0_SIZE * TASK_LIMIT_TOTAL);
-	}
+	//if (g_stack0_base[id] == 0) {
+	//	g_stack0_base[id] = (char*)__kMalloc(TASK_STACK0_SIZE * TASK_LIMIT_TOTAL);
+	//}
 
-	unsigned long stack0top = 0;
-	stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
-	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
-	initKernelTss(&proc->tss,stack0top,stacktop, 0, PDE_ENTRY_VALUE, 0);
+	//unsigned long esp0 = __kProcessMalloc(KTASK_STACK_SIZE, 0, 0, 0, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	//unsigned long esp0Top = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	//unsigned long stack0top = 0;
+	//stack0top = (unsigned long)(g_stack0_base[id] + TASK_STACK0_SIZE * ( 0 + 1) - STACK_TOP_DUMMY);
+	unsigned long esp0Top = 0;
+	unsigned long stacktop = 0;
+	//unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
+	initKernelTss(&proc->tss, esp0Top,stacktop, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));
 
 	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
@@ -457,7 +461,7 @@ char* InitGdt() {
 	}
 
 	unsigned long long tssdesc = *(unsigned long long*)( lpgdt + kTssTaskSelector);
-	__printf(szout, "cpu:%d,gdt:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, stack0top, stacktop);
+	__printf(szout, "cpu:%d,gdt:%x,size:%x,tr:%I64x,esp0:%x,esp:%x\r\n",id, gdtbase.addr, gdtbase.size, tssdesc, esp0Top, stacktop);
 	return lpgdt;
 }
 
@@ -654,7 +658,7 @@ void InitIdt64() {
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT_BASE;
+	idtbase.addr = IDT64_BASE_ADDR;
 	char szout[256];
 	__printf(szout, (char*)"idt64 base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
 	__asm {

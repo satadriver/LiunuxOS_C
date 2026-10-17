@@ -1189,7 +1189,7 @@ __declspec(naked) void SecurityException(LIGHT_ENVIRONMENT* stack) {
 /*
 naked函数用自己的参数作为参数，调用其他函数，编译器会把自己的第一个参数默认为ss:[ebp+8]
 
-此函数要把eax,ecx,edx,ebx,esp,ebp,esi,edi,ds,es,fs,gs,ss传递进去，所以反汇编比较奇怪
+此函数要把eax,ecx,edx,ebx,esp,ebp,esi,edi,ds,es,fs,gs,ss传递进去
 
 pushad不会修改esp的值，此时保存到旧任务tss中的esp0值指向eip,cs,eflags
 
@@ -1233,10 +1233,10 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	__asm {
 #ifdef SINGLE_TASK_TSS
-		call GetCurrentTaskTssBase
-		mov edx, eax
-		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
+		//call GetCurrentTaskTssBase
+		//mov edx, eax
+		//mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		//mov cr3, eax
 #endif
 
 		mov esp, ebp

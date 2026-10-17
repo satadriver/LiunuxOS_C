@@ -771,8 +771,10 @@ int CpuTemperature(DWORD* lptj) {
 int __kVm86IntProc() {
 
 	V86_INT_PARAMETER* params = (V86_INT_PARAMETER*)V86_INT_ADDRESS;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	TssDescriptor* lptssd = (TssDescriptor*)(GDT_BASE + params->tr);
+	char* lpgdt = g_gdt_base[id];
+	TssDescriptor* lptssd = (TssDescriptor*)(lpgdt + params->tr);
 	if ((lptssd->type & 2)) {
 		lptssd->type = lptssd->type & 0x0d;
 	}

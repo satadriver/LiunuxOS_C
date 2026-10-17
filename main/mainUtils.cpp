@@ -426,7 +426,11 @@ int getldt(char * szout) {
 	int len = 0;
 	int outlen = 0;
 
-	TssDescriptor * ldtbase = (TssDescriptor*)(GDT_BASE + ldtSelector);
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	char* lpgdt = g_gdt_base[id];
+
+	TssDescriptor * ldtbase = (TssDescriptor*)(lpgdt + ldtSelector);
 
 	int ldtlen = ldtbase->len + 1 + ((ldtbase->lenHigh) << 16) ;
 

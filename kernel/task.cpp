@@ -371,7 +371,6 @@ int __GetFreeTask(LPTASKRESULT ret,int id) {
 	ret->lptss = 0;
 	ret->number = 0;
 
-
 	//int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	
 	//enter_task_array_lock();
@@ -810,6 +809,12 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	env->es = proc->tss.es;
 	env->ss = proc->tss.ss;
 
+	DWORD regcr3 = proc->tss.cr3;
+	__asm {
+		mov eax, regcr3
+		mov cr3,eax
+	}
+
 __SingleTssSchedule_end:
 	return next;
 }
@@ -1197,7 +1202,12 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	else {
 		__memcpy((char*)process, (char*)next, sizeof(PROCESS_INFO));
 	}
-	
+
+	DWORD regcr3 = process->tss.cr3;
+	__asm {
+		mov eax, regcr3
+		mov cr3, eax
+	}
 	//tasktest();
 
 	__MultipleTssSchedule_end:
@@ -1610,7 +1620,6 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
-
 		pushad
 		push ds
 		push es
@@ -1630,7 +1639,6 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		MOV FS, ax
 		MOV GS, AX
 		mov ss, ax
-
 	}
 
 	{
@@ -1640,15 +1648,14 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 		__kTaskSchedule(stack);
 
-		//ipi command need to send eoi to local apic
 		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
 
 	__asm {
-		call GetCurrentTaskTssBase
-		mov edx, eax
-		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
+		//call GetCurrentTaskTssBase
+		//mov edx, eax
+		//mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		//mov cr3, eax
 
 		mov esp, ebp
 		pop ebp
@@ -1660,9 +1667,9 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		pop es
 		pop ds
 		popad
-
+#ifdef SINGLE_TASK_TSS
 		mov esp, ss: [esp - 20]
-
+#endif
 		//clts
 
 		iretd
@@ -1673,52 +1680,17 @@ extern "C" void __declspec(naked) ApTaskSchedule(LIGHT_ENVIRONMENT* stack) {
 
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
-	int ret = IsBspProcessor();
-	if (ret) {
-#ifdef SINGLE_TASK_TSS
-		__kTaskSchedule(stack);
-#else
-		//need to run in another tss
-		//LPPROCESS_INFO next = MultipleTssSchedule(stack);		//something error
-		//__sleep(0);
-		//LPPROCESS_INFO next = SingleTssSchedule(stack);
-
-		__asm {
-			mov eax, stack
-			mov esp, eax
-			mov ebp, eax
-
-			//mov esp, ebp
-			//pop ebp
-			//add esp, 4
-			//pop esp
-
-			pop ss
-			pop gs
-			pop fs
-			pop es
-			pop ds
-			popad
-
-			//clts
-
-			iretd
-		}
-#endif
-	}
-	else {
-		__kTaskSchedule(stack);
-	}
+	__kTaskSchedule(stack);
 	
 	__asm {
 		mov eax, stack
 		mov esp,eax
 		mov ebp,eax
 
-		call GetCurrentTaskTssBase
-		mov edx, eax
-		mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		mov cr3, eax
+		//call GetCurrentTaskTssBase
+		//mov edx, eax
+		//mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
+		//mov cr3, eax
 
 		//mov esp, ebp
 		//pop ebp
@@ -1731,9 +1703,9 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 		pop es
 		pop ds
 		popad
-
+#ifdef SINGLE_TASK_TSS
 		mov esp, ss: [esp - 20]
-
+#endif
 		//clts
 
 		iretd

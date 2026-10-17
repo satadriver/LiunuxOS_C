@@ -189,7 +189,10 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 #endif
 	tss->tss.trap=0;
 
-	tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	//tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+	unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, tss->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	tss->tss.esp0 = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
+
 	tss->tss.ss0 = KERNEL_MODE_STACK;
 
 	tss->tss.ldt = 0;

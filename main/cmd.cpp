@@ -251,19 +251,18 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		}
 	}
 	else if (__strcmp(params[0], "tss") == 0) {
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		
 		DWORD eflags = 0;
 		__asm {
 			pushfd
 			pop eflags
 		}
 		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		//char* lpgdt = g_gdt_base[i];
-		TssDescriptor* descrptor = (TssDescriptor*)(GDT_BASE + kTssTaskSelector);
-		__sprintf(szout, "tid:%d, pid:%d ,link:%d,NT:%x,busy:%x\r\n",
-			process->tid, process->pid, process->tss.link, process->tss.trap, eflags & 0x4000, descrptor->type & 2);
+		LPPROCESS_INFO process = (LPPROCESS_INFO)GetTaskTssBaseId(id);
+		char* lpgdt = g_gdt_base[id];
+		TssDescriptor* descrptor = (TssDescriptor*)(lpgdt + kTssTaskSelector);
+		__sprintf(szout, "tid:%d, pid:%d ,eflags:%x,tss descriptor:%i64x\r\n",process->tid, process->pid,  eflags , *descrptor );
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
-		process->tss.link = 0;
 	}
 	else if (__strcmp(params[0], "testdev") == 0)
 	{
