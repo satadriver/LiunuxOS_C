@@ -199,11 +199,11 @@ void SetTaskVideoBase(char* videobase);
 
 
 #ifdef DLL_EXPORT
-extern "C" __declspec(dllexport) char* g_gdt_base[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllexport) char* g_idt_base[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) char* g_gdt_base[MAX_CPU_COUNT];
+extern "C" __declspec(dllexport) char* g_idt_base[MAX_CPU_COUNT];
 #else
-extern "C" __declspec(dllimport) char* g_gdt_base[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllimport) char* g_idt_base[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) char* g_gdt_base[MAX_CPU_COUNT];
+extern "C" __declspec(dllimport) char* g_idt_base[MAX_CPU_COUNT];
 
 
 #endif

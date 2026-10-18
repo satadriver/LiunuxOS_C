@@ -13,6 +13,7 @@ typedef struct  _LIST_ENTRY
 
 int GetListSize(LIST_ENTRY* list);
 
+int RemoveNode(LPLIST_ENTRY h, LPLIST_ENTRY list);
 
 #ifdef DLL_EXPORT
 

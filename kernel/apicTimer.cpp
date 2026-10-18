@@ -25,12 +25,12 @@ int getApicTimerDelay() {
 
 
 void initApicTimer() {
-	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+	for (int i = 0; i < 256; i++) {
 		*(int*)(APICTIMER_TICK_COUNT + i * sizeof(int)) = 0;
 	}
 	
 	//__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
-	gApicTimer =(TIMER_PROC_PARAM*) __kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) * TASK_LIMIT_TOTAL);
+	gApicTimer =(TIMER_PROC_PARAM*) __kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) * MAX_CPU_COUNT);
 }
 
 
@@ -168,7 +168,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 		}
 	}
 
-	if (counter <= 1 || counter > TASK_LIMIT_TOTAL) {
+	if (counter <= 1 || counter > MAX_CPU_COUNT) {
 		return 0;
 	}
 

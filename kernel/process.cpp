@@ -18,6 +18,7 @@
 #include "core.h"
 #include "systemService.h"
 #include "taskPriority.h"
+#include "malloc.h"
 
 extern void freeProcessPages(LPPROCESS_INFO proc);
 extern void freeProcessMemory(LPPROCESS_INFO proc);
@@ -114,9 +115,9 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	
 	int tid = dwtid & 0x7fffffff;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
-	int pid = tss[tid].pid;
+	int pid = tss->pid;
 
 	RemoveTaskListPid(pid);
 
@@ -426,59 +427,11 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	tss->status = TASK_RUN;
 
-#ifdef TASK_SWITCH_ARRAY
-
-#else
-	InsertTaskList(tss->tid);
-#endif
-
 	return TRUE;
 }
 
 
-int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWORD params) {
-	int result = 0;
-	char szout[256];
-	if (filename == 0 || funcname == 0)
-	{
-		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
-		return FALSE;
-	}
 
-	int filesize = 0;
-	char * filedata = 0;
-	filesize = readFile(filename, (char**)&filedata);
-	if (filesize <= 0)
-	{
-		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
-		return FALSE;
-	}
-
-	result = __kCreateProcess((DWORD)filedata, filesize,filename,funcname, syslevel, params);
-
-	__kFree((DWORD)filedata);
-
-	return TRUE;
-}
-
-
-int __kCreateProcessFromAddr(DWORD filedata, int filesize,char * funcname,int syslevel, DWORD params) {
- 	char filename[1024];
-// 	__getDateTimeStr(filename);
-
-	__sprintf(filename, "process_%x", *((unsigned int*)APICTIMER_TICK_COUNT));
-
-	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
-}
-
-
-int __kCreateProcessRealtime(DWORD filedata, int filesize, char* filename,char* funcname, int syslevel) {
-
-	TASKCMDPARAMS params;
-	params.cmd = TASK_REALTIME;
-
-	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel,(DWORD) & params);
-}
 
 
 #define CREATE_PROCESS_DYNAMIC
@@ -506,10 +459,18 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	int mode = syslevel & 0xfffffffc;
 	DWORD level = syslevel & 3;
 
-	//int cpu = *(int*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
 	TASKRESULT result;
-	ret = __GetFreeTask(&result,id);
+#ifdef TASK_SWITCH_ARRAY
+	ret = __GetFreeTask(&result, id);
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
+	PROCESS_INFO * lptss = &list->proc;
+	lptss->cpuid = id;
+	lptss->status = TASK_SUSPEND;
+	result.lptss = lptss;
+	result.number = __krdtsc() % 0x100000;
+#endif
+	
 	if (ret == FALSE)
 	{
 		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
@@ -567,7 +528,56 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 #else
 	leave_task_array_lock();
 #endif
+
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+	InsertTaskList(list);
+#endif
 	return ret;
 }
 
 
+int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWORD params) {
+	int result = 0;
+	char szout[256];
+	if (filename == 0 || funcname == 0)
+	{
+		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
+		return FALSE;
+	}
+
+	int filesize = 0;
+	char * filedata = 0;
+	filesize = readFile(filename, (char**)&filedata);
+	if (filesize <= 0)
+	{
+		__printf(szout, "%s %d error\n", __FUNCTION__, __LINE__);
+		return FALSE;
+	}
+
+	result = __kCreateProcess((DWORD)filedata, filesize, filename, funcname, syslevel, params);
+
+	__kFree((DWORD)filedata);
+
+	return TRUE;
+}
+
+
+int __kCreateProcessFromAddr(DWORD filedata, int filesize, char * funcname, int syslevel, DWORD params) {
+	char filename[1024];
+	// 	__getDateTimeStr(filename);
+
+	__sprintf(filename, "process_%x", *((unsigned int*)APICTIMER_TICK_COUNT));
+
+	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
+}
+
+
+int __kCreateProcessRealtime(DWORD filedata, int filesize, char* filename, char* funcname, int syslevel) {
+
+	TASKCMDPARAMS params;
+	params.cmd = TASK_REALTIME;
+
+	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, (DWORD)& params);
+}

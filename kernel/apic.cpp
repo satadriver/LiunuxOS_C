@@ -39,9 +39,9 @@ unsigned long long g_td_pre_tickcost = 0;
 
 LPPROCESS_INFO g_ap_tss_base[256];
 
-unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+unsigned long long g_apic_freq[MAX_CPU_COUNT];
 
-unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
+unsigned long long g_timer_tick[MAX_CPU_COUNT];
 
 
 
@@ -1635,7 +1635,7 @@ LPPROCESS_INFO SetTaskTssBase() {
 	}
 
 	int tssSize = (sizeof(PROCESS_INFO) + 0xfff) & 0xfffff000;
-	unsigned long size = tssSize* TASK_LIMIT_TOTAL;
+	unsigned long size = tssSize* MAX_CPU_COUNT;
 	char * buf =(char*) __kProcessMalloc(size, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	g_ap_tss_base[id] = (LPPROCESS_INFO)buf;
 	if (buf == 0) {
@@ -1669,9 +1669,9 @@ int GetIdleProcessor() {
 
 	int* ids = (int*)CPU_ID_ADDRESS;
 	int cpu_cnt = *(int*)(CPU_TOTAL_ADDRESS);
-	AlgorithmModel rate[TASK_LIMIT_TOTAL];
+	AlgorithmModel rate[MAX_CPU_COUNT];
 
-	unsigned long long dcnt[TASK_LIMIT_TOTAL];
+	unsigned long long dcnt[MAX_CPU_COUNT];
 
 	double total_counter = 0.0;
 
@@ -1683,11 +1683,11 @@ int GetIdleProcessor() {
 
 		rate[num].fv = cpu_ratio;
 		rate[num].id = id;
-
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
+		
 		float tasks = 0.0;
 		double cnt = 0;
-		
+#ifdef TASK_SWITCH_ARRAY		
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
@@ -1696,7 +1696,22 @@ int GetIdleProcessor() {
 				total_counter += tss[i].counter;
 			}
 		}
-
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(id);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*) list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				tasks += 1.0;
+				cnt += p->counter;
+				total_counter += p->counter;
+			}
+			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 		dcnt[num] = cnt;
 		rate[num].fv = ( rate[num].fv * 0.8 + tasks * 0.1) ;
 	}

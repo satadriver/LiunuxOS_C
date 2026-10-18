@@ -10,6 +10,7 @@
 #include "core.h"
 #include "systemService.h"
 #include "taskpriority.h"
+#include "malloc.h"
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -85,17 +86,30 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 }
 #endif
 
+
+
 DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) {
 
 	int ret = 0;
 
 	char szout[256];
-	enter_task_array_lock();
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	TASKRESULT freetask;
-	ret = __GetFreeTask(&freetask,cpu);
+
+#ifdef TASK_SWITCH_ARRAY
+	enter_task_array_lock();
+	ret = __GetFreeTask(&freetask, cpu);
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
+	PROCESS_INFO * lptss = &list->proc;
+	lptss->cpuid = cpu;
+	lptss->status = TASK_SUSPEND;
+	freetask.lptss = lptss;
+	freetask.number = __krdtsc() % 0x100000;
+#endif
+
 	if (ret == FALSE)
 	{
 		leave_task_array_lock();
@@ -293,12 +307,13 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 
 	tss->status = TASK_RUN;
 
+__kCreateThread_End:
+	
 #ifdef TASK_SWITCH_ARRAY
-
-#else
-	InsertTaskList(tss->tid);
-#endif
-	__kCreateThread_End:
 	leave_task_array_lock();
+#else
+	InsertTaskList(list);
+#endif
+
 	return TRUE;
 }

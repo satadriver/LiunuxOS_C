@@ -201,9 +201,16 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 
 	window->tid = tid;
 	window->cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	window->pid = proc->pid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
+
+	window->pid = cur->pid;
 
 	window->left = window->frameSize >> 1;
 	window->top = (window->frameSize >> 1) + window->capHeight;
@@ -220,10 +227,15 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 	window->next = 0;
 
 	__drawWindow(window);
-
-	proc->window = window->id;
+	
 	enter_task_array_lock();
+	cur->window = window->id;
+
+#ifdef TASK_SWITCH_ARRAY
 	tss[tid].window = window->id;
+#else
+	proc->window = window->id;
+#endif
 	leave_task_array_lock();
 }
 
@@ -256,9 +268,14 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->zoomin = 1;
 	window->tid = tid;
 	window->cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	window->pid = proc->pid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	window->pid = cur->pid;
 
 	window->cursorColor = ~window->color;
 	window->showX = window->pos.x + (window->frameSize >> 1);
@@ -270,9 +287,13 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	__drawWindow(window);
 
-	proc->window = window->id;
+	cur->window = window->id;
 	enter_task_array_lock();
+#ifdef TASK_SWITCH_ARRAY
 	tss[tid].window = window->id;
+#else
+	proc->window = window->id;
+#endif
 	leave_task_array_lock();
 }
 

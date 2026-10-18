@@ -1536,9 +1536,14 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 
 	window->tid = tid;
 	window->cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	window->pid = proc->pid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	window->pid = cur->pid;
 
 	window->left = (window->frameSize >> 1) + window->pos.x;
 	window->top = (window->frameSize >> 1) + window->capHeight + window->pos.y;
@@ -1562,10 +1567,13 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->prev = 0;
 	window->next = 0;
 
-	proc->window = window->id;
+	cur->window = window->id;
 
 	enter_task_array_lock();
+#ifdef TASK_SWITCH_ARRAY
 	tss[tid].window = window->id;
-
+#else
+	proc->window = window->id;
+#endif
 	leave_task_array_lock();
 }

@@ -49,8 +49,9 @@ typedef struct
 	char filename[256];
 }TASKCMDPARAMS, *LPTASKCMDPARAMS;
 
-typedef struct 
+typedef struct _PROCESS_INFO
 {
+
 	TSS tss;
 
 	LPTASKCMDPARAMS param;

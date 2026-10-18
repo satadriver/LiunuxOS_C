@@ -313,23 +313,27 @@ void sleep(DWORD * params) {
 
 	enter_task_array_lock();
 
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	int tid = proc->tid;
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	int tid = cur->tid;
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO current = tss + tid;
-	
-	current->sleep = times ;
-	proc->sleep = current->sleep;
+	LPPROCESS_INFO process = tss + tid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	LPPROCESS_INFO process = &list->proc;
+#endif
+	process->sleep = times ;
+	cur->sleep = process->sleep;
 
-	current->sleep_total += times;
-	proc->sleep_total += times;
+	process->sleep_total += times;
+	cur->sleep_total += times;
 
 	unsigned long long tick1 = __krdtsc();
-	if (current->prev_tick ) {
-		current->tick_run += (tick1 - current->prev_tick);
+	if (process->prev_tick ) {
+		process->tick_run += (tick1 - process->prev_tick);
 	}
-	if (proc->prev_tick) {
-		proc->tick_run += (tick1 - proc->prev_tick);
+	if (cur->prev_tick) {
+		cur->tick_run += (tick1 - cur->prev_tick);
 	}
 	leave_task_array_lock();
 	
@@ -357,13 +361,13 @@ void sleep(DWORD * params) {
 		//current->sleep--;
 		//proc->sleep--;
 
-		if (current->sleep == 0)
+		if (process->sleep == 0)
 		{
 			//enter_task_array_lock();
-			proc->delta = DYNAMIC_PRIORITY;
-			current->delta = DYNAMIC_PRIORITY;
-			proc->authority = AUTHORITY_PRIORITY;
-			current->authority = AUTHORITY_PRIORITY;
+			cur->delta = DYNAMIC_PRIORITY;
+			process->delta = DYNAMIC_PRIORITY;
+			cur->authority = AUTHORITY_PRIORITY;
+			process->authority = AUTHORITY_PRIORITY;
 			//leave_task_array_lock();
 			break;
 		}

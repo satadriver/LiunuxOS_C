@@ -1695,9 +1695,11 @@ int GetCPUTask() {
 	for (int n = 0; n < cnt; n++) {
 		int cpu = cpus[n];
 
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		int k = 0;
 		unsigned long long counter = 0;
+
+#ifdef TASK_SWITCH_ARRAY	
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
 			{
@@ -1705,6 +1707,21 @@ int GetCPUTask() {
 				counter += tss[i].counter;
 			}
 		}
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				k++;
+				counter += p->counter;
+			}
+			ptr = (PROCESS_INFO_LIST*) ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 		len = __sprintf(szbuf + outlen, "cpu:%d,tasks:%d,counter:%i64x  ", cpu,k,counter );
 		outlen += len;
 		szbuf[outlen] = 0;

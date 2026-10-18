@@ -349,10 +349,5 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->status = TASK_RUN;
 
-#ifdef TASK_SWITCH_ARRAY
-
-#else
-	InsertTaskList(tss->tid);
-#endif
 	return TRUE;
 }

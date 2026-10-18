@@ -31,7 +31,7 @@
 //instead of your vector unit automatically disabling itself when an exception occurs. 
 //The state of the art includes AVX, which adds
 
-char* g_fpu_status[TASK_LIMIT_TOTAL];
+char* g_fpu_status[MAX_CPU_COUNT];
 
 
 //fsave±£´æmm0-mm7,fstenv²»±£´æmm0-mm7
@@ -197,17 +197,20 @@ void initCoprocessor() {
 //MP = 1 && TS = 1,fwait cause this exception
 //TS = 1,all float/sse instruction cause this exception
 void __kCoprocessor() {
-
-	LPPROCESS_INFO pb = (LPPROCESS_INFO)GetTaskTssBase();
-
+	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+	LPPROCESS_INFO pb = (LPPROCESS_INFO)GetTaskTssBase();
 
 	LPPROCESS_INFO proc = pb + current->tid;
 
-	int id = *(unsigned long*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
 	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
-
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	LPPROCESS_INFO proc = &list->proc;
+	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetTaskListTid(g_last_task_tid[id]);
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)& prevlist->proc;
+#endif
 	if (proc->fpu == 0)
 	{
 		current->fpu = 1;
@@ -221,11 +224,15 @@ void __kCoprocessor() {
 	}
 
 	if (proc->tid != prev->tid) {
-		char* fprevenv = (char*)g_fpu_status[id] + (prev->tid << 9);
-
+#ifdef TASK_SWITCH_ARRAY
+		char* fenvprev = (char*)g_fpu_status[id] + (prev->tid << 9);
 		char* fenv = (char*)g_fpu_status[id] + (proc->tid << 9);
+#else
+		char* fenvprev = prevlist->fpenv;
+		char* fenv = list->fpenv;
+#endif
 		__asm {
-			mov eax, fprevenv
+			mov eax, fenvprev
 			fxsave ds : [eax]
 
 			//fnclex

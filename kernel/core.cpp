@@ -26,11 +26,10 @@
 #include "device.h"
 
 
-//char* g_stack0_base[TASK_LIMIT_TOTAL];
 
-char* g_gdt_base[TASK_LIMIT_TOTAL];
+char* g_gdt_base[MAX_CPU_COUNT];
 
-char* g_idt_base[TASK_LIMIT_TOTAL];
+char* g_idt_base[MAX_CPU_COUNT];
 
 
 void makeDataSegDescriptor(DWORD base, int dpl, int bit, int direction, int w, SegDescriptor* descriptor) {

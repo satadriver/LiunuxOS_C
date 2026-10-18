@@ -12,11 +12,12 @@ typedef struct {
 }DLLMODULEINFO,*LPDLLMODULEINFO;
 
 
-typedef struct {
+typedef struct _PROCESS_INFO_LIST {
 	LIST_ENTRY list;
-	LPPROCESS_INFO node;
-	DWORD valid;
-}TASK_LIST_ENTRY;
+	PROCESS_INFO proc;
+	alignas(16)
+	char fpenv[512];
+}PROCESS_INFO_LIST;
 
 
 typedef struct {
@@ -57,9 +58,8 @@ typedef struct {
 #define TASK_REALTIME			8
 
 extern "C" int g_task_array_lock[256];
-extern "C" int g_task_list_lock[256];
 
-extern "C" int g_last_task_tid[TASK_LIMIT_TOTAL];
+extern "C" int g_last_task_tid[MAX_CPU_COUNT];
 
 
 
@@ -74,15 +74,19 @@ extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
-TASK_LIST_ENTRY* GetTaskListHeader();
+
 void InitTaskList();
 void InitTaskArray();
-TASK_LIST_ENTRY* InsertTaskList(int tid);
-
-TASK_LIST_ENTRY* RemoveTaskListTid(int tid);
-
-TASK_LIST_ENTRY* RemoveTaskListPid(int pid);
-
+PROCESS_INFO_LIST* GetRemoteTaskListTid(int id, int tid);
+PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid);
+PROCESS_INFO_LIST* GetTaskListPid(int pid);
+PROCESS_INFO_LIST* GetTaskList(PROCESS_INFO_LIST * p);
+PROCESS_INFO_LIST* GetTaskListTid(int tid);
+PROCESS_INFO_LIST* InsertTaskList(PROCESS_INFO_LIST* p);
+PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
+PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
+PROCESS_INFO_LIST* RemoveTaskListPid(int pid);
+PROCESS_INFO_LIST * GetTaskListId(int id);
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 
 void SetIVTVector();
@@ -98,9 +102,9 @@ PROCESS_INFO* GetNextProcess();
 
 #ifdef DLL_EXPORT
 
-extern "C" __declspec(dllexport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllexport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllexport) unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_cpu_prev_tick[MAX_CPU_COUNT];
+extern "C" __declspec(dllexport) unsigned long long g_cpu_tick[MAX_CPU_COUNT];
+extern "C" __declspec(dllexport) unsigned long long g_cpu_start_tick[MAX_CPU_COUNT];
 
 extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
@@ -130,17 +134,16 @@ extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const ch
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock();
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
-extern "C"  __declspec(dllexport) void enter_task_list_lock();
-extern "C"  __declspec(dllexport) void leave_task_list_lock();
+
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllexport) void leave_task_array_lock_id(int id);
 
 #else
-extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[TASK_LIMIT_TOTAL];
-extern "C" __declspec(dllimport) unsigned long long g_cpu_start_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[MAX_CPU_COUNT];
+extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[MAX_CPU_COUNT];
+extern "C" __declspec(dllimport) unsigned long long g_cpu_start_tick[MAX_CPU_COUNT];
 
 extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 
@@ -170,8 +173,7 @@ extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(const ch
 
 extern "C"  __declspec(dllimport) void enter_task_array_lock();
 extern "C"  __declspec(dllimport) void leave_task_array_lock();
-extern "C"  __declspec(dllimport) void enter_task_list_lock();
-extern "C"  __declspec(dllimport) void leave_task_list_lock();
+
 
 extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 

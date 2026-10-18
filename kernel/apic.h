@@ -135,9 +135,9 @@ extern "C" __declspec(dllexport) unsigned long long g_td_tickcost ;
 
 extern "C" __declspec(dllexport) unsigned long long g_td_pre_tickcost ;
 
-extern "C" __declspec(dllexport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_apic_freq[MAX_CPU_COUNT];
 
-extern "C" __declspec(dllexport) unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllexport) unsigned long long g_timer_tick[MAX_CPU_COUNT];
 
 extern "C" __declspec(dllexport) int g_ipi_lock[256] ;
 extern "C" __declspec(dllexport) char* g_ipi_buf[256] ;
@@ -156,9 +156,9 @@ extern "C" __declspec(dllimport) unsigned long long g_td_tickcost;
 
 extern "C" __declspec(dllimport) unsigned long long g_td_pre_tickcost;
 
-extern "C" __declspec(dllimport) unsigned long long g_apic_freq[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_apic_freq[MAX_CPU_COUNT];
 
-extern "C" __declspec(dllimport) unsigned long long g_timer_tick[TASK_LIMIT_TOTAL];
+extern "C" __declspec(dllimport) unsigned long long g_timer_tick[MAX_CPU_COUNT];
 extern "C" __declspec(dllimport) int g_ipi_lock[256];
 extern "C" __declspec(dllimport) char* g_ipi_buf[256];
 

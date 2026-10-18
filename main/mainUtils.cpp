@@ -173,7 +173,7 @@ int GetMemory(char * szout,int pid) {
 
 	unsigned long long allocated = 0;
 
-	unsigned long long cpuMem[TASK_LIMIT_TOTAL];
+	unsigned long long cpuMem[MAX_CPU_COUNT];
 
 	__memset((char*)cpuMem, 0, sizeof(cpuMem));
 

@@ -276,9 +276,14 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		size = PAGE_SIZE;
 	}
 
+	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBaseId(cpu);
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tssbase = GetTaskTssBaseId(cpu);
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)tssbase + pid;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBaseId(cpu);
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)tssbase + pid;	
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListPid(cpu,pid);
+	LPPROCESS_INFO proc = & list->proc;
+#endif
 	if (vaddr == 0) {
 		//vaddr = tss->vaddr + *(tss->lpvasize);
 	}
@@ -310,7 +315,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 				info = GetEmptyMemAllocItem();
 				if (info)
 				{
-					SetMemAllocItem(info, addr, vaddr, size, tss->vid);
+					SetMemAllocItem(info, addr, vaddr, size, proc->vid);
 					res = addr;
 					break;
 				}
@@ -358,15 +363,15 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		if ((flag & 0x80000000) == 0)
 			enter_task_array_lock_id(cpu);
 
-		if (process->pid == pid && process->cpuid == cpu)
+		if (current->pid == pid && current->cpuid == cpu)
 		{
-			*process->lpvasize += size;
-			*tss->lpvasize += size;
-			tss->alloc_times++;
-			process->alloc_times++;
+			*current->lpvasize += size;
+			*proc->lpvasize += size;
+			proc->alloc_times++;
+			current->alloc_times++;
 #ifndef DISABLE_PAGE_MAPPING
 			if (vaddr != 0) {
-				DWORD* cr3 = (DWORD*)process->tss.cr3;
+				DWORD* cr3 = (DWORD*)proc->tss.cr3;
 				DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
 				res = vaddr;
 			}
@@ -374,11 +379,11 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		}
 		else
 		{
-			*tss->lpvasize += size;
-			tss->alloc_times++;
+			*proc->lpvasize += size;
+			proc->alloc_times++;
 #ifndef DISABLE_PAGE_MAPPING
 			if (vaddr != 0) {
-				DWORD* cr3 = (DWORD*)tss->tss.cr3;
+				DWORD* cr3 = (DWORD*)proc->tss.cr3;
 				DWORD pagecnt = mapPhyToLinear(vaddr, res, size, cr3, tag);
 				res = vaddr;
 			}

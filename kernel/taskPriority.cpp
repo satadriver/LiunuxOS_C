@@ -65,21 +65,21 @@ unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key) {
 
 void InitTaskScheduleBuf() {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	int allocSize = TASK_LIMIT_TOTAL * sizeof(double);
+	int allocSize = MAX_CPU_COUNT * sizeof(double);
 	unsigned long alignSize = 0;
 	if (g_level_buf[cpu] == 0) {
 
-		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
+		allocSize = MAX_CPU_COUNT * sizeof(AlgorithmModel);
 		g_level_buf[cpu] = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	}
 	if (g_crate_buf[cpu] == 0) {
-		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
+		allocSize = MAX_CPU_COUNT * sizeof(AlgorithmModel);
 		g_crate_buf[cpu] = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	}
 	if (g_rate_buf[cpu] == 0) {
-		allocSize = TASK_LIMIT_TOTAL * sizeof(AlgorithmModel);
+		allocSize = MAX_CPU_COUNT * sizeof(AlgorithmModel);
 		g_rate_buf[cpu] = (AlgorithmModel*)__kProcessMalloc(allocSize, &alignSize, 0, cpu, 0,
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	}
@@ -123,15 +123,15 @@ PROCESS_INFO* GetReadyProcess() {
 	LPPROCESS_INFO ptr = current;
 	LPPROCESS_INFO next = 0;
 
-	//AlgorithmModel rate[TASK_LIMIT_TOTAL];
-	//AlgorithmModel crate[TASK_LIMIT_TOTAL];
-	//int window[TASK_LIMIT_TOTAL];
-	//int user[TASK_LIMIT_TOTAL];
-	//int sleep[TASK_LIMIT_TOTAL];
-	//double mem[TASK_LIMIT_TOTAL];
-	//double alloc[TASK_LIMIT_TOTAL];
-	//int delta[TASK_LIMIT_TOTAL];
-	//AlgorithmModel level[TASK_LIMIT_TOTAL];
+	//AlgorithmModel rate[MAX_CPU_COUNT];
+	//AlgorithmModel crate[MAX_CPU_COUNT];
+	//int window[MAX_CPU_COUNT];
+	//int user[MAX_CPU_COUNT];
+	//int sleep[MAX_CPU_COUNT];
+	//double mem[MAX_CPU_COUNT];
+	//double alloc[MAX_CPU_COUNT];
+	//int delta[MAX_CPU_COUNT];
+	//AlgorithmModel level[MAX_CPU_COUNT];
 
 	double total_alloc = 0.0;
 	double total_mem = 0.0;

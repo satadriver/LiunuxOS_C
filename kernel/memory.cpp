@@ -170,8 +170,6 @@ DWORD linear2phyByPid(DWORD linearAddr,int pid) {
 	DWORD tboffset = linearAddr / tablesize;
 	DWORD pgoffset = (linearAddr / PAGE_SIZE) % ITEM_IN_PAGE;
 
-	//LPPROCESS_INFO base = (LPPROCESS_INFO)GetTaskTssBase();
-	//LPPROCESS_INFO process = base + pid;
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	DWORD * cr3 = (DWORD *)process->tss.cr3;
 
