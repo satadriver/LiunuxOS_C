@@ -86,15 +86,16 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 }
 #endif
 
+DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam, char* funcname) {
+	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	return __kCreateRemoteThread(cpu, addr, module, runparam, funcname);
+}
 
-
-DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) {
+DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,char * funcname) {
 
 	int ret = 0;
 
 	char szout[256];
-
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 	TASKRESULT freetask;
 

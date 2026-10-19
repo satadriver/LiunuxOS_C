@@ -443,10 +443,8 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	char szout[256];
 #ifdef CREATE_PROCESS_DYNAMIC
 	int id = GetIdleProcessor();
-	enter_task_array_lock_id(id);
 #else
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	enter_task_array_lock();
 #endif
 
  	//DWORD filedata = linear2phy(lpfiledata);
@@ -461,6 +459,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 
 	TASKRESULT result;
 #ifdef TASK_SWITCH_ARRAY
+	enter_task_array_lock_id(id);
 	ret = __GetFreeTask(&result, id);
 #else
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
@@ -524,14 +523,8 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 		}
 	}
 
-#ifdef CREATE_PROCESS_DYNAMIC
-	leave_task_array_lock_id(id);
-#else
-	leave_task_array_lock();
-#endif
-
 #ifdef TASK_SWITCH_ARRAY
-
+	leave_task_array_lock_id(id);
 #else
 	InsertTaskList(list);
 #endif

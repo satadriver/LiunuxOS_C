@@ -280,11 +280,12 @@ PROCESS_INFO_LIST* RemoveTaskListTid(int tid) {
 				result = list;
 
 				LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-				PROCESS_INFO_LIST* process = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
-				LPPROCESS_INFO proc = &process->proc;
+				//PROCESS_INFO_LIST* process = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+				//LPPROCESS_INFO proc = &process->proc;
 
 				current->status = TASK_OVER;
-				proc->status = TASK_OVER;
+				//proc->status = TASK_OVER;
+				list->proc.status = TASK_OVER;
 
 				DestroyThreadWindow(tid, id);
 				break;
@@ -741,6 +742,13 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	} while (TRUE);
 #else
 	do {
+		if (next == prev) {
+			if (proc->status == TASK_SUSPEND || proc->status == TASK_OVER || proc->status == TASK_TERMINATE) {
+				__printf(szout, "%s %d task status:%d error\r\n", __FUNCTION__, __LINE__, proc->status);
+			}
+			goto  __SingleTssSchedule_end;
+		}
+
 		if (next->cpuid == id) {
 			if (next->status == TASK_TERMINATE) {
 				next->status = TASK_OVER;
@@ -757,13 +765,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 		nextlist = (PROCESS_INFO_LIST*)nextlist->list.next;
 		next = (LPPROCESS_INFO)& nextlist->proc;
-		if (next == prev) {
-			if (proc->status == TASK_SUSPEND || proc->status == TASK_OVER || proc->status == TASK_TERMINATE) {
-				__printf(szout, "%s %d task status:%d error\r\n", __FUNCTION__, __LINE__, proc->status);
-			}
-			goto  __SingleTssSchedule_end;
-		}
-
 	} while (next && (next != prev));
 #endif
 #endif

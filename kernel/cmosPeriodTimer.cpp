@@ -130,7 +130,9 @@ void __kPeriodTimer() {
 
 	GetCPUTask();
 
+#ifdef TASK_SWITCH_ARRAY
 	SwitchTaskCPU(0);
+#endif
 
 	if (g_tick_persec == 0 && g_tick_prev == 0) {
 		g_tick_prev = __krdtsc();

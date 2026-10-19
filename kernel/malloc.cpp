@@ -423,12 +423,11 @@ DWORD __kMalloc(DWORD s) {
 DWORD __kmalloc(DWORD s) {
 
 	char szout[256];
-	DWORD size = 0;
-	int len = 0;
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	DWORD ret = __kProcessMalloc(s, &size, process->pid, process->cpuid, 0, 0);
+
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	DWORD ret = __kProcessMalloc(s, 0, 0, id, 0, 0);
 	if (ret == 0) {
-		len = __printf(szout, "%s %d alloc size:%x request size:%x pid:%d error\n", __FUNCTION__, __LINE__, s, size, process->pid);
+		__printf(szout, "%s %d alloc size:%x rror\n", __FUNCTION__, __LINE__, s);
 	}
 	else {
 		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
