@@ -149,10 +149,14 @@ extern "C" __declspec(dllexport)int isSSE() {
 
 void initCoprocessor() {
 	int result = 0;
+
+#ifdef TASK_SWITCH_ARRAY
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if (g_fpu_status[id] == 0) {
 		g_fpu_status[id] = (char*)__kMalloc(512 * TASK_LIMIT_TOTAL);
 	}
+#else
+#endif
 
 	result = isSSE();
 	if (result == 0) {
@@ -201,9 +205,7 @@ void __kCoprocessor() {
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 #ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO pb = (LPPROCESS_INFO)GetTaskTssBase();
-
 	LPPROCESS_INFO proc = pb + current->tid;
-
 	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
 #else
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);

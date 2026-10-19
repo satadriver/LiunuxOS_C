@@ -193,7 +193,9 @@ typedef struct {
 
 int __initProcess(LPPROCESS_INFO tss, int num, DWORD filedata, char * filename, char * funcname, DWORD level, DWORD runparam);
 
+extern int g_pid_lock ;
 
+unsigned long GenPid();
 
 void __kFreeProcess(LPPROCESS_INFO proc);
 

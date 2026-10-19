@@ -1717,7 +1717,6 @@ int GetIdleProcessor() {
 	}
 
 	for (int num = 0; num < cpu_cnt; num++) {
-
 		rate[num].fv = rate[num].fv + 0.1* (total_counter/dcnt[num] );
 	}
 	BubbleSortd(rate, cpu_cnt);

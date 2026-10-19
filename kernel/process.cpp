@@ -23,6 +23,18 @@
 extern void freeProcessPages(LPPROCESS_INFO proc);
 extern void freeProcessMemory(LPPROCESS_INFO proc);
 
+
+int g_pid_lock = 0;
+
+unsigned long g_pid_gen = 0;
+
+unsigned long GenPid() {
+	__enterSpinlock(&g_pid_lock);
+	g_pid_gen = g_pid_gen + __krdtsc() % 0x100;
+	__leaveSpinlock(&g_pid_lock);
+	return g_pid_gen;
+}
+
 void __kFreeProcess(LPPROCESS_INFO proc) {
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -140,7 +152,12 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	tss->pid = tid;
 	tss->tid = tid;
+#ifdef TASK_SWITCH_ARRAY
 	tss->vid = tid + (tss->cpuid << 16);
+#else
+	tss->vid = tid;
+#endif
+	
 	tss->tss.cr3 = __kPageAlloc(PAGE_SIZE);
 	__memset((char*)tss->tss.cr3, 0, PAGE_SIZE);
 	copyKernelCR3(0, 0, (DWORD*)tss->tss.cr3);
@@ -437,6 +454,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 #define CREATE_PROCESS_DYNAMIC
 
 
+
 int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcname, int syslevel, DWORD params) {
 
 	int ret = 0;
@@ -467,7 +485,8 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	lptss->cpuid = id;
 	lptss->status = TASK_SUSPEND;
 	result.lptss = lptss;
-	result.number = __krdtsc() % 0x100000;
+
+	result.number = GenPid();
 	ret = 1;
 #endif
 	

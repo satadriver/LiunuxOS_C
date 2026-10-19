@@ -343,7 +343,6 @@ void sleep(DWORD * params) {
 		g_cpu_prev_tick[id] = tick1;
 	}
 	
-
 	while(1)
 	{	
 		//__yield();

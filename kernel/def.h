@@ -75,9 +75,9 @@
 
 //#define LIUNUX_DEBUG_LOG_ON
 
-#define TASK_SWITCH_ARRAY
+//#define TASK_SWITCH_ARRAY
 
-#define TASK_SWITCH_PRIORITY
+//#define TASK_SWITCH_PRIORITY
 
 #define SINGLE_TASK_TSS
 

@@ -89,7 +89,7 @@ PROCESS_INFO_LIST* GetRemoteTaskListTid(int id,int tid) {
 
 	while (list)
 	{
-		if (list->proc.status == TASK_RUN && list->proc.tid == tid) {
+		if (/*list->proc.status == TASK_RUN &&*/ list->proc.tid == tid) {
 			result = list;
 			break;
 		}
@@ -116,7 +116,7 @@ PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid) {
 
 	while (list)
 	{
-		if (list->proc.status == TASK_RUN && list->proc.pid == pid) {
+		if ( list->proc.pid == pid) {
 			result = list;
 			break;
 		}
@@ -141,7 +141,7 @@ PROCESS_INFO_LIST* GetTaskListTid(int tid) {
 
 	while (list )
 	{
-		if (list->proc.status == TASK_RUN && list->proc.tid == tid) {
+		if ( list->proc.tid == tid) {
 			result = list;
 			break;
 		}
@@ -166,7 +166,7 @@ PROCESS_INFO_LIST* GetTaskListPid(int pid) {
 
 	while (list )
 	{
-		if (list->proc.status == TASK_RUN && list->proc.pid == pid) {
+		if (list->proc.pid == pid) {
 			result = list;
 			break;
 		}
@@ -220,28 +220,27 @@ PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p) {
 		{
 			if (list &&  list->proc.tid == p->proc.tid && list == p)
 			{
-				RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
-
-				result = list;
-
 				LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 				PROCESS_INFO_LIST* process = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
 				LPPROCESS_INFO proc = &process->proc;
 				current->status = TASK_OVER;
 				proc->status = TASK_OVER;
-
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				PROCESS_INFO_LIST* ptr = list;
 				do {
 					if (ptr->proc.pid == p->proc.pid) {
 						ptr->proc.status = TASK_OVER;
 					}
 					ptr = (PROCESS_INFO_LIST*)ptr->list.next;
-
 				} while (ptr && ptr != list);
-
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				__kFreeProcess(proc);
-
-				DestroyThreadWindow(p->proc.tid, id);
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				//DestroyThreadWindow(p->proc.tid, id);
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				result = list;
 				break;
 			}
 			list = (PROCESS_INFO_LIST*)list->list.next;
@@ -275,19 +274,19 @@ PROCESS_INFO_LIST* RemoveTaskListTid(int tid) {
 		{
 			if (list &&  list->proc.tid == tid)
 			{
-				RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list) );
-
-				result = list;
-
 				LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-				//PROCESS_INFO_LIST* process = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
-				//LPPROCESS_INFO proc = &process->proc;
+				PROCESS_INFO_LIST* process = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+				LPPROCESS_INFO proc = &process->proc;
 
 				current->status = TASK_OVER;
-				//proc->status = TASK_OVER;
+				proc->status = TASK_OVER;
 				list->proc.status = TASK_OVER;
-
-				DestroyThreadWindow(tid, id);
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				//DestroyThreadWindow(tid, id);
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				result = list;
 				break;
 			}
 			list = (PROCESS_INFO_LIST*)list->list.next;
@@ -321,10 +320,7 @@ PROCESS_INFO_LIST* RemoveTaskListPid(int pid) {
 		while (list )
 		{
 			if (list && list->proc.pid == pid)
-			{
-				RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
-
-				result = list;
+			{		
 				LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 				PROCESS_INFO_LIST* process = GetTaskListTid(current->tid);
@@ -332,7 +328,7 @@ PROCESS_INFO_LIST* RemoveTaskListPid(int pid) {
 
 				current->status = TASK_OVER;
 				proc->status = TASK_OVER;
-
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				PROCESS_INFO_LIST* ptr = list;
 				do {
 					if (ptr->proc.pid == pid) {
@@ -341,10 +337,13 @@ PROCESS_INFO_LIST* RemoveTaskListPid(int pid) {
 					ptr = (PROCESS_INFO_LIST*) ptr->list.next;
 
 				} while (ptr && ptr != list);
-
+				__printf(szout, "%s %d\r\n",__FUNCTION__,__LINE__);
 				__kFreeProcess(proc);
-
-				DestroyThreadWindow(pid, id);
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				//DestroyThreadWindow(pid, id);
+				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
+				RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
+				result = list;
 				break;
 			}
 			list =(PROCESS_INFO_LIST*) list->list.next;
@@ -461,35 +460,83 @@ LPPROCESS_INFO __findProcessFuncName(const char * funcname) {
 }
 
 LPPROCESS_INFO __findProcessFileName(char * filename) {
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO p = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (p[i].status == TASK_RUN && __strcmp(p[i].filename, filename) == 0) {
 			return &p[i];
 		}
 	}
+#else
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(id);
+	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+	PROCESS_INFO_LIST* ptr = hdr;
+	do {
+		if (ptr == 0)
+			break;
+		LPPROCESS_INFO p = &ptr->proc;
+		if (p->status == TASK_RUN && __strcmp(p->filename, filename) == 0) {
+			return p;
+		}
+		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+	} while (ptr && ptr != hdr);
+#endif
 	return FALSE;
 }
 
 
 
 LPPROCESS_INFO __findProcessByPid(int pid) {
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO p = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (p[i].status == TASK_RUN && p[i].pid == pid ) {
 			return &p[i];
 		}
 	}
+#else
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(id);
+	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+	PROCESS_INFO_LIST* ptr = hdr;
+	do {
+		if (ptr == 0)
+			break;
+		LPPROCESS_INFO p = &ptr->proc;
+		if (p->status == TASK_RUN && p->pid == pid) {
+			return p;
+		}
+		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+	} while (ptr && ptr != hdr);
+#endif
 	return FALSE;
 }
 
 
 LPPROCESS_INFO __findProcessByTid(int tid) {
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO p = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (p[i].status == TASK_RUN && p[i].tid == tid) {
 			return &p[i];
 		}
 	}
+#else
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(id);
+	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+	PROCESS_INFO_LIST* ptr = hdr;
+	do {
+		if (ptr == 0)
+			break;
+		LPPROCESS_INFO p = &ptr->proc;
+		if (p->status == TASK_RUN &&p->tid == tid) {
+			return p;
+		}
+		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+	} while (ptr && ptr != hdr);
+#endif
 	return FALSE;
 }
 
@@ -1008,6 +1055,12 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 #else
 	do {
+		if (next == prev) {
+			if (proc->status == TASK_SUSPEND || proc->status == TASK_OVER || proc->status == TASK_TERMINATE) {
+				__printf(szout, "current task status:%d error\r\n", proc->status);
+			}
+			goto  __MultipleTssSchedule_end;
+		}
 		if (next->cpuid == id) {
 			if (next->status == TASK_TERMINATE) {
 				next->status = TASK_OVER;
@@ -1024,12 +1077,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 		nextlist = (PROCESS_INFO_LIST*)nextlist->list.next;
 		next = (LPPROCESS_INFO)& nextlist->proc;
-		if (next == prev) {
-			if (proc->status == TASK_SUSPEND || proc->status == TASK_OVER || proc->status == TASK_TERMINATE) {
-				__printf(szout, "current task status:%d error\r\n", proc->status);
-			}
-			goto  __MultipleTssSchedule_end;
-		}
+
 	} while (next && (next != prev));
 #endif
 #endif
@@ -1142,8 +1190,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	int ret = __GetSpinlock(&g_task_array_lock[id]);
 	if (ret) {
 		unsigned long long tick1 = __krdtsc();
-
-		
+	
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 #ifdef TASK_SWITCH_ARRAY
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
@@ -1279,7 +1326,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	lptss->cpuid = id;
 	lptss->status = TASK_SUSPEND;
 	freeTss.lptss = lptss;
-	freeTss.number = __krdtsc() % 0x100000;
+	freeTss.number = GenPid();
 #endif
 	
 	int tid = freeTss.number;
@@ -1298,7 +1345,12 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->pid = tid;
 	process0->ppid = 0;
 	process0->cpuid = id;
+#ifdef TASK_SWITCH_ARRAY
 	process0->vid = (id << 16) + tid;
+#else
+	process0->vid = tid;
+#endif
+	
 	process0->espbase = stacktop;
 	process0->level = 0;
 	process0->vaddr = 0;
@@ -1341,7 +1393,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 	DWORD size = HEAP_SIZE;
 	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
-	//__printf(szout,"%s %d __kProcessMalloc heap base:%x\r\n", __FUNCTION__, __LINE__, buf);
+
 	process0->heapBase[0] = (char*)buf;
 	process0->heapsize = HEAP_SIZE;
 	process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);	

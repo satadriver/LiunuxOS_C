@@ -189,7 +189,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 #endif
 	tss->tss.trap=0;
 
-	//tss->tss.esp0 = (unsigned long)g_stack0_base[tss->cpuid] + ( pid + 1) * TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 	unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, tss->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	tss->tss.esp0 = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
 
@@ -198,6 +197,12 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->tss.ldt = 0;
 
 	tss->tss.eflags = eflags;
+
+#ifdef TASK_SWITCH_ARRAY
+	tss->vid = pid + (tss->cpuid << 16);
+#else
+	tss->vid = pid;
+#endif
 
 	tss->tss.eax = 0;
 	tss->tss.ecx = 0;
@@ -267,13 +272,10 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		tss->tss.gs = tss->tss.cs;
 		tss->tss.ecx = 0xfff;
 
-		//*(WORD*)(tss->tss.esp + addr) = 0;
-
 		__printf(szout, "%s %d DOS com format file:%s\r\n\r\n",__FUNCTION__, __LINE__,filename);
 	}
 
 #ifdef SINGLE_TASK_TSS
-	
 	RETUTN_ADDRESS_V86* retv86 = (RETUTN_ADDRESS_V86*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_V86));
 	retv86->ret3.ret0.cs = tss->tss.cs;
 	retv86->ret3.ret0.eip = tss->tss.eip;
@@ -292,7 +294,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->tss.esp = (DWORD)retv86;
 	tss->tss.ss = KERNEL_MODE_STACK;
-	
 #else
 
 #endif
@@ -322,7 +323,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->tick_total = 0;
 	tss->tick_switch_cost = 0;
 
-	//tss->cpuid = cpuid;
 	tss->lpvasize = &tss->va_size;
 	tss->va_size = 0;
 	tss->vaddr = 0;

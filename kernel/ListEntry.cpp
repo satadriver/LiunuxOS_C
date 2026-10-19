@@ -70,7 +70,6 @@ int InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 	LIST_ENTRY* prev = head->prev;
 
 	if ((next == 0 && prev != 0) || (next != 0 && prev == 0)) {
-
 		__printf(szout, "%s node error!\r\n",__FUNCTION__);
 		return result;
 	}
@@ -86,7 +85,6 @@ int InsertListTail(LIST_ENTRY * head, LIST_ENTRY * list) {
 		result = 1;
 	}
 	else {
-
 		head->next = list;
 		head->prev = list;
 
