@@ -101,6 +101,11 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 #ifdef TASK_SWITCH_ARRAY
 	enter_task_array_lock();
 	ret = __GetFreeTask(&freetask, cpu);
+	if (ret == FALSE)
+	{
+		leave_task_array_lock();
+		return FALSE;
+	}
 #else
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
 	PROCESS_INFO * lptss = &list->proc;
@@ -109,12 +114,6 @@ DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam,char * funcname) 
 	freetask.lptss = lptss;
 	freetask.number = __krdtsc() % 0x100000;
 #endif
-
-	if (ret == FALSE)
-	{
-		leave_task_array_lock();
-		return FALSE;
-	}
 
 	DWORD imagesize = getSizeOfImage((char*)module);
 	DWORD alignsize = getAlignSize(imagesize, PAGE_SIZE);

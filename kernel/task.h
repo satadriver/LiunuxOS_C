@@ -80,8 +80,6 @@ void InitTaskArray();
 PROCESS_INFO_LIST* GetRemoteTaskListTid(int id, int tid);
 PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid);
 PROCESS_INFO_LIST* GetTaskListPid(int pid);
-PROCESS_INFO_LIST* GetTaskList(PROCESS_INFO_LIST * p);
-PROCESS_INFO_LIST* GetTaskListTid(int tid);
 PROCESS_INFO_LIST* InsertTaskList(PROCESS_INFO_LIST* p);
 PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
 PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
@@ -134,7 +132,7 @@ extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const ch
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock();
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
-
+extern "C"  __declspec(dllexport) PROCESS_INFO_LIST* GetTaskListTid(int tid);
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
@@ -174,7 +172,7 @@ extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(const ch
 extern "C"  __declspec(dllimport) void enter_task_array_lock();
 extern "C"  __declspec(dllimport) void leave_task_array_lock();
 
-
+extern "C"  __declspec(dllimport) PROCESS_INFO_LIST* GetTaskListTid(int tid);
 extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllimport) void leave_task_array_lock_id(int id);

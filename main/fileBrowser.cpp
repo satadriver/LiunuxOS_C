@@ -334,8 +334,8 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 		for (number = 0; number < fpagecnt; number++)
 		{
 			//calc positon of char
-			int y = (((number + 1) % rowlimit) * window.cpl* GRAPHCHAR_HEIGHT - GRAPHCHAR_HEIGHT - (window.cpl* GRAPHCHAR_HEIGHT / 2)) 
-				+ window.window.showY;
+			int y = (((number + 1) % rowlimit) * window.cpl* GRAPHCHAR_HEIGHT - GRAPHCHAR_HEIGHT - 
+				(window.cpl* GRAPHCHAR_HEIGHT / 2)) + window.window.showY;
 			DWORD pos = __getpos(window.window.showX, y);
 
 			char szinfo[4096];
@@ -361,7 +361,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			}
 		}
 
-		//number is last dir
 		if (number)
 		{
 			number--;
@@ -372,8 +371,6 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			number = 0;
 		}
 
-
-
 		//number是最后一个目录的序号
 		while (TRUE)
 		{
@@ -383,8 +380,7 @@ int __kFileManager(unsigned int retaddr, int tid, char* filename, char* funcname
 			unsigned int asc = __kGetKbd(window.window.id) & 0xff;
 			int ck = asc;
 			if (ck == VK_RIGHT || ck == VK_LEFT || ck == VK_UP || ck == VK_DOWN || 
-				ck == 0x0d || ck == 0x0a || asc == VK_PRIOR || asc == VK_NEXT || asc == 0x1b)
-			{
+				ck == 0x0d || ck == 0x0a || asc == VK_PRIOR || asc == VK_NEXT || asc == 0x1b){
 				if ( asc == VK_PRIOR )
 				{
 					//check if is last page

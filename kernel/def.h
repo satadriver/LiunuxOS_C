@@ -185,6 +185,8 @@
 
 #define VESA_INFO_BASE				0X513000
 
+#define TASK_LIST_BASE				0X514000
+
 #define V86_TSS_BASE				0X540000
 
 //#define TIMER_TSS_BASE				0X548000

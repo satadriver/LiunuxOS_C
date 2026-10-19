@@ -74,6 +74,8 @@ DWORD __kProcessMalloc(DWORD s, DWORD *retsize, int pid,int cpuid, DWORD vaddr,i
 
 //void freeProcessMemory(LPPROCESS_INFO proc);
 
+DWORD __kmalloc(DWORD s);
+
 #ifdef DLL_EXPORT
 extern "C"  __declspec(dllexport) LPMEMALLOCINFO gMemAllocList ;
 

@@ -515,9 +515,14 @@ int IncreaseDelta(int v) {
 	extern int g_task_array_lock[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	__enterSpinlock(&g_task_array_lock[id]);
-	PROCESS_INFO* tss = GetTaskTssBase();
 	PROCESS_INFO* current = GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+	PROCESS_INFO* tss = GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + current->tid);
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
 	proc->priority = proc->priority ;
 	current->priority = proc->priority;
 	proc->authority+=v;

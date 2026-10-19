@@ -292,10 +292,14 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[256];
 		if (g_undefined_opcode++ < 5) {
-			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();	
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
-
+#else 
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+			LPPROCESS_INFO proc = &list->proc;
+#endif
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 			char * code = (char*) stack->eip;
@@ -354,10 +358,14 @@ void __declspec(naked) DeviceNotAvailable(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[256];
 		if (g_dev_not_available++ == 0) {
-			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
-
+#else 
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+			LPPROCESS_INFO proc = &list->proc;
+#endif
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 			//__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", __FUNCTION__, __LINE__, cpu, proc->tid, proc->filename, proc->funcname);
 		}
@@ -927,10 +935,14 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 	{
 		char szout[256];
 		if (g_simd_exception++ < 6) {
-			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();		
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
-
+#else
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+			LPPROCESS_INFO proc = &list->proc;
+#endif
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 			__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", 
 				__FUNCTION__, __LINE__, cpu, proc->tid, proc->filename, proc->funcname);

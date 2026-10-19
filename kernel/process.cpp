@@ -18,7 +18,7 @@
 #include "core.h"
 #include "systemService.h"
 #include "taskPriority.h"
-#include "malloc.h"
+
 
 extern void freeProcessPages(LPPROCESS_INFO proc);
 extern void freeProcessMemory(LPPROCESS_INFO proc);
@@ -469,6 +469,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	lptss->status = TASK_SUSPEND;
 	result.lptss = lptss;
 	result.number = __krdtsc() % 0x100000;
+	ret = 1;
 #endif
 	
 	if (ret == FALSE)

@@ -74,7 +74,7 @@ void InitTaskArray() {
 void InitTaskList() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	int size = sizeof(PROCESS_INFO_LIST);
-	gTasksListPtr[id] = (PROCESS_INFO_LIST*)__kMalloc(size);
+	gTasksListPtr[id] = (PROCESS_INFO_LIST*)(TASK_LIST_BASE+id*sizeof(LIST_ENTRY));
 	InitListEntry((LIST_ENTRY*)&(gTasksListPtr[id]->list));
 }
 
@@ -108,6 +108,9 @@ PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid) {
 	PROCESS_INFO_LIST* result = 0;
 
 	PROCESS_INFO_LIST *hdr = (PROCESS_INFO_LIST*)gTasksListPtr[id]->list.next;
+	if (hdr == 0) {
+		return 0;
+	}
 
 	PROCESS_INFO_LIST *list = hdr;
 
@@ -431,13 +434,28 @@ int __GetFreeTask(LPTASKRESULT ret,int id) {
 
 
 LPPROCESS_INFO __findProcessFuncName(const char * funcname) {
-
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO p = (LPPROCESS_INFO)GetTaskTssBase();
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (p[i].status == TASK_RUN && __strcmp(p[i].funcname, funcname) == 0) {
 			return & p[i];
 		}
 	}
+#else
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(id);
+	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+	PROCESS_INFO_LIST* ptr = hdr;
+	do {
+		if (ptr == 0)
+			break;
+		LPPROCESS_INFO p = &ptr->proc;
+		if (p->status == TASK_RUN && __strcmp(p->funcname, funcname) == 0) {
+			return p;
+		}
+		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+	} while (ptr && ptr != hdr);
+#endif
 	return FALSE;
 }
 
@@ -1124,10 +1142,15 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	if (ret) {
 		unsigned long long tick1 = __krdtsc();
 
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+		
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 		LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
-
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+		LPPROCESS_INFO prev = &list->proc;
+#endif
 		if (env->eip == (DWORD)g_hlt_addr) {
 
 		}
@@ -1241,16 +1264,16 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	int ret = 0;
 	char szout[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	LPPROCESS_INFO tssbase = SetTaskTssBase();
-
-	InitTaskArray();
 
 	TASKRESULT freeTss;
 
 #ifdef TASK_SWITCH_ARRAY
+	LPPROCESS_INFO tssbase = SetTaskTssBase();
+	InitTaskArray();
 	ret = __GetFreeTask(&freeTss, id);
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
+	InitTaskList();
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kmalloc(sizeof(PROCESS_INFO_LIST));
 	PROCESS_INFO * lptss = &list->proc;
 	lptss->cpuid = id;
 	lptss->status = TASK_SUSPEND;
@@ -1333,7 +1356,6 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 #ifdef TASK_SWITCH_ARRAY
 
 #else
-	InitTaskList();
 	InsertTaskList(list);
 #endif
 

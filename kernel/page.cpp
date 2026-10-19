@@ -61,7 +61,7 @@ void EnablePaging32(char * pde) {
 
 void initPaging() {
 
-	gPageAllocList = (LPMEMALLOCINFO)__kMalloc(PAGE_ALLOC_LIST_SIZE);
+	gPageAllocList = (LPMEMALLOCINFO)__kmalloc(PAGE_ALLOC_LIST_SIZE);
 	LPMEMALLOCINFO pageList = (LPMEMALLOCINFO)gPageAllocList;
 	int cnt = 0x100000 / sizeof(MEMALLOCINFO);
 	for (int i = 0; i < cnt; i++) {
@@ -73,7 +73,7 @@ void initPaging() {
 	pageList->vaddr = 0;
 	pageList->vid = 0;
 
-	g_page_table_base =(char*) __kMalloc(PAGE_TABLE_SIZE);
+	g_page_table_base =(char*)__kmalloc(PAGE_TABLE_SIZE);
 
 	linearMapping();
 
@@ -373,7 +373,7 @@ char * g_pte_entry = 0;
 
 
 void linearMapping() {
-	g_pte_entry = (char*)__kMalloc(0x400000);
+	g_pte_entry = (char*)__kmalloc(0x400000);
 	
 	DWORD* idx = (DWORD*)g_pte_entry;
 	DWORD* entry = (DWORD*)PDE_ENTRY_VALUE;

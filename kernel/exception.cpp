@@ -41,8 +41,13 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	}
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = tss + current->tid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	LPPROCESS_INFO process = &list->proc;
+#endif
 	int tid = process->tid;
 	int pid = process->pid;
 	int level = process->level;

@@ -315,7 +315,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 				info = GetEmptyMemAllocItem();
 				if (info)
 				{
-					SetMemAllocItem(info, addr, vaddr, size, proc->vid);
+					SetMemAllocItem(info, addr, vaddr, size, current->vid);
 					res = addr;
 					break;
 				}
@@ -358,7 +358,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		res = 0;
 	}
 
-	if (res ) {
+	if (res && flag) {
 		int tag = flag & 0x7fffffff;
 		if ((flag & 0x80000000) == 0)
 			enter_task_array_lock_id(cpu);
@@ -366,8 +366,8 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 		if (current->pid == pid && current->cpuid == cpu)
 		{
 			*current->lpvasize += size;
-			*proc->lpvasize += size;
-			proc->alloc_times++;
+			//*proc->lpvasize += size;
+			//proc->alloc_times++;
 			current->alloc_times++;
 #ifndef DISABLE_PAGE_MAPPING
 			if (vaddr != 0) {
@@ -420,7 +420,21 @@ DWORD __kMalloc(DWORD s) {
 	return ret;
 }
 
+DWORD __kmalloc(DWORD s) {
 
+	char szout[256];
+	DWORD size = 0;
+	int len = 0;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	DWORD ret = __kProcessMalloc(s, &size, process->pid, process->cpuid, 0, 0);
+	if (ret == 0) {
+		len = __printf(szout, "%s %d alloc size:%x request size:%x pid:%d error\n", __FUNCTION__, __LINE__, s, size, process->pid);
+	}
+	else {
+		//len = __printf(szout, "__kMalloc size:%x realSize:%x pid:%d addr:%x\n", s,size, process->pid,ret);
+	}
+	return ret;
+}
 
 int __kFree(DWORD physicalAddr) {
 
@@ -446,29 +460,34 @@ int __kFree(DWORD physicalAddr) {
 DWORD __malloc(DWORD s) {
 	char szout[256];
 	DWORD res = 0;
+	
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
-
-	process->alloc_times++;
-	current->alloc_times++;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
+	cur->alloc_times++;
+	proc->alloc_times++;
 
 	res = (DWORD)fast_heap_alloc(s);
 	if (res) {
 		return res;
 	}
 
-	if (process->fast_heap_large && process->large_heap_size) {
+	if (cur->fast_heap_large && cur->large_heap_size) {
 		res = (DWORD)fast_heap_alloc_large(s);
 		if (res) {
 			return res;
 		}
 	}
 
-	int cnt = *process->lpHeapCnt;
+	int cnt = *cur->lpHeapCnt;
 	for (int num = 0; num < cnt; num++) {
-		CHAR* heapBase = (char*)(*process->lpHeapBase)[num];
-		int heapLimit = process->heapsize << num;
+		CHAR* heapBase = (char*)(*cur->lpHeapBase)[num];
+		int heapLimit = cur->heapsize << num;
 		if (s < heapLimit) {
 			res = __heapAlloc(heapBase, heapLimit, s);
 			if (res) {
@@ -478,8 +497,8 @@ DWORD __malloc(DWORD s) {
 	}
 	int seq = CreateHeap();
 	if (seq) {
-		int heapLimit = process->heapsize << seq;
-		char* heapBase = (char*)((*process->lpHeapBase)[seq]);
+		int heapLimit = cur->heapsize << seq;
+		char* heapBase = (char*)((*cur->lpHeapBase)[seq]);
 		res = __heapAlloc(heapBase, heapLimit, s);
 		if (res) {
 			return res;
@@ -495,8 +514,8 @@ DWORD __malloc(DWORD s) {
 	DWORD size = 0;
 	int len = 0;
 
-	DWORD vaddr = process->vaddr + *process->lpvasize;
-	res = __kProcessMalloc(s,&size, process->pid,process->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
+	DWORD vaddr = cur->vaddr + *cur->lpvasize;
+	res = __kProcessMalloc(s,&size, cur->pid, cur->cpuid,vaddr, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	if (res)
 	{
 		return res;
@@ -514,26 +533,31 @@ int __free(DWORD linearAddr) {
 	if (linearAddr == 0) {
 		return 0;
 	}
+	
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
+	cur->alloc_times --;
+	proc->alloc_times--;
 
-	process->alloc_times --;
-	current->alloc_times--;
-
-	if (linearAddr >= (DWORD)process->fast_heap && linearAddr < (DWORD)process->fast_heap + process->heapsize) {
+	if (linearAddr >= (DWORD)cur->fast_heap && linearAddr < (DWORD)cur->fast_heap + cur->heapsize) {
 		return fast_heap_free((char*)linearAddr);
 	}
 
-	if (process->fast_heap_large && process->large_heap_size) {
-		if (linearAddr >= (DWORD)(process->fast_heap_large) && linearAddr < (DWORD)(process->fast_heap_large + process->large_heap_size) ) {
+	if (cur->fast_heap_large && cur->large_heap_size) {
+		if (linearAddr >= (DWORD)(cur->fast_heap_large) && linearAddr < (DWORD)(cur->fast_heap_large + cur->large_heap_size) ) {
 			return fast_heap_free_large((char*)linearAddr);
 		}
 	}
 
-	for (int num = 0; num < *(process->lpHeapCnt); num++) {
-		int heapLimit = process->heapsize << num;
-		char* heapBase = (*process->lpHeapBase)[num];
+	for (int num = 0; num < *(cur->lpHeapCnt); num++) {
+		int heapLimit = cur->heapsize << num;
+		char* heapBase = (*cur->lpHeapBase)[num];
 		if (linearAddr >= (DWORD)heapBase && linearAddr < (DWORD)heapBase + heapLimit)
 		{
 			return __heapFree(heapBase, heapLimit,linearAddr);
@@ -542,14 +566,14 @@ int __free(DWORD linearAddr) {
 
 	if (g_alloc_err++) 
 	{
-		int cnt = *process->lpHeapCnt;
+		int cnt = *cur->lpHeapCnt;
 		for (int num = 0; num < cnt; num++) {
-			CHAR* heapBase = (char*)((*process->lpHeapBase)[num]);
-			int heapLimit = process->heapsize << num;
+			CHAR* heapBase = (char*)((*cur->lpHeapBase)[num]);
+			int heapLimit = cur->heapsize << num;
 			__printf(szout,"[%d] heap base:%x heap size:%x linearAddr:%x\r\n",num, heapBase, heapLimit, linearAddr);
 		}
 
-		__printf(szout, "fast heap base:%x heap size:%x linearAddr:%x\r\n", process->fast_heap, process->heapsize, linearAddr);
+		__printf(szout, "fast heap base:%x heap size:%x linearAddr:%x\r\n", cur->fast_heap, cur->heapsize, linearAddr);
 	}
 
 	__enterSpinlock(&gMemAllocLock);
@@ -617,9 +641,13 @@ int GetProcessMemory(int pid,int cpu, char* szout) {
 		pid = current->pid;
 	}
 
-	
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = tss + pid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	LPPROCESS_INFO proc = &list->proc;
+#endif
 	if (proc->status != TASK_RUN)
 	{
 		return FALSE;

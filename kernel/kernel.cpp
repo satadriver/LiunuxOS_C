@@ -87,19 +87,19 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	*(int*)(CPU_TOTAL_ADDRESS) = 1;
 	*(int*)CPU_ID_ADDRESS = id;
-	
+
 	gGraphBase =(DWORD)( vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	SetTaskVideoBase(vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
 
 	initMemory();
 
+	__initTask0((char*)LIUNUX_KERNEL32_DLL, "__kKernel", 0, GRAPHCHAR_HEIGHT * id * 16 + 64);
+
 	initPaging();
 	
 	InitGdt();
 	InitIDT();
-
-	__initTask0((char*)LIUNUX_KERNEL32_DLL,"__kKernel",0, GRAPHCHAR_HEIGHT * id * 16 + 64);
 
 	SetIVTVector();
 
