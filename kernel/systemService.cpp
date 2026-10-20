@@ -357,10 +357,7 @@ void sleep(DWORD * params) {
 			__hlt_addr_end:
 		}
 
-		//current->sleep--;
-		//proc->sleep--;
-
-		if (process->sleep == 0)
+		if (cur->sleep == 0)
 		{
 			//enter_task_array_lock();
 			cur->delta = DYNAMIC_PRIORITY;

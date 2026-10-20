@@ -238,7 +238,7 @@ PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p) {
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				//DestroyThreadWindow(p->proc.tid, id);
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
-				RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
+				//RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				result = list;
 				break;
@@ -284,7 +284,7 @@ PROCESS_INFO_LIST* RemoveTaskListTid(int tid) {
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				//DestroyThreadWindow(tid, id);
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
-				RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
+				//RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				result = list;
 				break;
@@ -342,7 +342,7 @@ PROCESS_INFO_LIST* RemoveTaskListPid(int pid) {
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 				//DestroyThreadWindow(pid, id);
 				__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
-				RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
+				//RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
 				result = list;
 				break;
 			}
@@ -694,6 +694,11 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	LPPROCESS_INFO next = prev;
 #else
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(proc->tid);
+	if (list == 0)
+	{
+		__printf(szout, "%s %d error!\r\n", __FUNCTION__,__LINE__);
+		return 0;
+	}
 	LPPROCESS_INFO prev = &list->proc;
 	PROCESS_INFO_LIST* nextlist = (PROCESS_INFO_LIST*) list->list.next;
 	LPPROCESS_INFO next = (LPPROCESS_INFO)& nextlist->proc;
@@ -704,10 +709,12 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
 		proc->status = TASK_OVER;
+		RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
 	}
 	else if (prev->status == TASK_OVER || proc->status == TASK_OVER) {
 		proc->status = TASK_OVER;
 		prev->status = TASK_OVER;
+		RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
 		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
 	else if (proc->status == TASK_RUN && prev->status == TASK_RUN)
@@ -757,7 +764,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 
 		if (next == prev) {
-			if (next->status == TASK_OVER) {
+			if (next->status == TASK_SUSPEND || next->status == TASK_OVER || next->status == TASK_TERMINATE) {
 				__printf(szout, "%s %d status error!\r\n",__FUNCTION__,__LINE__);
 			}
 			goto __SingleTssSchedule_end;
@@ -790,8 +797,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 #else
 	do {
 		if (next == prev) {
-			if (proc->status == TASK_SUSPEND || proc->status == TASK_OVER || proc->status == TASK_TERMINATE) {
-				__printf(szout, "%s %d task status:%d error\r\n", __FUNCTION__, __LINE__, proc->status);
+			if (next->status == TASK_SUSPEND || next->status == TASK_OVER || next->status == TASK_TERMINATE) {
+				__printf(szout, "%s %d task status:%d error\r\n", __FUNCTION__, __LINE__, next->status);
 			}
 			goto  __SingleTssSchedule_end;
 		}
@@ -868,8 +875,8 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (proc->fpu == 0 || prev->fpu == 0) {
 		__asm {
 			fninit
-				mov eax, fenvprev
-				FxSAVE[eax]
+			mov eax, fenvprev
+			FxSAVE[eax]
 		}
 		proc->fpu++;
 		prev->fpu++;
@@ -893,10 +900,10 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	__asm {
 		mov eax, fenvprev
 		FxSAVE[eax]
-		////fsave [fenv]
+		//fsave [fenv]
 
 		mov eax, fenvnext
-		////frstor [fenv]
+		//frstor [fenv]
 		fxrstor[eax]
 	}
 #endif
@@ -961,6 +968,10 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	LPPROCESS_INFO next = prev;
 #else
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(proc->tid);
+	if (list == 0) {
+		__printf(szout, "%s %d error!\r\n", __FUNCTION__,__LINE__);
+		return 0;
+	}
 	LPPROCESS_INFO prev = &list->proc;
 	PROCESS_INFO_LIST* nextlist = (PROCESS_INFO_LIST*)list->list.next;
 	LPPROCESS_INFO next = (LPPROCESS_INFO)& nextlist->proc;
@@ -971,11 +982,12 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE) {
 		prev->status = TASK_OVER;
 		proc->status = TASK_OVER;
+		RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
 	}
 	else if (prev->status == TASK_OVER || proc->status == TASK_OVER) {
 		proc->status = TASK_OVER;
 		prev->status = TASK_OVER;
-		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
+		RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
 	}
 	else if (proc->status == TASK_RUN || prev->status == TASK_RUN)
 	{
@@ -1028,12 +1040,6 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 
 		if (next->status == TASK_TERMINATE) {
 			next->status = TASK_OVER;
-			if (next->tid == next->pid) {
-				//__kFreeProcess(next->pid);
-			}
-			else {
-				//__kFree(next->espbase);
-			}
 			continue;
 		}
 		else if (next->status == TASK_RUN) {
@@ -1056,8 +1062,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 #else
 	do {
 		if (next == prev) {
-			if (proc->status == TASK_SUSPEND || proc->status == TASK_OVER || proc->status == TASK_TERMINATE) {
-				__printf(szout, "current task status:%d error\r\n", proc->status);
+			if (next->status == TASK_SUSPEND || next->status == TASK_OVER || next->status == TASK_TERMINATE) {
+				__printf(szout, "%s %d current task status:%d error\r\n", __FUNCTION__,__LINE__, next->status);
 			}
 			goto  __MultipleTssSchedule_end;
 		}
@@ -1132,10 +1138,10 @@ char* fenvnext = nextlist->fpenv;
 	__asm {
 		mov eax, fenvprev
 		FxSAVE[eax]
-		////fsave [fenv]
+		//fsave [fenv]
 
 		mov eax, fenvnext
-		////frstor [fenv]
+		//frstor [fenv]
 		fxrstor[eax]
 	}
 #endif
@@ -1183,6 +1189,12 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+#ifndef SINGLE_TASK_TSS
+	__asm {
+		//clts			// for multiple tss task switch
+	}
+#endif
+	 
 	__kApicTimerProc();
 
 	//SwitchTaskCPU();
@@ -1222,12 +1234,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 		//ActiveApTask(TASK_SWITCH_VECTOR);
 
-#ifndef SINGLE_TASK_TSS
-		__asm {
-			//clts			//multiple tss for task switch,must to do this
-		}
-#endif
-
 		if (prev->tid != current->tid) {
 			__printf(szout, "%s %d process tid:%d, prev tid:%d not same\r\n",__FUNCTION__,__LINE__, prev->tid, current->tid);
 			//return 0;
@@ -1246,7 +1252,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		/*
 		if (next && (g_tagMsg++) % 0x100 == 0 && g_tagMsg == 0x100) {
 			__int64 deltaTime = time2 - time1;
-
 			DWORD cpureq;
 			DWORD maxreq;
 			DWORD busreq;

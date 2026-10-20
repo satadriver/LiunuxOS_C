@@ -184,8 +184,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 	else {
 		return 0;
 	}
-
-	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);
+	
 	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
 	extern int g_task_array_lock[256];
 	if (id == src_id && lock)
@@ -205,6 +204,8 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 	double max = 0.0;
 	int cnt = 0;
 	int src_tid = -1;
+
+	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 		if (src_tss[i].status == TASK_RUN) {	
 			cnt++;
@@ -221,11 +222,14 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU(int lock) {
 			}
 		}
 	}
-	
 	if (src_tss[src_tid].pid == src_tss[src_tid].tid) {
 		is_src_proc = 1;
 	}
-	
+
+#ifdef TASK_SWITCH_ARRAY
+#else
+#endif
+
 	if (src_current->tid == src_tid) {
 		is_src_cur = 1;
 	}

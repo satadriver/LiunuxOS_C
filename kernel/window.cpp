@@ -128,6 +128,7 @@ int GetFreeWindow() {
 
 int traversalWindow(char* outbuf) {
 	char* buf = outbuf;
+	buf[0] = 0;
 	int size = 0;
 	if (gWindowsList == 0) {
 		return 0;
@@ -146,7 +147,7 @@ int traversalWindow(char* outbuf) {
 			int cpu = info->window->cpu;
 			char* funcname = 0;
 			char* filename = 0;
-			
+#ifdef TASK_SWITCH_ARRAY
 			LPPROCESS_INFO procs = GetTaskTssBaseId(cpu);
 			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 				if (procs[i].tid == tid) {
@@ -155,11 +156,30 @@ int traversalWindow(char* outbuf) {
 
 					len = __printf(buf + size,
 						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
-						info->window->id, info->window->winname,cpu,procs[i].pid,tid,filename,funcname);
+						info->window->id, info->window->winname, cpu, procs[i].pid, tid, filename, funcname);
 					break;
 				}
 			}
+#else
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+			PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+			PROCESS_INFO_LIST* ptr = hdr;
+			do {
+				if (ptr == 0)
+					break;
+				LPPROCESS_INFO p = &ptr->proc;
+				if (p->status == TASK_RUN && p->tid == tid) {
+					filename = p->filename;
+					funcname = p->funcname;
 
+					len = __printf(buf + size,
+						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
+						info->window->id, info->window->winname, cpu, p->pid, tid, filename, funcname);
+					break;
+				}
+				ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+			} while (ptr && ptr != hdr);
+#endif
 			size += len;
 		}
 		else {

@@ -3,44 +3,72 @@
   "WorkspaceRootPath": "D:\\liunuxos\\LiunuxOS_C\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\def.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\def.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\thread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\thread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\task.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\task.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\kernel.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\kernel.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\process.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\process.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosPeriodTimer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\cmosPeriodTimer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\task.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\task.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\systemService.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\systemService.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\main\\mainUtils.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\mainUtils.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|D:\\liunuxos\\LiunuxOS_C\\main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E49EDBED-49A9-4C0E-B435-26759D691389}|main\\main.vcxproj|solutionrelative:main\\cmd.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\apicTimer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apicTimer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\apic.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apic.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\apic.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\taskPriority.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\def.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\def.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosExactTimer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\cmosExactTimer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosAlarm.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\cmosAlarm.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\thread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\thread.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\systemService.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\systemService.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\process.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\process.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\task.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\task.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosAlarm.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|solutionrelative:kernel\\cmosAlarm.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{22AB469F-C5DA-4C43-AA87-401816E082D7}|kernel\\kernel.vcxproj|D:\\liunuxos\\LiunuxOS_C\\kernel\\thread.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -62,41 +90,15 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "apicTimer.cpp",
-              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apicTimer.cpp",
-              "RelativeDocumentMoniker": "kernel\\apicTimer.cpp",
-              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apicTimer.cpp",
-              "RelativeToolTip": "kernel\\apicTimer.cpp",
-              "ViewState": "AgIAAA8BAAAAAAAAAAAAABsBAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:42:52.92Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "cmosPeriodTimer.cpp",
-              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosPeriodTimer.cpp",
-              "RelativeDocumentMoniker": "kernel\\cmosPeriodTimer.cpp",
-              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosPeriodTimer.cpp",
-              "RelativeToolTip": "kernel\\cmosPeriodTimer.cpp",
-              "ViewState": "AgIAAHUAAAAAAAAAAAAiwI4AAAA9AAAAAAAAAA==",
+              "Title": "cmd.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\main\\cmd.cpp",
+              "RelativeDocumentMoniker": "main\\cmd.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\main\\cmd.cpp",
+              "RelativeToolTip": "main\\cmd.cpp",
+              "ViewState": "AgIAAPkAAAAAAAAAAAAAwAQBAAArAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:40:54.3Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "process.cpp",
-              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\process.cpp",
-              "RelativeDocumentMoniker": "kernel\\process.cpp",
-              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\process.cpp",
-              "RelativeToolTip": "kernel\\process.cpp",
-              "ViewState": "AgIAAPcBAAAAAAAAAAAAABsCAAA7AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:32:25.698Z",
+              "WhenOpened": "2026-10-20T02:40:45.543Z",
               "EditorCaption": ""
             },
             {
@@ -107,46 +109,124 @@
               "RelativeDocumentMoniker": "kernel\\task.cpp",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\task.cpp",
               "RelativeToolTip": "kernel\\task.cpp",
-              "ViewState": "AgIAAKUAAAAAAAAAAAAgwCEBAAAPAAAAAAAAAA==",
+              "ViewState": "AgIAAMMCAAAAAAAAAAAAANoCAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-10-19T10:09:30.99Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "window.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\window.cpp",
+              "RelativeDocumentMoniker": "kernel\\window.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\window.cpp",
+              "RelativeToolTip": "kernel\\window.cpp",
+              "ViewState": "AgIAAJgBAAAAAAAAAAAAwKwBAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-20T02:24:34.868Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "mainUtils.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\main\\mainUtils.cpp",
+              "RelativeDocumentMoniker": "main\\mainUtils.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\main\\mainUtils.cpp",
+              "RelativeToolTip": "main\\mainUtils.cpp",
+              "ViewState": "AgIAADABAAAAAAAAAAAAwD0BAAA8AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-20T02:31:45.762Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 3,
+              "Title": "systemService.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\systemService.cpp",
+              "RelativeDocumentMoniker": "kernel\\systemService.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\systemService.cpp",
+              "RelativeToolTip": "kernel\\systemService.cpp",
+              "ViewState": "AgIAAF4BAAAAAAAAAAAiwEIBAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-19T10:38:51.943Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "cmosPeriodTimer.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosPeriodTimer.cpp",
+              "RelativeDocumentMoniker": "kernel\\cmosPeriodTimer.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosPeriodTimer.cpp",
+              "RelativeToolTip": "kernel\\cmosPeriodTimer.cpp",
+              "ViewState": "AgIAAHAAAAAAAAAAAAAQwIIAAAALAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-19T10:40:54.3Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
               "Title": "kernel.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\kernel.cpp",
               "RelativeDocumentMoniker": "kernel\\kernel.cpp",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\kernel.cpp",
               "RelativeToolTip": "kernel\\kernel.cpp",
-              "ViewState": "AgIAALsAAAAAAAAAAAAAAMcAAAACAAAAAAAAAA==",
+              "ViewState": "AgIAAKwAAAAAAAAAAAAAALMAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-10-19T10:05:17.593Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "thread.cpp",
-              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\Thread.cpp",
-              "RelativeDocumentMoniker": "kernel\\Thread.cpp",
-              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\Thread.cpp",
-              "RelativeToolTip": "kernel\\Thread.cpp",
-              "ViewState": "AgIAAEcAAAAAAAAAAAAiwFYAAAAGAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:19:49.419Z",
+              "DocumentIndex": 8,
+              "Title": "apic.h",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apic.h",
+              "RelativeDocumentMoniker": "kernel\\apic.h",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apic.h",
+              "RelativeToolTip": "kernel\\apic.h",
+              "ViewState": "AgIAAIoAAAAAAAAAAAAAwJIAAAAwAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-20T02:39:53.372Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 9,
+              "Title": "apic.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apic.cpp",
+              "RelativeDocumentMoniker": "kernel\\apic.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apic.cpp",
+              "RelativeToolTip": "kernel\\apic.cpp",
+              "ViewState": "AgIAAGcGAAAAAAAAAAAAwG8GAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-20T02:26:10.56Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "taskPriority.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp",
+              "RelativeDocumentMoniker": "kernel\\taskPriority.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\taskPriority.cpp",
+              "RelativeToolTip": "kernel\\taskPriority.cpp",
+              "ViewState": "AgIAAK0BAAAAAAAAAAAAwL4BAAAVAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-20T02:24:30.185Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
               "Title": "def.h",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\def.h",
               "RelativeDocumentMoniker": "kernel\\def.h",
               "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\def.h",
               "RelativeToolTip": "kernel\\def.h",
-              "ViewState": "AgIAAEIAAAAAAAAAAAAAAE8AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAIMAAAAAAAAAAAAAwI0AAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
               "WhenOpened": "2026-10-19T10:04:41.534Z",
               "EditorCaption": ""
@@ -154,6 +234,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 7,
+              "Title": "apicTimer.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apicTimer.cpp",
+              "RelativeDocumentMoniker": "kernel\\apicTimer.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\apicTimer.cpp",
+              "RelativeToolTip": "kernel\\apicTimer.cpp",
+              "ViewState": "AgIAAOQAAAAAAAAAAAAAwOwAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-19T10:42:52.92Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "cmosExactTimer.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosExactTimer.cpp",
               "RelativeDocumentMoniker": "kernel\\cmosExactTimer.cpp",
@@ -166,7 +259,46 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 13,
+              "Title": "thread.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\Thread.cpp",
+              "RelativeDocumentMoniker": "kernel\\Thread.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\Thread.cpp",
+              "RelativeToolTip": "kernel\\Thread.cpp",
+              "ViewState": "AgIAAEcAAAAAAAAAAAAiwFYAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-19T10:19:49.419Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "process.cpp",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\process.cpp",
+              "RelativeDocumentMoniker": "kernel\\process.cpp",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\process.cpp",
+              "RelativeToolTip": "kernel\\process.cpp",
+              "ViewState": "AgIAABMCAAAAAAAAAAAqwBsCAAAtAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-19T10:32:25.698Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "task.h",
+              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\task.h",
+              "RelativeDocumentMoniker": "kernel\\task.h",
+              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\task.h",
+              "RelativeToolTip": "kernel\\task.h",
+              "ViewState": "AgIAAFcAAAAAAAAAAAASwF8AAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2026-10-20T02:20:11.245Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "cmosAlarm.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\cmosAlarm.cpp",
               "RelativeDocumentMoniker": "kernel\\cmosAlarm.cpp",
@@ -174,25 +306,11 @@
               "RelativeToolTip": "kernel\\cmosAlarm.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:40:52.725Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-19T10:40:52.725Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "systemService.cpp",
-              "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\systemService.cpp",
-              "RelativeDocumentMoniker": "kernel\\systemService.cpp",
-              "ToolTip": "D:\\liunuxos\\LiunuxOS_C\\kernel\\systemService.cpp",
-              "RelativeToolTip": "kernel\\systemService.cpp",
-              "ViewState": "AgIAAGkBAAAAAAAAAAAAAHYBAAAMAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:38:51.943Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 17,
               "Title": "thread.h",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\Thread.h",
               "RelativeDocumentMoniker": "kernel\\Thread.h",
@@ -200,12 +318,11 @@
               "RelativeToolTip": "kernel\\Thread.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-10-19T10:25:27.168Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-19T10:25:27.168Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 18,
               "Title": "malloc.cpp",
               "DocumentMoniker": "D:\\liunuxos\\LiunuxOS_C\\kernel\\malloc.cpp",
               "RelativeDocumentMoniker": "kernel\\malloc.cpp",
@@ -213,8 +330,7 @@
               "RelativeToolTip": "kernel\\malloc.cpp",
               "ViewState": "AgIAAFMBAAAAAAAAAAAgwGABAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-10-19T10:06:14.508Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-19T10:06:14.508Z"
             }
           ]
         }
