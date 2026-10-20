@@ -70,11 +70,11 @@ int getVm86ProcAddr(char * fn,int type, DWORD filedata, int size, int pid) {
 
 			if (type == DOS_EXE_FILE)
 			{
-				info[i].address = DOS_LOAD_FIRST_SEG - i * 0x1000 + 0x10;
+				info[i].address = DOS_LOAD_FIRST_SEG + i * 0x1000 ; 
 			}
 			else
 			{
-				info[i].address = DOS_LOAD_FIRST_SEG - i * 0x1000 + 0x10;
+				info[i].address = DOS_LOAD_FIRST_SEG + i * 0x1000 ;	// +0x10
 			}
 
 			return info[i].address;
@@ -187,7 +187,6 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 #else
 	tss->tss.trap = 0;
 #endif
-	tss->tss.trap=0;
 
 	unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, tss->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	tss->tss.esp0 = esp0 + TASK_STACK0_SIZE - STACK_TOP_DUMMY;
@@ -243,10 +242,10 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		IMAGE_DOS_HEADER * dos = (IMAGE_DOS_HEADER*)addr;
 
 		tss->tss.eip = dos->e_ip;
-		tss->tss.cs = dos->e_cs;
+		tss->tss.cs = seg + dos->e_cparhdr + dos->e_cs ;
 
-		tss->tss.esp = dos->e_sp;
-		tss->tss.ss = dos->e_ss;
+		tss->tss.esp = dos->e_sp - 2;
+		tss->tss.ss = seg + dos->e_cparhdr + dos->e_ss;
 
 		//DWORD dospsp = seg + dos->e_cparhdr - 0x10;
 		DWORD dospsp = seg + dos->e_cparhdr;

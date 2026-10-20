@@ -27,26 +27,26 @@
 
 
 
-typedef struct _IMAGE_DOS_HEADER {      // DOS .EXE header
-	WORD   e_magic;                     // Magic number
-	WORD   e_cblp;                      // Bytes on last page of file
-	WORD   e_cp;                        // Pages in file
-	WORD   e_crlc;                      // Relocations
-	WORD   e_cparhdr;                   // Size of header in paragraphs
-	WORD   e_minalloc;                  // Minimum extra paragraphs needed
-	WORD   e_maxalloc;                  // Maximum extra paragraphs needed
-	WORD   e_ss;                        // Initial (relative) SS value
-	WORD   e_sp;                        // Initial SP value
-	WORD   e_csum;                      // Checksum
-	WORD   e_ip;                        // Initial IP value
-	WORD   e_cs;                        // Initial (relative) CS value
-	WORD   e_lfarlc;                    // File address of relocation table
-	WORD   e_ovno;                      // Overlay number
-	WORD   e_res[4];                    // Reserved words
-	WORD   e_oemid;                     // OEM identifier (for e_oeminfo)
-	WORD   e_oeminfo;                   // OEM information; e_oemid specific
-	WORD   e_res2[10];                  // Reserved words
-	LONG   e_lfanew;                    // File address of new exe header
+typedef struct _IMAGE_DOS_HEADER {      // 0	DOS .EXE header
+	WORD   e_magic;                     // 0	Magic number
+	WORD   e_cblp;                      // 2	Bytes on last page of file
+	WORD   e_cp;                        // 4	Pages in file
+	WORD   e_crlc;                      // 6	Relocations
+	WORD   e_cparhdr;                   // 8	Size of header in paragraphs	
+	WORD   e_minalloc;                  // 10	Minimum extra paragraphs needed
+	WORD   e_maxalloc;                  // 12	Maximum extra paragraphs needed
+	WORD   e_ss;                        // 14	Initial (relative) SS value
+	WORD   e_sp;                        // 16	Initial SP value
+	WORD   e_csum;                      // 18	Checksum
+	WORD   e_ip;                        // 20	Initial IP value
+	WORD   e_cs;                        // 22	Initial (relative) CS value
+	WORD   e_lfarlc;                    // 24	File address of relocation table
+	WORD   e_ovno;                      // 26	Overlay number
+	WORD   e_res[4];                    // 28	Reserved words
+	WORD   e_oemid;                     // 30	OEM identifier (for e_oeminfo)
+	WORD   e_oeminfo;                   // 32	OEM information; e_oemid specific
+	WORD   e_res2[10];                  // 34	Reserved words
+	LONG   e_lfanew;                    // 36	File address of new exe header
 } IMAGE_DOS_HEADER, *PIMAGE_DOS_HEADER;
 
 
@@ -264,7 +264,7 @@ int checkFullPath(char * path);
 
 DWORD getBaseFromEip(DWORD eip);
 
-int getPeType(DWORD data);
+int getPeType(DWORD data,int size);
 int setImageBase(char* chBaseAddress);
 DWORD getImageBase(char* pFileBuff);
 

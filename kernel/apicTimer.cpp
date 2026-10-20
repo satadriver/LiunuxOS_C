@@ -149,7 +149,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	for (int i = 0; i < counter; i++) {
 		int cpuid = ids[i];
 		if (g_cpu_start_tick[cpuid] == 0 || g_cpu_tick[cpuid] == 0) {
-			__printf(szout, "%s %d cpu:%d g_cpu_start_tick or g_cpu_tick null\r\n", __FUNCTION__, __LINE__, cpuid);
+			//__printf(szout, "%s %d cpu:%d g_cpu_start_tick or g_cpu_tick null\r\n", __FUNCTION__, __LINE__, cpuid);
 		}
 		else {
 			double cpu_diff = tick - g_cpu_start_tick[cpuid];

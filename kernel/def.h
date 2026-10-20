@@ -300,7 +300,7 @@
 
 #define LIMIT_V86_PROC_COUNT		6
 
-#define DOS_LOAD_FIRST_SEG			0X7000
+#define DOS_LOAD_FIRST_SEG			0X2000
 
 #define SHOW_WINDOW_BMP				1
 #define SHOW_WINDOW_TXT				2

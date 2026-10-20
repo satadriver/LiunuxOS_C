@@ -1567,13 +1567,14 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	window->prev = 0;
 	window->next = 0;
 
-	cur->window = window->id;
-
 	enter_task_array_lock();
+
+	cur->window = window->id;
 #ifdef TASK_SWITCH_ARRAY
 	tss[tid].window = window->id;
 #else
 	proc->window = window->id;
 #endif
+
 	leave_task_array_lock();
 }

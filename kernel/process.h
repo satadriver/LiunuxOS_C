@@ -12,8 +12,7 @@
 
 #define DOS_COM_FILE		0
 #define DOS_EXE_FILE		1
-#define WINDOWS_EXE_FILE	2
-#define WINDOWS_DLL_FILE	2
+#define WINDOWS_PE_FILE		2
 #define LINUX_ELF_FILE		3
 
 #pragma pack(push,1)

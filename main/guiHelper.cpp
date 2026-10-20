@@ -115,8 +115,8 @@ void initTaskbarWindow(WINDOWCLASS* window, char* filename, int tid) {
 	window->next = 0;
 }
 
-/*
-void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
+
+void initDesktopWindowMain(WINDOWCLASS* window, char* name, int tid,int show) {
 	int ret = 0;
 	__memset((char*)window, 0, sizeof(WINDOWCLASS));
 
@@ -142,7 +142,6 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 
 	window->tid = tid;
 
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)TASKS_TSS_BASE;
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	window->pid = proc->pid;
 
@@ -162,17 +161,15 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 	if (show) {
 		ret = __drawRectWindow(&window->pos, window->width, window->height, window->color, (unsigned char*)window->backBuf);
 	}
-	window->id = addWindow((WINDOWCLASS*)window, window->winname);
 
 	window->prev = 0;
 	window->next = 0;
 
-	proc->window = window->id;
 	enter_task_array_lock();
-	tss[tid].window = window->id;
+	proc->window = window->id;
 	leave_task_array_lock();
 }
-*/
+
 
 void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 
@@ -229,6 +226,7 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 	__drawWindow(window);
 	
 	enter_task_array_lock();
+
 	cur->window = window->id;
 
 #ifdef TASK_SWITCH_ARRAY
@@ -287,13 +285,16 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 
 	__drawWindow(window);
 
-	cur->window = window->id;
 	enter_task_array_lock();
+
+	cur->window = window->id;
+
 #ifdef TASK_SWITCH_ARRAY
 	tss[tid].window = window->id;
 #else
 	proc->window = window->id;
 #endif
+
 	leave_task_array_lock();
 }
 

@@ -500,7 +500,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 			ret = __initDosTss(result.lptss, result.number, filedata, filename, funcname, mode + (level | 3), params);
 		}
 		else {
-			int petype = getPeType(filedata);
+			int petype = getPeType(filedata,filesize);
 			if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
 			{
 				if (filesize == 0)
@@ -518,7 +518,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 					}
 				}
 			}
-			else if (petype == 2)
+			else if (petype == WINDOWS_PE_FILE)
 			{
 				DWORD type = getType((DWORD)filedata);
 				if (type & 0x2000)
@@ -535,7 +535,7 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 					ret = __initProcess(result.lptss, result.number, filedata, filename, funcname, level, params);
 				}
 			}
-			else if (petype == 3)
+			else if (petype == LINUX_ELF_FILE)
 			{
 				ret = runElfFunction(filename, funcname);
 			}

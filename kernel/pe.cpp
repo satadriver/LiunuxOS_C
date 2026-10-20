@@ -567,7 +567,7 @@ DWORD getBaseFromEip(DWORD eip) {
 
 	while (1)
 	{
-		if (getPeType(ip) == 2)
+		if (getPeType(ip,0) == 2)
 		{
 			return ip;
 		}
@@ -580,11 +580,11 @@ DWORD getBaseFromEip(DWORD eip) {
 	}
 }
 
-int getPeType(DWORD data) {
+int getPeType(DWORD data,int size) {
 	if (__memcmp((char*)data, "MZ", 2) == 0)
 	{
 		int offset = *(DWORD*)(data + 0x3c);
-		if (offset < 0x1000 && offset > 0)
+		if (offset < size && offset > 0)
 		{
 			if (__memcmp((char*)data + offset, "PE\x00\x00", 4) == 0)
 			{

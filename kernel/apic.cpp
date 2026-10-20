@@ -539,7 +539,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 	char szout[256];
 	int id = 0;
 	if (base) {
-		int petype = getPeType(base);
+		int petype = getPeType(base,size);
 		if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
 		{
 			id = 0;
@@ -1254,7 +1254,7 @@ int InitLocalApicTimer() {
 	//freq = 100000000 / (1000 / TASK_TIME_SLICE);
 	freq = freq/ LOCAL_APIC_DIVIDE;
 
-	freq = freq * 2 / 3;
+	freq = freq * 2 / 2;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	g_apic_freq[id] = freq;
