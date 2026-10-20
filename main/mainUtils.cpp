@@ -24,6 +24,7 @@ int GetMaxProcessNum(int * cpuid) {
 		int cpu = cpus[num];
 
 		int counter = 0;
+#ifdef TASK_SWITCH_ARRAY
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
@@ -31,6 +32,20 @@ int GetMaxProcessNum(int * cpuid) {
 				counter++;
 			}
 		}
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				counter++;
+			}
+			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 		if (counter > 1 && counter > max) {
 			max = counter;
 			id = cpu;
@@ -48,6 +63,7 @@ int GetProcessNum() {
 		int cpu = cpus[num];
 		
 		int counter = 0;
+#ifdef TASK_SWITCH_ARRAY
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
@@ -55,6 +71,20 @@ int GetProcessNum() {
 				counter++;
 			}
 		}
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				counter++;
+			}
+			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 		g_tasks_cpu_array[cpu] = counter;
 		n += counter;
 	}
@@ -75,6 +105,7 @@ int GetSimpleProcesses(char* szout) {
 		int cpu = cpus[num];
 		double cpu_diff = tick - g_cpu_start_tick[cpu];
 		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
+#ifdef TASK_SWITCH_ARRAY
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
@@ -92,6 +123,30 @@ int GetSimpleProcesses(char* szout) {
 				outlen += len;
 			}
 		}
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				double proc_diff =  p->tick_total;
+				double proc_ratio = (double)p->tick_run / proc_diff;
+				double proc_usage = (double)p->tick_run / (double)g_cpu_tick[cpu];
+				double cost = p->tick_switch_cost;
+				double switch_cost = cost / g_timer_tick[cpu];
+				len = __sprintf(szout + outlen,
+					"[%d].file:%s, function:%s, cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,cpu usage:%lf£¬task rate:%lf,task usage:%lf,cost rate:%lf,counter:%x,priority:%d,delta:%d,lpvasize:%x\r\n",
+					n++, p->filename, p->funcname, p->cpuid,
+					p->pid, p->ppid, p->tid, p->level,
+					cpu_usage, proc_ratio, proc_usage, switch_cost, p->counter, p->priority, p->delta, *p->lpvasize);
+				outlen += len;
+			}
+			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 	}
 
 	return outlen;
@@ -109,6 +164,8 @@ int GetAllProcesses(char* szout) {
 		int cpu = cpus[num];
 		double cpu_diff = tick - g_cpu_start_tick[cpu];
 		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
+
+#ifdef TASK_SWITCH_ARRAY
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
@@ -126,6 +183,31 @@ int GetAllProcesses(char* szout) {
 				outlen += len;
 			}
 		}
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				double proc_diff = p->tick_total;
+				double proc_ratio = (double)p->tick_run / proc_diff;
+				double proc_usage = (double)p->tick_run / (double)g_cpu_tick[cpu];
+				double cost = p->tick_switch_cost;
+				double switch_cost = cost / g_timer_tick[cpu];
+				len = __sprintf(szout + outlen,
+					"[%d]. filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf£¬task rate:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+					n++, p->filename, p->funcname, p->moduleBase, p->cpuid,
+					p->pid, p->ppid, p->tid, p->level, p->tick_run, p->tick_switch_cost, p->tick_start,
+					cpu_usage, proc_ratio, proc_usage, switch_cost, p->sleep_total, p->counter, p->slice, p->priority, 
+					p->delta, *p->lpvasize, *p->lpHeapCnt);
+				outlen += len;
+			}
+			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 	}
 
 	return outlen;
@@ -142,8 +224,8 @@ int GetProcess(int cpuid,int pid, char* szout) {
 		int cpu = cpus[num];
 		if (cpu == cpuid) {
 			double cpu_diff = tick - g_cpu_start_tick[cpu];
-			double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
-
+			double cpu_usage = g_cpu_tick[cpu] / cpu_diff;		
+#ifdef TASK_SWITCH_ARRAY
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 				if (tss[i].status == TASK_RUN && tss[i].pid == pid)
@@ -161,6 +243,30 @@ int GetProcess(int cpuid,int pid, char* szout) {
 					return len;
 				}
 			}
+#else
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+			PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+			PROCESS_INFO_LIST* ptr = hdr;
+			do {
+				if (ptr == 0)
+					break;
+				LPPROCESS_INFO p = &ptr->proc;
+				if (p->status == TASK_RUN && p->pid == pid) {
+					double proc_diff = p->tick_total;
+					double proc_ratio = (double)p->tick_run / proc_diff;
+					double cost = p->tick_switch_cost;
+					double switch_cost = cost / g_timer_tick[cpu];
+					double proc_usage = (double)p->tick_run / (double)g_cpu_tick[cpu];
+					int len = __sprintf(szout,
+						"filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf,task ratio:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
+						p->filename, p->funcname, p->moduleBase, p->cpuid,
+						p->pid, p->ppid, p->tid, p->level, p->tick_run, p->tick_switch_cost, p->tick_start,
+						cpu_usage, proc_ratio, proc_usage, switch_cost, p->sleep_total, p->counter, p->slice, p->priority, p->delta, *p->lpvasize, *p->lpHeapCnt);
+					return len;
+				}
+				ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+			} while (ptr && ptr != hdr);
+#endif
 		}
 	}
 	*szout = 0;
@@ -231,6 +337,7 @@ int GetHeap(int cpu, int tid,char * szout) {
 		int id = cpus[num];
 		
 		if (id == cpu) {
+#ifdef TASK_SWITCH_ARRAY
 			LPPROCESS_INFO procs = GetTaskTssBaseId(id);
 			for (int j = 0; j < TASK_LIMIT_TOTAL; j++) {
 				if (procs[j].tid == tid && procs[j].status == TASK_RUN) {
@@ -242,6 +349,25 @@ int GetHeap(int cpu, int tid,char * szout) {
 					}
 				}
 			}
+#else
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+			PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+			PROCESS_INFO_LIST* ptr = hdr;
+			do {
+				if (ptr == 0)
+					break;
+				LPPROCESS_INFO p = &ptr->proc;
+				if (p->status == TASK_RUN && p->tid == tid) {
+					int heapcnt = *p->lpHeapCnt;
+					for (int k = 0; k < heapcnt; k++) {
+						int len = __sprintf(szout + pos, "[%d] heap base:%x,heap size:%x\r\n",
+							k, (*p->lpHeapBase)[k], p->heapsize << k);
+						pos += len;
+					}
+				}
+				ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+			} while (ptr && ptr != hdr);
+#endif
 		}
 	}
 	return pos;
@@ -310,6 +436,8 @@ int GetTaskRatio(char* szout) {
 		int cpu = cpus[num];
 		double cpu_diff = tick - g_cpu_start_tick[cpu];
 		double cpu_usage = g_cpu_tick[cpu] / cpu_diff;
+		
+#ifdef TASK_SWITCH_ARRAY
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(cpu);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
 			if (tss[i].status == TASK_RUN)
@@ -325,6 +453,28 @@ int GetTaskRatio(char* szout) {
 				outlen += len;
 			}
 		}
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+		PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+		PROCESS_INFO_LIST* ptr = hdr;
+		do {
+			if (ptr == 0)
+				break;
+			LPPROCESS_INFO p = &ptr->proc;
+			if (p->status == TASK_RUN) {
+				double proc_diff = p->tick_total;
+				double proc_alive = (double)p->tick_run / proc_diff;
+				double cost = p->tick_switch_cost;
+				double switch_cost = cost / g_timer_tick[cpu];
+				double proc_cpu = (double)p->tick_run / (double)g_cpu_tick[cpu];
+				len = __sprintf(szout + outlen,
+					"[%d]. funcname:%s, cpu:%d,pid:%d,tid:%d,g_cpu_tick:%i64x,cpu usage:%lf,tick_run:%i64x,task alive:%lf,task cpu:%lf,switch_cost:%lf\r\n",
+					n++, p->funcname, p->cpuid, p->pid, p->tid, g_cpu_tick[cpu], cpu_usage, p->tick_run, proc_alive, proc_cpu, switch_cost);
+				outlen += len;
+			}
+			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		} while (ptr && ptr != hdr);
+#endif
 	}
 
 	return outlen;

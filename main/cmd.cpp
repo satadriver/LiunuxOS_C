@@ -258,10 +258,16 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			pop eflags
 		}
 		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		LPPROCESS_INFO process = (LPPROCESS_INFO)GetTaskTssBaseId(id);
+		LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+#ifdef TASK_SWITCH_ARRAY
+		
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+		LPPROCESS_INFO proc = &list->proc;
+#endif	
 		char* lpgdt = g_gdt_base[id];
 		TssDescriptor* descrptor = (TssDescriptor*)(lpgdt + kTssTaskSelector);
-		__sprintf(szout, "tid:%d, pid:%d ,eflags:%x,tss descriptor:%i64x\r\n",process->tid, process->pid,  eflags , *descrptor );
+		__sprintf(szout, "tid:%d, pid:%d ,eflags:%x,tss descriptor:%i64x\r\n", cur->tid, cur->pid,  eflags , *descrptor );
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "testdev") == 0)

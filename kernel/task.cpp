@@ -715,7 +715,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		proc->status = TASK_OVER;
 		prev->status = TASK_OVER;
 		RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
-		//__printf(szout, "%s prev tss status TASK_OVER error!\r\n",__FUNCTION__);
 	}
 	else if (proc->status == TASK_RUN && prev->status == TASK_RUN)
 	{
@@ -1549,18 +1548,34 @@ PROCESS_INFO* GetNextProcess() {
 	char szout[256];
 	int ret = 0;
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO current = (LPPROCESS_INFO)(tss + process->tid);
+#ifdef TASK_SWITCH_ARRAY
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + process->tid);
 	LPPROCESS_INFO next = current;
 
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(process->tid);
+	if (list == 0)
+	{
+		__printf(szout, "%s %d error!\r\n", __FUNCTION__, __LINE__);
+		return 0;
+	}
+	LPPROCESS_INFO prev = &list->proc;
+	PROCESS_INFO_LIST* nextlist = (PROCESS_INFO_LIST*)list->list.next;
+	LPPROCESS_INFO next = (LPPROCESS_INFO)&nextlist->proc;
+#endif
 	do {
+#ifdef TASK_SWITCH_ARRAY
 		next++;
 		if (next - tss >= TASK_LIMIT_TOTAL) {
 			next = tss;
 		}
+#else
 
-		if (next == current) {
+#endif
+		if (next == prev) {
 			return 0;
 		}
 
@@ -1587,6 +1602,12 @@ PROCESS_INFO* GetNextProcess() {
 		else if (next->status == TASK_SUSPEND) {
 			continue;
 		}
+#ifdef TASK_SWITCH_ARRAY
+
+#else
+		nextlist = (PROCESS_INFO_LIST*)nextlist->list.next;
+		next = (LPPROCESS_INFO)&nextlist->proc;
+#endif
 	} while (TRUE);
 
 	return next;

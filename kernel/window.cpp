@@ -420,18 +420,18 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	char szout[256];
 	__printf(szout, "%s window %x, name:%s\r\n", __FUNCTION__, window,window->winname);
 
-	//enter_task_array_lock();
 	enter_task_array_lock_id(window->cpu);
 
-	int tid = window->tid;
-
-	//LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO procBase = GetTaskTssBaseId(window->cpu);
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	LPPROCESS_INFO process = (LPPROCESS_INFO)procBase + tid;
+#ifdef TASK_SWITCH_ARRAY
+	LPPROCESS_INFO pb = GetTaskTssBaseId(window->cpu);
+	LPPROCESS_INFO process = (LPPROCESS_INFO)pb + tid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(window->cpu,window->tid);
+	LPPROCESS_INFO process = & list->proc;
+#endif
 	LPWINDOWSINFO topwinfo = getTopWindow();
 	if (topwinfo == 0) {
-		//error
 		__printf(szout, "%s getTopWindow error\r\n", __FUNCTION__);
 	}
 	else {
@@ -466,17 +466,15 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	__kDrawMouse();
 	DWORD cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	process->videoBase = (char*)gGraphBase;
 	if (current->tid == window->tid ) {
 		current->videoBase = (char*)gGraphBase;
-		process->videoBase = (char*)gGraphBase;
 	}
 	else {
-		process->videoBase = (char*)gGraphBase;
 	}
 	
 	deletePopupItem(window);
 
-	//leave_task_array_lock();
 	leave_task_array_lock_id(window->cpu);
 
 	window->id = InsertWindow((WINDOWCLASS*)window, window->winname);
@@ -496,7 +494,12 @@ int MinimizeWindow(WINDOWCLASS* lpwindow) {
 
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int pid = proc->pid;
+#ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetTaskTssBase() + pid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListPid(pid );
+	LPPROCESS_INFO process = &list->proc;
+#endif
 
 	WINDOWCLASS* window = (WINDOWCLASS *)linear2phyByPid((unsigned long)lpwindow,pid);
 	if (window->minBuf == 0) {

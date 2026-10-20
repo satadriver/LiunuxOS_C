@@ -84,7 +84,7 @@ PROCESS_INFO_LIST* InsertTaskList(PROCESS_INFO_LIST* p);
 PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
 PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
 PROCESS_INFO_LIST* RemoveTaskListPid(int pid);
-PROCESS_INFO_LIST * GetTaskListId(int id);
+
 //void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
 
 void SetIVTVector();
@@ -96,7 +96,7 @@ int __initTask0(char* filename, char* funcname,int showx,int showy);
 int __GetFreeTask(LPTASKRESULT ret, int id);
 
 PROCESS_INFO* GetNextProcess();
-
+extern "C" PROCESS_INFO_LIST* gTasksListPtr[256];
 
 #ifdef DLL_EXPORT
 
@@ -138,6 +138,8 @@ extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllexport) void leave_task_array_lock_id(int id);
 
+extern "C"  __declspec(dllexport) PROCESS_INFO_LIST* GetTaskListId(int id);
+
 #else
 extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[MAX_CPU_COUNT];
 extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[MAX_CPU_COUNT];
@@ -177,6 +179,7 @@ extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllimport) void leave_task_array_lock_id(int id);
 
+extern "C"  __declspec(dllimport) PROCESS_INFO_LIST* GetTaskListId(int id);
 #endif
 
 

@@ -64,6 +64,8 @@ unsigned short bcd2asc(char bcd) {
 	return (low << 8) + high;
 }
 
+
+
 void __kPeriodTimer() {
 	char c = readCmosPort(0x32);
 	char y = readCmosPort(9);
@@ -130,9 +132,7 @@ void __kPeriodTimer() {
 
 	GetCPUTask();
 
-#ifdef TASK_SWITCH_ARRAY
-	SwitchTaskCPU(0);
-#endif
+	SwitchTaskCPU();
 
 	if (g_tick_persec == 0 && g_tick_prev == 0) {
 		g_tick_prev = __krdtsc();
