@@ -88,8 +88,8 @@ int getVm86ProcAddr(char * fn,int type, DWORD filedata, int size, int pid) {
 int relocDos(DWORD loadseg) {
 	IMAGE_DOS_HEADER* hdr = (IMAGE_DOS_HEADER*)(loadseg << 4);
 	int dosseg = hdr->e_cparhdr + loadseg;
-	hdr->e_cs = hdr->e_cs + dosseg;
-	hdr->e_ss = hdr->e_ss + dosseg;
+	//hdr->e_cs = hdr->e_cs + dosseg;
+	//hdr->e_ss = hdr->e_ss + dosseg;
 
 	int relocoff = hdr->e_lfarlc;
 	unsigned short* relocs = (unsigned short*)((loadseg << 4) + relocoff);
@@ -255,7 +255,8 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 		tss->tss.fs = dospsp;
 		tss->tss.gs = dospsp;
 
-		//__printf(szout, "__kCreateTask dos exe file:%s\r\n", filename);
+		__printf(szout, "%s %d seg:%x cs:%x eip:%x ss:%x esp:%x ds:%x\r\n", 
+			__FUNCTION__,__LINE__,seg,tss->tss.cs,tss->tss.eip,tss->tss.ss,tss->tss.esp,tss->tss.ds);
 	}
 	else {
 		tss->tss.eip = 0x100;
