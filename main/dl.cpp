@@ -26,7 +26,7 @@
 #include "deepLearning.h"
 #endif
 #include "mainUtils.h"
-#include "DeepLearning.h"
+#include "cmosperiodtimer.h"
 
 
 #define sqrt __sqrt
@@ -88,7 +88,7 @@ void DlTestProcess(int tag,int cnt) {
 
 	int sleep_time = 20;
 
-	int thread_cnt = cnt  - *(int*)(CPU_TOTAL_ADDRESS);
+	int thread_cnt = cnt  - g_cpu_total;
 	for (int i = 0; i < thread_cnt; i++) {
 		break;
 		char tn[256];
@@ -103,7 +103,7 @@ void DlTestProcess(int tag,int cnt) {
 	}
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_BASE);
-	int sleep_cnt = cnt / 2 - *(int*)(CPU_TOTAL_ADDRESS);
+	int sleep_cnt = cnt / 2 - g_cpu_total;
 	for (int i = 0; i < sleep_cnt; ++i) {
 		char tn[256];
 		__sprintf(tn, "TestProcess_sleep_%d", i);
@@ -135,7 +135,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick1 = g_cmos_period_tick_cnt;
 
 	__enterSpinlock(&g_dl_lock);
 
@@ -175,7 +175,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
-	DWORD tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick2 = g_cmos_period_tick_cnt;
 	DWORD sampleTime = tick2 - tick1;
 
 	char szout[256];
@@ -260,7 +260,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 		}
 	}
 
-	tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	tick1 = g_cmos_period_tick_cnt;
 	DWORD trainTime = tick1 - tick2;
 
 	double error = 100.0 * n_err / n_samples;
@@ -486,7 +486,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 	g_rnn_task_count = GetMaxProcessNum(&g_rnn_sample_cpu);
 
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick1 = g_cmos_period_tick_cnt;
 
 	//int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
 

@@ -1549,15 +1549,13 @@ int getCpuInfo(char* name) {
 
 int __shutdownSystem() {
 
-	__asm {
-		mov ax, 2001h;
-		mov dx, 1004h;
-		out dx, ax;    //写入 2001h  到端口 1004h    实现暴力关机
-	}
+	//__asm {
+	//	mov ax, 2001h;
+	//	mov dx, 1004h;
+	//	out dx, ax;    //写入 2001h  到端口 1004h    实现暴力关机
+	//}
 
-	doPowerOff();
-
-	outportw(0x4004, 0x3400);
+	//outportw(0x4004, 0x3400);
 
 	for (int bdf = 0x80000008; bdf <= 0x80fff808; bdf += 0x100)			//offset 8,read class type,vender type
 	{
@@ -1574,30 +1572,19 @@ int __shutdownSystem() {
 			outportw(r2, d2);
 		}
 	}
+
+	doPowerOff();
+
 	return 0;
 }
 
 //cpu寻址位在第一位开始ffff:0000,当寻址位在第一位的时候及0，
 //会检测到当前地址0040:0072位是否为1234h,如果是1234h时，就不需要检测内存，如果不是1234h，就需要检测内存，就会重启
-int __reset() {
-
-	doReboot();
-
-#if 0
+void __reboot() {
+	outportb(0xcf9, 4);
 	outportb(0x92, 0x01);
 	outportb(0x64, 0xFE);
-	outportb(0xcf9, 0x04);
-	outportb(0xcf9, 0x06);
-#endif
-	__asm {
-
-		mov al, 4
-		mov dx, 0cf9h
-		out dx, al
-
-		mov al, 1
-		out 92h, al
-	}
+	doReboot();
 }
 
 int __GetCurrentCpu() {

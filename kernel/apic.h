@@ -110,7 +110,6 @@ int InitApicThermalMonitor();
 int DisableLocalApicLVT();
 
 int AllocateApTask(int vn);
-int ActiveApTask(int intnum);
 
 void WaitIcrFree();
 
@@ -131,6 +130,8 @@ extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 int IpiTaskSchedule(int id);
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) int g_cpu_total;
+extern "C" __declspec(dllexport) int g_cpu_id[256];
 extern "C" __declspec(dllexport) unsigned long long g_td_tickcost ;
 
 extern "C" __declspec(dllexport) unsigned long long g_td_pre_tickcost ;
@@ -152,6 +153,8 @@ extern "C" __declspec(dllexport)  LPPROCESS_INFO SetTaskTssBase();
 
 extern "C" __declspec(dllexport)  unsigned long long ApicTimerFreq();
 #else
+extern "C" __declspec(dllimport) int g_cpu_total;
+extern "C" __declspec(dllimport) int g_cpu_id[256];
 extern "C" __declspec(dllimport) unsigned long long g_td_tickcost;
 
 extern "C" __declspec(dllimport) unsigned long long g_td_pre_tickcost;

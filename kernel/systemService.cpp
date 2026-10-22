@@ -8,6 +8,8 @@
 #include "core.h"
 #include "VM86.h"
 #include "apic.h"
+#include "apicTimer.h"
+#include "cmosPeriodTimer.h"
 
 unsigned long long g_tick_prev = 0;
 unsigned long long g_tick_persec = 0;
@@ -414,7 +416,7 @@ extern "C" __declspec(dllexport) DWORD __random(DWORD r) {
 			g_random_seed = r;
 		}
 		else {
-			g_random_seed = *((DWORD*)APICTIMER_TICK_COUNT);
+			g_random_seed = g_apictimer_tick_cnt[0];
 		}
 	}
 	g_random_seed = (w * g_random_seed*v + u)% 0xffffffff;
@@ -427,7 +429,7 @@ extern "C" __declspec(dllexport) DWORD __random(DWORD r) {
 DWORD __random2(DWORD init) {
 	unsigned __int64 t = init;
 	if (t == 0) {
-		DWORD dt = *((DWORD*)APICTIMER_TICK_COUNT);
+		DWORD dt = g_apictimer_tick_cnt[0];
 		t = dt;
 	}
 	t = (t *( 7 *7*7*7*7 )) % 0xffffffff;
@@ -659,10 +661,10 @@ DWORD __timestamp(unsigned long* params) {
 
 unsigned long long tscps() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick = g_cmos_period_tick_cnt;
 	DWORD tick2 = tick;
 	while (tick2 == tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick = g_cmos_period_tick_cnt;
 		__sleep(0);
 	}
 
@@ -671,7 +673,7 @@ unsigned long long tscps() {
 	unsigned long long tsc1 = __krdtsc();
 
 	while (tick2 != tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick = g_cmos_period_tick_cnt;
 		__sleep(0);
 	}
 

@@ -172,8 +172,8 @@ int TaskSchedulePredict(TaskPredictParam* tp) {
 int GetSamplePos(int cpu,int * label) {
 	int pos = 0;
 	int subpos = 0;
-	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
-	int* cpus = (int*)CPU_ID_ADDRESS;
+	int cnt = g_cpu_total;
+	int* cpus = (int*)g_cpu_id;
 	for(int i = 0;i < cnt; i++) {
 		if (cpus[i] == cpu) {
 			break;

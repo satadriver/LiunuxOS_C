@@ -9,10 +9,17 @@
 #include "cmosExactTimer.h"
 #include "apictimer.h"
 #include "apic.h"
+#include "cmosPeriodTimer.h"
 
 DATETIME g_startup_timer;
 
 int g_cmos_spinlock = 0;
+
+unsigned long g_cmos_period_tick_cnt = 0;	// CMOS_PERIOD_TICK_COUNT
+
+char g_cmos_datetime_str[64];
+
+unsigned long g_sleep_timer_cnt;
 
 void EnableCmos() {
 	__enterSpinlock(&g_cmos_spinlock);
@@ -112,9 +119,9 @@ void __kPeriodTimer() {
 	}
 
 	__sprintf(szout,fmt , &strc, &stry, &strm, &strd, strdw, &strhour, &strminute, &strsecond);
-	__strcpy((char*)CMOS_DATETIME_STRING, szout);
+	__strcpy((char*)g_cmos_datetime_str, szout);
 
-	DWORD* lptickcnt = (DWORD*)SLEEP_TIMER_RECORD;
+	DWORD* lptickcnt = (DWORD*)&g_sleep_timer_cnt;
 	(*lptickcnt)++;
 	if (*lptickcnt >= SHUTDOWN_SCREEN_SECONDS)
 	{
@@ -132,7 +139,7 @@ void __kPeriodTimer() {
 
 	GetCPUTask();
 
-	SwitchTaskCPU();
+	//SwitchTaskCPU();
 
 	if (g_tick_persec == 0 && g_tick_prev == 0) {
 		g_tick_prev = __krdtsc();
@@ -168,9 +175,9 @@ TIMER_PROC_PARAM gPeriodTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
 
 void initPeriodTimer() {
-	*((DWORD*)CMOS_PERIOD_TICK_COUNT) = 0;
+	g_cmos_period_tick_cnt = 0;
 	
-	* ((DWORD*)SLEEP_TIMER_RECORD) = 0;
+	g_sleep_timer_cnt = 0;
 	__memset((char*)gPeriodTimer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
 }
 
@@ -181,7 +188,7 @@ int __kAddPeriodTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD
 		return -1;
 	}
 
-	DWORD* lptickcnt = (DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD* lptickcnt = (DWORD*)&g_cmos_period_tick_cnt;
 
 	DWORD ticks = delay;		
 
@@ -225,7 +232,7 @@ void __kRemovePeriodTimer(int no) {
 void __kPeriodTimerProc() {
 
 	int result = 0;
-	DWORD* lptickcnt = (DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD* lptickcnt = (DWORD*)&g_cmos_period_tick_cnt;
 
 	//in both c and c++ language,the * priority is lower than ++
 	(*lptickcnt)++;
@@ -274,5 +281,5 @@ extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime)
 
 
 extern "C"  __declspec(dllexport) int __getDateTimeStr(void* str) {
-	return __strcpy((char*)str, (char*)CMOS_DATETIME_STRING);
+	return __strcpy((char*)str, (char*)g_cmos_datetime_str);
 }

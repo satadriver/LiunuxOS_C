@@ -20,6 +20,12 @@
 #include "apicTimer.h"
 #include "taskPriority.h"
 
+
+
+
+int g_cpu_total = 0;
+int g_cpu_id[256];
+
 DWORD * gOicBase = 0;
 
 char * gRcbaBase = 0;
@@ -375,8 +381,8 @@ void IoApicRedirect(int pin, int cpu, int vector, int mode) {
 	int cpuid = 0;
 	if (cpu == -1) {
 		//__enterSpinlock(&g_allocate_ap_lock);
-		int total = *(int*)(CPU_TOTAL_ADDRESS);
-		int* ids = (int*)CPU_ID_ADDRESS;
+		int total = g_cpu_total;
+		int* ids = (int*)g_cpu_id;
 		cpuid = ids[gAllocateAp];
 		gAllocateAp++;
 		if (gAllocateAp >= total) {
@@ -436,7 +442,7 @@ void SetIcr(int cpu,int vector,int mode,int destType) {
 
 int InitIoApicRte() {
 	
-	int bsp_id = *(int*)(CPU_ID_ADDRESS);
+	int bsp_id = g_cpu_id[0];
 
 	IoApicRedirect(0x10, bsp_id, 0x10000, 0);
 
@@ -725,10 +731,6 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 		MOV FS, ax
 		MOV GS, AX	
 		MOV ss, AX
-
-#ifndef SINGLE_TASK_TSS
-		//clts
-#endif
 	}
 
 	{
@@ -1003,11 +1005,11 @@ int AllocateApTask(int intnum) {
 	int res = -1;
 	int cpuId = 0;
 
-	int total = *(int*)(CPU_TOTAL_ADDRESS);
+	int total = g_cpu_total;
 	if (total > 0) {
 
 		int idx = gAllocateAp;
-		int* ids = (int*)CPU_ID_ADDRESS;
+		int* ids = (int*)g_cpu_id;
 		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		
 		do {
@@ -1033,46 +1035,6 @@ int AllocateApTask(int intnum) {
 	unsigned long v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
 	__printf(szout, "%s index:%x,id:%x result:%x\r\n",__FUNCTION__, res, cpuId,v);
 	return res;
-}
-
-
-
-
-
-
-int ActiveApTask(int intnum) {
-
-	return 0;
-
-	if (intnum < 0 || intnum > 255) {
-		return -1;
-	}
-
-	//__enterSpinlock(&g_allocate_ap_lock);
-
-	int total = *(int*)(CPU_TOTAL_ADDRESS);
-	if (total > 0) {
-		
-		SetIcr(0, intnum, 0, 3);
-		/*
-		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		int* ids = (int*)AP_ID_ADDRESS;
-		for (int idx = 0; idx < total; idx++)
-		{
-			int cpuId = ids[idx];
-			if (id != cpuId) {
-
-				SetIcr(cpuId, intnum,0,0);
-			}	
-		}
-		*/
-	}
-
-	//__leaveSpinlock(&g_allocate_ap_lock);
-
-	//char szout[256];
-	//__printf(szout, "AllocateApTask index:%x,id:%x\r\n", res, cpuId);
-	return 0;
 }
 
 
@@ -1308,10 +1270,10 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	//__enterLock(&g_allocate_ap_lock);
 	__enterSpinlock(&g_allocate_ap_lock);
 
-	int seq = *(int*)CPU_TOTAL_ADDRESS;
-	int* apids = (int*)CPU_ID_ADDRESS;
+	int seq = g_cpu_total;
+	int* apids = (int*)g_cpu_id;
 	apids[seq] = cpuid;
-	*(int*)(CPU_TOTAL_ADDRESS) = seq + 1;
+	g_cpu_total = seq + 1;
 
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
@@ -1457,8 +1419,8 @@ void BPCodeStart() {
 	__asm {sti}
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	*(DWORD*)CPU_ID_ADDRESS = cpu;
-	*(int*)(CPU_TOTAL_ADDRESS) = 1;
+	g_cpu_id[0] = cpu;
+	g_cpu_total = 1;
 	g_ipi_buf[cpu] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 	__memset(g_ipi_buf[cpu], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 
@@ -1502,8 +1464,8 @@ void BPCodeStart() {
 #endif
 	//__sleep(0);
 
-	int* ids = (int*)CPU_ID_ADDRESS;
-	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
+	int* ids = (int*)g_cpu_id;
+	int cnt = g_cpu_total;
 	for (int i = 0; i < cnt; i++) {
 #if 1
 		//SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
@@ -1569,7 +1531,7 @@ void BPCodeStart() {
 int IsBspProcessor() {
 	unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
 
-	int bspid = *(int*)CPU_ID_ADDRESS;
+	int bspid = g_cpu_id[0];
 	if (id == bspid) {
 		return 1;
 	}
@@ -1615,6 +1577,8 @@ int GetTssSize() {
 	return tssSize;
 }
 
+#ifdef TASK_SWITCH_ARRAY
+
 LPPROCESS_INFO GetTaskTssBase() {
 	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -1649,14 +1613,15 @@ LPPROCESS_INFO GetTaskTssBaseId(int id) {
 
 	return (LPPROCESS_INFO)g_ap_tss_base[id];
 }
+#endif
 
 
 int GetCpu(int* out, int size) {
-	int cnt = *(int*)(CPU_TOTAL_ADDRESS);
+	int cnt = g_cpu_total;
 	if (cnt > size) {
 		return 0;
 	}
-	int* cpus = (int*)CPU_ID_ADDRESS;
+	int* cpus = (int*)g_cpu_id;
 	for (int i = 0; i < cnt; i++) {
 		out[i] = cpus[i];
 	}
@@ -1667,8 +1632,8 @@ int GetCpu(int* out, int size) {
 
 int GetIdleProcessor() {
 
-	int* ids = (int*)CPU_ID_ADDRESS;
-	int cpu_cnt = *(int*)(CPU_TOTAL_ADDRESS);
+	int* ids = (int*)g_cpu_id;
+	int cpu_cnt = g_cpu_total;
 	AlgorithmModel rate[MAX_CPU_COUNT];
 
 	unsigned long long dcnt[MAX_CPU_COUNT];

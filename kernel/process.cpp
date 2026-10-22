@@ -18,7 +18,8 @@
 #include "core.h"
 #include "systemService.h"
 #include "taskPriority.h"
-
+#include "cmosPeriodTimer.h"
+#include "apicTimer.h"
 
 extern void freeProcessPages(LPPROCESS_INFO proc);
 extern void freeProcessMemory(LPPROCESS_INFO proc);
@@ -581,7 +582,7 @@ int __kCreateProcessFromAddr(DWORD filedata, int filesize, char * funcname, int 
 	char filename[1024];
 	// 	__getDateTimeStr(filename);
 
-	__sprintf(filename, "process_%x", *((unsigned int*)APICTIMER_TICK_COUNT));
+	__sprintf(filename, "process_%x", g_apictimer_tick_cnt[0]);
 
 	return __kCreateProcess(filedata, filesize, filename, funcname, syslevel, params);
 }

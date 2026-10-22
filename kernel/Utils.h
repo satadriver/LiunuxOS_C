@@ -118,7 +118,7 @@ extern "C" __declspec(dllexport) int __strupr(char * str);
 extern "C" __declspec(dllexport) int __strlwr(char * str);
 
 extern "C" __declspec(dllexport) int __shutdownSystem();
-extern "C" __declspec(dllexport) int __reset();
+extern "C" __declspec(dllexport) void __reboot();
 
 extern "C" __declspec(dllexport) int __sleep(int millisecs);
 
@@ -222,7 +222,7 @@ extern "C" __declspec(dllimport) int __strupr(char * str);
 extern "C" __declspec(dllimport) int __strlwr(char * str);
 
 extern "C" __declspec(dllimport) int __shutdownSystem();
-extern "C" __declspec(dllimport) int __reset();
+extern "C" __declspec(dllimport) void __reboot();
 
 extern "C" __declspec(dllimport) int __sleep(int millisecs);
 

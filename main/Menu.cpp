@@ -20,7 +20,7 @@
 #include "CubeVector.h"
 #include "SquareVector.h"
 #include "TrajectoryBall.h"
-#include "CubeVector.h"
+#include "cmosperiodtimer.h"
 
 
 int __restoreRightMenu(RIGHTMENU* menu) {
@@ -77,7 +77,7 @@ int __drawRightMenu(RIGHTMENU *menu) {
 	//menu->backsize = gBytesPerPixel*(menu->width + 1)*(menu->height + 1);
 	//menu->backGround = __kMalloc(menu->backsize);
 
-	menu->id = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
+	menu->id = g_cmos_period_tick_cnt;
 
 	int startpos = __getpos(menu->pos.x, menu->pos.y) + gGraphBase;
 	unsigned char * ptr = (unsigned char*)startpos;
@@ -220,7 +220,7 @@ void initRightMenu(RIGHTMENU * menu,int tid) {
 	//menu->menuname[14][0] = 0;
 
 	menu->funcaddr[0] = (DWORD)__shutdownSystem;
-	menu->funcaddr[1] = (DWORD)__reset;
+	menu->funcaddr[1] = (DWORD)__reboot;
 	menu->funcaddr[2] = (DWORD)rejectAtapi;
 
 	menu->funcaddr[3] = (DWORD)__kConsole;

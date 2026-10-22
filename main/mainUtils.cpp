@@ -10,7 +10,8 @@
 #include "systemService.h"
 #include "libc.h"
 #include "DeepLearning.h"
-
+#include "cmosPeriodTimer.h"
+#include "apicTimer.h"
 
 
 int GetMaxProcessNum(int * cpuid) {
@@ -309,8 +310,8 @@ int GetMemory(char * szout,int pid) {
 	len += __sprintf(szout+len, "total size:%i64x,allocated size:%i64x, available size:%i64x\r\n",
 		gAvailableSize, allocated, gAvailableSize - allocated);
 
-	int* ids = (int*)CPU_ID_ADDRESS;
-	int cpuCnt = *(int*)(CPU_TOTAL_ADDRESS);
+	int* ids = (int*)g_cpu_id;
+	int cpuCnt = g_cpu_total;
 
 	for (int i = 0; i < cpuCnt; i++) {
 		int id = ids[i];
@@ -375,8 +376,8 @@ int GetHeap(int cpu, int tid,char * szout) {
 
 
 int CpuUsage(char* buf) {
-	int* ids = (int*)CPU_ID_ADDRESS;
-	int counter = *(int*)(CPU_TOTAL_ADDRESS);
+	int* ids = (int*)g_cpu_id;
+	int counter = g_cpu_total;
 	int len = 0;
 	int offset = 0;
 
@@ -484,23 +485,23 @@ int GetTaskRatio(char* szout) {
 
 DWORD InterruptPerSec() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20)>>24;
-	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick = g_cmos_period_tick_cnt;
 	DWORD tick2 = tick;
 	while (tick2 == tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick = g_cmos_period_tick_cnt;
 		__sleep(0);
 	}
 
 	tick2 = tick + 1;
 
-	DWORD ints = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	DWORD ints = g_apictimer_tick_cnt[id];
 
 	while (tick2 != tick) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick = g_cmos_period_tick_cnt;
 		__sleep(0);
 	}
 
-	DWORD ints2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	DWORD ints2 = g_apictimer_tick_cnt [ id ];
 	return ints2 - ints;
 }
 

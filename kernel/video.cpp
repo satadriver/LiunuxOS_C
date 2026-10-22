@@ -13,7 +13,8 @@
 #include "pci.h"
 #include "apic.h"
 
-VESAINFORMATION* gVesaInfo;
+VESAINFORMATION gVesaInfo;
+VESAINFOBLOCK gVesaInfoBlock;
 unsigned char* gCCFontBase = 0;
 DWORD gFontBase = 0;
 unsigned int gGraphBase = 0;
@@ -41,11 +42,9 @@ int g_ScreenMode = 0;
 int __initVideo(LPVESAINFORMATION vesaInfo, DWORD fontbase) {
 	int result = 0;
 
-	gVesaInfo = (VESAINFORMATION*)VESA_INFO_BASE;
+	__memcpy((char*)&gVesaInfo, (char*)vesaInfo, sizeof(VESAINFORMATION));
 
-	__memcpy((char*)gVesaInfo, (char*)vesaInfo, sizeof(VESAINFORMATION));
-
-	__memcpy((char*)gVesaInfo + sizeof(VESAINFORMATION), (char*)vesaInfo + sizeof(VESAINFORMATION), sizeof(VESAINFOBLOCK));
+	__memcpy((char*)&gVesaInfoBlock, (char*)vesaInfo + sizeof(VESAINFORMATION), sizeof(VESAINFOBLOCK));
 
 	gFontBase = fontbase;
 	gBytesPerPixel = vesaInfo->BitsPerPixel >> 3;

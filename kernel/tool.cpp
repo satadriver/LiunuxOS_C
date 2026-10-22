@@ -5,6 +5,7 @@
 #include "systemService.h"
 #include "Utils.h"
 #include "apic.h"
+#include "cmosPeriodTimer.h"
 
 
 
@@ -15,11 +16,11 @@
 
 
 int WaitOrKey(int s,int wid,int key) {
-	DWORD tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick = g_cmos_period_tick_cnt;
 	DWORD dest = tick + s;
 
 	while (tick < dest) {
-		tick = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick = g_cmos_period_tick_cnt;
 
 		if (key) {
 			int ck = __kGetKbd(wid) & 0xff;

@@ -26,10 +26,12 @@ typedef struct
 
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) int g_cmos_exact_tick_cnt ;
 extern "C" __declspec(dllexport) void __kExactTimerProc();
 extern "C" __declspec(dllexport) int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD param3, DWORD param4);
 extern "C" __declspec(dllexport) void __kRemoveExactTimer(int no);
 #else
+extern "C" __declspec(dllimport) int g_cmos_exact_tick_cnt;
 extern "C" __declspec(dllimport) void __kExactTimerProc();
 extern "C" __declspec(dllimport) int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD param3, DWORD param4);
 extern "C" __declspec(dllimport) void __kRemoveExactTimer(int no);

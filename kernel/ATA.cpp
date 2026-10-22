@@ -11,6 +11,9 @@
 #include "hardware.h"
 #include "device.h"
 
+char g_atapi_info_base[512];
+char g_ata_info_buf[512];
+
 DWORD gATADrv = 0;
 
 DWORD gATAPIDrv = 0;
@@ -78,9 +81,9 @@ int checkIDEPort(unsigned short port) {
 
 		gATADrv = gATADev & 0x10;
 
-		r = identifyDevice(port, 0xec,(char*) ATA_INFO_BASE);
+		r = identifyDevice(port, 0xec,(char*)g_ata_info_buf);
 		if (r) {
-			unsigned char gc = *(unsigned char*)ATA_INFO_BASE;
+			unsigned char gc = *(unsigned char*)g_ata_info_buf;
 			if (gc * 0x80) {
 				return 1;
 			}
@@ -102,9 +105,9 @@ int checkIDEPort(unsigned short port) {
 
 		gATAPIDrv = gATAPIDev & 0x10;
 
-		r = identifyDevice(port , 0xa1 , (char*)ATAPI_INFO_BASE);
+		r = identifyDevice(port , 0xa1 , (char*)g_atapi_info_base);
 		if (r) {
-			WORD gc = *(WORD*)ATAPI_INFO_BASE;
+			WORD gc = *(WORD*)g_atapi_info_base;
 			if ( (gc & 3) == 1) {
 				gAtapiPackSize = 16;
 			}
@@ -639,27 +642,27 @@ int readDmaSectorLBA48(unsigned int secnoLow, unsigned int secnoHigh, unsigned c
 
 
 int getIdeSeq(char* buf) {
-	char* str = (char*)(ATA_INFO_BASE + 20);
+	char* str = (char*)(g_ata_info_buf + 20);
 	__strncpy(buf, str,20);
 	return 20;
 }
 
 
 int getIdeFirmVersion(char* buf) {
-	char* str = (char*)(ATA_INFO_BASE + 46);
+	char* str = (char*)(g_ata_info_buf + 46);
 	__strncpy(buf, str,8);
 	return 8;
 }
 
 int getIdeType(char* buf) {
-	char* str = (char*)(ATA_INFO_BASE + 54);
+	char* str = (char*)(g_ata_info_buf + 54);
 	__strncpy(buf, str, 40);
 	return 40;
 }
 
 
 int getIdeMediumSeq(char* buf) {
-	char* str = (char*)(ATA_INFO_BASE + 176*2);
+	char* str = (char*)(g_ata_info_buf + 176*2);
 	__strncpy(buf, str, 60);
 	return 60;
 }

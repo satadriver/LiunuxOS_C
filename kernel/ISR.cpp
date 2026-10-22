@@ -1303,7 +1303,7 @@ extern "C" void __declspec(naked) TimerInterrupt(LIGHT_ENVIRONMENT * stack) {
 
 	{
 		//in both c and c++ language,the * priority is lower than ++
-		DWORD* lptickcnt = (DWORD*)(TIMER_TICK_COUNT);
+		DWORD* lptickcnt = (DWORD*)&g_timer_tick_cnt;
 		(*lptickcnt)++;
 
 		__k8254TimerProc();

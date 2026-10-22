@@ -4,9 +4,9 @@
 #include "hardware.h"
 #include "video.h"
 #include "Utils.h"
-
+#include "cmosPeriodTimer.h"
+#include "apicTimer.h"
 #include "keyboard.h"
-#include "hardware.h"
 #include "systemService.h"
 #include "Animation.h"
 #include "device.h"
@@ -489,7 +489,7 @@ __declspec(naked) void MouseIntProc() {
 		EOICommand(INTR_8259_SLAVE + 6);
 	}
 	__asm {
-		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0
+		mov dword ptr ds : [g_sleep_timer_cnt] , 0
 		mov eax, SVC_TURNON_SCREEN
 		int 80h
 

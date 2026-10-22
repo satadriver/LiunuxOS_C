@@ -11,9 +11,10 @@
 
 TIMER_PROC_PARAM gExactTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
+int g_cmos_exact_tick_cnt = 0;
 
 void initExactTimer() {
-	*((DWORD*)CMOS_EXACT_TICK_COUNT) = 0;
+	g_cmos_exact_tick_cnt = 0;
 	__memset((char*)gExactTimer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
 }
 
@@ -24,7 +25,7 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 		return -1;
 	}
 
-	DWORD* lptickcnt = (DWORD*)CMOS_EXACT_TICK_COUNT;
+	DWORD* lptickcnt = (DWORD*)&g_cmos_exact_tick_cnt;
 
 	DWORD ticks = delay / CMOS_EXACT_INTERVAL;		
 	if (delay % CMOS_EXACT_INTERVAL) {
@@ -82,7 +83,7 @@ void __kRemoveExactTimer(int n) {
 void __kExactTimerProc() {
 
 	int result = 0;
-	DWORD* lptickcnt = (DWORD*)CMOS_EXACT_TICK_COUNT;
+	DWORD* lptickcnt = (DWORD*)&g_cmos_exact_tick_cnt;
 
 	//in both c and c++ language,the * priority is lower than ++
 	(*lptickcnt)++;

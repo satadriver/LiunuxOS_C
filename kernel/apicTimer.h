@@ -8,7 +8,10 @@
 extern "C" __declspec(dllexport)int SwitchTaskCPU();
 
 #ifdef DLL_EXPORT
+extern "C" __declspec(dllexport) unsigned long g_apictimer_tick_cnt[256];
 //extern "C" __declspec(dllexport)int g_task_switch_toggle ;
+
+extern "C" __declspec(dllexport) unsigned long g_timer_tick_cnt;
 extern "C" __declspec(dllexport)int __k8254TimerProc();
 extern "C" __declspec(dllexport) void __kApicTimerProc();
 
@@ -18,6 +21,8 @@ extern "C" __declspec(dllexport) void __kRemoveApicTimer(int n);
 
 extern "C" __declspec(dllexport) void initApicTimer();
 #else
+extern "C" __declspec(dllimport) unsigned long g_apictimer_tick_cnt[256];
+extern "C" __declspec(dllimport) unsigned long g_timer_tick_cnt;
 //extern "C" __declspec(dllimport)int g_task_switch_toggle;
 extern "C" __declspec(dllimport)int __k8254TimerProc();
 extern "C" __declspec(dllimport) void __kApicTimerProc();

@@ -9,6 +9,8 @@
 #include "systemService.h"
 #include "apic.h"
 #include "taskPriority.h"
+#include "cmosPeriodTimer.h"
+#include "apicTimer.h"
 
 DWORD gKbdTest = FALSE;
 
@@ -333,7 +335,7 @@ void __kKeyboardProc() {
 		if ( (data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || 
 			(data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG))  )
 		{
-			__reset();
+			__reboot();
 		}
 		else {
 			//keep it
@@ -357,7 +359,7 @@ void __kKeyboardProc() {
 		{
 			if ((data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || (data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG)))
 			{
-				__reset();
+				__reboot();
 			}
 			else {
 				//keep delete
@@ -574,7 +576,7 @@ __declspec(naked) void KeyboardIntProc() {
 
 	__asm {
 
-		mov dword ptr ds : [SLEEP_TIMER_RECORD] , 0
+		mov dword ptr ds : [g_sleep_timer_cnt] , 0
 		mov eax, SVC_TURNON_SCREEN
 		int 80h
 

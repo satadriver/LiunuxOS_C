@@ -49,6 +49,9 @@ typedef struct {
 
 
 
+
+#define TASK_SWITCH_COPROCESSOR_LAZY
+
 #define DOS_PROCESS_RUNCODE		0X80000000
 
 #define TASK_OVER				0
@@ -85,17 +88,16 @@ PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
 PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
 PROCESS_INFO_LIST* RemoveTaskListPid(int pid);
 
-//void __terminateTask(int pid, char * pname, char * funcname, DWORD lpparams);
+
 
 void SetIVTVector();
 
-extern "C" void ApTaskSchedule(LIGHT_ENVIRONMENT* stack);
+extern "C" void __TaskSchedule(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 
 int __GetFreeTask(LPTASKRESULT ret, int id);
 
-PROCESS_INFO* GetNextProcess();
 extern "C" PROCESS_INFO_LIST* gTasksListPtr[256];
 
 #ifdef DLL_EXPORT

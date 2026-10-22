@@ -59,7 +59,7 @@ extern "C" __declspec(dllexport) int __kPrintScreen() {
 		(char*)gGraphBase, screensize);
 
 	char filename[256];
-	__printf(filename, "c:\\%x.bmp", *(unsigned int*)APICTIMER_TICK_COUNT);
+	__printf(filename, "c:\\%x.bmp", g_apictimer_tick_cnt[0]);
 	int ret = writeFile(filename, (char*)data, screensize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), FILE_WRITE_APPEND);
 
 	__kFree((DWORD)data);

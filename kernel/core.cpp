@@ -25,7 +25,13 @@
 #include "hardware.h"
 #include "device.h"
 
+char* g_apictimer_tss[256];
+char* g_apictimer_stack0[256];
+char* g_apictimer_stack[256];
 
+//char* g_invalidtss_tss;
+//char* g_invalidtss_stack0;
+//char* g_invalidtss_stack;
 
 char* g_gdt_base[MAX_CPU_COUNT];
 
@@ -363,7 +369,6 @@ char* InitGdt() {
 
 	/*
 	makeLDTDescriptor(LDT_BASE, 3, 0x27, (TssDescriptor*)(lpgdt + ldtSelector));
-
 	SegDescriptor* ldt = (SegDescriptor*)LDT_BASE;
 	//ldt sequence number start form 1 not like gdt starting from 0
 	makeCodeSegDescriptor(0, 0, 32, 0, 1, ldt + 0);
@@ -376,15 +381,17 @@ char* InitGdt() {
 	initKernelTss(&proc->tss, 0,0, 0, PDE_ENTRY_VALUE, 0);
 	makeTssDescriptor((unsigned long)proc, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTaskSelector));
 
-	initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssExceptSelector));
+	//initKernelTss((TSS*)INVALID_TSS_BASE, TSSEXP_STACK0_TOP, TSSEXP_STACK_TOP, (DWORD)InvalidTss, PDE_ENTRY_VALUE, 0);
+	//makeTssDescriptor((DWORD)INVALID_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssExceptSelector));
 
 #ifdef SINGLE_TASK_TSS
 
 #else
-	initKernelTss((TSS*)(APICTIMER_TSS_BASE+id* tssSize), TSSAPICTIMER_STACK0_TOP+id* TASK_STACK0_SIZE, TSSAPICTIMER_STACK_TOP+id* KTASK_STACK_SIZE,
-		(DWORD)LVTTimerIntHandler, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)(APICTIMER_TSS_BASE+id* tssSize), 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
+	g_apictimer_tss[id] = __kMalloc(tssSize);
+	g_apictimer_stack[id] = __kMalloc(TASK_STACK_SIZE);
+	g_apictimer_stack0[id] = __kMalloc(TASK_STACK0_SIZE);
+	initKernelTss((TSS*)g_apictimer_tss[id], g_apictimer_stack0[id], g_apictimer_stack[id],(DWORD)LVTTimerIntHandler, PDE_ENTRY_VALUE, 0);
+	makeTssDescriptor((DWORD)g_apictimer_tss[id], 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssApicTimerSelector) );
 #endif
 
 #ifdef TASK_SWITCH_TASKGATE
@@ -392,8 +399,8 @@ char* InitGdt() {
 	makeTssDescriptor((DWORD)TIMER_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssTimerSelector));
 #endif
 
-	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
-	makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
+	//initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
+	//makeTssDescriptor((DWORD)V86_TSS_BASE, 3, sizeof(TSS) - 1, (TssDescriptor*)(lpgdt + kTssV86Selector));
 
 #ifdef IPI_INT_TASKGATE
 	initKernelTss((TSS*)IPI_TSS_BASE, TSSIPI_STACK0_TOP, TSSIPI_STACK_TOP, (DWORD)IPIIntHandler, PDE_ENTRY_VALUE, 0);
@@ -539,11 +546,11 @@ char* InitIDT() {
 	makeIntGateDescriptor((DWORD)LVTErrorIntHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTERROR_VECTOR);
 	makeIntGateDescriptor((DWORD)LVTCMCIHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_LVTCMCI_VECTOR);
 
-	makeIntGateDescriptor((DWORD)ApTaskSchedule, KERNEL_MODE_CODE, 3, descriptor + TASK_SCHEDULE_VECTOR);
+	makeIntGateDescriptor((DWORD)__TaskSchedule, KERNEL_MODE_CODE, 3, descriptor + TASK_SCHEDULE_VECTOR);
 	
-	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfe);
+	makeTrapGateDescriptor((DWORD)vm86IntProc, KERNEL_MODE_CODE, 3, descriptor + 0xfd);
 	
-	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xff));
+	makeTaskGateDescriptor((DWORD)kTssV86Selector, 3, (TaskGateDescriptor*)(descriptor + 0xfe));
 
 	makeIntGateDescriptor((DWORD)ApicSpuriousHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_SPURIOUS_VECTOR);
 

@@ -29,6 +29,8 @@
 #include "taskpriority.h"
 #include "DeepLearning.h"
 #include "dl.h"
+#include "apictimer.h"
+#include "cmosPeriodTimer.h"
 
 #pragma comment(linker, "/STACK:0x100000")
 
@@ -345,31 +347,31 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	else if (__strcmp(params[0], "apictc") == 0 && paramcnt > 2)
 	{
 		int id = __strh2i((unsigned char*)params[1]);
-		DWORD cnt = *(DWORD*)(APICTIMER_TICK_COUNT + id*sizeof(int));
+		DWORD cnt = g_apictimer_tick_cnt [id];
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "8254tc") == 0)
 	{
-		DWORD cnt = *((DWORD*)TIMER_TICK_COUNT);
+		DWORD cnt = g_timer_tick_cnt;
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "cmosptc") == 0)
 	{
-		DWORD cnt = *((DWORD*)CMOS_PERIOD_TICK_COUNT);
+		DWORD cnt = g_cmos_period_tick_cnt;
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "cmosetc") == 0)
 	{
-		DWORD cnt = *((DWORD*)CMOS_EXACT_TICK_COUNT);
+		DWORD cnt = g_cmos_exact_tick_cnt;
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "time") == 0)
 	{
-		__sprintf(szout, "%s\n", (char*)CMOS_DATETIME_STRING);
+		__sprintf(szout, "%s\n", (char*)g_cmos_datetime_str);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "rdpmc") == 0 && paramcnt>=2)
@@ -408,9 +410,9 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		//__drawWindow(window, FALSE);
 		initConsoleWindow(window, pidname, pid);
 	}
-	else if (__strcmp(params[0], "reset") == 0)
+	else if (__strcmp(params[0], "reboot") == 0)
 	{
-		__reset();
+		__reboot();
 	}
 	else if ( (__strcmp(params[0], "inport") == 0 || __strcmp(params[0], "outport") == 0)  )
 	{

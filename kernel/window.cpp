@@ -425,7 +425,7 @@ int MaximizeWindow(LPWINDOWCLASS window) {
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 #ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO pb = GetTaskTssBaseId(window->cpu);
-	LPPROCESS_INFO process = (LPPROCESS_INFO)pb + tid;
+	LPPROCESS_INFO process = (LPPROCESS_INFO)pb + current->tid;
 #else
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(window->cpu,window->tid);
 	LPPROCESS_INFO process = & list->proc;

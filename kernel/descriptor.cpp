@@ -11,6 +11,9 @@
 #include "apic.h"
 #include "systemService.h"
 #include "device.h"
+#include "cmosPeriodTimer.h"
+#include "apictimer.h"
+#include "cmosExactTimer.h"
 
 //reference:https://zhuanlan.zhihu.com/p/678582574
 
@@ -582,23 +585,23 @@ int AdjustApicTimer() {
 
 	//__asm {cli}
 
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick1 = g_cmos_period_tick_cnt;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 		__delay();
 	}
 
 	unsigned long long tc1 = __krdtsc();
-	DWORD ts1 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	DWORD ts1 = g_apictimer_tick_cnt [ id ];
 
 	tick1 = tick2 + 1;
 	while (tick2 <  tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 		__delay();
 	}
 
-	DWORD ts2 = *(DWORD*)(APICTIMER_TICK_COUNT + id * sizeof(int));
+	DWORD ts2 = g_apictimer_tick_cnt [ id ];
 	unsigned long long tc2 = __krdtsc();
 
 	//__asm{sti}
@@ -641,19 +644,19 @@ int AdjustApicTimer() {
 
 unsigned long Get8254TickCount_error() {
 
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick1 = g_cmos_period_tick_cnt;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 	}
 
-	DWORD ts1 = *(DWORD*)(TIMER_TICK_COUNT);
+	DWORD ts1 = g_timer_tick_cnt;
 
 	while (tick1 < tick2) {
-		tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick1 = g_cmos_period_tick_cnt;
 	}
 
-	DWORD ts2 = *(DWORD*)(TIMER_TICK_COUNT);
+	DWORD ts2 = g_timer_tick_cnt;
 
 	DWORD delta = ts2 - ts1;
 
@@ -662,20 +665,20 @@ unsigned long Get8254TickCount_error() {
 
 unsigned long Get8254TickCount() {
 
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick1 = g_cmos_period_tick_cnt;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 	}
 
-	DWORD ts1 = *(DWORD*)(TIMER_TICK_COUNT );
+	DWORD ts1 = g_timer_tick_cnt;
 
 	tick1 = tick2 + 1;
 	while (tick2 < tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 	}
 
-	DWORD ts2 = *(DWORD*)(TIMER_TICK_COUNT );
+	DWORD ts2 = g_timer_tick_cnt;
 
 	DWORD delta = ts2 - ts1;
 
@@ -685,20 +688,20 @@ unsigned long Get8254TickCount() {
 
 unsigned long GetCmosExactTickCount() {
 
-	DWORD tick1 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+	DWORD tick1 = g_cmos_period_tick_cnt;
 	DWORD tick2 = tick1;
 	while (tick2 == tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 	}
 
-	DWORD ts1 = *(DWORD*)(CMOS_EXACT_TICK_COUNT);
+	DWORD ts1 = g_cmos_exact_tick_cnt;
 
 	tick1 = tick2 + 1;
 	while (tick2 < tick1) {
-		tick2 = *(DWORD*)CMOS_PERIOD_TICK_COUNT;
+		tick2 = g_cmos_period_tick_cnt;
 	}
 
-	DWORD ts2 = *(DWORD*)(CMOS_EXACT_TICK_COUNT);
+	DWORD ts2 = g_cmos_exact_tick_cnt;
 
 	DWORD delta = ts2 - ts1;
 

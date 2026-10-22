@@ -11,7 +11,7 @@
 #include "Kernel.h"
 
 
-
+char* V86_TSS_BASE = 0;
 
 
 
@@ -228,7 +228,7 @@ int v86Int255Read(unsigned int secnum, DWORD secnumHigh,unsigned int seccnt,char
 		lptssd->type = lptssd->type & 0x0d;
 	}
 
-	initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
+	//initV86Tss((TSS*)V86_TSS_BASE, TSSV86_STACK0_TOP, gV86IntProc, gKernel16, PDE_ENTRY_VALUE, 0);
 
 	char szout[256];
 	if (params->result)

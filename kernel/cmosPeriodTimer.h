@@ -25,11 +25,16 @@ extern int g_cmos_spinlock;
 
 
 #ifdef DLL_EXPORT
-
+extern "C"  __declspec(dllexport) unsigned long g_cmos_period_tick_cnt;
+extern "C"  __declspec(dllexport) char g_cmos_datetime_str[64];
+extern "C"  __declspec(dllexport) unsigned long g_sleep_timer_cnt;
 extern "C"  __declspec(dllexport) char* dayOfWeek2str(int dw);
 extern "C"  __declspec(dllexport) int __getDateTime(LPDATETIME datetime);
 extern "C"  __declspec(dllexport) int __getDateTimeStr(void* str);
 #else
+extern "C"  __declspec(dllimport) unsigned long g_cmos_period_tick_cnt;
+extern "C"  __declspec(dllimport) char g_cmos_datetime_str[64];
+extern "C"  __declspec(dllimport) unsigned long g_sleep_timer_cnt;
 extern "C"  __declspec(dllimport) char* dayOfWeek2str(int dw);
 extern "C"  __declspec(dllimport) int __getDateTime(LPDATETIME datetime);
 extern "C"  __declspec(dllimport) int __getDateTimeStr(void* str);

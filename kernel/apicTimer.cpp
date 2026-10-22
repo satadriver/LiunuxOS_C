@@ -12,6 +12,8 @@
 //TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
 TIMER_PROC_PARAM * gApicTimer = 0;
 
+unsigned long g_timer_tick_cnt;
+unsigned long g_apictimer_tick_cnt[256] ;
 
 int getTimer8254Delay(){
 	int n = OSCILLATE_FREQUENCY / SYSTEM_TIMER0_FACTOR;
@@ -26,7 +28,7 @@ int getApicTimerDelay() {
 
 void initApicTimer() {
 	for (int i = 0; i < 256; i++) {
-		*(int*)(APICTIMER_TICK_COUNT + i * sizeof(int)) = 0;
+		*(int*)(g_apictimer_tick_cnt + i * sizeof(int)) = 0;
 	}
 	
 	//__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
@@ -42,7 +44,7 @@ int __kAddApicTimer(DWORD func, DWORD delay, DWORD param1, DWORD param2, DWORD p
 	//	return -1;
 	//}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD* lptickcnt = (DWORD*)(APICTIMER_TICK_COUNT +id*sizeof(int));
+	DWORD* lptickcnt = (DWORD*)&(g_apictimer_tick_cnt [id]);
 
 	int dt = getTimer8254Delay();
 
@@ -93,7 +95,7 @@ void __kApicTimerProc() {
 	int result = 0;
 	//in both c and c++ language,the * priority is lower than ++
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD* lptickcnt = (DWORD*)(APICTIMER_TICK_COUNT + id*sizeof(int));
+	DWORD* lptickcnt = (DWORD*)&(g_apictimer_tick_cnt[ id]);
 
 	(*lptickcnt)++;
 
@@ -143,8 +145,8 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 
 	AlgorithmModel ratio_buf[256];
 
-	int* ids = (int*)CPU_ID_ADDRESS;
-	int counter = *(int*)(CPU_TOTAL_ADDRESS);	
+	int* ids = (int*)g_cpu_id;
+	int counter = g_cpu_total;
 	unsigned long long tick = __krdtsc();
 	for (int i = 0; i < counter; i++) {
 		int cpuid = ids[i];

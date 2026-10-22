@@ -64,6 +64,8 @@ DWORD gKernel32 = 0;
 DWORD gKernelData = 0;
 DWORD gVideoMode = 0;
 
+char g_cpu_info_buf[64];
+
 
 int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, int v86ProcessLen,
 	DWORD v86IntBase, DWORD kerneldata, DWORD kernel16, DWORD kernel32) {
@@ -85,8 +87,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	gKernel32 = kernel32;
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	*(int*)(CPU_TOTAL_ADDRESS) = 1;
-	*(int*)CPU_ID_ADDRESS = id;
+	g_cpu_total = 1;
+	g_cpu_id[0] = id;
 
 	gGraphBase =(DWORD)( vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	SetTaskVideoBase(vesa->PhyBasePtr + vesa->OffScreenMemOffset);
@@ -124,7 +126,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	initWindowList();
 	
-	getCpuInfo((char*)CPU_INFO_ADDR);
+	getCpuInfo((char*)g_cpu_info_buf);
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	InitPm();
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);

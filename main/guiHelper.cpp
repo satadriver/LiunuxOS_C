@@ -7,7 +7,6 @@
 #include "window.h"
 #include "malloc.h"
 #include "task.h"
-#include "Utils.h"
 #include "cmd.h"
 #include "apic.h"
 
