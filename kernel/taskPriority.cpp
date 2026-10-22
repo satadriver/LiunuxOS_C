@@ -88,7 +88,7 @@ unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key) {
 
 
 
-PROCESS_INFO* GetReadyProcess() {
+PROCESS_INFO* PrioritySchedule() {
 
 	char szout[256];
 
@@ -200,16 +200,17 @@ PROCESS_INFO* GetReadyProcess() {
 
 	PROCESS_INFO_LIST* prevlist = GetTaskListTid(cur->tid);
 	LPPROCESS_INFO prev = &prevlist->proc;
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
-	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;	
+	PROCESS_INFO_LIST* root = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)root->list.next;
 	PROCESS_INFO_LIST* ptr = hdr;
 	LPPROCESS_INFO next = 0;
 	do {
 		if (ptr == 0)
 			break;
 		LPPROCESS_INFO p = &ptr->proc;
-		if (p->status == TASK_TERMINATE) {
+		if (p->status == TASK_TERMINATE || p->status ==TASK_OVER ) {
 			p->status = TASK_OVER;
+			RemoveNode(&(root->list), &(ptr->list));
 		}
 		else if (p->status == TASK_RUN) {
 			if (p->sleep) {
@@ -249,9 +250,8 @@ PROCESS_INFO* GetReadyProcess() {
 				total_mem += (*p->lpvasize);
 				total_sleep += p->sleep;
 
-				tss[count] = p;
+				tss[count++] = p;
 
-				count++;
 				if (next == 0) {
 					next = p;
 				}		
@@ -264,6 +264,9 @@ PROCESS_INFO* GetReadyProcess() {
 	if (count == 1) {
 		target_tss = prev;
 		g_task_other_hit++;
+	}
+	else if (count <= 0) {
+		target_tss = 0;
 	}
 	else if (count == 2) {
 		target_tss = next;

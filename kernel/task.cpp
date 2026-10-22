@@ -49,7 +49,7 @@ void leave_task_array_lock_id(int id) {
 	__leaveSpinlock(&g_task_array_lock[id]);
 }
 
-char* gTaskListBuf[4096];
+char gTaskListBuf[4096];
 PROCESS_INFO_LIST *gTasksListPtr[256];
 
 
@@ -750,7 +750,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		return 0;	//error
 	}
 #ifdef TASK_SWITCH_PRIORITY
-	next = GetReadyProcess();
+	next = PrioritySchedule();
 	if(next == prev || next == proc) {
 		return 0;
 	}
@@ -1021,7 +1021,7 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		return 0;
 	}
 #ifdef TASK_SWITCH_PRIORITY
-	next = GetReadyProcess();
+	next = PrioritySchedule();
 	if (next == prev) {
 		return 0;
 	}
@@ -1464,7 +1464,7 @@ extern "C" void __declspec(naked) __TaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		char szout[256];
+		//char szout[256];
 		//__printf(szout,"%s\r\n",__FUNCTION__);
 
 		__kTaskSchedule(stack);

@@ -28,7 +28,7 @@ int getApicTimerDelay() {
 
 void initApicTimer() {
 	for (int i = 0; i < 256; i++) {
-		*(int*)(g_apictimer_tick_cnt + i * sizeof(int)) = 0;
+		g_apictimer_tick_cnt [i ] = 0;
 	}
 	
 	//__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
@@ -152,6 +152,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		int cpuid = ids[i];
 		if (g_cpu_start_tick[cpuid] == 0 || g_cpu_tick[cpuid] == 0) {
 			//__printf(szout, "%s %d cpu:%d g_cpu_start_tick or g_cpu_tick null\r\n", __FUNCTION__, __LINE__, cpuid);
+			return 0;
 		}
 		else {
 			double cpu_diff = tick - g_cpu_start_tick[cpuid];
@@ -175,12 +176,11 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		return 0;
 	}
 	
-	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
 	res = __GetSpinlock(&g_task_array_lock[src_id]);
 	if (res == 0) {
 		return 0;
 	}
-
+	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
 	double max = 0.0;
 	
 	int pid = -1;
@@ -265,7 +265,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 
 			double proc_ratio = (double)p->tick_run / cpu_diff;
 			if (proc_ratio > max && (p->tid == p->pid)) {
-				if ((src_current->tid == p->tid)) {
+				if (src_current->tid == p->tid) {
 
 				}
 				else {
@@ -297,9 +297,11 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 			newproc->status = TASK_RUN;
 
 			PROCESS_INFO_LIST* root = (PROCESS_INFO_LIST*)gTasksListPtr[dst_id];
-			if (list) {
-				InsertListTail((LIST_ENTRY*)&(root->list), (LIST_ENTRY*)&(newlist->list));
-			}
+
+			InsertListTail((LIST_ENTRY*)&(root->list), (LIST_ENTRY*)&(newlist->list));
+
+			RemoveNode(&(list->list), &(targetlist->list));
+			
 			__printf(szout, "%s copy cpu:%d pid:%d to cpu:%d\r\n", __FUNCTION__, src_id, pid, dst_id);
 		}
 		leave_task_array_lock_id(dst_id);	

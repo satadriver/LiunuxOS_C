@@ -1613,6 +1613,15 @@ int __sleep(int millisecs) {
 }
 
 
+int __kYield() {
+	__asm {
+		push edi
+		int TASK_SCHEDULE_VECTOR
+		pop edi
+	}
+}
+
+
 int __yield() {
 	__asm {
 		push edi

@@ -125,7 +125,7 @@ int getUnicodeFN(LPFAT32DIRECTORY lpdir, char * filename) {
 		}
 	}
 
-	__printf(szout, "getUnicodeFN error\r\n");
+	__printf(szout, "%s filename:%s error\r\n",__FUNCTION__,  filename);
 
 	return FALSE;
 }

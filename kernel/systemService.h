@@ -38,6 +38,7 @@
 #define SVC_READCR				28
 #define SVC_WRITECR				29
 
+//#define SVC_YIELD_SINGLE		30
 
 #ifdef DLL_EXPORT
 

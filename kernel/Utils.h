@@ -44,6 +44,8 @@ int __kFormat(char* buf, const char* format, DWORD* params);
 void TriggerOverflow();
 int GetCPUTask();
 
+
+
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) char* gLogDataPtr;
 
@@ -123,6 +125,8 @@ extern "C" __declspec(dllexport) void __reboot();
 extern "C" __declspec(dllexport) int __sleep(int millisecs);
 
 extern "C" __declspec(dllexport) int __yield();
+
+extern "C" __declspec(dllexport) int __kYield();
 
 extern "C" __declspec(dllexport) int getCpuType(char * name);
 
@@ -227,6 +231,8 @@ extern "C" __declspec(dllimport) void __reboot();
 extern "C" __declspec(dllimport) int __sleep(int millisecs);
 
 extern "C" __declspec(dllimport) int __yield();
+
+extern "C" __declspec(dllimport) int __kYield();
 
 extern "C" __declspec(dllimport) int getCpuType(char * name);
 

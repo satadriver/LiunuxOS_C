@@ -59,7 +59,7 @@ extern "C" __declspec(dllimport) unsigned long long g_task_dl_hit;
 
 unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key);
 
-PROCESS_INFO* GetReadyProcess();
+PROCESS_INFO* PrioritySchedule();
 
 void InitTaskScheduleBuf();
 
