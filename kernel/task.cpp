@@ -751,7 +751,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 #ifdef TASK_SWITCH_PRIORITY
 	next = PrioritySchedule();
-	if(next == prev || next == proc) {
+	if(next == prev || next == proc || next == 0) {
 		return 0;
 	}
 #else
@@ -1013,8 +1013,8 @@ LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 	}
 	else if (proc->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
-		//process->status = TASK_SUSPEND;
-		//prev->status = TASK_SUSPEND;
+		proc->status = TASK_SUSPEND;
+		prev->status = TASK_SUSPEND;
 	}
 	else {
 		__printf(szout, "%s process status:%d, prev status:%d error\r\n",__FUNCTION__, prev->status, prev->status);

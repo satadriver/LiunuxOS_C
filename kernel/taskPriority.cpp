@@ -89,9 +89,9 @@ unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key) {
 
 
 PROCESS_INFO* PrioritySchedule() {
-
+	
 	char szout[256];
-
+	//__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 	g_task_pre_total++;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -126,15 +126,13 @@ PROCESS_INFO* PrioritySchedule() {
 	LPPROCESS_INFO ptr = prev;
 	LPPROCESS_INFO next = 0;
 	do {
-		if (cpu != ptr->cpuid) {
-			continue;
-		}
-
 		if (ptr->status == TASK_TERMINATE) {
 			ptr->status = TASK_OVER;
-			continue;
 		}
-		else if (ptr->status == TASK_RUN) {
+		else if (ptr->status == TASK_RUN && cpu != ptr->cpuid) {
+			__printf(szout, "%s %d status:%x cpu:%d cpuid:%d\r\n", __FUNCTION__, __LINE__, ptr->status,cpu,ptr->cpuid);
+		}
+		else if (ptr->status == TASK_RUN && cpu == ptr->cpuid) {
 			if (ptr->sleep) {
 				ptr->sleep--;
 			}
@@ -174,30 +172,24 @@ PROCESS_INFO* PrioritySchedule() {
 
 				count++;
 
-				ptr++;
-				if (ptr - tss >= TASK_LIMIT_TOTAL) {
-					ptr = tss;
-				}
-
-				if (ptr == prev) {
-					break;
-				}
-
 				if (next == 0) {
 					next = ptr;
 				}
 			}
 		}
-		else if (ptr->status == TASK_OVER) {
-			continue;
+
+		ptr++;
+		if (ptr - tss >= TASK_LIMIT_TOTAL) {
+			ptr = tss;
 		}
-		else if (ptr->status == TASK_SUSPEND) {
-			continue;
+
+		if (ptr == prev) {
+			break;
 		}
 	} while (TRUE);
+	//__printf(szout, "%s %d\r\n", __FUNCTION__, __LINE__);
 #else
 	PROCESS_INFO *tss[256];
-
 	PROCESS_INFO_LIST* prevlist = GetTaskListTid(cur->tid);
 	LPPROCESS_INFO prev = &prevlist->proc;
 	PROCESS_INFO_LIST* root = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
@@ -208,11 +200,7 @@ PROCESS_INFO* PrioritySchedule() {
 		if (ptr == 0)
 			break;
 		LPPROCESS_INFO p = &ptr->proc;
-		if (p->status == TASK_TERMINATE || p->status ==TASK_OVER ) {
-			p->status = TASK_OVER;
-			RemoveNode(&(root->list), &(ptr->list));
-		}
-		else if (p->status == TASK_RUN) {
+		if (p->status == TASK_RUN) {
 			if (p->sleep) {
 				p->sleep--;
 			}
@@ -257,7 +245,13 @@ PROCESS_INFO* PrioritySchedule() {
 				}		
 			}
 		}
+
+		PROCESS_INFO_LIST* tmplist = (PROCESS_INFO_LIST*)ptr;
 		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		if (p->status == TASK_TERMINATE || p->status == TASK_OVER) {
+			p->status = TASK_OVER;
+			RemoveNode(&(root->list), &(tmplist->list));
+		}
 	} while (ptr && ptr != hdr);
 #endif
 
@@ -266,7 +260,8 @@ PROCESS_INFO* PrioritySchedule() {
 		g_task_other_hit++;
 	}
 	else if (count <= 0) {
-		target_tss = 0;
+		target_tss = prev;
+		return target_tss;
 	}
 	else if (count == 2) {
 		target_tss = next;

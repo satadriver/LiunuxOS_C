@@ -1172,6 +1172,8 @@ unsigned long long ApicTimerFreq() {
 
 #define APICTIMER_FREQ 100000000
 
+
+
 int InitLocalApicTimer() {
 
 	int v = 0;

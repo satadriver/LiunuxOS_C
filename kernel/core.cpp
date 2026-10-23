@@ -24,6 +24,7 @@
 #include "pe64.h"
 #include "hardware.h"
 #include "device.h"
+#include "video.h"
 
 char* g_apictimer_tss[256];
 char* g_apictimer_stack0[256];
@@ -567,8 +568,8 @@ char* InitIDT() {
 
 
 void InitIdt64() {
-
-	IntTrapGate64Descriptor* descriptor = (IntTrapGate64Descriptor*)IDT64_BASE_ADDR;
+	char* idt = (char*)__kMalloc(0x10000);
+	IntTrapGate64Descriptor* descriptor = (IntTrapGate64Descriptor*)idt;
 	for (int i = 0; i < 256; i++)
 	{
 		makeTrapGate64Descriptor((DWORD)AnonymousException, KERNEL_MODE_CODE, 3, descriptor + i);
@@ -639,7 +640,7 @@ void InitIdt64() {
 
 	DescriptTableReg idtbase;
 	idtbase.size = 256 * sizeof(SegDescriptor) - 1;
-	idtbase.addr = IDT64_BASE_ADDR;
+	idtbase.addr = (unsigned long)idt;
 	char szout[256];
 	__printf(szout, (char*)"idt64 base:%x,size:%x\r\n", idtbase.addr, idtbase.size);
 	__asm {
@@ -649,8 +650,9 @@ void InitIdt64() {
 }
 
 
-int InitGdt64() {
-	QWORD* gdt = (QWORD*)GDT64_BASE_ADDR;
+char* InitGdt64() {
+	char* lpgdt = (char*)__kMalloc(0x10000);
+	QWORD* gdt = (QWORD*)lpgdt;
 	gdt[0] = 0;
 	gdt[1] = 0x00209a0000000000;			//code0
 	gdt[2] = 0x0020920000000000;			//data0		0x0000920000000000
@@ -663,10 +665,12 @@ int InitGdt64() {
 
 	short tss_offset = 5 * sizeof (SegDescriptor);
 
-	initTss64((TSS64_DATA*)KERNEL64_TSS_ADDRESS, TSS64_STACK0_BASE+sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
-	makeTss64Descriptor(KERNEL64_TSS_ADDRESS, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(GDT64_BASE_ADDR + tss_offset));
+	char* tss64 = (char*)__kMalloc(0x10000);
+	unsigned long stack0 = __kMalloc(0x10000);
+	initTss64((TSS64_DATA*)tss64, stack0 + sizeof(TASK_STACK0_SIZE) - STACK_TOP_DUMMY);
+	makeTss64Descriptor((unsigned long long)tss64, 3, sizeof(TSS64_DATA)-1,(Tss64Descriptor*)(lpgdt + tss_offset));
 
-	return 9 * sizeof(Tss64Descriptor);
+	return lpgdt;
 }
 
 int Is64Supported() {
@@ -751,9 +755,8 @@ void EnterLongMode() {
 		return ;
 	}
 	char* libbuf = (char*)__kMalloc(0x100000);
-
 	char* dllbuf = (char*)__kMalloc(0x100000);
-	ret = readFile(LIUNUX_BASE_PATH "liunuxos64.dll", &libbuf);
+	ret = readFile(LIUNUX_BASE_PATH LIUNUX_KERNEL64_DLL, &libbuf);
 	char* lib64 = (char*)MemLoadDll64((char*)libbuf, (char*)dllbuf);
 	typedef int (*ptrfunction)();
 	ptrfunction kernel64Entry = (ptrfunction)getAddrFromName64(lib64, "__kKernelEntry64");
@@ -762,12 +765,11 @@ void EnterLongMode() {
 
 	DisablePaging32();
 
-	int gdtlen = InitGdt64();
+	char* gdt = InitGdt64();
 
 	//InitIdt64();
 
 	char * pde64 = (char*)__kMalloc(0x1000000);
-
 	InitPage64((QWORD*)pde64);
 
 	InitPAE();
@@ -779,24 +781,21 @@ void EnterLongMode() {
 	jmpstub[6] = 0;
 	* (DWORD*)(jmpstub + 1) =(DWORD) kernel64Entry;
 
-	DWORD kernel64Entry32 = (DWORD)kernel64Entry;
+	DWORD kernel64EntryPoint = (DWORD)kernel64Entry;
 
 	//EnablePage64();
 
 	//SetLongMode();
 
 	DescriptTableReg gdtbase;
-	gdtbase.size = gdtlen - 1;
-	gdtbase.addr = GDT64_BASE_ADDR;
+	gdtbase.size = 0xffff;
+	gdtbase.addr = (unsigned long)gdt;
 
 	short troffset = 5* sizeof(Tss64Descriptor);
 
-	unsigned long oldEbp = 0;
-	unsigned long oldEsp = 0;
-
 	__asm {
 		lea eax, __bit64EntryOffset
-		mov edx, kernel64Entry32
+		mov edx, kernel64EntryPoint
 		mov  ds : [eax] , edx
 
 		mov ax, KERNEL_MODE_CODE
@@ -821,8 +820,8 @@ void EnterLongMode() {
 
 		pushad
 
-		lea ecx, __win64_leave
-		mov edx,esp
+		lea ecx, gVesaInfo
+		lea edx, gFontBase
 
 		_emit 0xea
 	__bit64EntryOffset:
@@ -834,7 +833,7 @@ void EnterLongMode() {
 		_emit 0	
 
 		push dword ptr KERNEL_MODE_CODE
-		push dword ptr kernel64Entry32
+		push dword ptr kernel64EntryPoint
 		retf
 
 		lea eax,jmpstub
@@ -861,7 +860,7 @@ void EnterLongMode() {
 		__emit 0x0f
 		__emit 0x22
 		__emit 0xe0
-			
+		
 		mov ax, KERNEL_MODE_CODE
 		mov ss,ax
 		mov ds,ax

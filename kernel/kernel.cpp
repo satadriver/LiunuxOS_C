@@ -127,16 +127,16 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	initWindowList();
 	
 	getCpuInfo((char*)g_cpu_info_buf);
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	//__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	InitPm();
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	//__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	GetCpuRate();
 
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	//__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 	ret = InitLocalApicTimer();
 
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	//__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 	__asm {
 		sti
@@ -168,7 +168,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #endif
 	}
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
-	//EnterLongMode();
+
+	EnterLongMode();
 
 	TriggerOverflow();
 

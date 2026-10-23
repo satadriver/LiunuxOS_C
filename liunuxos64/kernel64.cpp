@@ -5,7 +5,7 @@
 //rcx,rdx,r8,r9
 //rdi,rsi,rdx,rcx
 
-
+#define KERNEL64_STACK_TOP 0
 
 unsigned long g_bit32Address = 0;
 unsigned long g_regEsp32 = 0;

@@ -208,12 +208,11 @@ void sysleave() {
 }
 
 
+char* g_sysenter_stack0[256];
 
-DWORD g_sysEntryInit = 0;
+DWORD g_sysenter_stack3[256];
 
-DWORD g_sysEntryStack3 = 0;
-
-DWORD g_sysEntryEip3 = 0;
+DWORD g_sysenter_eip3[256];
 
 
 
@@ -230,6 +229,10 @@ extern "C" __declspec(naked) int SysenterEntry(char * params,int cnt) {
 	}
 
 	{
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		char* lpstack3 = (char*)&g_sysenter_stack3[id];
+		char* lpeip3 = (char*)&g_sysenter_eip3[id];
+
 		WORD rcs = 0;
 		DWORD resp = 0;
 		WORD rss = 0;
@@ -251,18 +254,30 @@ extern "C" __declspec(naked) int SysenterEntry(char * params,int cnt) {
 		}
 
 		char szout[256];
-		__printf(szout, "%s %d cs:%x,eip:%x,ss:%x,esp:%x,params:%x,cnt:%x\r\n",__FUNCTION__,__LINE__, rcs, reip, rss, resp+ NATIVE_STACK_LIMIT + 8,params,cnt);
-		//__printf(szout, "%s %d cs:%x,eip:%x,ss:%x,esp:%x,params:%x,cnt:%x\r\n", __FUNCTION__, __LINE__, rcs, reip, rss, resp);
-		
+		__printf(szout, "%s %d cs:%x,eip:%x,ss:%x,esp:%x,params:%x,cnt:%x\r\n",
+			__FUNCTION__,__LINE__, rcs, reip, rss, resp+ NATIVE_STACK_LIMIT + 8,params,cnt);
+	
 	}
 
 	__asm {
+		mov eax, LOCAL_APIC_BASE
+		add eax,0x20
+		mov eax,[eax]
+		shr eax,24
+		shl eax,2
+		mov ebx,eax
+		add eax, g_sysenter_stack3
+		mov edx,eax
+		mov eax,ebx
+		add eax, g_sysenter_eip3
+		mov ecx,eax
+
 		mov esp, ebp
 		add esp, 8
 		nop
-		mov edx, ds: [g_sysEntryEip3]
+		//mov edx, ds: [lpeip3]
 		nop
-		mov ecx, ds : [g_sysEntryStack3]
+		//mov ecx, ds : [lpstack3]
 		nop
 
 		_emit 0x0f
@@ -275,16 +290,14 @@ extern "C" __declspec(naked) int SysenterEntry(char * params,int cnt) {
 //only be invoked in ring3,in ring0 will cause exception 0dh
 extern "C" __declspec(dllexport) int SysenterProc(char * params,int cnt) {
 
-	if (g_sysEntryInit == 0) {
-		int res = SysenterInit((DWORD)SysenterEntry);
-		if (res) {
-			g_sysEntryInit = TRUE;
-		}
-		else {
-			return 0;
-		}
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (g_sysenter_stack0[id] == 0) {
+		return 0;
 	}
-	
+	char* stack0 = g_sysenter_stack0[id];
+
+	char* lpstack3 =(char*) &g_sysenter_stack3[id];
+	char* lpeip3 = (char*)&g_sysenter_eip3[id];
 	__asm {
 		mov ax, cs
 		test ax, 3
@@ -298,15 +311,15 @@ extern "C" __declspec(dllexport) int SysenterProc(char * params,int cnt) {
 		push gs
 		push ss
 
-		mov edi, SYSENTER_STACK_TOP
+		mov edi, stack0
 		mov eax, params
 		mov [edi],eax
 		mov eax, cnt
 		mov [edi+4],eax
 
-		mov ds : [g_sysEntryStack3] , esp
+		mov ds : [lpstack3] , esp
 		lea eax, __sysEntryExit
-		mov ds:[g_sysEntryEip3],eax
+		mov ds:[lpeip3],eax
 
 		//cli
 
@@ -338,21 +351,23 @@ int SysenterInit(DWORD entryaddr) {
 		return FALSE;
 	}
 
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	if (g_sysenter_stack0[id] == 0)
+		g_sysenter_stack0[id] = (char*)__kMalloc(0x10000);
+
 	DWORD csseg = KERNEL_MODE_CODE;
 
 	DWORD high = 0;
 
 	writemsr(0x174, csseg, high);
 
-	DWORD esp0 = SYSENTER_STACK_TOP;
+	DWORD esp0 = (DWORD) g_sysenter_stack0[id];
 
 	writemsr(0x175, esp0, high);
 
 	DWORD eip = (DWORD)entryaddr;
 
 	writemsr(0x176, eip, high);
-
-	g_sysEntryInit = TRUE;
 
 	return TRUE;
 }
