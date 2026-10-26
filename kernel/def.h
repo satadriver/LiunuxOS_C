@@ -77,8 +77,6 @@
 
 //#define TASK_SWITCH_ARRAY
 
-#define TASK_SWITCH_PRIORITY
-
 #define SINGLE_TASK_TSS
 
 //#define IO_APIC_ENABLE

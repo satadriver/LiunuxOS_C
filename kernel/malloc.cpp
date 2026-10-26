@@ -281,7 +281,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 	LPPROCESS_INFO tssbase = GetTaskTssBaseId(cpu);
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)tssbase + pid;	
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListPid(cpu,pid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(cpu,pid);
 	LPPROCESS_INFO proc = & list->proc;
 #endif
 	if (vaddr == 0) {

@@ -943,9 +943,14 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
 			LPPROCESS_INFO proc = &list->proc;
 #endif
+			DWORD mxcsr_reg = 0;
+			__asm {
+				lea eax, mxcsr_reg
+				stmxcsr [eax]
+			}
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-			__printf(szout, "%s %d cpu:%d tid:%d filename:%s function:%s\r\n", 
-				__FUNCTION__, __LINE__, cpu, proc->tid, proc->filename, proc->funcname);
+			__printf(szout, "%s %d mxcrs:%x cpu:%d tid:%d filename:%s function:%s\r\n", 
+				__FUNCTION__, __LINE__, mxcsr_reg,cpu, proc->tid, proc->filename, proc->funcname);
 		}
 		//__kCoprocessor();
 		__kException((const char*)"SIMDException", 19, stack);

@@ -11,6 +11,9 @@
 #include "systemService.h"
 #include "taskpriority.h"
 #include "malloc.h"
+#include "coprocessor.h"
+
+
 
 //any thread can call this function to terminate self
 //any thread can call this with tid to terminate other thread
@@ -86,6 +89,8 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 }
 #endif
 
+
+
 DWORD __kCreateThread(DWORD addr, DWORD module, DWORD runparam, char* funcname) {
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	return __kCreateRemoteThread(cpu, addr, module, runparam, funcname);
@@ -153,7 +158,7 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 
 	tss->cpuid = cpu;
 
-	tss->fpu = 0;
+	//tss->fpu = 0;
 	tss->level = process->level;
 	tss->vaddr = process->vaddr;
 	tss->lpvasize = process->lpvasize;
@@ -309,12 +314,13 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	tss->videoBase = (char*)gGraphBase;
 
 	tss->status = TASK_RUN;
-
-__kCreateThread_End:
 	
 #ifdef TASK_SWITCH_ARRAY
+	char* fenv = GetFpuBuf(cpu, tss->tid );
+	InitTaskCoprocessor(tss, fenv);
 	leave_task_array_lock();
 #else
+	InitTaskCoprocessor(tss, list->fpenv);
 	InsertTaskList(list);
 #endif
 

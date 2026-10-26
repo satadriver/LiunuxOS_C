@@ -48,9 +48,9 @@ typedef struct {
 #pragma pack()
 
 
+//#define TASK_SWITCH_PRIORITY
 
-
-#define TASK_SWITCH_COPROCESSOR_LAZY
+//#define TASK_SWITCH_COPROCESSOR_LAZY
 
 #define DOS_PROCESS_RUNCODE		0X80000000
 
@@ -64,11 +64,9 @@ extern "C" int g_task_array_lock[256];
 
 extern "C" int g_last_task_tid[MAX_CPU_COUNT];
 
-
-
 void clearTssBuf(LPPROCESS_INFO tss);
 
-void tasktest(LPPROCESS_INFO gTasksListPtr, LPPROCESS_INFO gPrevTasksPtr);
+void tasktest(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO next, LPPROCESS_INFO prev);
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
@@ -76,7 +74,6 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
 extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
-
 
 void InitTaskList();
 void InitTaskArray();
@@ -87,8 +84,6 @@ PROCESS_INFO_LIST* InsertTaskList(PROCESS_INFO_LIST* p);
 PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
 PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
 PROCESS_INFO_LIST* RemoveTaskListPid(int pid);
-
-
 
 void SetIVTVector();
 

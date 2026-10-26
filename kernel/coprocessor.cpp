@@ -34,6 +34,9 @@
 char* g_fpu_status[MAX_CPU_COUNT];
 
 
+alignas(16) char g_fpu_init_buf[512];
+
+
 //fsave保存mm0-mm7,fstenv不保存mm0-mm7
 //MMX: 将8个FPU寄存器重命名为8个64位MMX寄存器，即mm0到mm7。
 //SSE: 8个128位寄存器（从xmm0到xmm7）
@@ -45,6 +48,8 @@ void initFPU() {
 		fninit
 		fnclex
 		FLDCW[fpu_status]	// writes 0x37f into the control word: the value written by F(N)INIT
+
+		//can not use instruction FxSAVE before initialized SSE?
 	}
 }
 
@@ -80,8 +85,8 @@ void enableAVX() {
 
 
 void enableSSE() {
-	DWORD mxcsr_reg = 0x1fbf;
-	//DWORD mxcsr_reg = 0x1f80;
+	//DWORD mxcsr_reg = 0x1fbf;
+	DWORD mxcsr_reg = 0x1f80;
 	DWORD mxcsr_reg_old = 0;
 
 	__asm {
@@ -101,12 +106,18 @@ void enableSSE() {
 		__emit 0x22
 		__emit 0xe0
 
-		stmxcsr[mxcsr_reg_old]
-		ldmxcsr [mxcsr_reg]
-		
+		lea eax, mxcsr_reg_old
+		stmxcsr[eax]
+		lea eax, mxcsr_reg
+		ldmxcsr [eax]	
+		lea eax, mxcsr_reg
+		stmxcsr[eax]
+
+		lea eax, g_fpu_init_buf
+		FxSAVE[eax]
 	}
 	char szout[256];
-	__printf(szout,"mxcsr:%x\r\n", mxcsr_reg_old);
+	__printf(szout,"mxcsr old value:%x,new value:%x\r\n", mxcsr_reg_old, mxcsr_reg);
 }
 
 
@@ -197,6 +208,19 @@ void initCoprocessor() {
 }
 
 
+char* GetFpuBuf(int cpu,int tid) {
+	char* fenv = (char*)g_fpu_status[cpu] + (tid << 9);
+	return fenv;
+}
+
+
+
+void InitTaskCoprocessor(LPPROCESS_INFO tss,char * fenv) {
+	__memcpy(fenv, g_fpu_init_buf, sizeof(g_fpu_init_buf));
+	tss->fpu = 1;
+}
+
+
 //EM = 1,all float instruction cause this exception
 //MP = 1 && TS = 1,fwait cause this exception
 //TS = 1,all float/sse instruction cause this exception
@@ -208,9 +232,9 @@ void __kCoprocessor() {
 	LPPROCESS_INFO proc = pb + current->tid;
 	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,current->tid);
 	LPPROCESS_INFO proc = &list->proc;
-	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetTaskListTid(g_last_task_tid[id]);
+	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,g_last_task_tid[id]);
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)& prevlist->proc;
 #endif
 	if (proc->fpu == 0)

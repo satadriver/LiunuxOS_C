@@ -348,7 +348,7 @@ typedef struct {
 
 extern "C" VESAINFORMATION gVesaInfo;
 
-extern "C" DWORD gFontBase;
+
 
 unsigned short* getGBKCCIdx(unsigned short gbk);
 

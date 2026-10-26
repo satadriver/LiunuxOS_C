@@ -20,6 +20,7 @@
 #include "taskPriority.h"
 #include "cmosPeriodTimer.h"
 #include "apicTimer.h"
+#include "coprocessor.h"
 
 extern void freeProcessPages(LPPROCESS_INFO proc);
 extern void freeProcessMemory(LPPROCESS_INFO proc);
@@ -171,7 +172,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 #endif
 	
 	tss->tss.ldt = 0;
-	tss->fpu = 0;
+	//tss->fpu = 0;
 
 	DWORD syslevel = level & 3;
 	tss->level = syslevel;
@@ -486,6 +487,8 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	lptss->cpuid = id;
 	lptss->status = TASK_SUSPEND;
 	result.lptss = lptss;
+
+	InitTaskCoprocessor(lptss, list->fpenv);
 
 	result.number = GenPid();
 	ret = 1;

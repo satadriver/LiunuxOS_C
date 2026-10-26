@@ -408,32 +408,30 @@ int GetApicTimerDivideCode(int divide) {
 }
 
 int GetPmVersion() {
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	unsigned long long tick = __krdtsc();
+	DWORD low = 0;
+	DWORD high = 0;
+
 	int ver = IsPmEnable();
 	if (ver == 0)
 	{
+		g_cpu_tick[id] = 1;
+		g_cpu_prev_tick[id] = tick;
+		g_cpu_start_tick[id] = tick;
+
 		return 0;
 	}
 
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	unsigned long long tick = __krdtsc();
-
-	DWORD low = 0;
-	DWORD high = 0;
 	readmsr(MSR_IA32_APERF, &low, &high);
-	if(low || high ) {
-		g_pm_enable = g_pm_enable| TRUE;
-		unsigned long long aprf = ((unsigned long long)high << 32) + low;
 
-		g_cpu_tick[id] = tick - aprf;
-		g_cpu_prev_tick[id] = tick;
-		g_cpu_start_tick[id] = tick;
-	}
-	else {
-		g_cpu_tick[id] = 0;
-		g_cpu_prev_tick[id] = tick;
-		g_cpu_start_tick[id] = tick;
-	}
+	g_pm_enable = g_pm_enable | TRUE;
+	unsigned long long aprf = ((unsigned long long)high << 32) + low;
 
+	g_cpu_tick[id] = tick - aprf;
+	g_cpu_prev_tick[id] = tick;
+	g_cpu_start_tick[id] = tick;
+	
 	char szout[256];
 	__printf(szout, "%s %d performance monitor version: %x\r\n",__FUNCTION__,__LINE__, ver);
 	return ver;

@@ -29,7 +29,7 @@ DOS_PE_CONTROL g_v86ControlBloack[LIMIT_V86_PROC_COUNT] = { 0 };
 
 void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO proc) {
 	char szout[256];
-	if ((env->eflags & 0x20000) && current->level == 3 && proc->level == 3) {
+	if ((env->eflags & 0x20000) && current->level == 3 /* && proc->level == 3*/ ) {
 		DWORD reip = (WORD)current->tss.eip;
 		DWORD rcs = (WORD)current->tss.cs;
 		WORD code = *(WORD*)((rcs << 4) + reip + 2);
@@ -41,7 +41,7 @@ void V86ProcessCheck(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_I
 			{
 				if (info[i].pid == current->pid)
 				{
-					proc->status = TASK_OVER;
+					//proc->status = TASK_OVER;
 					current->status = TASK_OVER;
 					info[i].status = TASK_OVER;
 					__printf(szout,"kill dos program:%s,pid:%d\r\n",info[i].name, info[i].pid);
@@ -181,7 +181,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 
 	tss->sleep = 0;
 	tss->copyMap = 0;
-	tss->fpu = 0;
+	//tss->fpu = 0;
 #ifdef SINGLE_TASK_TSS
 	tss->tss.trap = 0;
 #else
