@@ -7,6 +7,7 @@
 #include "core.h"
 #include "apic.h"
 #include "systemService.h"
+#include "tool.h"
 
 //配置SCSI控制卡支持INT31H
 //要想从扩充内存中获得16K页，可以使用Int 67h来调用EMM，并告诉它将该页放进页框架之中

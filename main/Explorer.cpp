@@ -20,14 +20,14 @@
 #include "Kernel.h"
 #include "mainUtils.h"
 #include "coprocessor.h"
-#include "Utils.h"
+
 #include "paint.h"
 #include "malloc.h"
 #include "Thread.h"
-#include "mouse.h"
+
 #include "pci.h"
-#include "window.h"
-#include "keyboard.h"
+
+#include "tool.h"
 #include "FileBrowser.h"
 #include "descriptor.h"
 #include "debugger.h"

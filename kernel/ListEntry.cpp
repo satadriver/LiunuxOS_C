@@ -152,8 +152,7 @@ int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		LPLIST_ENTRY prev = list->prev;
 		prev->next = next;
 		next->prev = prev;
-		//list->next = 0;
-		//list->prev = 0;	
+
 		h->next = next;
 		result = 2;
 	}
@@ -172,10 +171,13 @@ int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		LPLIST_ENTRY prev = list->prev;
 		prev->next = next;
 		next->prev = prev;
-		//list->next = 0;
-		//list->prev = 0;
+
 		result = 4;
 	}
+
+	list->next = 0;
+	list->prev = 0;
+
 	return result;
 }
 

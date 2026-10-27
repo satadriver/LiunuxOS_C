@@ -13,16 +13,16 @@
 #include "hardware.h"
 #include "Utils.h"
 #include "VM86.h"
-#include "textMode.h"
+
 #include "mouse.h"
 #include "keyboard.h"
 #include "pci.h"
-#include "hardware.h"
+
 #include "kernel.h"
 #include "processDOS.h"
-#include "cmosPeriodTimer.h"
-#include "apic.h"
 
+#include "apic.h"
+#include "tool.h"
 
 LPVESAINFORMATION glpVesaInfo;
 

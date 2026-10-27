@@ -254,6 +254,10 @@ PROCESS_INFO* PrioritySchedule() {
 			p->status = TASK_OVER;
 			if (p->pid == p->tid) {
 				//__kExitProcess(ptr);
+				//if (ptr == prevlist) {
+				//	prevlist = nextlist;
+				//	prev = &prevlist->proc;
+				//}
 			}
 		}
 		ptr = nextlist;

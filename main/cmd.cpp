@@ -31,6 +31,7 @@
 #include "dl.h"
 #include "apictimer.h"
 #include "cmosPeriodTimer.h"
+#include "tool.h"
 
 #pragma comment(linker, "/STACK:0x100000")
 

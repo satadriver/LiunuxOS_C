@@ -48,7 +48,7 @@ typedef struct {
 #pragma pack()
 
 
-#define TASK_SWITCH_PRIORITY
+//#define TASK_SWITCH_PRIORITY
 
 //#define TASK_SWITCH_COPROCESSOR_LAZY
 
@@ -109,25 +109,7 @@ extern "C"  __declspec(dllexport) int __terminateTid(int tid);
 
 extern "C"  __declspec(dllexport) int __terminatePid(int pid);
 
-extern "C"  __declspec(dllexport) int __pausePid(int pid);
 
-extern "C"  __declspec(dllexport) int __resumePid(int pid);
-
-extern "C"  __declspec(dllexport) int __resumeTid(int tid);
-
-extern "C"  __declspec(dllexport) int __pauseTid(int tid);
-
-extern "C"  __declspec(dllexport) int __terminateByFileName(char * filename);
-
-extern "C"  __declspec(dllexport) int __terminateByFuncName(char * funcname);
-
-extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByTid(int tid);
-
-extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessByPid(int pid);
-
-extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFileName(char * filename);
-
-extern "C"  __declspec(dllexport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock();
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
@@ -149,26 +131,6 @@ extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
 extern "C"  __declspec(dllimport) int __terminateTid(int tid);
 
 extern "C"  __declspec(dllimport) int __terminatePid(int pid);
-
-extern "C"  __declspec(dllimport) int __pausePid(int pid);
-
-extern "C"  __declspec(dllimport) int __resumePid(int pid);
-
-extern "C"  __declspec(dllimport) int __resumeTid(int tid);
-
-extern "C"  __declspec(dllimport) int __pauseTid(int tid);
-
-extern "C"  __declspec(dllimport) int __terminateByFileName(char * filename);
-
-extern "C"  __declspec(dllimport) int __terminateByFuncName(char * funcname);
-
-extern "C"  __declspec(dllimport) PROCESS_INFO * __findProcessByTid(int tid);
-
-extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessByPid(int pid);
-
-extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFileName(char * filename);
-
-extern "C"  __declspec(dllimport) PROCESS_INFO *  __findProcessFuncName(const char * funcname);
 
 extern "C"  __declspec(dllimport) void enter_task_array_lock();
 extern "C"  __declspec(dllimport) void leave_task_array_lock();
