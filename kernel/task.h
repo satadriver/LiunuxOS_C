@@ -48,7 +48,7 @@ typedef struct {
 #pragma pack()
 
 
-//#define TASK_SWITCH_PRIORITY
+#define TASK_SWITCH_PRIORITY
 
 //#define TASK_SWITCH_COPROCESSOR_LAZY
 
@@ -80,10 +80,12 @@ void InitTaskArray();
 PROCESS_INFO_LIST* GetRemoteTaskListTid(int id, int tid);
 PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid);
 PROCESS_INFO_LIST* GetTaskListPid(int pid);
-PROCESS_INFO_LIST* InsertTaskList(PROCESS_INFO_LIST* p);
+int InsertTaskList(PROCESS_INFO_LIST* p);
 PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
 PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
 PROCESS_INFO_LIST* RemoveTaskListPid(int pid);
+
+void __kExitProcess(PROCESS_INFO_LIST* list);
 
 void SetIVTVector();
 

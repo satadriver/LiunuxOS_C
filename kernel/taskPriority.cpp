@@ -194,10 +194,9 @@ PROCESS_INFO* PrioritySchedule() {
 	LPPROCESS_INFO tss[256];
 	PROCESS_INFO_LIST* prevlist = GetRemoteTaskListTid(cpu,cur->tid);
 	LPPROCESS_INFO prev = &prevlist->proc;
-	PROCESS_INFO_LIST* root = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
-	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)root->list.next;
-	PROCESS_INFO_LIST* ptr = hdr;
+	PROCESS_INFO_LIST* nextlist = 0;
 	LPPROCESS_INFO next = 0;
+	PROCESS_INFO_LIST* ptr = prevlist;
 	do {
 		if (ptr == 0)
 			break;
@@ -250,13 +249,15 @@ PROCESS_INFO* PrioritySchedule() {
 			}
 		}
 
-		PROCESS_INFO_LIST* tmplist = (PROCESS_INFO_LIST*)ptr;
-		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+		nextlist = (PROCESS_INFO_LIST*)ptr->list.next;
 		if (p->status == TASK_TERMINATE || p->status == TASK_OVER) {
 			p->status = TASK_OVER;
-			//RemoveNode(&(root->list), &(tmplist->list));
+			if (p->pid == p->tid) {
+				//__kExitProcess(ptr);
+			}
 		}
-	} while (ptr && ptr != hdr);
+		ptr = nextlist;
+	} while (ptr && ptr != prevlist);
 #endif
 	if (target_tss == 0)
 		target_tss = prev;

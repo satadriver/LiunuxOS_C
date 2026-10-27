@@ -318,8 +318,8 @@ void sleep(DWORD * params) {
 	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = cur->tid;
 #ifdef TASK_SWITCH_ARRAY
-	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	LPPROCESS_INFO process = tss + tid;
+	//LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	//LPPROCESS_INFO process = tss + tid;
 #else
 	//PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
 	//LPPROCESS_INFO process = &list->proc;

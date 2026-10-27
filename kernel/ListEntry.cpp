@@ -183,6 +183,8 @@ int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 
 int RemoveNode(LPLIST_ENTRY h, LPLIST_ENTRY list) {
 	int result = 0;
+	if (list->next == 0 && list->prev == 0)
+		return 0;
 
 	if (h->next == list && h->prev == list) {
 		h->prev = 0;
@@ -195,8 +197,7 @@ int RemoveNode(LPLIST_ENTRY h, LPLIST_ENTRY list) {
 		LPLIST_ENTRY prev = list->prev;
 		prev->next = next;
 		next->prev = prev;
-		//list->next = 0;
-		//list->prev = 0;	
+
 		h->next = next;
 		result = 2;
 	}
@@ -215,10 +216,12 @@ int RemoveNode(LPLIST_ENTRY h, LPLIST_ENTRY list) {
 		LPLIST_ENTRY prev = list->prev;
 		prev->next = next;
 		next->prev = prev;
-		//list->next = 0;
-		//list->prev = 0;
+
 		result = 4;
 	}
+
+	list->next = 0;
+	list->prev = 0;
 	return result;
 }
 

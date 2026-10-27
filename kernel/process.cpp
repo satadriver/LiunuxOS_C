@@ -39,7 +39,6 @@ unsigned long GenPid() {
 
 void __kFreeProcess(LPPROCESS_INFO proc) {
 
-	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	freeProcessMemory(proc);
 
 	freeProcessPages(proc);
@@ -126,14 +125,18 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 }
 #else
 extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
-	
+	char szout[256];
 	int tid = dwtid & 0x7fffffff;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	int pid = tss->pid;
+	if(tss->tid != tid)
+		__printf(szout, "%s %d tid:%d,current tid:%d\r\n", __FUNCTION__, __LINE__, tid,tss->tid);
 
 	RemoveTaskListPid(pid);
+
+	__printf(szout, "%s %d pid:%d tid:%d cpu:%d\r\n", __FUNCTION__, __LINE__, pid,tid, tss->cpuid);
 
 	if (dwtid & 0x80000000) {
 		return;
@@ -482,15 +485,16 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	enter_task_array_lock_id(id);
 	ret = __GetFreeTask(&result, id);
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
+	result.number = GenPid();
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST * )__kProcessMalloc(sizeof(PROCESS_INFO_LIST), 0, result.number, id, 0,
+		PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
+	//PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
 	PROCESS_INFO * lptss = &list->proc;
 	lptss->cpuid = id;
 	lptss->status = TASK_SUSPEND;
 	result.lptss = lptss;
 
 	InitTaskCoprocessor(lptss, list->fpenv);
-
-	result.number = GenPid();
 	ret = 1;
 #endif
 	
