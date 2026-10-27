@@ -1269,17 +1269,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	g_ipi_buf[cpuid] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 	__memset(g_ipi_buf[cpuid], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 
-	//__enterLock(&g_allocate_ap_lock);
-	__enterSpinlock(&g_allocate_ap_lock);
-
-	int seq = g_cpu_total;
-	int* apids = (int*)g_cpu_id;
-	apids[seq] = cpuid;
-	g_cpu_total = seq + 1;
-
-	__leaveSpinlock(&g_allocate_ap_lock);
-	//__leaveLock(&g_allocate_ap_lock);
-
 	int ioapic_id = ReadIoApicReg(0) >> 24;
 
 	int ioapic_ver = ReadIoApicReg(1) & 0xff;
@@ -1339,6 +1328,17 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	InitApicPerformMonitor();
 
 	InitTaskScheduleBuf();
+
+	//__enterLock(&g_allocate_ap_lock);
+	__enterSpinlock(&g_allocate_ap_lock);
+
+	int seq = g_cpu_total;
+	int* apids = (int*)g_cpu_id;
+	apids[seq] = cpuid;
+	g_cpu_total = seq + 1;
+
+	__leaveSpinlock(&g_allocate_ap_lock);
+	//__leaveLock(&g_allocate_ap_lock);
 
 	__asm {sti}
 

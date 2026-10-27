@@ -114,11 +114,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		return;
 	}
 	else {
-		__asm {
-			//hlt
-		}
-
-		//__yield_ipi();
+		//yield();
 
 		__sleep(-1);
 	}
@@ -136,7 +132,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	RemoveTaskListPid(pid);
 
-	__printf(szout, "%s %d pid:%d tid:%d cpu:%d\r\n", __FUNCTION__, __LINE__, pid,tid, tss->cpuid);
+	//__printf(szout, "%s %d pid:%d tid:%d cpu:%d\r\n", __FUNCTION__, __LINE__, pid,tid, tss->cpuid);
 
 	if (dwtid & 0x80000000) {
 		return;
