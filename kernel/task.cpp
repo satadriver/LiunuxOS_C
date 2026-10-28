@@ -505,6 +505,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE || 
 		prev->status == TASK_OVER || proc->status == TASK_OVER) {
 		proc->status = TASK_OVER;
+		prev->status = TASK_OVER;
 	}
 	else if (proc->status == TASK_RUN  && prev->status == TASK_RUN )
 	{
@@ -528,6 +529,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 	else if (proc->status == TASK_SUSPEND  || prev->status == TASK_SUSPEND ) {
 		proc->status = TASK_SUSPEND;
+		prev->status = TASK_SUSPEND;
 	}
 	else if (prev->status != proc->status) {
 		__printf(szout, "%s prev tss status %d/%d error!\r\n", prev->status, proc->status);
@@ -568,12 +570,11 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			}
 		}
 #ifndef TASK_SWITCH_ARRAY	
-		PROCESS_INFO_LIST* tmplist = (PROCESS_INFO_LIST*)nextlist->list.next;
+		nextlist = (PROCESS_INFO_LIST*)nextlist->list.next;
+		next = (LPPROCESS_INFO)&nextlist->proc;
 		if (next->status == TASK_TERMINATE || next->status == TASK_OVER) {
 			next->status = TASK_OVER;
-		}
-		nextlist = tmplist;
-		next = (LPPROCESS_INFO)& nextlist->proc;
+		}	
 #endif
 	} while (next && (next != prev));
 #endif

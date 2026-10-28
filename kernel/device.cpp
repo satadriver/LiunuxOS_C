@@ -222,6 +222,7 @@ void initDevices() {
 	//setMouseRate(200);
 	enableSpeaker();
 	getKeyboardID();
+	//EnableMouse();
 	initSerial();
 }
 
@@ -509,6 +510,8 @@ void disableMouse() {
 	outportb(PS2_DATA_PORT, 0xf5);
 }
 
+
+
 unsigned int enableMouse() {
 	__wait8042Empty();
 
@@ -523,6 +526,8 @@ unsigned int enableMouse() {
 	outportb(PS2_DATA_PORT, 0xf4);
 
 	unsigned int ret = inportb(0x60);
+
+	gMouseID = getMouseID();
 	return ret;
 
 }

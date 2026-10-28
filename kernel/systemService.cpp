@@ -318,22 +318,22 @@ void sleep(DWORD * params) {
 	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	int tid = cur->tid;
 #ifdef TASK_SWITCH_ARRAY
-	//LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-	//LPPROCESS_INFO process = tss + tid;
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO process = tss + tid;
 #else
-	//PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
-	//LPPROCESS_INFO process = &list->proc;
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	LPPROCESS_INFO process = &list->proc;
 #endif
-	//process->sleep = times ;
+	process->sleep = times ;
 	cur->sleep = times;
 
-	//process->sleep_total += times;
+	process->sleep_total += times;
 	cur->sleep_total += times;
 
 	unsigned long long tick1 = __krdtsc();
-	//if (process->prev_tick ) {
-	//	process->tick_run += (tick1 - process->prev_tick);
-	//}
+	if (process->prev_tick ) {
+		process->tick_run += (tick1 - process->prev_tick);
+	}
 	if (cur->prev_tick) {
 		cur->tick_run += (tick1 - cur->prev_tick);
 	}
@@ -363,9 +363,9 @@ void sleep(DWORD * params) {
 		{
 			//enter_task_array_lock();
 			cur->delta = DYNAMIC_PRIORITY;
-			//process->delta = DYNAMIC_PRIORITY;
+			process->delta = DYNAMIC_PRIORITY;
 			cur->authority = AUTHORITY_PRIORITY;
-			//process->authority = AUTHORITY_PRIORITY;
+			process->authority = AUTHORITY_PRIORITY;
 			//leave_task_array_lock();
 			break;
 		}

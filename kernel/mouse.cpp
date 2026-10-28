@@ -356,11 +356,7 @@ void __kRefreshMouseBackup() {
 	}
 }
 
-
-
-
-void __initMouse(int x,int y) {
-
+void EnableMouse() {
 	enableMouse();
 
 	//setMouseScale();
@@ -374,6 +370,11 @@ void __initMouse(int x,int y) {
 	//enableMouseZAxis();
 
 	gMouseID = getMouseID();
+}
+
+
+void __initMouse(int x,int y) {
+
 	char szout[256];
 	__printf(szout, (char*)"keyboard id:%x,mouse id:%x\n", gKeyboardID, gMouseID);
 	//gMouseID = 0;

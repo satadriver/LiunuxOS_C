@@ -107,14 +107,14 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 
 	initPopupMenu(&gPopupMenu);
 
+	__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
+
 	__initMouse(gVideoWidth, gVideoHeight);
 
 	int imageSize = getSizeOfImage((char*)MAIN_DLL_SOURCE_BASE);
 
 	TASKCMDPARAMS taskcmd;
 	__memset((char*)&taskcmd, 0, sizeof(TASKCMDPARAMS));
-
-	//__printf(szout, "%s task return address:%x,pid:%x,file:%s,function:%s,param:%x\n", __FUNCTION__, retaddr, tid, filename, funcname, param);
 
 	while (1)
 	{

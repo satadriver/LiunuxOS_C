@@ -245,17 +245,16 @@ PROCESS_INFO* PrioritySchedule() {
 		ptr = nextlist;
 	} while (ptr && ptr != prevlist);
 #endif
-
-	if (count < 2) {
+	if ( count < 2) {
 		g_task_other_hit++;
 #ifdef TASK_SWITCH_ARRAY
 		target_tss = tss + g_rate_buf[cpu][0].id;
 #else
 		target_tss = tss[0];
 #endif
-		if (target_tss->status == TASK_TERMINATE || target_tss->status == TASK_OVER) {
-			__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n", 
-				__FUNCTION__, __LINE__,cpu, target_tss->tid, target_tss->status);
+		if (count <= 0 || target_tss->status == TASK_TERMINATE || target_tss->status == TASK_OVER) {
+			__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",
+				__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
 		}
 	}
 	else if (count >= 2) {
@@ -519,6 +518,7 @@ PROCESS_INFO* PrioritySchedule() {
 		}
 		target_tss = tss + target_id;
 #else
+		int target_idx = -1;
 		for (int i = 0; i < count; i++) {
 			if (target_id != g_rate_buf[cpu][i].id) {
 				tss[i]->delta += DELTA_UNIT_PRIORITY;
@@ -528,9 +528,14 @@ PROCESS_INFO* PrioritySchedule() {
 			}
 			else {
 				tss[i]->delta = 0;
+				target_idx = i;
 			}
 		}
-		target_tss = tss[index];
+		target_tss = tss[target_idx];
+		if (target_idx == -1) {
+			__printf(szout, "%s %d cpu:%d target_idx:%d target_id:%d error\r\n",
+				__FUNCTION__, __LINE__, cpu, target_idx, target_id);
+		}
 #endif	
 	}
 

@@ -60,6 +60,7 @@ int isGeometryMouse(int x, int y);
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) DWORD gMouseID;
+extern "C"  __declspec(dllexport) void EnableMouse();
 extern "C"  __declspec(dllexport) void __initMouse(int x, int y);
 extern "C"  __declspec(dllexport) DWORD gMouseTest;
 
@@ -83,6 +84,7 @@ extern "C"  __declspec(dllexport) void __kDrawMouse();
 extern "C"  __declspec(dllexport) void insertMouse(MOUSEINFO* info);
 #else
 extern "C" __declspec(dllimport) DWORD gMouseID;
+extern "C"  __declspec(dllimport) void EnableMouse();
 extern "C"  __declspec(dllimport) void __initMouse(int x, int y);
 extern "C"  __declspec(dllimport) DWORD gMouseTest;
 
