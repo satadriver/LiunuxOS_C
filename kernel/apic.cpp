@@ -1310,6 +1310,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	enableTSD();
 	initDebugger();
 
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+
 	__enterSpinlock(&g_allocate_ap_lock);
 	ret = InitLocalApicTimer();
 	__leaveSpinlock(&g_allocate_ap_lock);
@@ -1330,6 +1332,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	InitTaskScheduleBuf();
 
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+
 	//__enterLock(&g_allocate_ap_lock);
 	__enterSpinlock(&g_allocate_ap_lock);
 
@@ -1340,6 +1344,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
+
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 	__asm {sti}
 

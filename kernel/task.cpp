@@ -559,22 +559,21 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 			return 0;		//something error
 		}
 
-		if (next->cpuid == id) {
-			if (next->status == TASK_RUN) {
-				if (next->sleep) {
-					next->sleep--;
-				}
-				else {
-					break;
-				}
-			}
+		if (next->status == TASK_TERMINATE || next->status == TASK_OVER) {
+			next->status = TASK_OVER;
 		}
+		else if (next->status == TASK_RUN && next->cpuid == id) {
+			if (next->sleep) {
+				next->sleep--;
+			}
+			else {
+				break;
+			}	
+		}
+
 #ifndef TASK_SWITCH_ARRAY	
 		nextlist = (PROCESS_INFO_LIST*)nextlist->list.next;
 		next = (LPPROCESS_INFO)&nextlist->proc;
-		if (next->status == TASK_TERMINATE || next->status == TASK_OVER) {
-			next->status = TASK_OVER;
-		}	
 #endif
 	} while (next && (next != prev));
 #endif
@@ -796,7 +795,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		g_cpu_prev_tick[id] = tick2;
 
 #ifndef TASK_SWITCH_ARRAY
-		//root = (PROCESS_INFO_LIST*)GetTaskListId(id);
 		PROCESS_INFO_LIST* first = (PROCESS_INFO_LIST * )root->list.next;
 		PROCESS_INFO_LIST* list = first;
 		if (list) {
@@ -809,6 +807,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 						__kFreeProcess(p);
 					}
 					RemoveNode((LIST_ENTRY*)&(root->list), (LIST_ENTRY*)&(tmplist->list));
+					//break;
 				}
 			} while (list != first);
 		}

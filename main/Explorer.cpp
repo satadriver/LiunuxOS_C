@@ -168,7 +168,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 		{
 			if (__findProcessFileName("__kConsole") == FALSE)
 			{		
-				__ipiCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
+				__kCreateProcess(MAIN_DLL_SOURCE_BASE, imageSize, (char*)"main.dll", (char*)"__kConsole", 3, 0);
 
 				unsigned long addr = getAddrFromName(MAIN_DLL_SOURCE_BASE, (char*)"__kConsole");
 				if (addr) 

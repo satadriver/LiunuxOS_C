@@ -116,7 +116,7 @@ PROCESS_INFO* PrioritySchedule() {
 
 	double total_alloc = 0.0;
 	double total_mem = 0.0;
-	double total_sleep = 0.0;
+	double total_sleep = 1.0;
 	int count = 0;
 
 	PROCESS_INFO* cur = GetCurrentTaskTssBase();
@@ -133,7 +133,8 @@ PROCESS_INFO* PrioritySchedule() {
 		}
 		else if (ptr->status == TASK_RUN && cpu == ptr->cpuid) {
 			if (ptr->sleep) {
-				ptr->sleep--;
+				if (ptr != prev)
+					ptr->sleep--;
 			}
 			else {
 				int dynamic = ptr->delta;
@@ -196,7 +197,8 @@ PROCESS_INFO* PrioritySchedule() {
 		LPPROCESS_INFO p = &ptr->proc;
 		if (p->status == TASK_RUN) {
 			if (p->sleep) {
-				p->sleep--;
+				if(p != prev)
+					p->sleep--;
 			}
 			else {
 				int dynamic = p->delta;
@@ -237,12 +239,10 @@ PROCESS_INFO* PrioritySchedule() {
 				tss[count++] = p;		
 			}
 		}
-
-		PROCESS_INFO_LIST* nextlist = (PROCESS_INFO_LIST*)ptr->list.next;
-		if (p->status == TASK_TERMINATE || p->status == TASK_OVER) {
+		else if (p->status == TASK_TERMINATE || p->status == TASK_OVER) {
 			p->status = TASK_OVER;
 		}
-		ptr = nextlist;
+		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
 	} while (ptr && ptr != prevlist);
 #endif
 	if ( count < 2) {
@@ -342,7 +342,7 @@ PROCESS_INFO* PrioritySchedule() {
 				g_tpp_buf[cpu]->result = i;
 			}
 			g_tpp_buf[cpu]->task[i].tickrate = tick_ratio;
-			g_tpp_buf[cpu]->task[i].cpurate = (float)g_crate_buf[cpu][i].fv/ (float)STATIC_PRIORITY;
+			g_tpp_buf[cpu]->task[i].cpurate = (float)g_crate_buf[cpu][i].v/ (float)STATIC_PRIORITY;
 			g_tpp_buf[cpu]->task[i].user = user_ratio;
 			g_tpp_buf[cpu]->task[i].window = window_ratio;
 			g_tpp_buf[cpu]->task[i].delta = delta_ratio;
@@ -352,7 +352,7 @@ PROCESS_INFO* PrioritySchedule() {
 			g_tpp_buf[cpu]->task[i].mem = *tss[pid].lpvasize / total_mem ;
 			g_tpp_buf[cpu]->task[i].alloc = tss[pid].alloc_times/total_alloc;
 #else
-			float tick_ratio = (float)g_rate_buf[cpu][i].fv / (float)STATIC_PRIORITY;
+			float tick_ratio = (float)g_rate_buf[cpu][i].v / (float)STATIC_PRIORITY;
 			float user_ratio = (float)(tss[i]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float window_ratio = (float)(tss[i]->window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float delta_ratio = (float)tss[i]->delta / (float)DYNAMIC_PRIORITY;
@@ -363,7 +363,7 @@ PROCESS_INFO* PrioritySchedule() {
 				g_tpp_buf[cpu]->result = i;
 			}
 			g_tpp_buf[cpu]->task[i].tickrate = tick_ratio;
-			g_tpp_buf[cpu]->task[i].cpurate = (float)g_crate_buf[cpu][i].fv / (float)STATIC_PRIORITY;
+			g_tpp_buf[cpu]->task[i].cpurate = (float)g_crate_buf[cpu][i].v / (float)STATIC_PRIORITY;
 			g_tpp_buf[cpu]->task[i].user = user_ratio;
 			g_tpp_buf[cpu]->task[i].window = window_ratio;
 			g_tpp_buf[cpu]->task[i].delta = delta_ratio;
@@ -592,7 +592,6 @@ int PredictionTask() {
 
 				if (ptr->status == TASK_TERMINATE) {
 					ptr->status = TASK_OVER;
-					continue;
 				}
 				else if (ptr->status == TASK_RUN) {
 					if (ptr->sleep) {
@@ -631,25 +630,18 @@ int PredictionTask() {
 						total_sleep += ptr->sleep;
 
 						count++;
-
-						ptr++;
-						if (ptr - tss >= TASK_LIMIT_TOTAL) {
-							ptr = tss;
-						}
-						if (ptr == proc) {
-							break;
-						}
-
-						if (next == 0) {
-							next = ptr;
-						}
 					}
 				}
-				else if (ptr->status == TASK_OVER) {
-					continue;
+				ptr++;
+				if (ptr - tss >= TASK_LIMIT_TOTAL) {
+					ptr = tss;
 				}
-				else if (ptr->status == TASK_SUSPEND) {
-					continue;
+				if (ptr == proc) {
+					break;
+				}
+
+				if (next == 0) {
+					next = ptr;
 				}
 			} while (TRUE);
 #else
@@ -825,6 +817,7 @@ int PredictionTask() {
 								break;
 							}
 						}
+
 						if (index >= ML_TASK_LIMIT) {
 #ifdef TASK_SWITCH_ARRAY
 							int pid = rate[index].id;
@@ -893,15 +886,18 @@ int PredictionTask() {
 					}
 				}		
 				
+				int target_idx = -1;
 				int seq = TaskSchedulePredict(&tp);
 				if (seq >= 0 && seq < count) {
 					target_id = rate[seq].id;
 					total++;
 					//g_tp_error1++;
+					target_idx = target_id;
 				}
 				else {
 					target_id = next->tid;		
 					//g_tp_error2++;
+					target_idx = 0;
 				}
 #ifdef TASK_SWITCH_ARRAY
 				target_tss = tss + target_id;
@@ -918,9 +914,9 @@ int PredictionTask() {
 					}
 				}
 #else
-				target_tss = tss[ target_id];
+				target_tss = tss[target_idx];
 				for (int i = 0; i < count; i++) {
-					int tid = rate[i].id;
+
 					if (target_id != rate[i].id) {
 						tss[tid]->delta += DELTA_UNIT_PRIORITY;
 						if (tss[tid]->delta > DYNAMIC_PRIORITY) {
