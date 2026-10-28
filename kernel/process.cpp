@@ -127,8 +127,8 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	int pid = tss->pid;
-	if(tss->tid != tid)
-		__printf(szout, "%s %d tid:%d,current tid:%d\r\n", __FUNCTION__, __LINE__, tid,tss->tid);
+	if(tss->tid != tid || tss->pid != tss->tid)
+		__printf(szout, "%s %d pid:%d tid:%d,current tid:%d\r\n", __FUNCTION__, __LINE__,pid, tid,tss->tid);
 
 	RemoveTaskListPid(pid);
 
@@ -454,17 +454,21 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 #define CREATE_PROCESS_DYNAMIC
 
-
-
-int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcname, int syslevel, DWORD params) {
-
-	int ret = 0;
-	char szout[256];
+int __kCreateProcess (DWORD filedata, int filesize, char* filename, char* funcname, int syslevel, DWORD params) {
 #ifdef CREATE_PROCESS_DYNAMIC
 	int id = GetIdleProcessor();
 #else
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 #endif
+	return __kCreateRemoteProcess(id, filedata, filesize, filename, funcname, syslevel, params);
+}
+
+
+int __kCreateRemoteProcess(int id,DWORD filedata, int filesize,char * filename,char * funcname, int syslevel, DWORD params) {
+
+	int ret = 0;
+	char szout[256];
+
 
  	//DWORD filedata = linear2phy(lpfiledata);
  	//char * filename = (char *)linear2phy((DWORD)fn);
@@ -481,8 +485,9 @@ int __kCreateProcess(DWORD filedata, int filesize,char * filename,char * funcnam
 	enter_task_array_lock_id(id);
 	ret = __GetFreeTask(&result, id);
 #else
-	result.number = GenPid();
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST * )__kProcessMalloc(sizeof(PROCESS_INFO_LIST), 0, result.number, id, 0,
+	int pid = GenPid();
+	result.number = pid;
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST * )__kProcessMalloc(sizeof(PROCESS_INFO_LIST), 0, pid, id, 0,
 		PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
 	//PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
 	PROCESS_INFO * lptss = &list->proc;

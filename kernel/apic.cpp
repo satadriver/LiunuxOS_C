@@ -548,7 +548,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 		int petype = getPeType(base,size);
 		if (petype == DOS_EXE_FILE || petype == DOS_COM_FILE)
 		{
-			id = 0;
+			id = GetIdleProcessor();
 		}
 		else {
 			id = GetIdleProcessor();
@@ -656,11 +656,12 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 					//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
 
-					if (__findProcessFileName(subparam->funcname) == FALSE)
+					if (__findProcessFileName(subparam->funcname) == 0)
 					{
-						//__kCreateProcess(base, size, (subparam->module), (subparam->funcname), level, (unsigned long)p);
+						__kCreateRemoteProcess(cpu, base, size, fn, (funcname), level, (unsigned long)p);
 					}
-					__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
+					
+					//__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
 				}
 				else if (cmd == IPI_CREATETHREAD) {
 
@@ -672,11 +673,11 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 					//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
 
-					if (__findProcessFileName(funcname) == FALSE)
+					if (__findProcessFileName(funcname) == 0)
 					{
-
+						__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
 					}
-					__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
+					
 				}
 				else {
 
@@ -1421,8 +1422,6 @@ void BPCodeStart() {
 	__asm {sti}
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	g_cpu_id[0] = cpu;
-	g_cpu_total = 1;
 	g_ipi_buf[cpu] = (char*)__kMalloc(sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 	__memset(g_ipi_buf[cpu], 0, sizeof(IPI_MSG_PARAM) * IPI_MSG_LIMIT);
 

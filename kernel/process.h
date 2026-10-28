@@ -204,12 +204,14 @@ extern "C" __declspec(dllexport) void __terminateProcess(int pid, char * filenam
 extern "C" __declspec(dllexport)int __kCreateProcessFromAddr(DWORD filedata, int filesize, char * funcname,int syslevel, DWORD params);
 extern "C" __declspec(dllexport)int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWORD params);
 extern "C" __declspec(dllexport)int __kCreateProcess(DWORD addr, int datasize, char * filename, char * funcname, int syslevel, DWORD param);
+extern "C" __declspec(dllexport)int __kCreateRemoteProcess(int id, DWORD filedata, int filesize, char* filename, char* funcname, int syslevel, DWORD params);
 #else
 extern "C" __declspec(dllimport) int __kCreateProcessRealtime(DWORD filedata, int filesize, char* filename, char* funcname, int syslevel);
 extern "C" __declspec(dllimport) void __terminateProcess(int pid, char * filename, char * funcname, DWORD lpparams);
 extern "C" __declspec(dllimport)int __kCreateProcessFromAddr(DWORD filedata, int filesize, char * funcname, int syslevel, DWORD params);
 extern "C" __declspec(dllimport)int __kCreateProcessFromName(char * filename, char * funcname, int syslevel, DWORD params);
 extern "C" __declspec(dllimport)int __kCreateProcess(DWORD addr, int datasize, char * filename, char * funcname, int syslevel, DWORD param);
+extern "C" __declspec(dllimport)int __kCreateRemoteProcess(int id, DWORD filedata, int filesize, char* filename, char* funcname, int syslevel, DWORD params);
 #endif
 
 

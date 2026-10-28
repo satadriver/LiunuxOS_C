@@ -48,7 +48,7 @@ typedef struct {
 #pragma pack()
 
 
-//#define TASK_SWITCH_PRIORITY
+#define TASK_SWITCH_PRIORITY
 
 //#define TASK_SWITCH_COPROCESSOR_LAZY
 

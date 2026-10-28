@@ -124,7 +124,6 @@ PROCESS_INFO* PrioritySchedule() {
 	PROCESS_INFO* tss = GetTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + cur->tid);
 	LPPROCESS_INFO ptr = prev;
-	LPPROCESS_INFO next = 0;
 	do {
 		if (ptr->status == TASK_TERMINATE) {
 			ptr->status = TASK_OVER;
@@ -173,10 +172,6 @@ PROCESS_INFO* PrioritySchedule() {
 				total_sleep += ptr->sleep;
 
 				count++;
-
-				if (next == 0 && ptr != prev) {
-					next = ptr;
-				}
 			}
 		}
 
@@ -194,8 +189,6 @@ PROCESS_INFO* PrioritySchedule() {
 	LPPROCESS_INFO tss[256];
 	PROCESS_INFO_LIST* prevlist = GetRemoteTaskListTid(cpu,cur->tid);
 	LPPROCESS_INFO prev = &prevlist->proc;
-	PROCESS_INFO_LIST* nextlist = 0;
-	LPPROCESS_INFO next = 0;
 	PROCESS_INFO_LIST* ptr = prevlist;
 	do {
 		if (ptr == 0)
@@ -241,44 +234,31 @@ PROCESS_INFO* PrioritySchedule() {
 				total_mem += (*p->lpvasize);
 				total_sleep += p->sleep;
 
-				tss[count++] = p;
-
-				if (next == 0 && p != prev) {
-					next = p;
-				}		
+				tss[count++] = p;		
 			}
 		}
 
-		nextlist = (PROCESS_INFO_LIST*)ptr->list.next;
+		PROCESS_INFO_LIST* nextlist = (PROCESS_INFO_LIST*)ptr->list.next;
 		if (p->status == TASK_TERMINATE || p->status == TASK_OVER) {
 			p->status = TASK_OVER;
-			if (p->pid == p->tid) {
-				//__kExitProcess(ptr);
-				//if (ptr == prevlist) {
-				//	prevlist = nextlist;
-				//	prev = &prevlist->proc;
-				//}
-			}
 		}
 		ptr = nextlist;
 	} while (ptr && ptr != prevlist);
 #endif
-	if (target_tss == 0)
-		target_tss = prev;
 
-	if (count == 1) {
-		target_tss = prev;
+	if (count < 2) {
 		g_task_other_hit++;
+#ifdef TASK_SWITCH_ARRAY
+		target_tss = tss + g_rate_buf[cpu][0].id;
+#else
+		target_tss = tss[0];
+#endif
+		if (target_tss->status == TASK_TERMINATE || target_tss->status == TASK_OVER) {
+			__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n", 
+				__FUNCTION__, __LINE__,cpu, target_tss->tid, target_tss->status);
+		}
 	}
-	else if (count <= 0) {
-		target_tss = prev;
-		return target_tss;
-	}
-	else if (count == 2) {
-		target_tss = next;
-		g_task_other_hit++;
-	}
-	else if (count > 2) {
+	else if (count >= 2) {
 		
 		if(total_sleep == 0)
 			total_sleep = 1;
@@ -519,7 +499,7 @@ PROCESS_INFO* PrioritySchedule() {
 				g_task_dl_hit++;
 			}
 			else {
-				target_id = next->tid;
+				target_id = g_rate_buf[cpu][0].id;
 				g_task_other_hit++;
 				g_tp_correct0++;
 			}
