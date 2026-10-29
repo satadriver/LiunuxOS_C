@@ -119,8 +119,8 @@ void __kApicTimerProc() {
 			if (gApicTimer[id][i].tickcnt < g_apictimer_tick_cnt[id])
 			{
 				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-				if (gApicTimer[i][id].pid == proc->pid && gApicTimer[i][id].tid == proc->tid) {
-					gApicTimer[i][id].tickcnt = g_apictimer_tick_cnt[id] + gApicTimer[id][i].ticks;
+				if (gApicTimer[id][i].pid == proc->pid && gApicTimer[id][i].tid == proc->tid) {
+					gApicTimer[id][i].tickcnt = g_apictimer_tick_cnt[id] + gApicTimer[id][i].ticks;
 
 					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
 					ptrfunction lpfunction = (ptrfunction)gApicTimer[id][i].func;
