@@ -288,7 +288,7 @@ void drawCCFontChar(DWORD param1, DWORD param2, DWORD param3, DWORD param4) {
 		(*idx)++;
 	}
 	else {
-		__kRemoveExactTimer(*timer);
+		__kRemoveApicTimer(*timer);
 	}
 }
 

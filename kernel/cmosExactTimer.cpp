@@ -13,6 +13,8 @@ TIMER_PROC_PARAM gExactTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
 int g_cmos_exact_tick_cnt = 0;
 
+int g_apictimer_lock = 0;
+
 void initExactTimer() {
 	g_cmos_exact_tick_cnt = 0;
 	__memset((char*)gExactTimer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
@@ -31,6 +33,10 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 	if (delay % CMOS_EXACT_INTERVAL) {
 		ticks++;
 	}
+
+	__enterSpinlock(&g_apictimer_lock);
+
+	int seq = -1;
 
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
@@ -61,21 +67,28 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 			__printf(szout, "%s addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n",
 				__FUNCTION__,
 				addr,i, delay, param1, param2, param3, param4);
-			return i;
+
+			seq = i;
+			break;
 		}
 	}
 
-	return -1;
+	__leaveSpinlock(&g_apictimer_lock);
+
+	return seq;
 }
 
 
 
 void __kRemoveExactTimer(int n) {
+
+	__enterSpinlock(&g_apictimer_lock);
 	if (n >= 0 && n < REALTIMER_CALLBACK_MAX)
 	{
 		gExactTimer[n].func = 0;
 		gExactTimer[n].tickcnt = 0;
 	}
+	__leaveSpinlock(&g_apictimer_lock);
 }
 
 

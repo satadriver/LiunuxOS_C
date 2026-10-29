@@ -1637,10 +1637,12 @@ extern "C" void __declspec(naked) CmosInterrupt(LIGHT_ENVIRONMENT * stack) {
 		if (flag & 0x20) {
 			__kAlarmTimerProc();
 		}
-		else if (flag & 0x40) {
+
+		if (flag & 0x40) {
 			__kExactTimerProc();
 		}
-		else if (flag & 0x10) {
+
+		if (flag & 0x10) {
 			__kPeriodTimer();
 		}
 

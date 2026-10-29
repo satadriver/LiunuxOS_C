@@ -996,47 +996,6 @@ extern "C" void __declspec(naked) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack) {
 
 
 
-int AllocateApTask(int intnum) {
-	static int gAllocateAp = 0;
-
-	if(intnum < 0 || intnum > 255) {
-		return -1;
-	}
-
-	int res = -1;
-	int cpuId = 0;
-
-	int total = g_cpu_total;
-	if (total > 0) {
-
-		int idx = gAllocateAp;
-		int* ids = (int*)g_cpu_id;
-		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-		
-		do {
-			cpuId = ids[gAllocateAp];
-			if (id != cpuId) {
-
-				SetIcr(cpuId, intnum,0,0);
-
-				res = gAllocateAp;		
-			}
-
-			gAllocateAp++;
-			if (gAllocateAp >= total) {
-				gAllocateAp = 0;
-			}
-			if (res >= 0) {
-				break;
-			}
-		} while (gAllocateAp != idx);
-	}
-
-	char szout[256];
-	unsigned long v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-	__printf(szout, "%s index:%x,id:%x result:%x\r\n",__FUNCTION__, res, cpuId,v);
-	return res;
-}
 
 
 int IsApicSupported() {
@@ -1345,6 +1304,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__leaveSpinlock(&g_allocate_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
+	initApicTimer();
+
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 	__asm {sti}
@@ -1450,7 +1411,7 @@ void BPCodeStart() {
 #endif
 	__sleep(0);
 
-	//SetIcr(0, 0, 5, 3);
+	SetIcr(0, 0, 5, 3);
 
 #if 0
 	WaitIcrFree();
@@ -1467,9 +1428,9 @@ void BPCodeStart() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
 	__sleep(0);
 #else
-	//SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
+	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
-	//__sleep(0);
+	__sleep(0);
 
 	int* ids = (int*)g_cpu_id;
 	int cnt = g_cpu_total;

@@ -807,7 +807,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 						__kFreeProcess(p);
 					}
 					RemoveNode((LIST_ENTRY*)&(root->list), (LIST_ENTRY*)&(tmplist->list));
-					//break;
 				}
 			} while (list != first);
 		}

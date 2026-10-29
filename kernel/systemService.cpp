@@ -301,7 +301,7 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module
 
 void sleep(DWORD * params) {
 	int sleeptime = params[0];
-	int interval = 1000 / (OSCILLATE_FREQUENCY / SYSTEM_TIMER0_FACTOR);
+	int interval = TASK_TIME_SLICE;
 	DWORD times = sleeptime / interval;
 	DWORD mod = sleeptime % interval;
 	if (mod != 0)

@@ -2,6 +2,8 @@
 
 #include "mouse.h"
 
+#define OSCILLATE_FREQUENCY			1193182		//1193181.6
+
 #define PS2_COMMAND_PORT	0x64
 #define PS2_DATA_PORT		0x60
 

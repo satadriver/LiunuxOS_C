@@ -23,6 +23,7 @@ void initWindowList() {
 	__memset((char*)gWindowsList, 0, WINDOW_LIST_BUF_SIZE);
 
 	InitListEntry((LPLIST_ENTRY)&gWindowsList->list);
+	gWindowsList->valid = 1;
 
 	int cnt = sizeof(gPopupMenu.item) / sizeof(gPopupMenu.item[0]);
 	for (int i = 0; i < cnt; i++) {

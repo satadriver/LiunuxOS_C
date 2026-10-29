@@ -57,10 +57,13 @@ extern "C" __declspec(dllimport) unsigned long long g_task_dl_hit;
 
 #define TASK_PREDICTION_BUF_SIZE	16
 
-unsigned long GetValueFromArray(AlgorithmModel* array, int size, int key);
+double GetValueFromArray(AlgorithmModel* array, int size, int key);
 
 PROCESS_INFO* PrioritySchedule();
 
 void InitTaskScheduleBuf();
 
 int PredictionTask();
+
+
+void priorityTaskTest(int count, int cpu, int target_id, int target_idx, LPPROCESS_INFO* tss);

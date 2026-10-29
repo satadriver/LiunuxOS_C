@@ -9,14 +9,19 @@
 #include "algorithm.h"
 #include "systemService.h"
 
-//TIMER_PROC_PARAM g8254Timer[REALTIMER_CALLBACK_MAX] = { 0 };
-TIMER_PROC_PARAM * gApicTimer = 0;
+
+int g_apictimer_lock[256];
+
+TIMER_PROC_PARAM * gApicTimer[256] ;
 
 unsigned long g_timer_tick_cnt;
+
 unsigned long g_apictimer_tick_cnt[256] ;
 
+
+
 int getTimer8254Delay(){
-	int n = OSCILLATE_FREQUENCY / SYSTEM_TIMER0_FACTOR;
+	int n = TASK_TIME_SLICE;
 	return 1000 / n;
 }
 
@@ -28,11 +33,11 @@ int getApicTimerDelay() {
 
 void initApicTimer() {
 	for (int i = 0; i < 256; i++) {
-		g_apictimer_tick_cnt [i ] = 0;
+		//g_apictimer_tick_cnt [i ] = 0;
 	}
-	
-	//__memset((char*)g8254Timer, 0, REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM));
-	gApicTimer =(TIMER_PROC_PARAM*) __kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) * MAX_CPU_COUNT);
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+
+	gApicTimer[id] = (TIMER_PROC_PARAM*)__kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) );
 }
 
 
@@ -53,39 +58,50 @@ int __kAddApicTimer(DWORD func, DWORD delay, DWORD param1, DWORD param2, DWORD p
 		ticks++;
 	}
 
-	for (int i = id* REALTIMER_CALLBACK_MAX; i < (id +1)* REALTIMER_CALLBACK_MAX; i++)
+	int seq = -1;
+
+	__enterSpinlock(&g_apictimer_lock[id]);
+
+	for (int i = 0; i <  REALTIMER_CALLBACK_MAX; i++)
 	{
-		if (gApicTimer[i].func == 0 && gApicTimer[i].tickcnt == 0)
+		if (gApicTimer[id][i].func == 0 && gApicTimer[id][i].tickcnt == 0)
 		{
-			gApicTimer[i].func = func;
-			gApicTimer[i].ticks = ticks;
-			gApicTimer[i].tickcnt = *lptickcnt + ticks;
-			gApicTimer[i].param1 = param1;
-			gApicTimer[i].param2 = param2;
-			gApicTimer[i].param3 = param3;
-			gApicTimer[i].param4 = param4;
+			gApicTimer[id][i].func = func;
+			gApicTimer[id][i].ticks = ticks;
+			gApicTimer[id][i].tickcnt = *lptickcnt + ticks;
+			gApicTimer[id][i].param1 = param1;
+			gApicTimer[id][i].param2 = param2;
+			gApicTimer[id][i].param3 = param3;
+			gApicTimer[id][i].param4 = param4;
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-			gApicTimer[i].pid = proc->pid;
-			gApicTimer[i].tid = proc->tid;
+			gApicTimer[id][i].pid = proc->pid;
+			gApicTimer[id][i].tid = proc->tid;
 			char szout[256];
 			//__printf(szout, "%s addr:%x,num:%d,delay:%d,param1:%x,param2:%x,param3:%x,param4:%x\r\n", __FUNCTION__,func,i,delay,param1,param2,param3,param4);
 
-			return i;
+			seq = i;
+			break;
 		}
 	}
+	__leaveSpinlock(&g_apictimer_lock[id]);
 
-	return 0;
+	return seq;
 }
 
 
 
 void __kRemoveApicTimer(int  n) {
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (n >= id* REALTIMER_CALLBACK_MAX && n < (id+1)* REALTIMER_CALLBACK_MAX)
+
+	__enterSpinlock(&g_apictimer_lock[id]);
+	
+	if (n >= 0 && n < REALTIMER_CALLBACK_MAX)
 	{
-		gApicTimer[n].func = 0;
-		gApicTimer[n].tickcnt = 0;
+		gApicTimer[id][n].func = 0;
+		gApicTimer[id][n].tickcnt = 0;
 	}
+	__leaveSpinlock(&g_apictimer_lock[id]);
 }
 
 
@@ -102,19 +118,20 @@ void __kApicTimerProc() {
 	//DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
 	//*pdoscounter = *lptickcnt;
 
-	for (int i = id * REALTIMER_CALLBACK_MAX; i < (id + 1) * REALTIMER_CALLBACK_MAX; i++)
+	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
-		if (gApicTimer[i].func)
+		if (gApicTimer[id][i].func)
 		{
-			if (gApicTimer[i].tickcnt < *lptickcnt)
+			if (gApicTimer[id][i].tickcnt < *lptickcnt)
 			{
 				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-				if (gApicTimer[i].pid == proc->pid && gApicTimer[i].tid == proc->tid) {
-					gApicTimer[i].tickcnt = *lptickcnt + gApicTimer[i].ticks;
+				if (gApicTimer[i][id].pid == proc->pid && gApicTimer[i][id].tid == proc->tid) {
+					gApicTimer[i][id].tickcnt = *lptickcnt + gApicTimer[id][i].ticks;
 
 					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
-					ptrfunction lpfunction = (ptrfunction)gApicTimer[i].func;
-					result = lpfunction(gApicTimer[i].param1, gApicTimer[i].param2, gApicTimer[i].param3, gApicTimer[i].param4);
+					ptrfunction lpfunction = (ptrfunction)gApicTimer[id][i].func;
+					result = lpfunction(gApicTimer[id][i].param1, gApicTimer[id][i].param2,
+						gApicTimer[id][i].param3, gApicTimer[id][i].param4);
 				}
 			}
 		}

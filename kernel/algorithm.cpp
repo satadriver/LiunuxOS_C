@@ -72,7 +72,34 @@ void QuickSort(AlgorithmModel* s, int low, int high)
 }
 
 
+int partitiond(AlgorithmModel* data, int low, int high) {
+	double  pivot = data[low].fv;
+	unsigned long long  id = data[low].id;
+	while (low < high)
+	{
+		while (low < high && data[high].fv >= pivot) // 从右向左找第一个小于x的数
+			high--;
+		if (low < high)
+			data[low++] = data[high];
+		while (low < high && data[low].fv < pivot) // 从左向右找第一个大于等于x的数
+			low++;
+		if (low < high)
+			data[high--] = data[low];
+	}
+	data[low].fv = pivot;
+	data[low].id = id;
+	return low;
+}
 
+void QuickSortd(AlgorithmModel* s, int low, int high)
+{
+	if (low < high)
+	{
+		int pivot = partitiond(s, low, high);
+		QuickSortd(s, low, pivot - 1);
+		QuickSortd(s, pivot + 1, high);
+	}
+}
 
 void swap(unsigned long* a, unsigned long* b) {
 	unsigned long t = *a;

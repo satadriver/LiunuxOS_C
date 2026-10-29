@@ -89,7 +89,7 @@ void initSquareVector() {
 
 	gVectorGraphBuf = (char*)g_sqaure_window.backBuf;
 	gVectorGraphWid = g_sqaure_window.id;
-	//gVectorGraphTid = __kAddApicTimer((DWORD)SqaureAnimation, TASK_TIME_SLICE , 0, 0, 0, 0);
+	gVectorGraphTid = __kAddApicTimer((DWORD)SqaureAnimation, TASK_TIME_SLICE , 0, 0, 0, 0);
 
 	gBaseColor = 0;
 }
@@ -135,7 +135,7 @@ extern "C" __declspec(dllexport) int SquareVector(unsigned int retaddr, int tid,
 
 		__sleep(0);
 
-		SqaureAnimation();
+		//SqaureAnimation();
 	}
 
 	stopSqaureAnimation();

@@ -300,7 +300,7 @@ int windowCursor(WINDOWCLASS * w, int p2, int p3, int p4) {
 
 int RemoveCursor(WINDOWCLASS* w) {
 
-	__kRemoveExactTimer(w->cursorID);
+	__kRemoveApicTimer(w->cursorID);
 
 	return 0;
 }

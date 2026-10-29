@@ -22,6 +22,7 @@ struct TaskSwitchSample {
 	float priority;
 	float authority;
 	float sleep;
+	float delay;
 };
 
 struct TaskPredictParam {

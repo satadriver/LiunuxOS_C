@@ -109,8 +109,6 @@ int InitApicPerformMonitor();
 int InitApicThermalMonitor();
 int DisableLocalApicLVT();
 
-int AllocateApTask(int vn);
-
 void WaitIcrFree();
 
 int GetTssSize();

@@ -23,4 +23,4 @@ void BubbleSort(AlgorithmModel* arr, int count);
 void BubbleSortd(AlgorithmModel* arr, int count);
 
 void QuickSort(AlgorithmModel* s, int low, int high);
-
+void QuickSortd(AlgorithmModel* s, int low, int high);
