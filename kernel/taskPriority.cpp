@@ -179,7 +179,7 @@ PROCESS_INFO* PrioritySchedule() {
 
 				total_alloc += ptr->alloc_times;
 				total_mem += (*ptr->lpvasize);
-				total_sleep += ptr->sleep;
+				total_sleep += ptr->sleep_total;
 
 				if ((ticknow - p->prev_tick) > delay_max) {
 					delay_max = ticknow - p->prev_tick;
@@ -217,7 +217,7 @@ PROCESS_INFO* PrioritySchedule() {
 				int dynamic = p->delta;
 				double ratio = 1.0;
 				double cratio = 1.0;
-				if ( (p->tick_run == 0 || p->tick_total == 0 || g_cpu_tick[cpu] == 0) || (p->param->cmd & TASK_REALTIME)) {
+				if ( (p->tick_total == 0 || g_cpu_tick[cpu] == 0) || (p->param->cmd & TASK_REALTIME)) {
 					dynamic = DYNAMIC_PRIORITY;
 					ratio = 0.01;
 					cratio = 0.01;
@@ -251,7 +251,7 @@ PROCESS_INFO* PrioritySchedule() {
 
 				total_alloc += p->alloc_times;
 				total_mem += (*p->lpvasize);
-				total_sleep += p->sleep;
+				total_sleep += p->sleep_total;
 
 				if ((ticknow - p->prev_tick) > delay_max) {
 					delay_max = ticknow - p->prev_tick;
@@ -297,7 +297,7 @@ PROCESS_INFO* PrioritySchedule() {
 				g_level_buf[cpu][i].fv += tss[pid].authority;
 				g_level_buf[cpu][i].fv += STATIC_PRIORITY * alloc_ratio;
 				g_level_buf[cpu][i].fv += STATIC_PRIORITY * mem_ratio;
-				g_level_buf[cpu][i].fv += (tss[pid].sleep / total_sleep) * STATIC_PRIORITY;
+				g_level_buf[cpu][i].fv += (tss[pid].sleep_total / total_sleep) * STATIC_PRIORITY;
 				if (i == delay_max_id)
 					g_level_buf[cpu][i].fv += DYNAMIC_PRIORITY;
 			}
@@ -318,7 +318,7 @@ PROCESS_INFO* PrioritySchedule() {
 				g_level_buf[cpu][i].fv += tss[i]->authority;
 				g_level_buf[cpu][i].fv += STATIC_PRIORITY * alloc_ratio;
 				g_level_buf[cpu][i].fv += STATIC_PRIORITY * mem_ratio;
-				g_level_buf[cpu][i].fv += (tss[i]->sleep / total_sleep) * STATIC_PRIORITY;
+				g_level_buf[cpu][i].fv += (tss[i]->sleep_total / total_sleep) * STATIC_PRIORITY;
 				if(i == delay_max_id)
 					g_level_buf[cpu][i].fv += DYNAMIC_PRIORITY;
 			}
@@ -537,7 +537,7 @@ PROCESS_INFO* PrioritySchedule() {
 		for (int i = 0; i < count; i++) {
 			int tid = g_rate_buf[cpu][i].id;
 			if (target_id != g_rate_buf[cpu][i].id) {
-				tss[tid].delta += DELTA_UNIT_PRIORITY;
+				tss[tid].delta += STATIC_PRIORITY;
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
 					//tss[tid].delta = DYNAMIC_PRIORITY;
 				}
@@ -551,7 +551,7 @@ PROCESS_INFO* PrioritySchedule() {
 		int target_idx = -1;
 		for (int i = 0; i < count; i++) {
 			if (target_id != g_rate_buf[cpu][i].id) {
-				tss[i]->delta += DELTA_UNIT_PRIORITY;
+				tss[i]->delta += STATIC_PRIORITY;
 				if (tss[i]->delta > DYNAMIC_PRIORITY) {
 					//tss[tid].delta = DYNAMIC_PRIORITY;
 				}

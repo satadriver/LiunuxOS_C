@@ -32,12 +32,11 @@ int getApicTimerDelay() {
 
 
 void initApicTimer() {
-	for (int i = 0; i < 256; i++) {
-		//g_apictimer_tick_cnt [i ] = 0;
-	}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	g_apictimer_tick_cnt[id] = 0;
+	g_apictimer_lock[id] = 0;
 
-	gApicTimer[id] = (TIMER_PROC_PARAM*)__kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) );
+ 	gApicTimer[id] = (TIMER_PROC_PARAM*)__kMalloc(REALTIMER_CALLBACK_MAX * sizeof(TIMER_PROC_PARAM) );
 }
 
 
@@ -49,10 +48,7 @@ int __kAddApicTimer(DWORD func, DWORD delay, DWORD param1, DWORD param2, DWORD p
 	//	return -1;
 	//}
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD* lptickcnt = (DWORD*)&(g_apictimer_tick_cnt [id]);
-
 	int dt = getTimer8254Delay();
-
 	DWORD ticks = delay / dt;
 	if (delay % dt) {
 		ticks++;
@@ -68,7 +64,7 @@ int __kAddApicTimer(DWORD func, DWORD delay, DWORD param1, DWORD param2, DWORD p
 		{
 			gApicTimer[id][i].func = func;
 			gApicTimer[id][i].ticks = ticks;
-			gApicTimer[id][i].tickcnt = *lptickcnt + ticks;
+			gApicTimer[id][i].tickcnt = g_apictimer_tick_cnt[id] + ticks;
 			gApicTimer[id][i].param1 = param1;
 			gApicTimer[id][i].param2 = param2;
 			gApicTimer[id][i].param3 = param3;
@@ -111,9 +107,7 @@ void __kApicTimerProc() {
 	int result = 0;
 	//in both c and c++ language,the * priority is lower than ++
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	DWORD* lptickcnt = (DWORD*)&(g_apictimer_tick_cnt[ id]);
-
-	(*lptickcnt)++;
+	g_apictimer_tick_cnt[id] ++;
 
 	//DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
 	//*pdoscounter = *lptickcnt;
@@ -122,11 +116,11 @@ void __kApicTimerProc() {
 	{
 		if (gApicTimer[id][i].func)
 		{
-			if (gApicTimer[id][i].tickcnt < *lptickcnt)
+			if (gApicTimer[id][i].tickcnt < g_apictimer_tick_cnt[id])
 			{
 				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 				if (gApicTimer[i][id].pid == proc->pid && gApicTimer[i][id].tid == proc->tid) {
-					gApicTimer[i][id].tickcnt = *lptickcnt + gApicTimer[id][i].ticks;
+					gApicTimer[i][id].tickcnt = g_apictimer_tick_cnt[id] + gApicTimer[id][i].ticks;
 
 					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
 					ptrfunction lpfunction = (ptrfunction)gApicTimer[id][i].func;

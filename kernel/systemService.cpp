@@ -331,19 +331,17 @@ void sleep(DWORD * params) {
 	cur->sleep_total += times;
 
 	unsigned long long tick1 = __krdtsc();
-	if (process->prev_tick ) {
-		process->tick_run += (tick1 - process->prev_tick);
-	}
-	if (cur->prev_tick) {
-		cur->tick_run += (tick1 - cur->prev_tick);
-	}
+
+	process->tick_run += (tick1 - process->prev_tick);
+
+	cur->tick_run += (tick1 - cur->prev_tick);
+	
 	leave_task_array_lock();
 	
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	if (g_cpu_prev_tick[id]) {
-		g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
-		g_cpu_prev_tick[id] = tick1;
-	}
+
+	g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
+	//g_cpu_prev_tick[id] = tick1;
 	
 	while(1)
 	{	

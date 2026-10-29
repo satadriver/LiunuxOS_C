@@ -284,7 +284,7 @@ PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p) {
 
 				//__kFreeProcess(proc);
 
-				//DestroyThreadWindow(p->proc.tid, id);
+				DestroyThreadWindow(p->proc.tid, id);
 
 				//RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
 
@@ -331,7 +331,7 @@ PROCESS_INFO_LIST* RemoveTaskListTid(int tid) {
 				proc->status = TASK_OVER;
 				list->proc.status = TASK_OVER;
 
-				//DestroyThreadWindow(tid, id);
+				DestroyThreadWindow(tid, id);
 
 				//RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
 
@@ -391,7 +391,7 @@ PROCESS_INFO_LIST* RemoveTaskListPid(int pid) {
 
 				//__kFreeProcess(proc);
 
-				//DestroyThreadWindow(pid, id);
+				DestroyProcessWindow(pid, id);
 
 				//RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
 				result = list;
@@ -759,20 +759,14 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 		}
 		else {
-			if (current->prev_tick) {
-				current->tick_run += (tick1 - current->prev_tick);
-				prev->tick_run += (tick1 - current->prev_tick);
-			}
-
-			if (g_cpu_prev_tick[id]) {
-				g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
-			}
-		}
-		if (current->prev_tick) {
-			current->tick_total += tick1 - current->prev_tick;
-			prev->tick_total += tick1 - current->prev_tick;
+			current->tick_run += (tick1 - current->prev_tick);
+			prev->tick_run += (tick1 - current->prev_tick);
+			g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);	
 		}
 
+		current->tick_total += tick1 - current->prev_tick;
+		prev->tick_total += tick1 - current->prev_tick;
+		
 		current->prev_tick = tick1;
 		prev->prev_tick = tick1;
 
@@ -927,7 +921,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	process0->authority = AUTHORITY_PRIORITY;
 
 	process0->tick_run = 0;
-	process0->prev_tick = 0;
+	process0->prev_tick = __krdtsc();
 	process0->tick_start = __krdtsc();
 	process0->tick_total = 0;
 	process0->tick_switch_cost = 0;

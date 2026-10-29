@@ -417,7 +417,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 
 	tss->frac_slice = 0;
 	tss->tick_run = 0;
-	tss->prev_tick = 0;
+	tss->prev_tick = __krdtsc();
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
 	tss->tick_switch_cost = 0;

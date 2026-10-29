@@ -297,7 +297,7 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	tss->priority = process->priority;
 
 	tss->tick_run = 0;
-	tss->prev_tick = 0;
+	tss->prev_tick = __krdtsc();
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
 	tss->tick_switch_cost = 0;
