@@ -14,6 +14,7 @@ typedef struct {
 
 typedef struct _PROCESS_INFO_LIST {
 	LIST_ENTRY list;
+	LIST_ENTRY child;
 	PROCESS_INFO proc;
 	alignas(16)
 	char fpenv[512];

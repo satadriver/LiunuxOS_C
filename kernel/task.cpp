@@ -333,6 +333,9 @@ PROCESS_INFO_LIST* RemoveTaskListTid(int tid) {
 
 				DestroyThreadWindow(tid, id);
 
+				PROCESS_INFO_LIST * father = GetRemoteTaskListPid(id, list->proc.pid);
+				RemoveNode(&father->child, &list->child);
+
 				//RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
 
 				result = list;
@@ -944,6 +947,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 #ifdef TASK_SWITCH_ARRAY
 
 #else
+	InitListEntry(&list->child);
 	InsertTaskList(list);
 #endif
 

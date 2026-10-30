@@ -554,6 +554,7 @@ int __kCreateRemoteProcess(int id,DWORD filedata, int filesize,char * filename,c
 #ifdef TASK_SWITCH_ARRAY
 	leave_task_array_lock_id(id);
 #else
+	InitListEntry(&list->child);
 	InsertTaskList(list);
 #endif
 	return ret;

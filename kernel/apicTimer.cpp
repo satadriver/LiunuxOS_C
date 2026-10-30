@@ -203,7 +203,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		if (src_tss[i].status == TASK_RUN) {				
 			double proc_ratio = (double)src_tss[i].tick_run / cpu_diff;
 			if ( proc_ratio > max && (src_tss[i].tid == src_tss[i].pid) ) {
-				if ( (src_current->tid == src_tss[i].tid) ){
+				if ( (src_current->pid == src_tss[i].pid) ){
 
 				}
 				else {
@@ -259,8 +259,8 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		LPPROCESS_INFO p = &ptr->proc;
 		if (p->status == TASK_RUN) {
 			double proc_ratio = (double)p->tick_run / cpu_diff;
-			if (proc_ratio > max && (p->tid == p->pid)) {
-				if (src_current->tid == p->tid) {
+			if (proc_ratio > max && (p->tid == p->pid) && ptr->child.next == 0) {
+				if (src_current->pid == p->pid) {
 
 				}
 				else {
@@ -294,6 +294,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 			//remove first ,then insert second
 			RemoveNode(&(src_root->list), &(src_target->list));
 
+			src_target->proc.cpuid = dst_id;
 			InsertListTail((LIST_ENTRY*)&(dst_root->list), (LIST_ENTRY*)&(src_target->list));
 
 			__printf(szout, "%s copy cpu:%d pid:%d to cpu:%d\r\n", __FUNCTION__, src_id, pid, dst_id);

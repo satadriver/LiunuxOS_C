@@ -321,8 +321,25 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	leave_task_array_lock();
 #else
 	InitTaskCoprocessor(tss, list->fpenv);
+	PROCESS_INFO_LIST * father = GetRemoteTaskListPid(cpu,tss->pid);
+	InsertListTail(&father->child,&list->child);
 	InsertTaskList(list);
 #endif
 
 	return TRUE;
+}
+
+
+int TraversalThread(PROCESS_INFO_LIST *list) {
+	int cnt = 0;
+	LIST_ENTRY * hdr = list->child.next;
+	LIST_ENTRY * entry = hdr;
+	do {
+		if (entry == 0)
+			break;
+		PROCESS_INFO_LIST *listnode = (PROCESS_INFO_LIST*)((char*)entry - OFFSETOF(PROCESS_INFO_LIST, child));
+
+		entry = entry->next;
+	} while (hdr != entry);
+	return cnt;
 }
