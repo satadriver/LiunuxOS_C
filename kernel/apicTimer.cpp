@@ -112,6 +112,8 @@ void __kApicTimerProc() {
 	//DWORD* pdoscounter = (DWORD*)DOS_SYSTIMER_ADDR;
 	//*pdoscounter = *lptickcnt;
 
+	__enterSpinlock(&g_apictimer_lock[id]);
+
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (gApicTimer[id][i].func)
@@ -130,6 +132,7 @@ void __kApicTimerProc() {
 			}
 		}
 	}
+	__leaveSpinlock(&g_apictimer_lock[id]);
 }
 
 

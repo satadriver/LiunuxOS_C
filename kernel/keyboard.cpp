@@ -18,6 +18,8 @@ char * g_kbd_buf = 0;
 
 int gKeyboardID = 0;
 
+int g_kbd_lock = 0;
+
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
 unsigned char ScanCodesBuf[96] =
 { 0, VK_ESCAPE, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', VK_BACK, VK_TAB, \
@@ -87,7 +89,7 @@ unsigned int __kGetKbd(int wid) {
 	{
 		return 0;
 	}
-
+	__enterSpinlock(&g_kbd_lock);
 	unsigned int ch = data->kbdBuf[data->kbdBufTail] & 0xff;
 	unsigned int status = data->kbdStatusBuf[data->kbdBufTail];
 
@@ -96,6 +98,7 @@ unsigned int __kGetKbd(int wid) {
 	{
 		data->kbdBufTail = 0;
 	}
+	__leaveSpinlock(&g_kbd_lock);
 
 	if ((status & SHIFTLEFT_SET_FLAG) && (status & SHIFTRIGHT_SET_FLAG)) {
 		ch = ScanCodesBuf[ch];
@@ -484,6 +487,7 @@ void __kKeyboardProc() {
 // 	char szout[256];
 // 	__printf(szout, "input key:%x,status:%x\n", c, data->kbdStatus);
 
+	__enterSpinlock(&g_kbd_lock);
 	data->kbdBuf[data->kbdBufHdr] = c;
 	data->kbdStatusBuf[data->kbdBufHdr] = data->kbdStatus;
 
@@ -492,6 +496,7 @@ void __kKeyboardProc() {
 	{
 		data->kbdBufHdr = 0;
 	}
+	__leaveSpinlock(&g_kbd_lock);
 
 	if (gKbdTest)
 	{

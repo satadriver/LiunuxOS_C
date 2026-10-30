@@ -15,6 +15,8 @@
 
 char * g_mouse_buf = 0;
 
+int g_mouse_lock = 0;
+
 DWORD gMouseTest = 1;
 
 DWORD gMouseID = 0;
@@ -190,6 +192,8 @@ void __kMouseProc() {
 
 		if (data->mintrData.status & 7)
 		{
+			__enterSpinlock(&g_mouse_lock);
+
 			data->mouseBuf[data->mouseBufHdr].status = data->mintrData.status;
 			data->mouseBuf[data->mouseBufHdr].x = data->mouseX;
 			data->mouseBuf[data->mouseBufHdr].y = data->mouseY;
@@ -199,6 +203,8 @@ void __kMouseProc() {
 			{
 				data->mouseBufHdr = 0;
 			}
+
+			__leaveSpinlock(&g_mouse_lock);
 		}
 
 	}
@@ -433,12 +439,14 @@ int GetMousePacket(LPMOUSEINFO lpmouse) {
 int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 
 	if (isTopWindow(wid))
-	{
+	{	
 		LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 		if (data->mouseBufHdr == data->mouseBufTail)
 		{
 			return FALSE;
 		}
+
+		__enterSpinlock(&g_mouse_lock);
 
 		lpmouse->status = data->mouseBuf[data->mouseBufTail].status;
 		lpmouse->x = data->mouseBuf[data->mouseBufTail].x;
@@ -448,7 +456,7 @@ int __kGetMouse(LPMOUSEINFO lpmouse, int wid) {
 		{
 			data->mouseBufTail = 0;
 		}
-
+		__leaveSpinlock(&g_mouse_lock);
 		IncreaseDelta(MOUSE_PRIORITY);
 
 		return TRUE;

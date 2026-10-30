@@ -13,7 +13,7 @@ TIMER_PROC_PARAM gExactTimer[REALTIMER_CALLBACK_MAX] = { 0 };
 
 int g_cmos_exact_tick_cnt = 0;
 
-int g_apictimer_lock = 0;
+int g_exactimer_lock = 0;
 
 void initExactTimer() {
 	g_cmos_exact_tick_cnt = 0;
@@ -34,7 +34,7 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 		ticks++;
 	}
 
-	__enterSpinlock(&g_apictimer_lock);
+	__enterSpinlock(&g_exactimer_lock);
 
 	int seq = -1;
 
@@ -73,7 +73,7 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 		}
 	}
 
-	__leaveSpinlock(&g_apictimer_lock);
+	__leaveSpinlock(&g_exactimer_lock);
 
 	return seq;
 }
@@ -82,13 +82,13 @@ int __kAddExactTimer(DWORD addr, DWORD delay, DWORD param1, DWORD param2, DWORD 
 
 void __kRemoveExactTimer(int n) {
 
-	__enterSpinlock(&g_apictimer_lock);
+	__enterSpinlock(&g_exactimer_lock);
 	if (n >= 0 && n < REALTIMER_CALLBACK_MAX)
 	{
 		gExactTimer[n].func = 0;
 		gExactTimer[n].tickcnt = 0;
 	}
-	__leaveSpinlock(&g_apictimer_lock);
+	__leaveSpinlock(&g_exactimer_lock);
 }
 
 
@@ -96,21 +96,22 @@ void __kRemoveExactTimer(int n) {
 void __kExactTimerProc() {
 
 	int result = 0;
-	DWORD* lptickcnt = (DWORD*)&g_cmos_exact_tick_cnt;
 
 	//in both c and c++ language,the * priority is lower than ++
-	(*lptickcnt)++;
+	g_cmos_exact_tick_cnt++;
+
+	__enterSpinlock(&g_exactimer_lock);
 
 	for (int i = 0; i < REALTIMER_CALLBACK_MAX; i++)
 	{
 		if (gExactTimer[i].func)
 		{
-			if (gExactTimer[i].tickcnt <= *lptickcnt)
+			if (gExactTimer[i].tickcnt <= g_cmos_exact_tick_cnt)
 			{
 				LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 				if (gExactTimer[i].pid == proc->pid && gExactTimer[i].tid == proc->tid) {
 
-					gExactTimer[i].tickcnt = *lptickcnt + gExactTimer[i].ticks;
+					gExactTimer[i].tickcnt = g_cmos_exact_tick_cnt + gExactTimer[i].ticks;
 
 					typedef int(*ptrfunction)(DWORD param1, DWORD param2, DWORD param3, DWORD param4);
 					ptrfunction lpfunction = (ptrfunction)gExactTimer[i].func;
@@ -119,4 +120,5 @@ void __kExactTimerProc() {
 			}
 		}
 	}
+	__leaveSpinlock(&g_exactimer_lock);
 }

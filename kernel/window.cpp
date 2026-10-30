@@ -12,7 +12,6 @@
 
 LPWINDOWSINFO gWindowsList = 0;
 
-
 POPUPMENU gPopupMenu ;
 
 int g_window_lock = 0;
@@ -28,7 +27,6 @@ void initWindowList() {
 	int cnt = sizeof(gPopupMenu.item) / sizeof(gPopupMenu.item[0]);
 	for (int i = 0; i < cnt; i++) {
 		gPopupMenu.item[i].valid = 0;
-
 	}
 }
 
@@ -36,6 +34,8 @@ LPWINDOWSINFO __FindWindow(char * wname) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
+	__enterSpinlock(&g_window_lock);
+	LPWINDOWSINFO ret = 0;
 	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO hdr = ptr;
 	do
@@ -45,14 +45,15 @@ LPWINDOWSINFO __FindWindow(char * wname) {
 		}
 		if (ptr->valid && ptr->window->winname[0] && __strcmp(ptr->window->winname,wname)== 0 )
 		{
-			return ptr;
+			ret = ptr;
+			break;
 		}
 		else {
 			ptr = (LPWINDOWSINFO)(ptr->list.next);
 		}
 	} while (ptr && ptr != hdr);
-
-	return 0;
+	__leaveSpinlock(&g_window_lock);
+	return ret;
 }
 
 
@@ -61,6 +62,8 @@ LPWINDOWSINFO __FindWindowID(DWORD wid) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
+	__enterSpinlock(&g_window_lock);
+	LPWINDOWSINFO ret = 0;
 	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.next;
 	LPWINDOWSINFO hdr = ptr;
 	do
@@ -71,14 +74,15 @@ LPWINDOWSINFO __FindWindowID(DWORD wid) {
 		}
 		if (ptr->valid && ptr->window->id == wid )
 		{
-			return ptr;
+			ret = ptr;
+			break;
 		}
 		else {
 			ptr = (LPWINDOWSINFO)(ptr->list.next);
 		}
 	} while (ptr && ptr != hdr);
-
-	return 0;
+	__leaveSpinlock(&g_window_lock);
+	return ret;
 }
 
 
@@ -87,7 +91,8 @@ LPWINDOWSINFO __FindProcessWindow(int tid,int cpu) {
 	if (gWindowsList == 0) {
 		return 0;
 	}
-
+	//__enterSpinlock(&g_window_lock);
+	LPWINDOWSINFO ret = 0;
 	LPWINDOWSINFO ptr = (LPWINDOWSINFO)gWindowsList->list.prev;
 	LPWINDOWSINFO hdr = ptr;
 	do
@@ -98,14 +103,15 @@ LPWINDOWSINFO __FindProcessWindow(int tid,int cpu) {
 		}
 		if (ptr->valid && ptr->window->tid == tid && ptr->window->cpu == cpu)
 		{
-			return ptr;
+			ret = ptr;
+			break;
 		}
 		else {
 			ptr = (LPWINDOWSINFO)(ptr->list.prev);
 		}
 	} while (ptr && ptr != hdr);
-
-	return 0;
+	//__leaveSpinlock(&g_window_lock);
+	return ret;
 }
 
 int GetFreeWindow() {
@@ -127,93 +133,7 @@ int GetFreeWindow() {
 	return seq;
 }
 
-int traversalWindow(char* outbuf) {
-	char* buf = outbuf;
-	buf[0] = 0;
-	int size = 0;
-	if (gWindowsList == 0) {
-		return 0;
-	}
-	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
-	LPWINDOWSINFO hdr = info;
-	int len = 0;
-	do
-	{
-		if (info == 0) {
-			break;
-		}
-		if (info->valid )
-		{
-			int tid = info->window->tid;
-			int cpu = info->window->cpu;
-			char* funcname = 0;
-			char* filename = 0;
-#ifdef TASK_SWITCH_ARRAY
-			LPPROCESS_INFO procs = GetTaskTssBaseId(cpu);
-			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-				if (procs[i].tid == tid) {
-					filename = procs[i].filename;
-					funcname = procs[i].funcname;
 
-					len = __printf(buf + size,
-						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
-						info->window->id, info->window->winname, cpu, procs[i].pid, tid, filename, funcname);
-					break;
-				}
-			}
-#else
-			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
-			PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
-			PROCESS_INFO_LIST* ptr = hdr;
-			do {
-				if (ptr == 0)
-					break;
-				LPPROCESS_INFO p = &ptr->proc;
-				if (p->status == TASK_RUN && p->tid == tid) {
-					filename = p->filename;
-					funcname = p->funcname;
-
-					len = __printf(buf + size,
-						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
-						info->window->id, info->window->winname, cpu, p->pid, tid, filename, funcname);
-					break;
-				}
-				ptr = (PROCESS_INFO_LIST*)ptr->list.next;
-			} while (ptr && ptr != hdr);
-#endif
-			size += len;
-		}
-		else {
-			info = (LPWINDOWSINFO)(info->list.next);
-		}
-	} while (info && info != hdr);
-
-	return size;
-}
-
-
-
-
-LPWINDOWSINFO GetProcessTextPos(int** x,int **y) {
-	int tid = __GetCurrentTid();
-	int cpu = __GetCurrentCpu();
-	LPWINDOWSINFO winfo = __FindProcessWindow(tid,cpu);
-	if (winfo)
-	{
-		WINDOWCLASS* window = winfo->window;
-		if (window) {
-			*x = (int*)&(window->showX);
-			*y = (int*)&(window->showY);
-			return winfo;
-		}
-	}
-
-	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	*x = (int*)&proc->showX;
-	*y = (int*)&proc->showY;
-	
-	return winfo;
-}
 
 
 DWORD isTopWindow(int wid) {
@@ -228,14 +148,18 @@ DWORD isTopWindow(int wid) {
 	}
 	LPWINDOWSINFO window = & gWindowsList[ wid] ;
 	LPWINDOWSINFO prev = (LPWINDOWSINFO)gWindowsList->list.prev;
-	if (window == (LPWINDOWSINFO)prev)
-	{
+	LPWINDOWSINFO next = (LPWINDOWSINFO)gWindowsList->list.next;
+	if (window == prev)
+	{	
 		if (prev->window->id == wid) 
 		{
 			return TRUE;
-		}
-		
+		}	
 	}
+
+	//if (__strcmp(prev->window->winname, EXPLORER_TASKNAME) == 0) {
+	//	__printf(szout, "explorer can not get key\r\n");
+	//}
 	return FALSE;
 }
 
@@ -245,6 +169,29 @@ LPWINDOWSINFO getTopWindow() {
 	return prev;
 }
 
+int RemoveWindow(int id) {	//virtual address and physical address is not equal if DISABLE_PAGE_MAPPING is not defined
+	if (gWindowsList == 0) {
+		return 0;
+	}
+	char szout[256];
+
+	__enterSpinlock(&g_window_lock);
+
+	LPWINDOWSINFO window = &gWindowsList[id];
+	if (window->valid) {
+
+		window->valid = FALSE;
+
+		RemoveList(&gWindowsList->list, &window->list);
+
+		LPWINDOWSINFO prev = (LPWINDOWSINFO)gWindowsList->list.prev;
+		__printf(szout, "%s window id:%x,name:%s,prev window:%s\r\n", __FUNCTION__, window->window->id, window->window->winname, prev->window->winname);
+
+		window->window = 0;
+	}
+	__leaveSpinlock(&g_window_lock);
+	return TRUE;
+}
 
 int InsertWindow(WINDOWCLASS* ptrwindow,  char * wname) {
 	char szout[256];
@@ -351,31 +298,95 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 }
 
 
-int RemoveWindow(int id) {	//virtual address and physical address is not equal if DISABLE_PAGE_MAPPING is not defined
+
+
+
+int traversalWindow(char* outbuf) {
+	char* buf = outbuf;
+	buf[0] = 0;
+	int size = 0;
 	if (gWindowsList == 0) {
 		return 0;
 	}
-	char szout[256];
-	
-	LPWINDOWSINFO window = & gWindowsList [id];
-	if (window->valid) {
+	LPWINDOWSINFO info = (LPWINDOWSINFO)gWindowsList->list.next;
+	LPWINDOWSINFO hdr = info;
+	int len = 0;
+	do
+	{
+		if (info == 0) {
+			break;
+		}
+		if (info->valid)
+		{
+			int tid = info->window->tid;
+			int cpu = info->window->cpu;
+			char* funcname = 0;
+			char* filename = 0;
+#ifdef TASK_SWITCH_ARRAY
+			LPPROCESS_INFO procs = GetTaskTssBaseId(cpu);
+			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
+				if (procs[i].tid == tid) {
+					filename = procs[i].filename;
+					funcname = procs[i].funcname;
 
-		__enterSpinlock(&g_window_lock);
-		
-		window->valid = FALSE;
+					len = __printf(buf + size,
+						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
+						info->window->id, info->window->winname, cpu, procs[i].pid, tid, filename, funcname);
+					break;
+				}
+			}
+#else
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
+			PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)list->list.next;
+			PROCESS_INFO_LIST* ptr = hdr;
+			do {
+				if (ptr == 0)
+					break;
+				LPPROCESS_INFO p = &ptr->proc;
+				if (p->status == TASK_RUN && p->tid == tid) {
+					filename = p->filename;
+					funcname = p->funcname;
 
-		RemoveList(&gWindowsList->list, &window->list);
+					len = __printf(buf + size,
+						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
+						info->window->id, info->window->winname, cpu, p->pid, tid, filename, funcname);
+					break;
+				}
+				ptr = (PROCESS_INFO_LIST*)ptr->list.next;
+			} while (ptr && ptr != hdr);
+#endif
+			size += len;
+		}
+		else {
+			info = (LPWINDOWSINFO)(info->list.next);
+		}
+	} while (info && info != hdr);
 
-		LPWINDOWSINFO prev = (LPWINDOWSINFO)gWindowsList->list.prev;
-		__printf(szout, "%s window id:%x,name:%s,prev window:%s\r\n", __FUNCTION__, window->window->id, window->window->winname, prev->window->winname);
+	return size;
+}
 
-		window->window = 0;
 
-		__leaveSpinlock(&g_window_lock);
 
+
+LPWINDOWSINFO GetProcessTextPos(int** x, int** y) {
+	int tid = __GetCurrentTid();
+	int cpu = __GetCurrentCpu();
+	LPWINDOWSINFO winfo = __FindProcessWindow(tid, cpu);
+	if (winfo)
+	{
+		WINDOWCLASS* window = winfo->window;
+		if (window) {
+			*x = (int*)&(window->showX);
+			*y = (int*)&(window->showY);
+			return winfo;
+		}
 	}
 
-	return TRUE;
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	*x = (int*)&proc->showX;
+	*y = (int*)&proc->showY;
+
+	return winfo;
 }
 
 /*
