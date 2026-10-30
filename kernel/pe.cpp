@@ -525,8 +525,8 @@ DWORD rvaInFile(DWORD module, DWORD rva) {
 	int seccnt = nt->FileHeader.NumberOfSections;
 	for (int i = 0; i < seccnt; i++)
 	{
-		DWORD end = sections[i].Misc.VirtualSize + sections[i].VirtualAddress;
-		DWORD start = sections[i].VirtualAddress;
+		DWORD end = module + sections[i].Misc.VirtualSize + sections[i].VirtualAddress;
+		DWORD start = module +  sections[i].VirtualAddress;
 		if (rva >= start && rva <= end)
 		{
 			DWORD offset = rva - start;

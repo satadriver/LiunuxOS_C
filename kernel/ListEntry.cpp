@@ -175,8 +175,8 @@ int RemoveList(LPLIST_ENTRY h,LPLIST_ENTRY list) {
 		result = 4;
 	}
 
-	//list->next = 0;
-	//list->prev = 0;
+	list->next = 0;
+	list->prev = 0;
 
 	return result;
 }
@@ -222,8 +222,8 @@ int RemoveNode(LPLIST_ENTRY h, LPLIST_ENTRY list) {
 		result = 4;
 	}
 
-	//list->next = 0;
-	//list->prev = 0;
+	list->next = 0;
+	list->prev = 0;
 	return result;
 }
 

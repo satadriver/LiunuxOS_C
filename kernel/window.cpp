@@ -301,7 +301,7 @@ LPWINDOWSINFO DestroyThreadWindow(int tid, int cpu) {
 
 
 
-int traversalWindow(char* outbuf) {
+int TraversalWindows(char* outbuf) {
 	char* buf = outbuf;
 	buf[0] = 0;
 	int size = 0;
@@ -328,9 +328,7 @@ int traversalWindow(char* outbuf) {
 				if (procs[i].tid == tid) {
 					filename = procs[i].filename;
 					funcname = procs[i].funcname;
-
-					len = __printf(buf + size,
-						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
+					len = __printf(buf + size,"id:%d, name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
 						info->window->id, info->window->winname, cpu, procs[i].pid, tid, filename, funcname);
 					break;
 				}
@@ -346,9 +344,7 @@ int traversalWindow(char* outbuf) {
 				if (p->status == TASK_RUN && p->tid == tid) {
 					filename = p->filename;
 					funcname = p->funcname;
-
-					len = __printf(buf + size,
-						"[%d] window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
+					len = __printf(buf + size,"id:%d,window name:%s,cpu:%d,pid:%d,tid:%d,filename:%s,function:%s\r\n",
 						info->window->id, info->window->winname, cpu, p->pid, tid, filename, funcname);
 					break;
 				}
@@ -356,12 +352,9 @@ int traversalWindow(char* outbuf) {
 			} while (ptr && ptr != hdr);
 #endif
 			size += len;
-		}
-		else {
-			info = (LPWINDOWSINFO)(info->list.next);
-		}
+		}	
+		info = (LPWINDOWSINFO)(info->list.next);
 	} while (info && info != hdr);
-
 	return size;
 }
 

@@ -451,6 +451,9 @@ extern "C" __declspec(dllexport) int __kChinesePoem(unsigned int retaddr, int ti
 		drawCCFontChar_new(&window, 0, 0, 0);
 
 	}
+
+	__kFree((DWORD)gCCFontBase);
+	gCCFontBase = 0;
 	return 0;
 }
 

@@ -1412,6 +1412,7 @@ void BPCodeStart() {
 	__sleep(0);
 
 	SetIcr(0, 0, 5, 3);
+	__sleep(0);
 
 #if 0
 	WaitIcrFree();
@@ -1432,19 +1433,14 @@ void BPCodeStart() {
 #endif
 	__sleep(0);
 
+	/*
 	int* ids = (int*)g_cpu_id;
 	int cnt = g_cpu_total;
 	for (int i = 0; i < cnt; i++) {
-#if 1
-		//SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
-
-		//v = *(DWORD*)(LOCAL_APIC_BASE + 0x300);
-		//__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
-#else
-		AllocateApTask(APIC_IPI_VECTOR);	
-#endif
+		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
+		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
 	}
-	//SetIcr(0, APIC_IPI_VECTOR, 0, 3);
+	*/
 
 	InitLocalApicErr();
 

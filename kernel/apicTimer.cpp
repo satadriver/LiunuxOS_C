@@ -158,7 +158,6 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	int res = 0;
 
 	AlgorithmModel ratio_buf[256];
-
 	int* ids = (int*)g_cpu_id;
 	int counter = g_cpu_total;
 	unsigned long long tick = __krdtsc();
@@ -181,7 +180,6 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	}
 
 	BubbleSortd(ratio_buf, counter);
-
 	int src_id = (int)ratio_buf[counter - 1].id;
 	int dst_id = (int)ratio_buf[0].id;
 	double src_fv = ratio_buf[counter - 1].fv;
@@ -195,23 +193,14 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		return 0;
 	}
 	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
-	double max = 0.0;
-	
-	int pid = -1;
-	int target_cnt = 0;
-	int active_cnt = 0;
+	double max = 0.0;	
+
 	double cpu_diff = tick - g_cpu_start_tick[src_id];
 #ifdef TASK_SWITCH_ARRAY
 	int src_tid = -1;
 	LPPROCESS_INFO src_tss = GetTaskTssBaseId(src_id);	
 	for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
-		if (src_tss[i].status == TASK_RUN) {	
-			active_cnt++;
-			if (src_tss[i].pid == pid)
-			{
-				continue;
-			}
-				
+		if (src_tss[i].status == TASK_RUN) {				
 			double proc_ratio = (double)src_tss[i].tick_run / cpu_diff;
 			if ( proc_ratio > max && (src_tss[i].tid == src_tss[i].pid) ) {
 				if ( (src_current->tid == src_tss[i].tid) ){
@@ -220,14 +209,12 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 				else {
 					max = proc_ratio;
 					src_tid = src_tss[i].tid;
-					pid = src_tss[i].pid;
-					target_cnt++;
 				}
 			}
 		}
 	}
 
-	if (target_cnt > 1 && active_cnt > 1) {	
+	if (src_tid != -1) {
 		res = __GetSpinlock(&g_task_array_lock[dst_id]);
 		if (res) {
 			LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
@@ -262,21 +249,15 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	}
 
 #else
-	PROCESS_INFO_LIST* targetlist = 0;
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListId(src_id);
-	PROCESS_INFO_LIST* src_list = (PROCESS_INFO_LIST*)list->list.next;
-	PROCESS_INFO_LIST* ptr = src_list;
+	PROCESS_INFO_LIST* src_target = 0;
+	PROCESS_INFO_LIST* src_root = (PROCESS_INFO_LIST*)GetTaskListId(src_id);
+	PROCESS_INFO_LIST* src_hdr = (PROCESS_INFO_LIST*)src_root->list.next;
+	PROCESS_INFO_LIST* ptr = src_hdr;
 	do {
 		if (ptr == 0)
 			break;
 		LPPROCESS_INFO p = &ptr->proc;
 		if (p->status == TASK_RUN) {
-			active_cnt++;
-			if (p->pid == pid)
-			{
-				continue;
-			}
-
 			double proc_ratio = (double)p->tick_run / cpu_diff;
 			if (proc_ratio > max && (p->tid == p->pid)) {
 				if (src_current->tid == p->tid) {
@@ -284,45 +265,45 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 				}
 				else {
 					max = proc_ratio;
-					targetlist = ptr;
-					pid = p->pid;
-					target_cnt++;
+					src_target = ptr;
 				}
 			}
 		}
 		ptr = (PROCESS_INFO_LIST*)ptr->list.next;
-	} while (ptr && ptr != src_list);
+	} while (ptr && ptr != src_hdr);
 
-	if (target_cnt > 1 && active_cnt > 1) {
+	if (src_target ) {
 		
 		res = __GetSpinlock(&g_task_array_lock[dst_id]);
 		if (res) {
-			PROCESS_INFO_LIST* newlist = (PROCESS_INFO_LIST*)__kMalloc(sizeof(PROCESS_INFO_LIST));
-			PROCESS_INFO* newproc = &newlist->proc;
+			int pid = src_target->proc.pid;
 
-			__memcpy((char*)newproc, (char*)&targetlist->proc, sizeof(PROCESS_INFO) );
-			newproc->cpuid = dst_id;
+			//PROCESS_INFO_LIST* dst_list = (PROCESS_INFO_LIST*)__kProcessMalloc(sizeof(PROCESS_INFO_LIST),0,
+			//	dst_id, pid,0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT );
+			//PROCESS_INFO* dst_proc = &dst_list->proc;
+			//__memcpy((char*)dst_proc, (char*)&src_target->proc, sizeof(PROCESS_INFO) );
+			//dst_proc->cpuid = dst_id;
+			//dst_proc->lpHeapCnt = &dst_proc->heapCnt;
+			//dst_proc->lpheap_lock = &dst_proc->heap_lock;
+			//dst_proc->lpHeapBase = (char***)&dst_proc->heapBase;
+			//dst_proc->lpvasize = &dst_proc->va_size;
+			//dst_proc->status = TASK_RUN;
 
-			newproc->lpHeapCnt = &newproc->heapCnt;
-			newproc->lpheap_lock = &newproc->heap_lock;
-			newproc->lpHeapBase = (char***)&newproc->heapBase;
-			newproc->lpvasize = &newproc->va_size;
+			PROCESS_INFO_LIST* dst_root = (PROCESS_INFO_LIST*)GetTaskListId(dst_id);
 
-			newproc->status = TASK_RUN;
+			//remove first ,then insert second
+			RemoveNode(&(src_root->list), &(src_target->list));
 
-			PROCESS_INFO_LIST* root = (PROCESS_INFO_LIST*)gTasksListPtr[dst_id];
+			InsertListTail((LIST_ENTRY*)&(dst_root->list), (LIST_ENTRY*)&(src_target->list));
 
-			InsertListTail((LIST_ENTRY*)&(root->list), (LIST_ENTRY*)&(newlist->list));
-
-			RemoveNode(&(list->list), &(targetlist->list));
-			
 			__printf(szout, "%s copy cpu:%d pid:%d to cpu:%d\r\n", __FUNCTION__, src_id, pid, dst_id);
 		}
-		leave_task_array_lock_id(dst_id);	
+		//leave_task_array_lock_id(dst_id);
+		__leaveSpinlock(&g_task_array_lock[dst_id]);
 	}
 #endif
-
-	leave_task_array_lock_id(src_id);
+	__leaveSpinlock(&g_task_array_lock[src_id]);
+	//leave_task_array_lock_id(src_id);
 
 	return 0;
 }
