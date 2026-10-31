@@ -87,6 +87,7 @@ typedef struct _PROCESS_INFO
 	int priority;
 	int delta;
 	int authority;
+	int delay;
 
 	unsigned long long tick_run;
 	unsigned long long tick_total;

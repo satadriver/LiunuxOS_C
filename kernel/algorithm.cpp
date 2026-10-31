@@ -196,3 +196,13 @@ int FastSort(int data[], int left, int right) {
 
 	return 0;
 }
+
+
+double GetValueFromArray(AlgorithmModel* array, int size, int key) {
+	for (int i = 0; i < size; i++) {
+		if (array[i].id == key) {
+			return (unsigned long)array[i].fv;
+		}
+	}
+	return 0;
+}

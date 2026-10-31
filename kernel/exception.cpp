@@ -8,7 +8,7 @@
 #include "memory.h"
 #include "Thread.h"
 #include "apic.h"
-
+#include "core.h"
 
 #define EXCEPTION_TIPS_COLOR 0X9F3F00
 
@@ -18,27 +18,10 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 
 	char showinfo[1024];
 
-	DWORD rcr0 = 0;
-	DWORD rcr2 = 0;
-	DWORD rcr3 = 0;
-	DWORD rcr4 = 0;
-	
-	__asm {
-		mov eax, cr0
-		mov rcr0, eax
-
-		mov eax, cr2
-		mov rcr2, eax
-
-		mov eax, cr3
-		mov rcr3, eax
-
-		//mov eax, cr4
-		__emit 0x0f
-		__emit 0x20
-		__emit 0xe0
-		mov rcr4, eax
-	}
+	DWORD rcr0 = readcr0();
+	DWORD rcr2 = readcr0();
+	DWORD rcr3 = readcr0();
+	DWORD rcr4 = readcr4();
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 #ifdef TASK_SWITCH_ARRAY

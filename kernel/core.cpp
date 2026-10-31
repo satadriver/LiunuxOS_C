@@ -1010,3 +1010,74 @@ void SetTaskVideoBase(char* videobase) {
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	proc->videoBase = (char*)videobase;
 }
+
+void writecr0(DWORD v) {
+	__asm {
+		mov eax, v
+		mov cr0,eax
+	}
+}
+
+DWORD readcr0() {
+	__asm {
+		mov eax, cr0
+	}
+}
+
+void writecr4(DWORD v) {
+	__asm {
+		mov eax, v
+		//mov cr4,eax
+		__emit 0x0f
+		__emit 0x22
+		__emit 0xe0
+	}
+}
+
+DWORD readcr4() {
+	__asm {
+		//mov eax, cr4
+		__emit 0x0f
+		__emit 0x20
+		__emit 0xe0
+	}
+}
+
+DWORD readcr2() {
+	__asm {
+		mov eax, cr2
+	}
+}
+
+
+DWORD readcr3() {
+	__asm {
+		mov eax, cr3
+	}
+}
+
+
+void writecr3(DWORD v) {
+	__asm {
+		mov eax, v
+		mov cr3,eax
+	}
+}
+
+DWORD readesp() {
+	DWORD regesp = 0;
+	__asm {
+		mov[regesp], esp
+	}
+	return regesp;
+}
+
+
+
+DWORD readebp() {
+	DWORD regebp = 0;
+	__asm {
+		mov[regebp], ebp
+	}
+	return regebp;
+}

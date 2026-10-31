@@ -627,7 +627,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	// the save EIP points to the instruction that caused the exception.
 	char* fenvnext = (char*)g_fpu_status[id] +  (next->tid << 9);
 #else
-	//nextlist = (PROCESS_INFO_LIST*)((char*)next - OFFSETOF(PROCESS_INFO_LIST, proc));
+	nextlist = (PROCESS_INFO_LIST*)((char*)next - OFFSETOF(PROCESS_INFO_LIST, proc));
 	char* fenvprev = prevlist->fpenv;
 	char* fenvnext =  nextlist->fpenv;
 #endif
@@ -845,8 +845,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	char szout[256];
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
-	//why not use process0 but lpproc?
-	LPPROCESS_INFO process0 = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	TASKRESULT freeTss;
 
@@ -856,7 +855,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	ret = __GetFreeTask(&freeTss, id);
 
 	char* fenv = GetFpuBuf(id,freeTss.number);
-	InitTaskCoprocessor(process0, fenv);
+	InitTaskCoprocessor(cur, fenv);
 #else
 	InitTaskList();
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)__kmalloc(sizeof(PROCESS_INFO_LIST));
@@ -867,82 +866,83 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	freeTss.number = GenPid();
 
 	char* fenv = list->fpenv;
-	InitTaskCoprocessor(process0, fenv);
+	InitTaskCoprocessor(cur, fenv);
 #endif
 	
 	int tid = freeTss.number;
 
 	unsigned long stacktop = (unsigned long)(KERNEL_STACK_BASE + KTASK_STACK_SIZE * (id + 1) - STACK_TOP_DUMMY);
 
-	LPPROCESS_INFO lpproc = (LPPROCESS_INFO)(freeTss.lptss);
+	LPPROCESS_INFO proc = (LPPROCESS_INFO)(freeTss.lptss);
 	
-	__strcpy(process0->filename, (char*)filename);
-	__strcpy(process0->funcname, (char*)funcname);
-	process0->status = TASK_RUN;
-	process0->tid = tid;
-	process0->pid = tid;
-	process0->ppid = 0;
-	process0->cpuid = id;
+	__strcpy(proc->filename, (char*)filename);
+	__strcpy(proc->funcname, (char*)funcname);
+	proc->status = TASK_RUN;
+	proc->tid = tid;
+	proc->pid = tid;
+	proc->ppid = 0;
+	proc->cpuid = id;
 #ifdef TASK_SWITCH_ARRAY
-	process0->vid = (id << 16) + tid;
+	proc->vid = (id << 16) + tid;
 #else
-	process0->vid = tid;
+	proc->vid = tid;
 #endif
 	
-	process0->espbase = stacktop;
-	process0->level = 0;
-	process0->vaddr = 0;
-	process0->lpvasize = &lpproc->va_size;
-	process0->va_size = 0;
+	proc->espbase = stacktop;
+	proc->level = 0;
+	proc->vaddr = 0;
+	proc->lpvasize = &proc->va_size;
+	proc->va_size = 0;
 
-	process0->showX = showx;
-	process0->showY = showy;
-	process0->window = 0;
+	proc->showX = showx;
+	proc->showY = showy;
+	proc->window = 0;
 
-	process0->slice = TASK_SLICE_KERNEL;
-	process0->frac_slice = 0;
-	process0->counter = 0;
-	process0->sleep = 0;
-	process0->sleep_total = 0;
-	process0->errorno = 0;
+	proc->slice = TASK_SLICE_KERNEL;
+	proc->frac_slice = 0;
+	proc->counter = 0;
+	proc->sleep = 0;
+	proc->sleep_total = 0;
+	proc->errorno = 0;
 
-	process0->videoBase = (char*)gGraphBase;
+	proc->videoBase = (char*)gGraphBase;
 
-	process0->moduleBase = KERNEL_DLL_BASE;
+	proc->moduleBase = KERNEL_DLL_BASE;
 
-	process0->heapCnt = 1;
-	process0->lpHeapCnt = &lpproc->heapCnt;
-	process0->heap_lock = 0;
-	process0->lpheap_lock = &lpproc->heap_lock;
-	process0->lpHeapBase = (char***)&lpproc->heapBase;
+	proc->heapCnt = 1;
+	proc->lpHeapCnt = &proc->heapCnt;
+	proc->heap_lock = 0;
+	proc->lpheap_lock = &proc->heap_lock;
+	proc->lpHeapBase = (char***)&proc->heapBase;
 
-	process0->large_heap_size = 0;
-	process0->fast_heap_large = 0;
+	proc->large_heap_size = 0;
+	proc->fast_heap_large = 0;
 
-	process0->priority = 0;
-	process0->delta = DYNAMIC_PRIORITY;
-	process0->authority = AUTHORITY_PRIORITY;
+	proc->priority = 0;
+	proc->delta = DYNAMIC_PRIORITY;
+	proc->authority = AUTHORITY_PRIORITY;
+	proc->delay = 0;
 
-	process0->tick_run = 0;
-	process0->prev_tick = __krdtsc();
-	process0->tick_start = __krdtsc();
-	process0->tick_total = 0;
-	process0->tick_switch_cost = 0;
+	proc->tick_run = 0;
+	proc->prev_tick = __krdtsc();
+	proc->tick_start = __krdtsc();
+	proc->tick_total = 0;
+	proc->tick_switch_cost = 0;
 
 	DWORD size = HEAP_SIZE;
 	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 
-	process0->heapBase[0] = (char*)buf;
-	process0->heapsize = HEAP_SIZE;
-	process0->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);	
+	proc->heapBase[0] = (char*)buf;
+	proc->heapsize = HEAP_SIZE;
+	proc->fast_heap = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);
 	
-	__memset((char*) process0->heapBase[0], 0, HEAP_SIZE);
-	__memset(process0->fast_heap, 0, HEAP_SIZE);
+	__memset((char*)proc->heapBase[0], 0, HEAP_SIZE);
+	__memset(proc->fast_heap, 0, HEAP_SIZE);
 
-	__memcpy((char*)lpproc, (char*)process0, sizeof(PROCESS_INFO));
+	__memcpy((char*)cur, (char*)proc, sizeof(PROCESS_INFO));
 	
 	__printf(szout, "%s %d cpu:%d *lpHeapCnt:%d,*lpheap_lock:%d,*lpHeapBase:%x\r\n",__FUNCTION__,__LINE__,id,
-		*process0->lpHeapCnt, *process0->lpheap_lock, process0->lpHeapBase);
+		*proc->lpHeapCnt, *proc->lpheap_lock, proc->lpHeapBase);
 
 #ifdef TASK_SWITCH_ARRAY
 

@@ -20,7 +20,7 @@
 #include "apicTimer.h"
 #include "taskPriority.h"
 #include "tool.h"
-
+#include "core.h"
 
 
 int g_cpu_total = 0;
@@ -1310,30 +1310,13 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__asm {sti}
 
-	char* reg_esp_new = 0;
-	__asm {
-		mov ds : [reg_esp_new] , esp
-	}
+	DWORD reg_esp_new = readesp();
 	int tid = process->tid;
 	unsigned long stacktop = (unsigned long)process->tss.esp;
 	unsigned long stack0top = (unsigned long)process->tss.esp0;
 
-	DWORD reg_cr0 = 0;
-	DWORD reg_cr4 = 0;
-	__asm {
-		mov eax, cr0
-		mov[reg_cr0], eax
-
-		//mov eax,cr4
-		__emit 0x0f
-		__emit 0x20
-		__emit 0xe0
-		mov[reg_cr4], eax
-		__emit 0x0f
-		__emit 0x22
-		__emit 0xe0
-	}
-
+	DWORD reg_cr0 = readcr0();
+	DWORD reg_cr4 = readcr4();
 	//__printf(szout, "ap id:%d version:%x cr0:%x cr4:%x init complete.esp:%x,ebp:%x, esp_new:%x,esp top:%x esp0:%x lint0:%x lint1:%x tid:%d io apic id:%x version:%x\r\n",
 		//cpuid, localapic_ver, reg_cr0, reg_cr4,reg_esp, reg_ebp, reg_esp_new, stacktop, stack0top, lint0, lint1, tid, ioapic_id, ioapic_ver);
 
@@ -1349,18 +1332,20 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 		if (ret == 0) {
 			__sleep(0);
 		}
-
-#if 0
-		uint32_t irr4 = *(DWORD*)(LOCAL_APIC_BASE+0x140);
-		if (irr4 & (1 << 1)) {
-			__printf(szout,"GOT IPI in IRR! 0x%x\n", irr4);
-		}
-#endif
 	}
 }
 
 
 
+
+DWORD GetIRR() {
+	char szout[256];
+	uint32_t irr4 = *(DWORD*)(LOCAL_APIC_BASE + 0x140);
+	if (irr4 & (1 << 1)) {
+		__printf(szout, "GOT IPI in IRR! 0x%x\n", irr4);
+	}
+	return 0;
+}
 
 
 void BPCodeStart() {
@@ -1471,21 +1456,9 @@ void BPCodeStart() {
 	g_cpu_prev_tick[cpu] = g_cpu_start_tick[cpu];
 	g_cpu_tick[cpu] = 1;
 
-	DWORD reg_cr0 = 0;
-	DWORD reg_cr4 = 0;
-	__asm {
-		mov eax,cr0
-		mov [reg_cr0],eax
+	DWORD reg_cr0 = readcr0();
+	DWORD reg_cr4 = readcr4();
 
-		//mov eax,cr4
-		__emit 0x0f
-		__emit 0x20
-		__emit 0xe0
-		mov[reg_cr4], eax
-		__emit 0x0f
-		__emit 0x22
-		__emit 0xe0
-	}
 	//__printf(szout, "bsp id:%d cr0:%x cr4:%x. version:%x init complete. lint0:%x lint1:%x io apic id:%x version:%x\r\n", cpu,reg_cr0,reg_cr4, localapic_ver,lint0,lint1, ioapic_id, ioapic_ver);
 
 	return;

@@ -138,6 +138,8 @@ int CollectDlSample(TaskPredictParam * tp)
 
 
 int TaskSchedulePredict(TaskPredictParam* tp) {
+
+	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 	
 	unsigned long long tick1 = __krdtsc();
 	//int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
@@ -164,6 +166,8 @@ int TaskSchedulePredict(TaskPredictParam* tp) {
 	g_task_pre_cost = (g_task_pre_cost + tick2 - tick1) / 2;
 
 	__leaveSpinlock(&g_dl_lock);
+
+	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 	return num;
 }
 

@@ -139,7 +139,7 @@ unsigned int __kGetKbdAndStatus(int wid,DWORD *status) {
 	{
 		return 0;
 	}
-
+	__enterSpinlock(&g_kbd_lock);
 	unsigned int ch = data->kbdBuf[data->kbdBufTail] & 0xff;
 	*status = data->kbdStatusBuf[data->kbdBufTail];
 
@@ -164,7 +164,7 @@ unsigned int __kGetKbdAndStatus(int wid,DWORD *status) {
 			ch -= 0x20;
 		}
 	}
-
+	__leaveSpinlock(&g_kbd_lock);
 	return ch;
 }
 
@@ -177,6 +177,7 @@ void __kPutKbd(unsigned char c,int wid) {
 		//return;
 	}
 
+	__enterSpinlock(&g_kbd_lock);
 	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 	data->kbdBuf[data->kbdBufHdr] = c;
 	data->kbdStatusBuf[data->kbdBufHdr] = 0;
@@ -186,6 +187,7 @@ void __kPutKbd(unsigned char c,int wid) {
 	{
 		data->kbdBufHdr = 0;
 	}
+	__leaveSpinlock(&g_kbd_lock);
 }
 
 
@@ -342,6 +344,12 @@ void __kKeyboardProc() {
 		}
 		else {
 			//keep it
+			//data->kbdBufHdr--;
+			//if (data->kbdBufHdr <= 0)
+			//{
+			//	data->kbdBufHdr = KEYBORAD_BUF_SIZE - 1;
+			//}
+			//return;
 		}
 	}
 	else if (c == 0xd3)
@@ -365,30 +373,34 @@ void __kKeyboardProc() {
 				__reboot();
 			}
 			else {
-				//keep delete
+				//data->kbdBufHdr--;
+				//if (data->kbdBufHdr <=0)
+				//{
+				//	data->kbdBufHdr = KEYBORAD_BUF_SIZE-1;
+				//}
+				//return;
 			}
-		}else if (c == 0xe0d3)
+		}
+		else if (c == 0xe0d3)
 		{
 			return;
 		}
-		
 		else if (c == 0x0e01d || c == 0x0e09d)
 		{
 			data->kbdStatus = data->kbdStatus ^ CTRLRIGHT_SET_FLAG;
 			return;
 		}
-
 		else if (c == 0x0e038 || c == 0x0e0b8)
 		{
 			data->kbdStatus = data->kbdStatus ^ ALTRIGHT_SET_FLAG;
 			return;
-		}
-		
+		}	
 		else if (c == 0xe052)
 		{
 			data->kbdStatus = data->kbdStatus ^ INSERT_SET_FLAT;
 			return;
-		}else if (c == 0xe0d2)
+		}
+		else if (c == 0xe0d2)
 		{
 			return;
 		}		
@@ -404,6 +416,9 @@ void __kKeyboardProc() {
 				__kPrintScreen();
 				return;
 				//printfscreen make code,to keep it
+			}
+			else {
+
 			}
 		}
 		else if (c == 0xe0b7)

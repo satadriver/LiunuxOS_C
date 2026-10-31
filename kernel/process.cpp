@@ -414,6 +414,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	}
 	tss->delta = DYNAMIC_PRIORITY;
 	tss->authority = AUTHORITY_PRIORITY;
+	tss->delay = 0;
 
 	tss->frac_slice = 0;
 	tss->tick_run = 0;

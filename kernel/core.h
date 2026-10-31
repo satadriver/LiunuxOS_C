@@ -196,7 +196,22 @@ void initTss64(TSS64_DATA* tss, QWORD rsp);
 
 void SetTaskVideoBase(char* videobase);
 
+DWORD readcr4();
 
+DWORD readcr0();
+
+DWORD readcr2();
+
+DWORD readcr3();
+
+void writecr4(DWORD v);
+
+void writecr0(DWORD v);
+
+void writecr3(DWORD v);
+
+DWORD readesp();
+DWORD readebp();
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) char* g_gdt_base[MAX_CPU_COUNT];

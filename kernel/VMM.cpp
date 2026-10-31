@@ -5,7 +5,7 @@
 #include "malloc.h"
 #include "descriptor.h"
 #include "device.h"
-
+#include "core.h"
 
 //https://blog.csdn.net/qq_41988448/article/details/122791042
 //https://www.cnblogs.com/wingsummer/p/15971289.html
@@ -31,7 +31,6 @@ int IsVTEnabled()
         return FALSE;
     }
 
-
     unsigned long low, high;
     readmsr(MSR_IA32_FEATURE_CONTROL,&low,&high);  
     __int64 v = ((__int64)high << 32) + low;
@@ -42,20 +41,9 @@ int IsVTEnabled()
         return FALSE;
     }
 
+	ULONG rcr0 = readcr0();
+	ULONG rcr4 = readcr4();
 
-    ULONG rcr0,rcr4 = 0;
-    __asm {
-        mov eax,cr0
-        mov [rcr0],eax
-
-        __emit 0x0f
-        __emit 0x20
-        __emit 0xe0
-        //mov eax, cr4
-
-
-        mov [rcr4],eax
-    }
     _CR0 * uCr0 = (_CR0*)&rcr0;
     _CR4* uCr4 = (_CR4*)&rcr4;
     if (uCr0->PE != 1 || uCr0->PG != 1 || uCr0->NE != 1)

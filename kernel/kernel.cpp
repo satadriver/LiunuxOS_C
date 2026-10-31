@@ -47,6 +47,7 @@
 #include "libc.h"
 #include "tool.h"
 #include "taskPriority.h"
+#include "core.h"
 
 //#pragma comment(linker, "/ENTRY:DllMain")
 //#pragma comment(linker, "/align:512")
@@ -187,7 +188,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #ifdef MODEL_TYPE_RNN
 		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlRNNTraining", 3, 0);
 #else
-		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
 #endif
 	}
 
@@ -195,12 +196,8 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	
 	//ret = loadLibRunFun(LIUNUX_BASE_PATH "main.dll", "__kMainProcess");
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
-	char* reg_esp = 0;
-	char* reg_ebp = 0;
-	__asm {
-		mov[reg_esp], esp
-		mov[reg_ebp], ebp
-	}
+	DWORD reg_esp = readesp();
+	DWORD reg_ebp = readebp();
 
 	WINDOWCLASS window;
 	initDesktopWindow(&window, "__kKernel", 0,0);

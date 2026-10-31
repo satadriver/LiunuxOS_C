@@ -406,6 +406,9 @@ void __initMouse(int x,int y) {
 
 void insertMouse(MOUSEINFO * info) {
 	__kRestoreMouse();
+
+	__enterSpinlock(&g_mouse_lock);
+
 	LPMOUSEDATA data = (LPMOUSEDATA)g_mouse_buf;
 	data->mouseX += info->x;
 	data->mouseY += info->y;
@@ -422,7 +425,8 @@ void insertMouse(MOUSEINFO * info) {
 	{
 		data->mouseBufHdr = 0;
 	}
-	
+	__leaveSpinlock(&g_mouse_lock);
+
 	__kRefreshMouseBackup();
 	__kDrawMouse();
 }
