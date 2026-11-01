@@ -5,7 +5,7 @@
 #include "deepLearning.h"
 
 
-extern "C" __declspec(dllexport) int g_dl_proc_tag;
+extern "C" __declspec(dllexport) int g_dl_proc_test_tag;
 
 
 #pragma pack(1)

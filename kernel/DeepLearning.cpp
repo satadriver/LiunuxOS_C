@@ -26,7 +26,7 @@
 
 #endif
 
-//#include <windows.h>
+
 
 #define sqrt __sqrt
 #define sqrtf __sqrtf
@@ -82,7 +82,7 @@
 int g_rnn_task_count = 0;
 int g_rnn_sample_cpu = 0;
 
-int g_dl_tp_mix = 0;
+int g_td_mix_enable = 0;
 
 int g_dl_lock = 0;
 
@@ -96,18 +96,15 @@ kann_t* g_dl_ann = 0;
 
 double g_dl_rate = 0.0;
 
-
-int g_task_total = 0;
-
-int g_tasks_cpu_array[256];
-
-int g_task_cpu_sample_num[256];
+int g_dl_task_total = 0;
 
 
-int CollectDlSample(TaskPredictParam * tp)
+
+int CollectDlSample(TaskPredictParam * tp,int count)
 {
-	if (g_task_total < ML_TASK_LIMIT)
+	if (g_dl_task_total < ML_TASK_LIMIT)
 		return 0;
+
 	__enterSpinlock(&g_dl_lock);
 
 	if (g_dl_data != 0 && g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
@@ -123,13 +120,17 @@ int CollectDlSample(TaskPredictParam * tp)
 	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2) * gBytesPerPixel;
 
 	char szout[256];
-	__sprintf(szout, (char*)"g_dl_data_cnt:%x ", g_dl_data_cnt);
+	__sprintf(szout, (char*)"ml training packet total:%x ", g_dl_data_cnt);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 
+	int seq = __krdtsc() % count;
+	seq = tp->result;
+
 	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
-	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf        ", 
-		tp->task[0].alloc, tp->task[0].mem, tp->task[0].authority, tp->task[0].delta,tp->task[0].priority,
-		tp->task[0].cpurate, tp->task[0].tickrate,tp->task[0].sleep, tp->task[0].user, tp->task[0].window);
+	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf,delay:%lf    ", 
+		tp->task[seq].alloc, tp->task[seq].mem, tp->task[seq].authority, tp->task[seq].delta,tp->task[seq].priority,
+		tp->task[seq].cpurate, tp->task[seq].tickrate,tp->task[seq].sleep, tp->task[seq].user, tp->task[seq].window,
+		tp->task[seq].delay);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 	return g_dl_data_cnt;
 }
@@ -139,7 +140,7 @@ int CollectDlSample(TaskPredictParam * tp)
 
 int TaskSchedulePredict(TaskPredictParam* tp) {
 
-	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 	
 	unsigned long long tick1 = __krdtsc();
 	//int inSize = sizeof(TaskPredictParam) / sizeof(float) - 1;
@@ -149,7 +150,6 @@ int TaskSchedulePredict(TaskPredictParam* tp) {
 	}
 	int outSize = ML_TASK_LIMIT;
 	
-	//int n_err = 0;
 	__enterSpinlock(&g_dl_lock);
 
 	const float* y1 = kann_apply1(g_dl_ann, (float*)tp);
@@ -163,17 +163,18 @@ int TaskSchedulePredict(TaskPredictParam* tp) {
 		}
 	}
 	unsigned long long tick2 = __krdtsc();
-	g_task_pre_cost = (g_task_pre_cost + tick2 - tick1) / 2;
+	g_task_reason_cost = (g_task_reason_cost + tick2 - tick1) / 2;
 
 	__leaveSpinlock(&g_dl_lock);
 
-	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
+	//printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 	return num;
 }
 
 
 
 int GetSamplePos(int cpu,int * label) {
+	int g_tasks_cpu_array[256];
 	int pos = 0;
 	int subpos = 0;
 	int cnt = g_cpu_total;
@@ -191,8 +192,11 @@ int GetSamplePos(int cpu,int * label) {
 	return pos;
 }
 
-int CollectRNNSample(TaskPredictParam* tp)
+int CollectRNNSample(TaskPredictParam* tp,int count)
 {
+	if (g_dl_task_total < ML_TASK_LIMIT )
+		return 0;
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 	if (g_rnn_sample_cpu != id) {
 		return 0;
@@ -211,7 +215,7 @@ int CollectRNNSample(TaskPredictParam* tp)
 		if (g_dl_data != 0 && g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
 
 			// 每个时间步的大小 = g_rnn_task_count 个 TaskSwitchSample + 1 个 int
-			int size = g_rnn_task_count * sizeof(TaskSwitchSample) + sizeof(int);
+			int size = g_rnn_task_count * sizeof(TaskSwitchSample) + sizeof(float);
 
 			// 定位到第 g_dl_data_cnt 个时间步
 			char* buf = (char*)g_dl_data + g_dl_data_cnt * size;
@@ -237,13 +241,17 @@ int CollectRNNSample(TaskPredictParam* tp)
 	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2) * gBytesPerPixel;
 
 	char szout[256];
-	__sprintf(szout, (char*)"g_dl_data_cnt:%x ", g_dl_data_cnt);
+	__sprintf(szout, (char*)"rnn sample total:%x ", g_dl_data_cnt);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 
+	int seq = __krdtsc() % count;
+	seq = tp->result;
+
 	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
-	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf        ",
-		tp->task[0].alloc, tp->task[0].mem, tp->task[0].authority, tp->task[0].delta, tp->task[0].priority,
-		tp->task[0].cpurate, tp->task[0].tickrate, tp->task[0].sleep, tp->task[0].user, tp->task[0].window);
+	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf,delay:%lf    ",
+		tp->task[seq].alloc, tp->task[seq].mem, tp->task[seq].authority, tp->task[seq].delta, tp->task[seq].priority,
+		tp->task[seq].cpurate, tp->task[seq].tickrate, tp->task[seq].sleep, tp->task[seq].user, tp->task[seq].window, 
+		tp->task[seq].delay);
 	__drawGraphChar((char*)szout, 0, pos, TASKBARCOLOR);
 	return g_dl_data_cnt;
 }

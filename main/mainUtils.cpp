@@ -86,7 +86,7 @@ int GetProcessNum() {
 			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
 		} while (ptr && ptr != hdr);
 #endif
-		g_tasks_cpu_array[cpu] = counter;
+		//g_tasks_cpu_array[cpu] = counter;
 		n += counter;
 	}
 

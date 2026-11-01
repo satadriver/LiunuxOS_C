@@ -746,7 +746,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 		unsigned long long tick2 = __krdtsc();
 
-		if (g_tp_cache) {
+		if (g_tp_cache_enable) {
 			g_td_pre_tickcost = (g_td_pre_tickcost + tick2 - tick1) / 2;
 		}
 		else {

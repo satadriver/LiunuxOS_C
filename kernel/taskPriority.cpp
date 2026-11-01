@@ -25,22 +25,18 @@
 
 
 
-int g_tp_cache = 0;
+int g_tp_cache_enable = 0;
 
-unsigned long long g_tp_correct0 = 0;
-unsigned long long g_tp_correct1 = 0;
-unsigned long long g_tp_correct2 = 0;
-unsigned long long g_tp_correct3 = 0;
-unsigned long long g_tp_correct4 = 0;
+unsigned long long g_tp_error_cnt = 0;
+unsigned long long g_tp_corrects[16];
 
 int g_tp_lock[256];
 
+unsigned long long g_task_reason_cost = 0;
 unsigned long long g_task_pre_total = 0;
-unsigned long long g_task_pre_hit = 0;
-unsigned long long g_task_pre_cost = 0;
-
+unsigned long long g_task_pre_cache_hit = 0;
 unsigned long long g_task_other_hit = 0;
-unsigned long long g_task_dl_hit = 0;
+unsigned long long g_task_pre_hit = 0;
 
 LPPROCESS_INFO g_task_predict_buf[256][TASK_PREDICTION_BUF_SIZE];
 AlgorithmModel* g_rate_buf[256];
@@ -95,7 +91,7 @@ PROCESS_INFO* PrioritySchedule() {
 		}	
 		__leaveSpinlock(&g_tp_lock[cpu]);
 		if (target_tss) {
-			g_task_pre_hit++;
+			g_task_pre_cache_hit++;
 			return target_tss;
 		}
 	}
@@ -106,6 +102,10 @@ PROCESS_INFO* PrioritySchedule() {
 
 	float delay_delta = 0.0;
 	double delay_max = 0.0;
+	
+	double delta_max = 0.0;
+	double authority_max = 0.0;
+
 	PROCESS_INFO * ptr_delay_max = 0;
 
 	int count = 0;
@@ -113,7 +113,7 @@ PROCESS_INFO* PrioritySchedule() {
 	unsigned long long ticknow = __krdtsc();
 
 	PROCESS_INFO* cur = GetCurrentTaskTssBase();
-	cur->delta >>=1;
+	cur->delta =0;
 	cur->priority = cur->priority / 2;
 	cur->delay >>= 1;
 
@@ -123,6 +123,8 @@ PROCESS_INFO* PrioritySchedule() {
 	LPPROCESS_INFO ptr = prev;
 	delay_max = ticknow - ptr->prev_tick;
 	ptr_delay_max = ptr;
+	delta_max = ptr->delta;
+	authority_max = ptr->authority;
 	do {
 		if (ptr->status == TASK_TERMINATE) {
 			ptr->status = TASK_OVER;
@@ -153,14 +155,14 @@ PROCESS_INFO* PrioritySchedule() {
 				g_rate_buf[cpu][count].id = ptr->tid;
 				g_crate_buf[cpu][count].id = ptr->tid;
 				double v = 1.0 / ratio ;
-				if (v > STATIC_PRIORITY )
-					v = STATIC_PRIORITY;
+				if (v > RATIO_PRIORITY)
+					v = RATIO_PRIORITY;
 				if (v <= 0)
 					v = 0.01;
 				g_rate_buf[cpu][count].fv =  v;
 				v = 1.0 / cratio ;
-				if (v > STATIC_PRIORITY )
-					v = STATIC_PRIORITY;
+				if (v > RATIO_PRIORITY)
+					v = RATIO_PRIORITY;
 				if (v <= 0)
 					v = 0.01;
 				g_crate_buf[cpu][count].fv = v;
@@ -182,6 +184,12 @@ PROCESS_INFO* PrioritySchedule() {
 				ptr_delay_max->delay += delay_delta;
 				delay_delta += STATIC_PRIORITY;
 
+				if (ptr->delta > delta_max)
+					delta_max = ptr->delta;
+
+				if (ptr->authority > authority_max)
+					authority_max = ptr->authority;
+
 				count++;
 			}
 		}
@@ -198,7 +206,9 @@ PROCESS_INFO* PrioritySchedule() {
 	LPPROCESS_INFO prev = &prevlist->proc;
 	PROCESS_INFO_LIST* list = prevlist;
 	delay_max = ticknow - list->proc.prev_tick;
+	delta_max = prev->delta;
 	ptr_delay_max = prev;
+	authority_max = prev->authority;
 	do {
 		if (list == 0)
 			break;
@@ -226,14 +236,14 @@ PROCESS_INFO* PrioritySchedule() {
 				g_rate_buf[cpu][count].id = ptr->tid;
 				g_crate_buf[cpu][count].id = ptr->tid;
 				double v = 1.0 / ratio;
-				if (v > STATIC_PRIORITY )
-					v = STATIC_PRIORITY;
+				if (v > RATIO_PRIORITY)
+					v = RATIO_PRIORITY;
 				if (v <= 0)
 					v = 0.01;
 				g_rate_buf[cpu][count].fv =  v;
 				v = 1.0 / cratio;
-				if (v > STATIC_PRIORITY)
-					v = STATIC_PRIORITY;
+				if (v > RATIO_PRIORITY)
+					v = RATIO_PRIORITY;
 				if (v <= 0)
 					v = 0.01;
 				g_crate_buf[cpu][count].fv = v;
@@ -255,7 +265,12 @@ PROCESS_INFO* PrioritySchedule() {
 				}
 				ptr_delay_max->delay += delay_delta;		
 				delay_delta += STATIC_PRIORITY;
-				
+
+				if (ptr->delta > delta_max)
+					delta_max = ptr->delta;
+				if (ptr->authority > authority_max)
+					authority_max = ptr->authority;
+
 				count++;
 			}
 		}
@@ -350,9 +365,9 @@ PROCESS_INFO* PrioritySchedule() {
 			float tick_ratio = (float)g_rate_buf[cpu][i].fv / (float)STATIC_PRIORITY;
 			float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
+			float delta_ratio = (float)tss[pid].delta / (float)delta_max;
 			float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-			float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
+			float authority_r = (float)tss[pid].authority / (float)authority_max;
 
 			if (pid == target_id) {
 				g_tpp_buf[cpu]->result = i;
@@ -372,9 +387,9 @@ PROCESS_INFO* PrioritySchedule() {
 			float tick_ratio = (float)g_rate_buf[cpu][i].fv / (float)STATIC_PRIORITY;
 			float user_ratio = (float)(tss[i]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 			float window_ratio = (float)(tss[i]->window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-			float delta_ratio = (float)tss[i]->delta / (float)DYNAMIC_PRIORITY;
+			float delta_ratio = (float)tss[i]->delta / (float)delta_max;
 			float priority_ratio = (float)(tss[i]->priority) / (float)STATIC_PRIORITY;
-			float authority_r = (float)tss[i]->authority / (float)AUTHORITY_PRIORITY;
+			float authority_r = (float)tss[i]->authority / (float)authority_max;
 
 			if (g_rate_buf[cpu][i].id == target_id) {
 				g_tpp_buf[cpu]->result = i;
@@ -403,9 +418,9 @@ PROCESS_INFO* PrioritySchedule() {
 					float tick_ratio = (float)GetValueFromArray(g_rate_buf[cpu], count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
+					float delta_ratio = (float)tss[pid].delta / (float)delta_max;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
+					float authority_r = (float)tss[pid].authority / (float)authority_max;
 
 					int ri = __random(0) % ML_TASK_LIMIT;
 					g_tpp_buf[cpu]->task[ri].tickrate = tick_ratio;
@@ -427,9 +442,9 @@ PROCESS_INFO* PrioritySchedule() {
 					float tick_ratio = (float)g_rate_buf[cpu][index ].fv/ (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[index]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[index]->window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)tss[index]->delta / (float)DYNAMIC_PRIORITY;
+					float delta_ratio = (float)tss[index]->delta / (float)delta_max;
 					float priority_ratio = (float)(tss[index]->priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[index]->authority / (float)AUTHORITY_PRIORITY;
+					float authority_r = (float)tss[index]->authority / (float)authority_max;
 
 					int ri = __random(0) % ML_TASK_LIMIT;
 					g_tpp_buf[cpu]->task[ri].tickrate = tick_ratio;
@@ -469,27 +484,16 @@ PROCESS_INFO* PrioritySchedule() {
 
 		if (g_dl_train_complete == 0) {
 #ifdef MODEL_TYPE_RNN
-			CollectRNNSample(g_tpp_buf[cpu]);		
+			CollectRNNSample(g_tpp_buf[cpu],count);		
 #else
-			CollectDlSample(g_tpp_buf[cpu]);
+			CollectDlSample(g_tpp_buf[cpu],count);
 #endif
 			g_task_other_hit++;
 		}
 		else {
-			int old_h1 = g_level_buf[cpu][count - 1].id;
-			int old_h2 = 0;
-			if(count >= 2)
-				old_h2 = g_level_buf[cpu][count - 2].id;
-			int old_h3 = 0;
-			if(count >= 3)
-				old_h3=g_level_buf[cpu][count - 3].id;
-			int old_h4= 0;
-			if(count >= 4)
-				old_h4=g_level_buf[cpu][count - 4].id;
-
 			int seq = TaskSchedulePredict(g_tpp_buf[cpu]);
 			if (seq >= 0 && seq < count) {
-				if (g_dl_tp_mix) {
+				if (g_td_mix_enable) {
 					int id = g_rate_buf[cpu][seq].id;
 					for (int i = 0; i < count; i++) {
 						if (id == g_level_buf[cpu][i].id) {
@@ -503,27 +507,15 @@ PROCESS_INFO* PrioritySchedule() {
 				else {
 					target_id = g_rate_buf[cpu][seq].id;
 				}
-
-				if (old_h1 == target_id) {
-					g_tp_correct1++;
-				}
-				else if (count >= 2 && target_id == old_h2) {
-					g_tp_correct2++;
-				}
-				else if (count >= 3 && target_id == old_h3) {
-					g_tp_correct3++;
-				}
-				else if (count >= 4 && target_id == old_h4) {
-					g_tp_correct4++;
-				}
-				g_task_dl_hit++;
+				PreMultipleHitRate(count, 3, cpu, target_id);
+				g_task_pre_hit++;
 			}
 			else {
 				target_id = g_rate_buf[cpu][0].id;
 				g_task_other_hit++;
-				g_tp_correct0++;
+				g_tp_error_cnt++;
 			}
-			__printf(szout, "%s %d cpu:%d seq:%d ,target_id:%d\r\n",__FUNCTION__, __LINE__, cpu, seq, target_id);
+			//__printf(szout, "%s %d cpu:%d seq:%d ,target_id:%d\r\n",__FUNCTION__, __LINE__, cpu, seq, target_id);
 		}
 #ifdef TASK_SWITCH_ARRAY
 		for (int i = 0; i < count; i++) {
@@ -533,9 +525,6 @@ PROCESS_INFO* PrioritySchedule() {
 				if (tss[tid].delta > DYNAMIC_PRIORITY) {
 					//tss[tid].delta = DYNAMIC_PRIORITY;
 				}
-			}
-			else {
-				tss[tid].delta = 0;
 			}
 		}
 		target_tss = tss + target_id;
@@ -554,7 +543,7 @@ PROCESS_INFO* PrioritySchedule() {
 		}
 
 		target_tss = tss[target_idx];
-		if (g_dl_train_complete)
+		if (target_idx==-1)
 		{
 			__printf(szout, "%s %d cpu:%d target_idx:%d target_id:%d function:%s\r\n",
 				__FUNCTION__, __LINE__, cpu, target_idx, target_id, target_tss->funcname);
@@ -564,13 +553,23 @@ PROCESS_INFO* PrioritySchedule() {
 #endif	
 	}
 
-	target_tss->delta >>= 1;
+	target_tss->delta = 0;
 	target_tss->authority = target_tss->authority/2;
 	target_tss->delay >>= 1;
 
 	return target_tss;
 }
 
+
+void PreMultipleHitRate(int count,int limit,int cpu,int target_id) {
+	int min = count > limit ? limit : count;
+	
+	for (int i = 0; i < min; i++) {
+		if (target_id == g_level_buf[cpu][count - 1 - i].id) {
+			g_tp_corrects[i]++;
+		}
+	}
+}
 
 
 int g_priority_test_cnt = 0;
@@ -594,22 +593,19 @@ void priorityTaskTest(int count,int cpu,int target_id,int target_idx, LPPROCESS_
 
 int PredictionTask() {
 
-	if (g_tp_cache == 0) {
+	if (g_tp_cache_enable == 0|| g_dl_train_complete == 0 || g_dl_rate == 0.0) {
 		return 0;
 	}
 
 	char szout[256];
-	if (g_dl_train_complete == 0 || g_dl_rate == 0.0) {
-		return 0;
-	}
+
 	LPPROCESS_INFO target_tss = 0;
 
 	PROCESS_INFO* cur = GetCurrentTaskTssBase();
-	cur->delay >>= 1;
+	cur->delay >= 1;
 	cur->priority >>= 1;
-	cur->delta >>= 1;
+	cur->delta = 0;
 
-	//AlgorithmModel delay[TASK_LIMIT_TOTAL];
 	AlgorithmModel rate[TASK_LIMIT_TOTAL];
 	AlgorithmModel crate[TASK_LIMIT_TOTAL];
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -621,7 +617,8 @@ int PredictionTask() {
 	float delay_delta = 0.0;
 	double delay_max = 0.0;
 	PROCESS_INFO * ptr_delay_max = 0;
-
+	double delta_max = 0.0;
+	double authority_max = 0.0;
 	unsigned long long ticknow = __krdtsc();
 
 	__enterSpinlock(&g_tp_lock[cpu]);
@@ -639,6 +636,8 @@ int PredictionTask() {
 			LPPROCESS_INFO ptr = proc;
 			delay_max = ticknow - ptr->prev_tick;
 			ptr_delay_max = ptr;
+			delta_max = ptr->delta;
+			authority_max = ptr->authority;
 			do {
 				if (cpu == ptr->cpuid) {
 					if (ptr->status == TASK_TERMINATE) {
@@ -666,12 +665,12 @@ int PredictionTask() {
 							rate[count].id = ptr->tid;
 							crate[count].id = ptr->tid;
 							double v = 1.0 / ratio;
-							if (v > STATIC_PRIORITY / 2)
-								v = STATIC_PRIORITY / 2;
+							if (v > RATIO_PRIORITY)
+								v = RATIO_PRIORITY;
 							rate[count].fv = v;
 							v = 1.0 / cratio;
-							if (v > STATIC_PRIORITY / 2)
-								v = STATIC_PRIORITY / 2;
+							if (v > RATIO_PRIORITY)
+								v = RATIO_PRIORITY;
 							crate[count].fv = v;
 
 							ptr->delta = dynamic;
@@ -686,6 +685,11 @@ int PredictionTask() {
 							}
 							ptr_delay_max->delay += delay_delta;
 							delay_delta += STATIC_PRIORITY;
+
+							if (ptr->delta > delta_max)
+								delta_max = ptr->delta;
+							if (ptr->authority > authority_max)
+								authority_max = ptr->authority;
 
 							count++;
 						}
@@ -703,6 +707,8 @@ int PredictionTask() {
 			PROCESS_INFO_LIST* list = hdr;
 			delay_max = ticknow - list->proc.prev_tick;
 			ptr_delay_max = &list->proc;
+			delta_max = list->proc.delta;
+			authority_max = list->proc.authority;
 			do {
 				if (list == 0)
 					break;
@@ -732,12 +738,12 @@ int PredictionTask() {
 						g_rate_buf[cpu][count].id = ptr->tid;
 						g_crate_buf[cpu][count].id = ptr->tid;
 						double v = 1.0 / ratio;
-						if (v > STATIC_PRIORITY)
-							v = STATIC_PRIORITY;
+						if (v > RATIO_PRIORITY)
+							v = RATIO_PRIORITY;
 						g_rate_buf[cpu][count].fv = v;
 						v = 1.0 / cratio;
-						if (v > STATIC_PRIORITY)
-							v = STATIC_PRIORITY;
+						if (v > RATIO_PRIORITY)
+							v = RATIO_PRIORITY;
 						g_crate_buf[cpu][count].fv =  v;
 
 						ptr->delta = dynamic;
@@ -755,9 +761,13 @@ int PredictionTask() {
 							delay_max = ticknow - ptr->prev_tick;
 							ptr_delay_max = ptr;
 						}
-
 						ptr_delay_max->delay += delay_delta;
 						delay_delta += STATIC_PRIORITY;
+
+						if (ptr->delta > delta_max)
+							delta_max = ptr->delta;
+						if (ptr->authority > authority_max)
+							authority_max = ptr->authority;
 
 						count++;
 					}
@@ -775,6 +785,7 @@ int PredictionTask() {
 					__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",
 						__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
 				}
+				g_task_other_hit++;
 			}
 			else if (count >= 2) {
 				int target_id = -1;
@@ -795,9 +806,9 @@ int PredictionTask() {
 					float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
+					float delta_ratio = (float)tss[pid].delta / (float)delta_max;
 					float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
+					float authority_r = (float)tss[pid].authority / (float)authority_max;
 
 					tp.task[i].tickrate = tick_ratio;
 					tp.task[i].cpurate = crate[i].fv / (float)STATIC_PRIORITY;
@@ -806,7 +817,7 @@ int PredictionTask() {
 					tp.task[i].delta = delta_ratio;
 					tp.task[i].priority = priority_ratio;
 					tp.task[i].authority = authority_r;
-					tp.task[i].sleep = tss[pid].sleep/total_sleep;
+					tp.task[i].sleep = tss[pid].sleep_total /total_sleep;
 					tp.task[i].mem = *(tss[pid].lpvasize) / (double)total_mem;
 					tp.task[i].alloc = tss[pid].alloc_times / total_alloc;
 					tp.task[i].delay = tss[pid].delay/delay_max;
@@ -814,9 +825,9 @@ int PredictionTask() {
 					float tick_ratio = (float)rate[i].fv / (float)STATIC_PRIORITY;
 					float user_ratio = (float)(tss[i]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[i]->window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-					float delta_ratio = (float)tss[i]->delta / (float)DYNAMIC_PRIORITY;
+					float delta_ratio = (float)tss[i]->delta / (float)delta_max;
 					float priority_ratio = (float)(tss[i]->priority) / (float)STATIC_PRIORITY;
-					float authority_r = (float)tss[i]->authority / (float)AUTHORITY_PRIORITY;
+					float authority_r = (float)tss[i]->authority / (float)authority_max;
 
 					tp.task[i].tickrate = tick_ratio;
 					tp.task[i].cpurate = crate[i].fv / (float)STATIC_PRIORITY;
@@ -825,7 +836,7 @@ int PredictionTask() {
 					tp.task[i].delta = delta_ratio;
 					tp.task[i].priority = priority_ratio;
 					tp.task[i].authority = authority_r;
-					tp.task[i].sleep = tss[i]->sleep / total_sleep;
+					tp.task[i].sleep = tss[i]->sleep_total / total_sleep;
 					tp.task[i].mem = *(tss[i]->lpvasize) / (double)total_mem;
 					tp.task[i].alloc = tss[i]->alloc_times / total_alloc;
 					tp.task[i].delay = tss[i]->delay / delay_max;
@@ -851,7 +862,7 @@ int PredictionTask() {
 							level[i].fv += tss[pid].authority;
 							level[i].fv += STATIC_PRIORITY * (*(tss[pid].lpvasize) / (double)total_mem);
 							level[i].fv += STATIC_PRIORITY * (tss[pid].alloc_times / total_alloc);
-							level[i].fv += (tss[pid].sleep / total_sleep) * STATIC_PRIORITY;
+							level[i].fv += (tss[pid].sleep_total / total_sleep) * STATIC_PRIORITY;
 							level[i].fv += tss[pid].delay;
 #else
 							level[i].id = rate[i].id;
@@ -866,7 +877,7 @@ int PredictionTask() {
 							level[i].fv += tss[i]->authority;
 							level[i].fv += STATIC_PRIORITY * (*(tss[i]->lpvasize) / (double)total_mem);
 							level[i].fv += STATIC_PRIORITY * (tss[i]->alloc_times / total_alloc);
-							level[i].fv += (tss[i]->sleep / total_sleep) * STATIC_PRIORITY;
+							level[i].fv += (tss[i]->sleep_total / total_sleep) * STATIC_PRIORITY;
 							level[i].fv += tss[i]->delay;
 #endif
 						}
@@ -887,9 +898,9 @@ int PredictionTask() {
 							float tick_ratio = (float)GetValueFromArray(rate, count, pid) / (float)STATIC_PRIORITY;
 							float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 							float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-							float delta_ratio = (float)tss[pid].delta / (float)DYNAMIC_PRIORITY;
+							float delta_ratio = (float)tss[pid].delta / (float)delta_max;
 							float priority_ratio = (float)(tss[pid].priority) / (float)STATIC_PRIORITY;
-							float authority_r = (float)tss[pid].authority / (float)AUTHORITY_PRIORITY;
+							float authority_r = (float)tss[pid].authority / (float)authority_max;
 
 							int ri = __random(0) % ML_TASK_LIMIT;
 							tp.task[ri].tickrate = tick_ratio;
@@ -899,7 +910,7 @@ int PredictionTask() {
 							tp.task[ri].delta = delta_ratio;
 							tp.task[ri].priority = priority_ratio;
 							tp.task[ri].authority = authority_r;
-							tp.task[ri].sleep = tss[pid].sleep/ total_sleep;
+							tp.task[ri].sleep = tss[pid].sleep_total / total_sleep;
 							tp.task[ri].mem = (*(tss[pid].lpvasize) / (double)total_mem);
 							tp.task[ri].alloc = (tss[pid].alloc_times / total_alloc);
 							tp.task[ri].delay = tss[pid].delay;
@@ -911,9 +922,9 @@ int PredictionTask() {
 							float tick_ratio = (float)rate[index].fv / (float)STATIC_PRIORITY;
 							float user_ratio = (float)(tss[index]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 							float window_ratio = (float)(tss[index]->window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
-							float delta_ratio = (float)tss[index]->delta / (float)DYNAMIC_PRIORITY;
+							float delta_ratio = (float)tss[index]->delta / (float)delta_max;
 							float priority_ratio = (float)(tss[index]->priority) / (float)STATIC_PRIORITY;
-							float authority_r = (float)tss[index]->authority / (float)AUTHORITY_PRIORITY;
+							float authority_r = (float)tss[index]->authority / (float)authority_max;
 
 							int ri = __random(0) % ML_TASK_LIMIT;
 							tp.task[ri].tickrate = tick_ratio;
@@ -923,7 +934,7 @@ int PredictionTask() {
 							tp.task[ri].delta = delta_ratio;
 							tp.task[ri].priority = priority_ratio;
 							tp.task[ri].authority = authority_r;
-							tp.task[ri].sleep = tss[index]->sleep / total_sleep;
+							tp.task[ri].sleep = tss[index]->sleep_total / total_sleep;
 							tp.task[ri].mem = (*(tss[index]->lpvasize) / (double)total_mem);
 							tp.task[ri].alloc = (tss[index]->alloc_times / total_alloc);
 							tp.task[ri].delay = tss[index]->delay;
@@ -954,15 +965,17 @@ int PredictionTask() {
 				int target_idx = -1;
 				int seq = TaskSchedulePredict(&tp);
 				if (seq >= 0 && seq < count) {
-					target_id = rate[seq].id;
-					total++;
-					//g_tp_error1++;
+					target_id = rate[seq].id;	
 					target_idx = target_id;
+					total++;
+					PreMultipleHitRate(count, 3, cpu, target_id);
+					g_task_pre_hit++;
 				}
 				else {
-					target_id = rate[0].id;
-					//g_tp_error2++;
 					target_idx = 0;
+					target_id = rate[0].id;
+					g_tp_error_cnt++;
+					g_task_other_hit++;
 				}
 #ifdef TASK_SWITCH_ARRAY
 				target_tss = tss + target_id;
@@ -974,9 +987,6 @@ int PredictionTask() {
 							//tss[tid].delta = DYNAMIC_PRIORITY;
 						}
 					}
-					else {
-						tss[tid].delta = 0;
-					}
 				}
 #else
 				target_tss = tss[target_idx];
@@ -987,14 +997,11 @@ int PredictionTask() {
 							//tss[tid].delta = DYNAMIC_PRIORITY;
 						}
 					}
-					else {
-						tss[i]->delta = 0;
-					}
 				}
 #endif
 			}
 
-			target_tss->delta >>= 1;
+			target_tss->delta = 0;
 			target_tss->delay >>= 1;
 			target_tss->authority = target_tss->authority / 2;
 

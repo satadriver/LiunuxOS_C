@@ -184,6 +184,12 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	tss->tss.ebx = 0;
 	tss->tss.esi = 0;
 	tss->tss.edi = 0;
+	tss->dr0 = 0;
+	tss->dr1 = 0;
+	tss->dr2 = 0;
+	tss->dr3 = 0;
+	tss->dr6 = 0xFFFF0FF0;
+	tss->dr7 = 0x400;
 
 	if (tss->level) {
 		unsigned long esp0 = __kProcessMalloc(TASK_STACK0_SIZE, 0, process->pid, tss->cpuid, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);

@@ -5,7 +5,7 @@
 
 #define		TASK_DISPATCH_SAMPLE		(4096)
 
-#define		ML_TASK_LIMIT				32
+#define		ML_TASK_LIMIT				64
 
 #define		TASK_DISPATCH_ERROR_RATE	(20.0)
 
@@ -33,7 +33,7 @@ struct TaskPredictParam {
 
 #pragma pack()
 
-int CollectRNNSample(TaskPredictParam* tp);
+int CollectRNNSample(TaskPredictParam* tp,int);
 
 #ifdef DLL_EXPORT
 
@@ -41,11 +41,9 @@ extern "C" __declspec(dllexport) int g_rnn_sample_cpu;
 
 extern "C" __declspec(dllexport) int g_rnn_task_count;
 
-extern "C" __declspec(dllexport) int g_dl_lock;
-
 extern "C" __declspec(dllexport)int g_tasks_cpu_array[256];
-extern "C" __declspec(dllexport) int g_task_total;
-extern "C" __declspec(dllexport) int g_dl_tp_mix;
+extern "C" __declspec(dllexport) int g_dl_task_total;
+extern "C" __declspec(dllexport) int g_td_mix_enable;
 
 extern "C" __declspec(dllexport) int g_dl_lock;
 
@@ -59,7 +57,7 @@ extern "C" __declspec(dllexport) double g_dl_rate;
 
 extern "C" __declspec(dllexport) kann_t* g_dl_ann ;
 
-extern "C" __declspec(dllexport) int CollectDlSample(TaskPredictParam*);
+extern "C" __declspec(dllexport) int CollectDlSample(TaskPredictParam*,int);
 
 extern "C" __declspec(dllexport) int TaskSchedulePredict(TaskPredictParam* tp);
 
@@ -69,8 +67,8 @@ extern "C" __declspec(dllimport) int g_rnn_sample_cpu;
 extern "C" __declspec(dllimport) int g_rnn_task_count;
 
 extern "C" __declspec(dllimport) int g_tasks_cpu_array[256];
-extern "C" __declspec(dllimport) int g_task_total;
-extern "C" __declspec(dllimport) int g_dl_tp_mix;
+extern "C" __declspec(dllimport) int g_dl_task_total;
+extern "C" __declspec(dllimport) int g_td_mix_enable;
 
 extern "C" __declspec(dllimport) int g_dl_lock;
 
@@ -84,7 +82,7 @@ extern "C" __declspec(dllimport) double g_dl_rate;
 
 extern "C" __declspec(dllimport) kann_t * g_dl_ann;
 
-extern "C" __declspec(dllimport) int CollectDlSample(TaskPredictParam*);
+extern "C" __declspec(dllimport) int CollectDlSample(TaskPredictParam*,int);
 
 extern "C" __declspec(dllimport) int TaskSchedulePredict(TaskPredictParam* tp);
 

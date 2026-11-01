@@ -888,7 +888,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	proc->vid = tid;
 #endif
 	
-	proc->espbase = stacktop;
+	//proc->espbase = stacktop;
 	proc->level = 0;
 	proc->vaddr = 0;
 	proc->lpvasize = &proc->va_size;

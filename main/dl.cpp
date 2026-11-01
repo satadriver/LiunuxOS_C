@@ -42,7 +42,6 @@
 #define fabsf __fabsf
 #define logf __logf
 
-
 #define malloc my_malloc
 #define free my_free
 #define realloc my_realloc
@@ -84,7 +83,7 @@
 
 void DlTestProcess(int tag,int cnt) {
 
-	//g_dl_proc_tag = tag;
+	//g_dl_proc_test_tag = tag;
 
 	int sleep_time = 20;
 
@@ -167,11 +166,9 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
 	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
-		g_task_total = GetProcessNum();
+		g_dl_task_total = GetProcessNum();
 		__sleep(1000);
 	}
-
-	//__enterSpinlock(&g_dl_lock);
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
@@ -272,7 +269,8 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 		g_dl_train_complete = 1;
 	}
 
-	//__leaveSpinlock(&g_dl_lock);
+	while (1)
+		__sleep(0);
 
 	return 0;
 }
@@ -480,15 +478,15 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
 	DlTestProcess(0, ML_TASK_LIMIT);
-	__sleep(1000);
 
-	//g_task_total = GetProcessNum();
+	while (g_dl_task_total < ML_TASK_LIMIT ) {
+		__sleep(1000);
+		g_dl_task_total = GetProcessNum();
+	}
 
 	g_rnn_task_count = GetMaxProcessNum(&g_rnn_sample_cpu);
 
 	DWORD tick1 = g_cmos_period_tick_cnt;
-
-	//int cpucnt = *(int*)(CPU_TOTAL_ADDRESS);
 
 	int step = g_rnn_task_count * sizeof(TaskSwitchSample) +  sizeof(int);
 
@@ -507,7 +505,6 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	}
 	g_dl_data_cnt = 0;
 	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
-
 		g_dl_data = (TaskPredictParam*)__kMalloc((TASK_DISPATCH_SAMPLE + SLIDE_SIZE) * step);
 	}
 	__leaveSpinlock(&g_dl_lock);
@@ -515,10 +512,6 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	if (g_dl_data == 0) {
 		return 0;
 	}
-
-	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
-
-	
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
 
@@ -588,7 +581,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 
 
-int g_dl_proc_tag = 0;
+int g_dl_proc_test_tag = 1;
 
 
 
@@ -620,7 +613,7 @@ DEFINE_TEST_THREAD(15)
 
 #define DEFINE_TEST_PROCESS_SLEEP(N) \
     extern "C" __declspec(dllexport) void TestProcess_sleep_##N() { \
-        while( (g_dl_train_complete == 0 && g_dl_rate == 0.0) || g_dl_proc_tag ){\
+        while( (g_dl_train_complete == 0 && g_dl_rate == 0.0) || g_dl_proc_test_tag ){\
 			__sleep(0);\
 		} \
     }
@@ -629,7 +622,7 @@ DEFINE_TEST_THREAD(15)
 
 #define DEFINE_TEST_PROCESS_WORK(N) \
     extern "C" __declspec(dllexport) void TestProcess_work_##N() { \
-        while( (g_dl_train_complete == 0 && g_dl_rate == 0.0)||g_dl_proc_tag  )\
+        while( (g_dl_train_complete == 0 && g_dl_rate == 0.0)||g_dl_proc_test_tag  )\
 		{\
 			char data[1024]; \
 			__memset(data,0,1024); \
