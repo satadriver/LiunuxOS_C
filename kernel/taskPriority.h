@@ -23,7 +23,7 @@ extern "C" __declspec(dllimport) unsigned long long g_task_other_hit;
 extern "C" __declspec(dllimport) unsigned long long g_task_pre_hit;
 #endif
 
-//#define MODEL_TYPE_RNN				
+#define MODEL_TYPE_RNN				
 //#define MODEL_TYPE_MLP	
 
 #define STATIC_PRIORITY				16
