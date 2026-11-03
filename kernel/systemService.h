@@ -68,8 +68,8 @@ extern "C" __declspec(dllexport) unsigned long long tscps();
 
 extern "C" __declspec(dllexport) int readcrs(char * szout);
 
-extern "C" __declspec(dllexport) void sleep(DWORD* params);
-
+extern "C" __declspec(dllexport) void sleep_delay(DWORD* params);
+extern "C" __declspec(dllexport)void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack);
 extern "C" __declspec(dllexport) DWORD __random(DWORD init);
 
 extern "C" __declspec(dllexport) void __turnoffScreen();
@@ -128,7 +128,8 @@ extern "C" __declspec(dllimport) int readcrs(char * szout);
 
 extern "C" __declspec(dllimport) DWORD ServiceEntry(LIGHT_ENVIRONMENT * stack);
 
-extern "C" __declspec(dllimport) void sleep(DWORD * params);
+extern "C" __declspec(dllimport) void sleep_delay(DWORD * params);
+extern "C" __declspec(dllimport)void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack);
 
 extern "C" __declspec(dllimport) DWORD __random(DWORD init);
 

@@ -773,6 +773,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		current->prev_tick = tick1;
 		prev->prev_tick = tick1;
 
+		g_cpu_prev_tick[id] = tick1;
+
 		if (prev->tid != current->tid) {
 			__printf(szout, "%s %d cpu:%d proc tid:%d, prev tid:%d not same\r\n",__FUNCTION__,__LINE__,id, prev->tid, current->tid);
 			goto __kTaskSchedule_end;
@@ -788,8 +790,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		__int64 tick2 = __krdtsc();
 
 		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1))/2 ;
-
-		g_cpu_prev_tick[id] = tick2;
 
 #ifndef TASK_SWITCH_ARRAY
 		PROCESS_INFO_LIST* first = (PROCESS_INFO_LIST * )root->list.next;
@@ -965,7 +965,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 
 
-extern "C" void __declspec(naked) __TaskSchedule(LIGHT_ENVIRONMENT* stack) {
+extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
 		pushad
@@ -990,12 +990,47 @@ extern "C" void __declspec(naked) __TaskSchedule(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
+		int sleeptime ;
+
+		__asm {
+			mov [sleeptime],edi
+		}
+		int interval = TASK_TIME_SLICE;
+		DWORD times = sleeptime / interval;
+		DWORD mod = sleeptime % interval;
+		if (mod != 0)
+		{
+			times++;
+		}
+
+		if (times == 0) {
+			times = 1;
+		}
+
+		enter_task_array_lock();
+
+		LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		int tid = cur->tid;
+#ifdef TASK_SWITCH_ARRAY
+		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+		LPPROCESS_INFO process = tss + tid;
+#else
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+		LPPROCESS_INFO process = &list->proc;
+#endif
+		process->sleep = times;
+		cur->sleep = times;
+
+		process->sleep_total += times;
+		cur->sleep_total += times;
+
+		leave_task_array_lock();
 		//char szout[256];
 		//__printf(szout,"%s\r\n",__FUNCTION__);
 
 		__kTaskSchedule(stack);
 
-		*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+		//*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
 	}
 
 	__asm {
@@ -1020,19 +1055,15 @@ extern "C" void __declspec(naked) __TaskSchedule(LIGHT_ENVIRONMENT* stack) {
 		//clts
 
 		iretd
-
-		jmp __TaskSchedule
 	}
 }
 
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
-	__kTaskSchedule(stack);
+	int ret = __kTaskSchedule(stack);
 	
 	__asm {
-		mov eax, stack
-		mov esp,eax
-		mov ebp,eax
+		mov esp, stack
 
 		//call GetCurrentTaskTssBase
 		//mov edx, eax
@@ -1054,9 +1085,10 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 		mov esp, ss: [esp - 20]
 #endif
 		//clts
-
+		//sti
 		iretd
 	}
+	return;
 }
 
 void tasktest(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO next, LPPROCESS_INFO prev) {

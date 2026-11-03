@@ -1199,13 +1199,9 @@ int InitLocalApicTimer() {
 
 
 extern "C" void __declspec(dllexport) __kApInitProc() {
-	char* reg_esp = 0;
-	char* reg_ebp = 0;
+	DWORD reg_esp = readesp();
+	DWORD reg_ebp = readebp();
 	int ret = 0;
-	__asm {
-		mov ds:[reg_esp],esp
-		mov ds : [reg_ebp] , ebp
-	}
 
 	char szout[256];
 

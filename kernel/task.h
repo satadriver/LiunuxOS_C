@@ -90,7 +90,7 @@ void __kExitProcess(PROCESS_INFO_LIST* list);
 
 void SetIVTVector();
 
-extern "C" void __TaskSchedule(LIGHT_ENVIRONMENT* stack);
+extern "C" void __kTaskSwitch(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 

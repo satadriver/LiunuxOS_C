@@ -11,6 +11,8 @@
 #include "apicTimer.h"
 #include "cmosPeriodTimer.h"
 
+#define SLEEP_SWITCH_TASK
+
 unsigned long long g_tick_prev = 0;
 unsigned long long g_tick_persec = 0;
 
@@ -82,7 +84,12 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	{
 		case SVC_SLEEP:
 		{
-			sleep(params);
+#ifdef SLEEP_SWITCH_TASK
+			sleep(params, stack);
+#else
+			sleep_delay(params);
+#endif
+			
 			break;
 		}
 		case SVC_YIELD:
@@ -297,9 +304,48 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module
 }
 
 
+void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack) {
+	//__asm {cli}
+
+	int sleeptime = params[0];
+	int interval = TASK_TIME_SLICE;
+	DWORD times = sleeptime / interval;
+	DWORD mod = sleeptime % interval;
+	if (mod != 0)
+	{
+		times++;
+	}
+
+	if (times == 0) {
+		times = 1;
+	}
+
+	enter_task_array_lock();
+
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	int tid = cur->tid;
+#ifdef TASK_SWITCH_ARRAY
+	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
+	LPPROCESS_INFO process = tss + tid;
+#else
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	LPPROCESS_INFO process = &list->proc;
+#endif
+	process->sleep = times;
+	cur->sleep = times;
+
+	process->sleep_total += times;
+	cur->sleep_total += times;
+
+	leave_task_array_lock();
+
+	yield(stack);
+	//__kTaskSwitch(stack);
+}
 
 
-void sleep(DWORD * params) {
+
+void sleep_delay(DWORD * params) {
 	int sleeptime = params[0];
 	int interval = TASK_TIME_SLICE;
 	DWORD times = sleeptime / interval;
