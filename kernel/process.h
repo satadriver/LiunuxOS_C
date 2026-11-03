@@ -50,7 +50,6 @@ typedef struct
 
 typedef struct _PROCESS_INFO
 {
-
 	TSS tss;
 
 	LPTASKCMDPARAMS param;
@@ -80,7 +79,8 @@ typedef struct _PROCESS_INFO
 	//内存分配的虚拟地址偏移
 	DWORD * lpvasize;
 
-	int alloc_times;
+	DWORD alloc_times;
+	DWORD free_times;
 
 	DWORD errorno;
 

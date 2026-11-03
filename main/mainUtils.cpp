@@ -297,8 +297,12 @@ int GetMemory(char * szout,int pid) {
 		allocated += info->size;
 
 		info = (LPMEMALLOCINFO)info->list.next;
-
-		int id = info->vid >> 16;
+#ifdef TASK_SWITCH_ARRAY
+		//int id = (info->vid >> 16)&0xff;
+#else
+		//int id = (info->vid >> 24) && 0xff;
+#endif
+		int id = info->cpu;
 		cpuMem[id] += info->size;
 
 		if (pid != -1 && (info->vid & 0xffff) == pid) {
@@ -307,19 +311,20 @@ int GetMemory(char * szout,int pid) {
 			
 	} while (info != base);
 	
-	len += __sprintf(szout+len, "total size:%i64x,allocated size:%i64x, available size:%i64x\r\n",
+	len += __sprintf(szout+len, "total:%i64x,allocated:%i64x, available:%i64x\r\n",
 		gAvailableSize, allocated, gAvailableSize - allocated);
 
 	int* ids = (int*)g_cpu_id;
 	int cpuCnt = g_cpu_total;
-
 	for (int i = 0; i < cpuCnt; i++) {
 		int id = ids[i];
-		len += __sprintf(szout + len, "cpu:%d used size:%i64x\r\n",id, cpuMem[id]);
+		len += __sprintf(szout + len, "cpu:%d allocated:%i64x %lf%%\r\n",
+			id, cpuMem[id],( (double)cpuMem[id])/ (double)allocated);
 	}
 
 	if (pid != -1) {
-		len += __sprintf(szout + len, "pid:%d used size:%i64x\r\n", pid, procMem);
+		len += __sprintf(szout + len, "pid:%d allocated:%i64x %lf%%\r\n", 
+			pid, procMem, ((double)procMem) / (double)allocated);
 	}
 
 	return len;

@@ -24,6 +24,7 @@ typedef struct
 	DWORD size;
 	DWORD vid;
 	DWORD vaddr;
+	int cpu;
 }MEMALLOCINFO,*LPMEMALLOCINFO;
 
 typedef struct
@@ -52,7 +53,7 @@ typedef struct
 
 QWORD getBorderAddr();
 
-int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size,DWORD vid);
+int SetMemAllocItem(LPMEMALLOCINFO item, DWORD addr, DWORD vaddr, int size,DWORD vid,int cpu);
 
 void ClearMemAllocMap();
 

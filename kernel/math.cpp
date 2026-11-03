@@ -103,22 +103,22 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 {
 	if (x == 0.0)
 	{
-		printf("%s %d value:%lf is 0!\r\n", __FUNCTION__, __LINE__, x);
+		//printf("%s %d value:%lf is 0!\r\n", __FUNCTION__, __LINE__, x);
 		return 0.0;
 	}
-	else if (x < 0) {
-		printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
-		// 对微小负数做容错
+	else if (x < 0) {		
 		if (x >= -DBL_EPSILON) {  // 阈值根据实际精度调整
 			x = 0.0;
 			return x;
 		}
-		else {
+		if (x < -0.01) {
+			printf("%s %d value:%lf below 0!\r\n", __FUNCTION__, __LINE__, x);
 			// 明显负数，返回 NaN 表示错误
-			return -x;  // 需要包含 <math.h>
+			return -x;
+		}	
+		else {
+			return 0;
 		}
-
-		return x;
 	}
 
 	double x0, x1;

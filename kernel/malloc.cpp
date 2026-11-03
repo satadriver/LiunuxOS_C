@@ -242,7 +242,7 @@ LPMEMALLOCINFO GetEmptyMemAllocItem() {
 }
 
 
-int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,DWORD vid) {
+int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,DWORD vid,int cpu) {
 	if (vaddr)
 	{
 		item->vaddr = vaddr;
@@ -253,7 +253,7 @@ int SetMemAllocItem(LPMEMALLOCINFO item,DWORD addr,DWORD vaddr,int size,DWORD vi
 	item->vid = vid;
 	item->size = size;
 	item->addr = addr;
-
+	item->cpu = cpu;
 	InsertListTail(& (gMemAllocList->list), & item->list);
 	return 0;
 }
@@ -315,7 +315,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 				info = GetEmptyMemAllocItem();
 				if (info)
 				{
-					SetMemAllocItem(info, addr, vaddr, size, current->vid);
+					SetMemAllocItem(info, addr, vaddr, size, current->vid,cpu);
 					res = addr;
 					break;
 				}
@@ -541,8 +541,8 @@ int __free(DWORD linearAddr) {
 	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
-	cur->alloc_times --;
-	proc->alloc_times--;
+	cur->free_times --;
+	proc->free_times--;
 
 	if (linearAddr >= (DWORD)cur->fast_heap && linearAddr < (DWORD)cur->fast_heap + cur->heapsize) {
 		return fast_heap_free((char*)linearAddr);

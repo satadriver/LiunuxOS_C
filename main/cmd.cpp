@@ -320,11 +320,12 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	}
 	else if (__strcmp(params[0], "tpcost") == 0)
 	{	
-		double prerate = (double)g_task_pre_cache_hit / (double)g_task_pre_total;
-		double dlrate = (double)g_task_pre_hit / (double)g_task_pre_total;
-		double otherrate = (double)g_task_other_hit / (double)g_task_pre_total;
+		double cacheRate = (double)g_task_pre_cache_hit / (double)(g_task_pre_total - g_task_train_hit);
+		double dlrate = (double)g_task_pre_hit / (double)(g_task_pre_total - g_task_train_hit);
+		double otherRate = (double)g_task_other_hit / (double)(g_task_pre_total - g_task_train_hit);
 		__sprintf(szout, "Total:%I64x,PRE Cache:%i64x,DL:%i64x,OTHER:%i64x. Reason cost:%i64x. PRE rate:%lf,DL rate:%lf,OTHER rate:%lf,error:%i64x,correct1:%i64x,correct2:%i64x,correct3:%i64x\r\n", 
-			g_task_pre_total, g_task_pre_cache_hit, g_task_pre_hit, g_task_other_hit, g_task_reason_cost, prerate, dlrate,otherrate,
+			g_task_pre_total, g_task_pre_cache_hit, g_task_pre_hit, g_task_other_hit, 
+			g_task_reason_cost, cacheRate, dlrate, otherRate,
 			g_tp_error_cnt,g_tp_corrects[0], g_tp_corrects[1], g_tp_corrects[2]);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}

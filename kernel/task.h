@@ -110,8 +110,6 @@ extern "C"  __declspec(dllexport) int __terminateTid(int tid);
 
 extern "C"  __declspec(dllexport) int __terminatePid(int pid);
 
-
-
 extern "C"  __declspec(dllexport) void enter_task_array_lock();
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
 extern "C"  __declspec(dllexport) PROCESS_INFO_LIST* GetTaskListTid(int tid);
