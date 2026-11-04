@@ -581,7 +581,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 
 
-int g_dl_proc_test_tag = 1;
+int g_dl_proc_test_tag = 0;
 
 
 

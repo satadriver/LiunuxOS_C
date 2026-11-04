@@ -1452,7 +1452,7 @@ void BPCodeStart() {
 	//	__asm{hlt}
 	//	__sleep(0);
 	//} while (g_ap_response < g_cpu_total - 1);
-	unsigned long sleeptm[2] = { 100,0 };
+	unsigned long sleeptm[2] = { 1000,0 };
 	sleep_delay(sleeptm);
 
 	g_cpu_start_tick[cpu] = __krdtsc();

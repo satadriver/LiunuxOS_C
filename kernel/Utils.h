@@ -123,6 +123,7 @@ extern "C" __declspec(dllexport) int __shutdownSystem();
 extern "C" __declspec(dllexport) void __reboot();
 
 extern "C" __declspec(dllexport) int __sleep(int millisecs);
+extern "C" __declspec(dllexport)int __sleep_delay(int millisecs);
 
 extern "C" __declspec(dllexport) int __yield();
 
@@ -228,6 +229,7 @@ extern "C" __declspec(dllimport) int __strlwr(char * str);
 extern "C" __declspec(dllimport) int __shutdownSystem();
 extern "C" __declspec(dllimport) void __reboot();
 
+extern "C" __declspec(dllimport)int __sleep_delay(int millisecs);
 extern "C" __declspec(dllimport) int __sleep(int millisecs);
 
 extern "C" __declspec(dllimport) int __yield();

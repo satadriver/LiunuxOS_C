@@ -30,9 +30,9 @@ extern "C" __declspec(dllimport) unsigned long long g_task_train_hit;
 
 #define STATIC_PRIORITY				16
 
-#define DYNAMIC_PRIORITY			(2*STATIC_PRIORITY+1)
+#define DYNAMIC_PRIORITY			(STATIC_PRIORITY)
 
-#define AUTHORITY_PRIORITY			(2*STATIC_PRIORITY+1)
+#define AUTHORITY_PRIORITY			(STATIC_PRIORITY)
 
 #define WINDOW_PRIORITY				(STATIC_PRIORITY)
 

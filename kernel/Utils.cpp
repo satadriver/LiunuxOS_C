@@ -1612,6 +1612,16 @@ int __sleep(int millisecs) {
 	}
 }
 
+int __sleep_delay(int millisecs) {
+	__asm {
+		push edi
+			mov eax, SVC_SLEEP_DELAY
+			lea edi, millisecs
+			int 80h
+			pop edi
+	}
+}
+
 
 int __sleep_new(int millisecs) {
 	__asm {

@@ -11,7 +11,7 @@
 #include "apicTimer.h"
 #include "cmosPeriodTimer.h"
 
-#define SLEEP_SWITCH_TASK
+
 
 unsigned long long g_tick_prev = 0;
 unsigned long long g_tick_persec = 0;
@@ -84,12 +84,11 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 	{
 		case SVC_SLEEP:
 		{
-#ifdef SLEEP_SWITCH_TASK
 			sleep(params, stack);
-#else
+			break;
+		}
+		case SVC_SLEEP_DELAY: {
 			sleep_delay(params);
-#endif
-			
 			break;
 		}
 		case SVC_YIELD:
