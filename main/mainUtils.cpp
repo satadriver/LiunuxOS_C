@@ -311,19 +311,20 @@ int GetMemory(char * szout,int pid) {
 			
 	} while (info != base);
 	
-	len += __sprintf(szout+len, "total:%i64x,allocated:%i64x, available:%i64x\r\n",
-		gAvailableSize, allocated, gAvailableSize - allocated);
+	len += __sprintf(szout+len, "total:%i64x,allocated:%i64x, usage:%lf%%, available:%i64x,ratio:%lf%%\r\n",
+		gAvailableSize, allocated, (double)allocated/(double)gAvailableSize,
+		gAvailableSize - allocated, (double)(gAvailableSize - allocated)/ (double)gAvailableSize);
 
 	int* ids = (int*)g_cpu_id;
 	int cpuCnt = g_cpu_total;
 	for (int i = 0; i < cpuCnt; i++) {
 		int id = ids[i];
-		len += __sprintf(szout + len, "cpu:%d allocated:%i64x %lf%%\r\n",
+		len += __sprintf(szout + len, "cpu:%d allocated:%i64x, usage:%lf%%\r\n",
 			id, cpuMem[id],( (double)cpuMem[id])/ (double)allocated);
 	}
 
 	if (pid != -1) {
-		len += __sprintf(szout + len, "pid:%d allocated:%i64x %lf%%\r\n", 
+		len += __sprintf(szout + len, "pid:%d allocated:%i64x, usage:%lf%%\r\n", 
 			pid, procMem, ((double)procMem) / (double)allocated);
 	}
 

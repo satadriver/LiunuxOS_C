@@ -22,6 +22,7 @@
 #include "apicTimer.h"
 #include "taskPriority.h"
 
+#define TASK_SAMPLE_FRACTOR		0X10
 
 int g_tp_cache_enable = 0;
 
@@ -123,10 +124,6 @@ PROCESS_INFO* PrioritySchedule() {
 	PROCESS_INFO* tss = GetTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + cur->tid);
 	LPPROCESS_INFO ptr = prev;
-	delay_max = ticknow - ptr->prev_tick;
-	ptr_delay_max = ptr;
-	delta_max = ptr->delta;
-	authority_max = ptr->authority;
 	do {
 		if (ptr->status == TASK_TERMINATE) {
 			ptr->status = TASK_OVER;
@@ -201,10 +198,6 @@ PROCESS_INFO* PrioritySchedule() {
 	PROCESS_INFO_LIST* prevlist = GetRemoteTaskListTid(cpu,cur->tid);
 	LPPROCESS_INFO prev = &prevlist->proc;
 	PROCESS_INFO_LIST* list = prevlist;
-	delay_max = ticknow - list->proc.prev_tick;
-	delta_max = prev->delta;
-	ptr_delay_max = prev;
-	authority_max = prev->authority;
 	do {
 		if (list == 0)
 			break;
@@ -455,13 +448,16 @@ PROCESS_INFO* PrioritySchedule() {
 			}
 		}
 
-		if (g_dl_train_complete == 0) {
+		if (g_dl_train_complete == 0  ) { 
+
+			if ((count > ML_TASK_LIMIT / g_cpu_total) && (g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)) {
 #ifdef MODEL_TYPE_RNN
-			CollectRNNSample(g_tpp_buf[cpu],count);
+				CollectRNNSample(g_tpp_buf[cpu], count);
 #else
-			CollectDlSample(g_tpp_buf[cpu],count);
+				CollectDlSample(g_tpp_buf[cpu], count);
 #endif
-			g_task_train_hit++;
+				g_task_train_hit++;
+			}
 		}
 		else {
 			int seq = TaskSchedulePredict(g_tpp_buf[cpu]);
@@ -611,10 +607,6 @@ int PredictionTask() {
 			PROCESS_INFO* tss = GetTaskTssBase();
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 			LPPROCESS_INFO ptr = proc;
-			delay_max = ticknow - ptr->prev_tick;
-			ptr_delay_max = ptr;
-			delta_max = ptr->delta;
-			authority_max = ptr->authority;
 			do {
 				if (cpu == ptr->cpuid) {
 					if (ptr->status == TASK_TERMINATE) {
@@ -681,10 +673,6 @@ int PredictionTask() {
 			PROCESS_INFO_LIST* root = (PROCESS_INFO_LIST*)GetTaskListId(cpu);
 			PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)root->list.next;
 			PROCESS_INFO_LIST* list = hdr;
-			delay_max = ticknow - list->proc.prev_tick;
-			ptr_delay_max = &list->proc;
-			delta_max = list->proc.delta;
-			authority_max = list->proc.authority;
 			do {
 				if (list == 0)
 					break;

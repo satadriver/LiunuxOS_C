@@ -117,7 +117,7 @@ extern "C"  __declspec(dllexport) double __sqrt(double x)
 			return -x;
 		}	
 		else {
-			return 0;
+			return -x;
 		}
 	}
 

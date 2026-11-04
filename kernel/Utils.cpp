@@ -1602,7 +1602,7 @@ int __GetCurrentPid() {
 	return proc->pid;
 }
 
-int __sleep_old(int millisecs) {
+int __sleep(int millisecs) {
 	__asm {
 		push edi
 		mov eax, SVC_SLEEP
@@ -1613,13 +1613,12 @@ int __sleep_old(int millisecs) {
 }
 
 
-int __sleep(int millisecs) {
+int __sleep_new(int millisecs) {
 	__asm {
-
-			mov edi, millisecs
-			int TASK_SCHEDULE_VECTOR
-
+		lea edi, millisecs
+		int TASK_SCHEDULE_VECTOR
 	}
+	return 0;
 }
 
 

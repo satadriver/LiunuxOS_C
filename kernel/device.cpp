@@ -614,6 +614,9 @@ int Read8254Counter(int num) {
 unsigned long GetApicTimerFreq(unsigned long long* tick) {
 	
 	//__asm{cli}
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
+
+	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	int v0 = Read8254Counter(0);
 	int v1 = v0;
@@ -621,9 +624,6 @@ unsigned long GetApicTimerFreq(unsigned long long* tick) {
 		v0 = Read8254Counter(0);
 		__delay();
 	}
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0;
-
-	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long tick1 = __krdtsc();
 	unsigned long cnt1 = *(DWORD*)(LOCAL_APIC_BASE + 0x390);

@@ -975,8 +975,8 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 		push gs
 		push ss
 
-		push esp
-		sub esp, 4
+		push esp		//parameter stack
+		sub esp, 4		//call address fake
 		push ebp
 		mov ebp, esp
 		sub esp, NATIVE_STACK_LIMIT
@@ -993,7 +993,8 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 		int sleeptime ;
 
 		__asm {
-			mov [sleeptime],edi
+			mov eax,[edi]
+			mov [sleeptime],eax
 		}
 		int interval = TASK_TIME_SLICE;
 		DWORD times = sleeptime / interval;

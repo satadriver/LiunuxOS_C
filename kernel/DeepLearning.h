@@ -5,7 +5,7 @@
 
 #define		TASK_DISPATCH_SAMPLE		(4096)
 
-#define		ML_TASK_LIMIT				32
+#define		ML_TASK_LIMIT				128
 
 #define		TASK_DISPATCH_ERROR_RATE	(20.0)
 

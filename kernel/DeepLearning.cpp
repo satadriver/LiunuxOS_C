@@ -127,7 +127,7 @@ int CollectDlSample(TaskPredictParam * tp,int count)
 	seq = tp->result;
 
 	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
-	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf,delay:%lf    ", 
+	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf,delay:%lf                ", 
 		tp->task[seq].alloc, tp->task[seq].mem, tp->task[seq].authority, tp->task[seq].delta,tp->task[seq].priority,
 		tp->task[seq].cpurate, tp->task[seq].tickrate,tp->task[seq].sleep, tp->task[seq].user, tp->task[seq].window,
 		tp->task[seq].delay);
@@ -248,7 +248,7 @@ int CollectRNNSample(TaskPredictParam* tp,int count)
 	seq = tp->result;
 
 	pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 3) * gVideoWidth * gBytesPerPixel;
-	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf,delay:%lf    ",
+	__sprintf(szout, (char*)"alloc:%lf,mem:%lf,auth:%lf,delta:%lf,priority:%lf,cpu:%lf,rate:%lf,sleep:%lf,user:%lf,window:%lf,delay:%lf                ",
 		tp->task[seq].alloc, tp->task[seq].mem, tp->task[seq].authority, tp->task[seq].delta, tp->task[seq].priority,
 		tp->task[seq].cpurate, tp->task[seq].tickrate, tp->task[seq].sleep, tp->task[seq].user, tp->task[seq].window, 
 		tp->task[seq].delay);
