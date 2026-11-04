@@ -487,6 +487,28 @@ int IpiTaskSchedule(int id) {
 }
 
 
+
+int IpiResponse(int id)
+{
+	int ret = 0;
+	char szout[256];
+
+	__enterSpinlock(&g_ipi_lock[id]);
+
+	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[id];
+	for (int i = 0; i < IPI_MSG_LIMIT; i++) {
+		if (msg[i].valid == 0) {
+			msg[i].cmd = IPI_RESPONSE;
+			msg[i].valid = 1;
+			msg[i].id = id;
+			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
+			break;
+		}
+	}
+	__leaveSpinlock(&g_ipi_lock[id]);
+	return 0;
+}
+
 int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 {
 	int ret = 0;
@@ -503,7 +525,6 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 	IPI_MSG_PARAM* msg = (IPI_MSG_PARAM*)g_ipi_buf[id];
 	for (int i = 0; i < IPI_MSG_LIMIT; i++) {
 		if (msg[i].valid == 0) {
-
 			msg[i].cmd = IPI_CREATETHREAD;
 			msg[i].valid = 1;
 			msg[i].id = id;
@@ -522,8 +543,7 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
-#ifdef _DEBUG
-			
+#ifdef _DEBUG		
 			__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
 #endif
 			return TRUE;
@@ -590,12 +610,11 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
-#ifdef _DEBUG
-			
+#ifdef _DEBUG	
 			__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", 
-				__FUNCTION__, id, subparam->base, subparam->size, subparam->base, &subparam->base, subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
+				__FUNCTION__, id, subparam->base, subparam->size, subparam->base, &subparam->base, 
+				subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
 #endif
-
 			return TRUE;
 		}
 	}
@@ -606,9 +625,10 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 }
 
 
+int g_ap_response = 0;
+
 extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 	__asm {
-		//cli
 		pushad
 		push ds
 		push es
@@ -653,31 +673,24 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 					char* funcname = subparam->funcname;
 					int level = subparam->level;
 					char* p = (char*)subparam->lpparam;
-
-					//__printf(szout, "%s module:%x addr:%p function:%s addr:%p\r\n", __FUNCTION__, module,&subparam->module, funcname,&subparam->funcname);
-
 					if (__findProcessFileName(subparam->funcname) == 0)
 					{
 						__kCreateRemoteProcess(cpu, base, size, fn, (funcname), level, (unsigned long)p);
 					}
-					
-					//__kCreateProcess(base, size, fn, funcname, level, (unsigned long)p);
 				}
 				else if (cmd == IPI_CREATETHREAD) {
-
 					IPI_CREATETHREAD_PARAM* subparam = (IPI_CREATETHREAD_PARAM*)msg[i].param;
 					DWORD module = (DWORD)subparam->module;
 					DWORD addr = subparam->addr;
 					char* funcname = subparam->funcname;
 					char* p = (char*)subparam->lpparam;
-
-					//__printf(szout, "%s module:%x function:%s\r\n", __FUNCTION__, module, funcname);
-
 					if (__findProcessFileName(funcname) == 0)
 					{
 						__kCreateThread((DWORD)addr, (DWORD)module, (unsigned long)p, funcname);
 					}
-					
+				}
+				else if (cmd == IPI_RESPONSE) {
+					g_ap_response++;
 				}
 				else {
 
@@ -1161,7 +1174,7 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 3;
+	int times = 1;
 	unsigned  long long ticks = 0;
 	unsigned  long long tick;
 	for (int i = 0; i < times; i++) {
@@ -1298,6 +1311,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
+	//IpiResponse(g_cpu_id[0]);
+
 	__asm {sti}
 
 	DWORD reg_esp_new = readesp();
@@ -1408,15 +1423,6 @@ void BPCodeStart() {
 #endif
 	__sleep(0);
 
-	/*
-	int* ids = (int*)g_cpu_id;
-	int cnt = g_cpu_total;
-	for (int i = 0; i < cnt; i++) {
-		SetIcr(ids[i], APIC_IPI_VECTOR, 0,0);
-		__printf(szout, "%s index:%x,id:%x result:%x\r\n", __FUNCTION__, i, ids[i], v);
-	}
-	*/
-
 	InitLocalApicErr();
 
 	InitLocalApicCmci();
@@ -1441,6 +1447,13 @@ void BPCodeStart() {
 	g_apic_int_tag = 1;
 	__asm {sti}
 #endif
+	
+	//do {
+	//	__asm{hlt}
+	//	__sleep(0);
+	//} while (g_ap_response < g_cpu_total - 1);
+	unsigned long sleeptm[2] = { 100,0 };
+	sleep_delay(sleeptm);
 
 	g_cpu_start_tick[cpu] = __krdtsc();
 	g_cpu_prev_tick[cpu] = g_cpu_start_tick[cpu];

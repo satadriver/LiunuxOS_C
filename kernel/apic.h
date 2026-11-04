@@ -127,6 +127,8 @@ extern "C" void __declspec(dllexport) LVTCMCIHandler(LIGHT_ENVIRONMENT* stack);
 
 int IpiTaskSchedule(int id);
 
+int IpiResponse(int id);
+
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) int g_cpu_total;
 extern "C" __declspec(dllexport) int g_cpu_id[256];

@@ -455,9 +455,9 @@ PROCESS_INFO* PrioritySchedule() {
 				CollectRNNSample(g_tpp_buf[cpu], count);
 #else
 				CollectDlSample(g_tpp_buf[cpu], count);
-#endif
-				g_task_train_hit++;
+#endif			
 			}
+			g_task_train_hit++;
 		}
 		else {
 			int seq = TaskSchedulePredict(g_tpp_buf[cpu]);
