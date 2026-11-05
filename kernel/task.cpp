@@ -545,7 +545,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 #ifdef TASK_SWITCH_PRIORITY
 	next = PrioritySchedule();
 	if(next == prev || next == 0) {
-		return next;
+		return 0;
 	}
 #else
 	do {
@@ -729,6 +729,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 
 	char szout[256];
 
+	int result = 0;
+
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
 #ifndef SINGLE_TASK_TSS
@@ -787,6 +789,9 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 #else
 		LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
+		if (next)
+			result = 1;
+
 		__int64 tick2 = __krdtsc();
 
 		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1))/2 ;
@@ -814,8 +819,11 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 	__kTaskSchedule_end:
 		ret = __leaveSpinlock(&g_task_array_lock[id]);
 	}
+	else {
+		result = 1;
+	}
 
-	return TRUE;
+	return result;
 }
 
 
@@ -1062,6 +1070,16 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
 	int ret = __kTaskSchedule(stack);
+	if (ret == 0)
+	{
+		//__asm{hlt}
+		
+		unsigned long long t = __krdtsc();
+		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+		current->prev_tick = t;
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		g_cpu_prev_tick[id] = t;
+	}
 	
 	__asm {
 		mov esp, stack

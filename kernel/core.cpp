@@ -525,7 +525,7 @@ char* InitIDT() {
 	makeIntGateDescriptor((DWORD)IDEMasterIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 6);
 	makeIntGateDescriptor((DWORD)IDESlaveIntProc, KERNEL_MODE_CODE, 3, descriptor + INTR_8259_SLAVE + 7);
 
-	makeIntGateDescriptor((DWORD)ServiceEntry, KERNEL_MODE_CODE, 3, descriptor + 0x80);
+	makeTrapGateDescriptor((DWORD)ServiceEntry, KERNEL_MODE_CODE, 3, descriptor + 0x80);
 	
 	makeIntGateDescriptor((DWORD)HpetTimerHandler, KERNEL_MODE_CODE, 3, descriptor + APIC_HPETTIMER_VECTOR);
 

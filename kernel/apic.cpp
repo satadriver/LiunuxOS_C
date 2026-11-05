@@ -1452,8 +1452,11 @@ void BPCodeStart() {
 	//	__asm{hlt}
 	//	__sleep(0);
 	//} while (g_ap_response < g_cpu_total - 1);
-	unsigned long sleeptm[2] = { 1000,0 };
-	sleep_delay(sleeptm);
+
+	extern int g_cpu_total_apci;
+	while (g_cpu_total_apci != g_cpu_total) {
+		__sleep_delay(0);
+	}
 
 	g_cpu_start_tick[cpu] = __krdtsc();
 	g_cpu_prev_tick[cpu] = g_cpu_start_tick[cpu];
@@ -1618,11 +1621,11 @@ int GetIdleProcessor() {
 		} while (ptr && ptr != hdr);
 #endif
 		dcnt[num] = cnt;
-		rate[num].fv = ( rate[num].fv * 0.8 + tasks * 0.1) ;
+		rate[num].fv = ( rate[num].fv * 0.8 + tasks * 0.2) ;
 	}
 
 	for (int num = 0; num < cpu_cnt; num++) {
-		rate[num].fv = rate[num].fv + 0.1* (total_counter/dcnt[num] );
+		rate[num].fv = rate[num].fv + 0.0* (total_counter/dcnt[num] );
 	}
 	BubbleSortd(rate, cpu_cnt);
 	

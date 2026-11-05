@@ -9,8 +9,7 @@
 
 //http://rweverything.com/
 
-//RSDT:Root System Description Table
-//FADT:Fixed ACPI Description Table
+
 
 /*
 • Root System Description Table(RSDT)
@@ -35,6 +34,8 @@
 • NVDIMM Firmware Interface Table(NFIT)
 */
 
+
+
 #pragma pack(1)
 
 /* ---------- ACPI 表头结构 ---------- */
@@ -49,6 +50,39 @@ typedef struct {
 	uint32_t creator_id;
 	uint32_t creator_revision;
 } acpi_sdt_header_t;
+
+typedef struct {
+	u32 signature;
+	u32 length;
+	u8 version;
+	u8 checksum;
+	u8 oem[6];
+	u8 oemTableID[8];
+	u32 oemVersion;
+	u32 creatorID;
+	u32 creatorVersion;
+	//u32 data[0];
+} ACPIHeader;
+
+typedef struct {
+	ACPIHeader header;
+	u32 localApicAddress;
+	u32 flags;
+	//u8 data[0];
+}  ACPIHeaderApic;
+
+typedef struct {
+	char Signature[8];
+	uint8_t Checksum;
+	char OEMID[6];
+	uint8_t Revision;
+	uint32_t RsdtAddress;      // deprecated since version 2.0
+
+	uint32_t Length;
+	uint64_t XsdtAddress;
+	uint8_t ExtendedChecksum;
+	uint8_t reserved[3];
+} XSDP_HEADER;
 
 /* ---------- RSDP 结构（兼容 ACPI 1.0 与 2.0+） ---------- */
 typedef struct {
@@ -70,6 +104,24 @@ typedef struct {
 	uint8_t length;
 } madt_subtable_header_t;
 
+typedef struct {
+	madt_subtable_header_t header;
+	u8 apicProcessorID;
+	u8 apicID;
+	u32 flags;
+}  LocalApic;
+
+
+typedef struct {
+	madt_subtable_header_t header;
+	u8 ioApicID;
+	u8 reserved;
+	u32 ioApicAddress;
+	u32 globalSystemInterruptBase;
+	u32 apciid;
+}  IOApic;
+
+
 /* ---------- Processor Local APIC 条目（Type 0） ---------- */
 typedef struct {
 	madt_subtable_header_t header;  /* type = 0, length = 8 */
@@ -77,43 +129,6 @@ typedef struct {
 	uint8_t  apic_id;
 	uint32_t flags;                 /* bit 0: Enabled */
 }madt_local_apic_t;
-
-
-//Root System Description Pointer
-typedef struct {
-	char signature[8];
-	unsigned char checksum;
-	char oemid[6];
-	unsigned char revision;
-	DWORD rsdt;
-
-}RSDP_HEADER;
-
-typedef struct {
-	char Signature[8];
-	uint8_t Checksum;
-	char OEMID[6];
-	uint8_t Revision;
-	uint32_t RsdtAddress;      // deprecated since version 2.0
-
-	uint32_t Length;
-	uint64_t XsdtAddress;
-	uint8_t ExtendedChecksum;
-	uint8_t reserved[3];
-} XSDP_HEADER;
-
-typedef struct  {
-	u32 signature;
-	u32 length;
-	u8 version;
-	u8 checksum;
-	u8 oem[6];
-	u8 oemTableID[8];
-	u32 oemVersion;
-	u32 creatorID;
-	u32 creatorVersion;
-	//u32 data[0];
-} ACPIHeader;
 
 
 typedef struct {
@@ -126,12 +141,7 @@ typedef struct {
 	UINT64                      Entry;
 } XSDT_TABLE;
 
-typedef struct  {
-	ACPIHeader header;
-	u32 localApicAddress;
-	u32 flags;
-	//u8 data[0];
-}  ACPIHeaderApic;
+
 
 typedef struct  {
 	u8 addressSpaceID;
@@ -140,6 +150,7 @@ typedef struct  {
 	u8 reserved;
 	u64 address;
 }  ACPIAddressFormat;
+
 
 typedef struct  {
 	ACPIHeader header;
@@ -165,31 +176,13 @@ typedef struct  {
 	u8 resetValue;   /*Indicates the value to write to */
 					 /*the RESET_REG port to reset the system.*/
 	u8 unused4[268 - 129];
-
 } ACPIFadt;
 
 
-typedef struct {
-	u8 type;
-	u8 length;
-}  ApicHeader;
 
 
-typedef struct  {
-	ApicHeader header;
-	u8 apicProcessorID;
-	u8 apicID;
-	u32 flags;
-}  LocalApic;
 
 
-typedef struct  {
-	ApicHeader header;
-	u8 ioApicID;
-	u8 reserved;
-	u32 ioApicAddress;
-	u32 globalSystemInterruptBase;
-}  IOApic;
 
 
 #pragma pack()
@@ -205,7 +198,7 @@ typedef struct  {
 
 
 
-
+extern int g_cpu_total_apci;
 
 extern "C"  __declspec(dllexport) int doReboot(void);
 

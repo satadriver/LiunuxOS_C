@@ -269,9 +269,9 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 		g_dl_train_complete = 1;
 	}
 
-	while (1)
-		__sleep(0);
-
+	while (1) {
+		__sleep_delay(1000);
+	}
 	return 0;
 }
 
