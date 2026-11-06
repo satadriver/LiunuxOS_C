@@ -32,12 +32,12 @@ char * gRcbaBase = 0;
 
 DWORD* gHpetBase = 0;
 
-int g_allocate_ap_lock = 0;
+int g_ap_lock = 0;
 
 int g_ipi_lock[256] = { 0 };
 char* g_ipi_buf[256] = { 0 };
 
-int g_apic_int_tag = 0;
+int g_apic_interrupt_eoi = 0;
 
 unsigned long long g_td_tickcost = 0;
 
@@ -543,9 +543,9 @@ int IpiCreateThread(char* addr,  char* module, unsigned long p, char* funname)
 
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
-#ifdef _DEBUG		
-			__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
-#endif
+	
+			//__printf(szout, "%s cpu:%d module:%x function:%s\r\n", __FUNCTION__, id, subparam->module, subparam->funcname);
+
 			return TRUE;
 		}
 	}
@@ -610,7 +610,7 @@ int IpiCreateProcess(DWORD base, int size, char* fn, char* func, int level, unsi
 			__leaveSpinlock(&g_ipi_lock[id]);
 			SetIcr(id, APIC_IPI_VECTOR, 0, 0);
 
-#ifdef _DEBUG	
+#if 0
 			__printf(szout, "%s cpu:%d base:%x size:%x module:%s addr:%p function:%s addr:%p level:%d param:%x\r\n", 
 				__FUNCTION__, id, subparam->base, subparam->size, subparam->base, &subparam->base, 
 				subparam->funcname, &subparam->funcname, subparam->level, subparam->params);
@@ -663,7 +663,7 @@ extern "C" void __declspec(naked) IPIIntHandler(LIGHT_ENVIRONMENT * stack) {
 
 				msg[i].valid = 0;
 
-				//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",id, __FUNCTION__,__LINE__,cmd);
+				//__printf(szout,"cpu:%d %s %d cmd:%d\r\n",cpu, __FUNCTION__,__LINE__,cmd);
 
 				if (cmd == IPI_CREATEPROCESS) {
 					IPI_CREATEPROCESS_PARAM* subparam = (IPI_CREATEPROCESS_PARAM*)msg[i].param;
@@ -749,7 +749,6 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		//char szout[256];
-		//__printf(szout, "LVTTimerIntHandlers esp local value:%x\r\n", szout);
 
 		unsigned long long tick1 = __krdtsc();
 
@@ -1274,9 +1273,9 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
-	__enterSpinlock(&g_allocate_ap_lock);
+	__enterSpinlock(&g_ap_lock);
 	ret = InitLocalApicTimer();
-	__leaveSpinlock(&g_allocate_ap_lock);
+	__leaveSpinlock(&g_ap_lock);
 
 	InitLocalApicErr();
 
@@ -1297,14 +1296,14 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
 	//__enterLock(&g_allocate_ap_lock);
-	__enterSpinlock(&g_allocate_ap_lock);
+	__enterSpinlock(&g_ap_lock);
 
 	int seq = g_cpu_total;
 	int* apids = (int*)g_cpu_id;
 	apids[seq] = cpuid;
 	g_cpu_total = seq + 1;
 
-	__leaveSpinlock(&g_allocate_ap_lock);
+	__leaveSpinlock(&g_ap_lock);
 	//__leaveLock(&g_allocate_ap_lock);
 
 	initApicTimer();
@@ -1448,11 +1447,6 @@ void BPCodeStart() {
 	__asm {sti}
 #endif
 	
-	//do {
-	//	__asm{hlt}
-	//	__sleep(0);
-	//} while (g_ap_response < g_cpu_total - 1);
-
 	extern int g_cpu_total_apci;
 	while (g_cpu_total_apci != g_cpu_total) {
 		__sleep_delay(0);
@@ -1639,7 +1633,7 @@ int GetIdleProcessor() {
 
 
 void EOICommand(int pin) {
-	if (g_apic_int_tag) {
+	if (g_apic_interrupt_eoi) {
 		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 		*(DWORD*)(IO_APIC_BASE + 0x40) = 0;
 	}

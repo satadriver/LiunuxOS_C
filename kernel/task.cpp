@@ -1069,10 +1069,15 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
+	__asm{cli}
+
 	int ret = __kTaskSchedule(stack);
+
+	__asm{sti}
+
 	if (ret == 0)
 	{
-		//__asm{hlt}
+		__asm{hlt}
 		
 		unsigned long long t = __krdtsc();
 		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();

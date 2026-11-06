@@ -42,15 +42,13 @@ extern "C"  __declspec(dllimport) int __getDateTimeStr(void* str);
 
 void initTimer();
 
-void EnableCmos();
+void EnableNMICmos();
 
-void DisableCmos();
+void DisableNMICmos();
 
 unsigned char readCmosPort(unsigned char port);
 
 void writeCmosPort(unsigned char port, unsigned char value);
-
-
 
 unsigned short bcd2asc(char bcd);
 

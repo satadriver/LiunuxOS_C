@@ -21,20 +21,19 @@ char g_cmos_datetime_str[64];
 
 unsigned long g_sleep_timer_cnt;
 
-void EnableCmos() {
+void EnableNMICmos() {
 	__enterSpinlock(&g_cmos_spinlock);
-	outportb(0x70, 0x0b | 0x80);
-	int v = inportb(0x71) & 0x7f;
-	outportb(0x71, v);
+
+	outportb(0x70,  0x80);
+
 	__leaveSpinlock(&g_cmos_spinlock);
 }
 
-void DisableCmos() {
+void DisableNMICmos() {
 	__enterSpinlock(&g_cmos_spinlock);
-	int s = 0x0b | 0x80;
-	outportb(0x70, s);
-	int v = inportb(0x71) | 0x80;
-	outportb(0x71, v);
+
+	outportb(0x70, 0);
+
 	__leaveSpinlock(&g_cmos_spinlock);
 }
 
