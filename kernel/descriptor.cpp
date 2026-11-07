@@ -536,7 +536,7 @@ int IncreaseDelta(int v) {
 	PROCESS_INFO* tss = GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + current->tid);
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 	proc->priority = proc->priority ;

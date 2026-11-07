@@ -232,9 +232,9 @@ void __kCoprocessor() {
 	LPPROCESS_INFO proc = pb + current->tid;
 	LPPROCESS_INFO prev = pb + g_last_task_tid[id];
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,current->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,current->tid,1);
 	LPPROCESS_INFO proc = &list->proc;
-	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,g_last_task_tid[id]);
+	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,g_last_task_tid[id],1);
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)& prevlist->proc;
 #endif
 	if (proc->fpu == 0)

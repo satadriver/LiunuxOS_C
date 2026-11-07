@@ -281,7 +281,7 @@ DWORD __kProcessMalloc(DWORD s,DWORD *outSize, int pid,int cpu,DWORD vaddr,int f
 	LPPROCESS_INFO tssbase = GetTaskTssBaseId(cpu);
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)tssbase + pid;	
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(cpu,pid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(cpu,pid,1);
 	LPPROCESS_INFO proc = & list->proc;
 #endif
 	if (vaddr == 0) {
@@ -465,7 +465,7 @@ DWORD __malloc(DWORD s) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 	cur->alloc_times++;
@@ -538,7 +538,7 @@ int __free(DWORD linearAddr) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 	cur->free_times --;
@@ -644,7 +644,7 @@ int GetProcessMemory(int pid,int cpu, char* szout) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO proc = tss + pid;
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 	if (proc->status != TASK_RUN)

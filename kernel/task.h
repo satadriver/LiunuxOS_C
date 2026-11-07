@@ -78,15 +78,14 @@ void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
 
 void InitTaskList();
 void InitTaskArray();
-PROCESS_INFO_LIST* GetRemoteTaskListTid(int id, int tid);
-PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid);
-PROCESS_INFO_LIST* GetTaskListPid(int pid);
+PROCESS_INFO_LIST* GetRemoteTaskListTid(int id, int tid, int lock);
+PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid,int lock);
+PROCESS_INFO_LIST* GetTaskListPid(int pid, int lock);
 int InsertTaskList(PROCESS_INFO_LIST* p);
-PROCESS_INFO_LIST* RemoveTaskList(PROCESS_INFO_LIST * p);
-PROCESS_INFO_LIST* RemoveTaskListTid(int tid);
-PROCESS_INFO_LIST* RemoveTaskListPid(int pid);
-
-void __kExitProcess(PROCESS_INFO_LIST* list);
+PROCESS_INFO_LIST* MarkTaskList(PROCESS_INFO_LIST * p);
+PROCESS_INFO_LIST* MarkTaskListTid(int tid, int lock);
+PROCESS_INFO_LIST* MarkTaskListPid(int pid, int lock);
+void __kRemoveTask( int lock);
 
 void SetIVTVector();
 
@@ -112,7 +111,7 @@ extern "C"  __declspec(dllexport) int __terminatePid(int pid);
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock();
 extern "C"  __declspec(dllexport) void leave_task_array_lock();
-extern "C"  __declspec(dllexport) PROCESS_INFO_LIST* GetTaskListTid(int tid);
+extern "C"  __declspec(dllexport) PROCESS_INFO_LIST* GetTaskListTid(int tid,int lock);
 
 extern "C"  __declspec(dllexport) void enter_task_array_lock_id(int id);
 
@@ -134,7 +133,7 @@ extern "C"  __declspec(dllimport) int __terminatePid(int pid);
 extern "C"  __declspec(dllimport) void enter_task_array_lock();
 extern "C"  __declspec(dllimport) void leave_task_array_lock();
 
-extern "C"  __declspec(dllimport) PROCESS_INFO_LIST* GetTaskListTid(int tid);
+extern "C"  __declspec(dllimport) PROCESS_INFO_LIST* GetTaskListTid(int tid,int lock);
 extern "C"  __declspec(dllimport) void enter_task_array_lock_id(int id);
 
 extern "C"  __declspec(dllimport) void leave_task_array_lock_id(int id);

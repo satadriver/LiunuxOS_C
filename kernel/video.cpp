@@ -1538,7 +1538,7 @@ void initDesktopWindow(WINDOWCLASS* window, char* name, int tid,int show) {
 #ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();

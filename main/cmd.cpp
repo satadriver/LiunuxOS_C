@@ -265,7 +265,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 #ifdef TASK_SWITCH_ARRAY
 		
 #else
-		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+		PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid,1);
 		LPPROCESS_INFO proc = &list->proc;
 #endif	
 		char* lpgdt = g_gdt_base[id];

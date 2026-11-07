@@ -192,6 +192,8 @@ int GetSamplePos(int cpu,int * label) {
 	return pos;
 }
 
+
+
 int CollectRNNSample(TaskPredictParam* tp,int count)
 {
 	if (g_dl_task_total < ML_TASK_LIMIT )

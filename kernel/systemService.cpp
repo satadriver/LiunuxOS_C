@@ -279,8 +279,6 @@ int __kAdjustApicTimer() {
 
 
 
-
-
 extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, char* module, char* func, int level, unsigned long p) {
 
 	__asm {
@@ -291,6 +289,9 @@ extern "C"  __declspec(dllexport)void __ipiCreateProcess(DWORD base, int size, c
 		pop edi
 	}
 }
+
+
+
 extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module, unsigned long p,char * func ) {
 
 	__asm {
@@ -327,7 +328,7 @@ void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = tss + tid;
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid,1);
 	LPPROCESS_INFO process = &list->proc;
 #endif
 	process->sleep = times;
@@ -366,7 +367,7 @@ void sleep_delay(DWORD * params) {
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = tss + tid;
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid,1);
 	LPPROCESS_INFO process = &list->proc;
 #endif
 	process->sleep = times ;

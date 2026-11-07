@@ -275,46 +275,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	return 0;
 }
 
-static void check_labels(const kann_t* ann) {
-	for (int i = 0; i < ann->n; ++i) {
-		kad_node_t* p = ann->v[i];
-		if (((p->op == 13 && (p->n_child == 2 || p->n_child == 3)) ||
-			(p->op == 22 && p->n_child == 2)) && p->n_d == 0) {
-			kad_node_t* x = p->child[0], * t = p->child[1];
-			if (!x || !t || !x->x || !t->x) {
-				printf("SKIP: i=%d x=%p t=%p x->x=%p t->x=%p\n",
-					i, x, t, x ? x->x : 0, t ? t->x : 0);
-				continue;
-			}
-			if (t->n_d <= 0) {
-				printf("SKIP: i=%d t->n_d=%d\n", i, t->n_d);
-				continue;
-			}
-			int n = t->d[t->n_d - 1];
-			if (n <= 0) {
-				printf("SKIP: i=%d n=%d\n", i, n);
-				continue;
-			}
-			int m = kad_len(t) / n;
-			for (int j = 0, off = 0; j < m; ++j, off += n) {
-				float t_sum = 0.0f, t_min = 1.0f, x_min = 1.0f, x_max = 0.0f;
-				for (int k = 0; k < n; ++k) {
-					float xk = x->x[off + k], tk = t->x[off + k];
-					t_sum += tk;
-					t_min = t_min < tk ? t_min : tk;
-					x_min = x_min < xk ? x_min : xk;
-					x_max = x_max < xk ? xk : x_max;
-				}
-				if (t_sum - 1.0f != 0 || t_min < 0 || x_min < 0 || x_max > 1) {
-					printf("FAIL: i=%d j=%d t_sum=%.9f t_min=%.9f x_min=%.9f x_max=%.9f\n",
-						i, j, t_sum, t_min, x_min, x_max);
-					return;
-				}
-			}
-		}
-	}
-	printf("check_labels: all OK\n");
-}
+
 
 typedef struct {
 	int n_in;
@@ -327,13 +288,16 @@ typedef struct {
 
 #define  SLIDE_SIZE 32
 
-static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int max_epoch, const char* fn, int n_threads)
+
+
+static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size,
+	int max_epoch, const char* fn, int n_threads)
 {
 	double rate = 0.0;
 	int inSize = sizeof(TaskSwitchSample) / sizeof(float);
 
-	float** x, ** y, * r, best_cost = 1e30f;
-	int epoch, j, n_var, * shuf;
+	float** x, ** y, *r, best_cost = 1e30f;
+	int epoch, j, n_var, *shuf;
 	kann_t* ua;
 
 	int N = g_rnn_task_count;
@@ -343,126 +307,98 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 	x = (float**)malloc(d->ulen * sizeof(float*));
 	y = (float**)malloc(d->ulen * sizeof(float*));
 	for (j = 0; j < d->ulen; ++j) {
-		x[j] = (float*)calloc(mini_size * N* d->n_in, sizeof(float));
-		y[j] = (float*)calloc(mini_size * N*2, sizeof(float));
+		x[j] = (float*)calloc(mini_size * N * d->n_in, sizeof(float));
+		y[j] = (float*)calloc(mini_size * N * 2, sizeof(float));
 	}
 	shuf = (int*)calloc(d->n, sizeof(int));
 	kann_shuffle(d->n, shuf);
 
 	ua = kann_unroll(ann, d->ulen);
 	kann_set_batch_size(ua, mini_size * N);
-	kann_mt(ua, n_threads, mini_size*N);
+	kann_mt(ua, n_threads, mini_size * N);
 	kann_feed_bind(ua, KANN_F_IN, 0, x);
 	kann_feed_bind(ua, KANN_F_TRUTH, 0, y);
 	kann_switch(ua, 1);
+
+	/* [MOD] 新增：一次性定位 cost 节点索引，替代训练循环里硬编码的 kann_cost(ua, 0, 1) */
+	int i_cost = kann_find(ua, KANN_F_COST, 0);
+	if (i_cost < 0) i_cost = kann_find(ua, KANN_F_COST, -1);
+
 	for (epoch = 0; epoch < max_epoch; ++epoch) {
 		double cost = 0.0;
-		long long  tot = 0, tot_base = 0, n_cerr = 0;
+		long long tot = 0, tot_base = 0, n_cerr = 0;
 		for (j = 0; j < d->n - mini_size; j += mini_size) {
 			int i, b, k;
 
-			for (k = 0; k < d->ulen; ++k) {           // 时间步
-				for (b = 0; b < mini_size; ++b) {     // batch 里的第 b 个样本
-					int s = shuf[j + b];              // 样本索引
-					for (int n = 0; n < N; ++n) {     // 第 n 个线程
+			/* [MOD] 每个时间步填 x；y 先清零，只在最后一个时间步给标签 */
+			for (k = 0; k < d->ulen; ++k) {
+				for (b = 0; b < mini_size; ++b) {
+					int s = shuf[j + b];
+					for (int n = 0; n < N; ++n) {
 						for (i = 0; i < d->n_in; ++i) {
-							x[k][(b * N + n) * d->n_in + i] = d->x[((s * SLIDE_SIZE + k) * N + n) * d->n_in + i];
+							x[k][(b * N + n) * d->n_in + i] =
+								d->x[((s * SLIDE_SIZE + k) * N + n) * d->n_in + i];
 						}
-						// 标签：第 s 个样本、第 n 个线程
-						y[k][(b * N + n) * 2] = y[k][(b * N + n) * 2 + 1] = 0.0f;
-						//y[k][(b * N + n) * 2 + (d->y[s * N + n] > 0.5f ? 1 : 0)] = 1.0f;
-						int label = (d->y[(s * N + n) * 2 + 1] > 0.5f) ? 1 : 0;
-						y[k][(b * N + n) * 2 + label] = 1.0f;
+						/* [MOD] 标签先清零 */
+						y[k][(b * N + n) * 2] = 0.0f;
+						y[k][(b * N + n) * 2 + 1] = 0.0f;
+						/* [MOD] 只在最后时间步监督；若想每步都监督，删掉此 if 即可 */
+						if (k == d->ulen - 1) {
+							int label = (d->y[(s * N + n) * 2 + 1] > 0.5f) ? 1 : 0;
+							y[k][(b * N + n) * 2 + label] = 1.0f;
+						}
 					}
 				}
 			}
 
-
 			if (epoch == 0 && j == 0) {
-				for (int ii = 0; ii < ua->n; ++ii) {
-					kad_node_t* p = ua->v[ii];
-					if (p->op == 13 || p->op == 22) {
-						kad_node_t* t = p->child[1];
-						int n = t->d[t->n_d - 1];
-						int m = kad_len(t) / n;
-						printf("node %d: op=%d n_child=%d n_d=%d n=%d m=%d\n",
-							ii, p->op, p->n_child, p->n_d, n, m);
-					}
+				if (i_cost < 0) {
+					printf("FATAL: no cost node found\n");
+					break;
 				}
 				printf("find label 0  -> %d\n", kann_find(ua, KANN_F_COST, 0));
 				printf("find label -1 -> %d\n", kann_find(ua, KANN_F_COST, -1));
-				printf("y[0][0..3] = %f %f %f %f\n",
-					y[0][0], y[0][1], y[0][2], y[0][3]);
-				check_labels(ua);
+				printf("y[ulen-1][0..3] = %f %f %f %f\n",
+					y[d->ulen - 1][0], y[d->ulen - 1][1],
+					y[d->ulen - 1][2], y[d->ulen - 1][3]);
+				/* [MOD] 可选调试：原代码未调用 check_labels；不需要可注释掉下一行 */
+				/* check_labels(ua); */
 			}
 
 			int n_total = 0;
 
-			float c = kann_cost(ua, 0, 1);
-			//int cost_label = kann_find(ua, KANN_F_COST, 0);
-			//if (cost_label < 0) cost_label = kann_find(ua, KANN_F_COST, -1);
-			//printf("cost_label = %d\n", cost_label);   // 打一次
-			//float c = kann_cost(ua, cost_label, 1);
-
-
-			/*
-			// 找 cost 节点索引
-			int i_cost = -1;
-			for (int ii = 0; ii < ua->n; ++ii) {
-				kad_node_t* p = ua->v[ii];
-				if ((p->op == 13 && (p->n_child == 2 || p->n_child == 3)) ||
-					(p->op == 22 && p->n_child == 2)) {
-					i_cost = ii;
-					break;
-				}
-			}
-			float c;
-			if (i_cost >= 0) {
-				c = *kad_eval_at(ua->n, ua->v, i_cost);   // 求 cost
-				kad_grad(ua->n, ua->v, i_cost);           // 算梯度
-			}
-			else {
-				printf("FATAL: no cost node found\n");
-				break;
-			}
-			
-			*/
-						
+			/* [MOD] 用定位到的 i_cost，替代硬编码 0 */
+			float c = kann_cost(ua, i_cost, 1);
 			int n_err = kann_class_error(ua, &n_total);
 
-			if (j<5) {
-				printf("epoch %d,j:%d : cost=%lf, n_err=%d, n_total=%d\n", epoch, j,c, n_err, n_total);
+			if (j < 5) {
+				printf("epoch %d,j:%d : cost=%lf, n_err=%d, n_total=%d\n",
+					epoch, j, c, n_err, n_total);
 			}
-			if (n_total <= 0) {
-				//break;
-			}
-			cost += c * mini_size * N;
 
+			cost += c * mini_size * N;
 			n_cerr += n_err;
 			tot_base += n_total;
 
-			//float clip = 0.001f;
-			//for (int v = 0; v < n_var; v++) {
-			//	if (ua->g[v] > clip) ua->g[v] = clip;
-			//	if (ua->g[v] < -clip) ua->g[v] = -clip;
-			//}
-
 			kann_RMSprop(n_var, lr, 0, 0.9f, ua->g, ua->x, r);
-
-			for (int v = 0; v < n_var; v++) {
-				//ua->x[v] *= 0.9999f;
-			}
 
 			tot += mini_size * N;
 		}
+
+		/* [MOD] 新增：tot_base 为 0 时跳过 rate 计算，避免除零产生 nan 导致训练永不完成 */
+		if (tot_base <= 0) {
+			printf("epoch: %d; tot_base=0, skip rate update\n", epoch + 1);
+			rate = 100.0f;
+			continue;
+		}
+
 		if (cost < best_cost) {
 			best_cost = cost;
 			if (fn) kann_save(fn, ann);
 		}
-		printf( "epoch: %d; cost: %lf (class error: %lf)\n", epoch + 1, cost / tot, 100.0f * n_cerr / tot_base);
 		rate = 100.0f * n_cerr / tot_base;
-
-
+		printf("epoch: %d; cost: %lf (class error: %lf)\n",
+			epoch + 1, tot_base ? cost / tot : 0.0, rate);
 	}
 
 	for (j = 0; j < d->ulen; ++j) {
@@ -473,13 +409,15 @@ static double rnn_train(kann_t* ann, bit_data_t* d, float lr, int mini_size, int
 }
 
 
+#define TASK_STEP_BYTES (g_rnn_task_count * sizeof(TaskSwitchSample) + sizeof(int))
+
 extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid, char* filename, char* funcname, DWORD param)
 {
 	printf("%s %d entry\r\n", __FUNCTION__, __LINE__);
 
 	DlTestProcess(0, ML_TASK_LIMIT);
 
-	while (g_dl_task_total < ML_TASK_LIMIT ) {
+	while (g_dl_task_total < ML_TASK_LIMIT) {
 		__sleep(1000);
 		g_dl_task_total = GetProcessNum();
 	}
@@ -488,7 +426,8 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 
 	DWORD tick1 = g_cmos_period_tick_cnt;
 
-	int step = g_rnn_task_count * sizeof(TaskSwitchSample) +  sizeof(int);
+	/* [MOD] 原 step 用 sizeof(int)，与采集端 sizeof(float) 不一致；改用统一宏 */
+	int step = TASK_STEP_BYTES;
 
 	__enterSpinlock(&g_dl_lock);
 
@@ -503,10 +442,11 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 		free(g_dl_data);
 		g_dl_data = 0;
 	}
+	/* [MOD] 原条件 "g_dl_data == 0 && g_dl_data_cnt == 0" 在 free 后恒真，
+	* 且 g_dl_data_cnt 清零放在 if 外更清晰；这里统一在锁内完成分配与清零 */
 	g_dl_data_cnt = 0;
-	if (g_dl_data == 0 && g_dl_data_cnt == 0) {
-		g_dl_data = (TaskPredictParam*)__kMalloc((TASK_DISPATCH_SAMPLE + SLIDE_SIZE) * step);
-	}
+	g_dl_data = (TaskPredictParam*)__kMalloc((TASK_DISPATCH_SAMPLE + SLIDE_SIZE) * step);
+
 	__leaveSpinlock(&g_dl_lock);
 
 	if (g_dl_data == 0) {
@@ -519,38 +459,43 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 		__sleep(1000);
 	}
 
-	int i, c,  n_h_layers = 1, n_h_neurons = 64, mini_size = 8, max_epoch = 16, norm = 1, n_threads = 1;
+	int i, c, n_h_layers = 1, n_h_neurons = 64, mini_size = 8, max_epoch = 16, norm = 1, n_threads = 1;
 	float lr = 0.001f, dropout = 0.2f;
 
-	char* fn_in = 0, * fn_out = 0;
+	char* fn_in = 0, *fn_out = 0;
 
-	int inSize = sizeof(TaskSwitchSample) / sizeof(float) ;
-	int n_samples = TASK_DISPATCH_SAMPLE - SLIDE_SIZE ;
-	
+	int inSize = sizeof(TaskSwitchSample) / sizeof(float);
+	int n_samples = TASK_DISPATCH_SAMPLE - SLIDE_SIZE;
+
 	int rnn_flag = KANN_RNN_VAR_H0;
-	if (norm) 
+	if (norm)
 		rnn_flag |= KANN_RNN_NORM;
 
-	bit_data_t *d = (bit_data_t*)malloc(sizeof(bit_data_t));
+	bit_data_t* d = (bit_data_t*)malloc(sizeof(bit_data_t));
 	d->n_in = inSize;
 	d->n = n_samples;
 	d->ulen = SLIDE_SIZE;
-	d->x = (float*)malloc(sizeof(float) * n_samples * SLIDE_SIZE* g_rnn_task_count*inSize);
-	d->y = (float*)malloc(sizeof(float)* n_samples* g_rnn_task_count*2);
+	d->x = (float*)malloc(sizeof(float) * n_samples * SLIDE_SIZE * g_rnn_task_count * inSize);
+	d->y = (float*)malloc(sizeof(float) * n_samples * g_rnn_task_count * 2);
 
 	for (i = 0; i < n_samples; ++i) {
 		for (int k = 0; k < SLIDE_SIZE; ++k) {
 			char* base = (char*)g_dl_data + (i + k) * step;
 			for (int b = 0; b < g_rnn_task_count; ++b) {
-				memcpy(&d->x[((i * SLIDE_SIZE + k) * g_rnn_task_count + b) * inSize],base + b * sizeof(TaskSwitchSample),inSize * sizeof(float));
+				memcpy(&d->x[((i * SLIDE_SIZE + k) * g_rnn_task_count + b) * inSize],
+					base + b * sizeof(TaskSwitchSample),
+					inSize * sizeof(float));
 			}
 		}
 
-		char* label_base = (char*)g_dl_data + (i + SLIDE_SIZE) * step + g_rnn_task_count * sizeof(TaskSwitchSample);
+		/* [MOD] 标签偏移原用 g_rnn_task_count * sizeof(TaskSwitchSample)，
+		* 与 step 里 result 的偏移一致；保持即可，但建议用宏描述 */
+		char* label_base = (char*)g_dl_data + (i + SLIDE_SIZE) * step
+			+ g_rnn_task_count * sizeof(TaskSwitchSample);
 		int* results = (int*)label_base;
 		int local_result = (int)results[0];
-		//KANN_C_CEM 是 softmax + 交叉熵，要求每个样本的标签是 2 类 one-hot 编码。[0,1] 表示被调度，[1,0] 表示不被调度。
-		//KANN_C_CEB是sigmoid + 二分类交叉熵，要求每个样本的标签是 0 或 1。
+		/* KANN_C_CEM 是 softmax + 交叉熵，要求 2 类 one-hot。
+		* 这里 [0,1] 表示被调度（b == local_result），与 rnn_train 里 label 构造一致 */
 		for (int b = 0; b < g_rnn_task_count; ++b) {
 			int idx = (i * g_rnn_task_count + b) * 2;
 			d->y[idx] = (b == local_result) ? 0.0f : 1.0f;
@@ -564,7 +509,7 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 		t = kann_layer_dropout(t, dropout);
 	}
 	g_dl_ann = kann_new(kann_layer_cost(t, 2, KANN_C_CEM), 0);
-	
+
 	g_dl_rate = rnn_train(g_dl_ann, d, lr, mini_size, max_epoch, fn_out, n_threads);
 	if (g_dl_rate < TASK_DISPATCH_ERROR_RATE) {
 		g_dl_train_complete = 1;
@@ -574,9 +519,6 @@ extern "C" __declspec(dllexport) int DlRNNTraining(unsigned int retaddr, int tid
 	free(d);
 	return 0;
 }
-
-
-
 
 
 

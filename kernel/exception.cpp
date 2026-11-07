@@ -28,7 +28,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO process = tss + current->tid;
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid,1);
 	LPPROCESS_INFO process = &list->proc;
 #endif
 	int tid = process->tid;

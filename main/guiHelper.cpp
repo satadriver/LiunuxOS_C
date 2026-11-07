@@ -202,7 +202,7 @@ void initFullWindow(WINDOWCLASS* window, char* functionname, int tid,int fill) {
 #ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 
@@ -268,7 +268,7 @@ void initConsoleWindow(WINDOWCLASS* window, char* filename, int tid) {
 #ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 #else
-	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid);
+	PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(tid,1);
 	LPPROCESS_INFO proc = &list->proc;
 #endif
 	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();

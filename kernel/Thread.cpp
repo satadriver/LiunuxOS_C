@@ -73,7 +73,7 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	int tid = dwtid & 0x7fffffff;
 
-	RemoveTaskListTid(tid);
+	MarkTaskListTid(tid,1);
 
 	if (dwtid & 0x80000000) {
 		return 0;
@@ -324,7 +324,7 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	leave_task_array_lock();
 #else
 	InitTaskCoprocessor(tss, list->fpenv);
-	PROCESS_INFO_LIST * father = GetRemoteTaskListPid(cpu,tss->pid);
+	PROCESS_INFO_LIST * father = GetRemoteTaskListPid(cpu,tss->pid,1);
 	InsertListTail(&father->child,&list->child);
 	InsertTaskList(list);
 #endif

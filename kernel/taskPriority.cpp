@@ -96,6 +96,8 @@ PROCESS_INFO* PrioritySchedule() {
 		}
 	}
 
+	int cnt = 0;
+
 	double alloc_max = 0.01;
 	double mem_max = 0.01;
 	float sleep_max = 0.001;
@@ -195,7 +197,7 @@ PROCESS_INFO* PrioritySchedule() {
 
 #else
 	LPPROCESS_INFO tss[256];
-	PROCESS_INFO_LIST* prevlist = GetRemoteTaskListTid(cpu,cur->tid);
+	PROCESS_INFO_LIST* prevlist = GetRemoteTaskListTid(cpu,cur->tid,0);
 	LPPROCESS_INFO prev = &prevlist->proc;
 	PROCESS_INFO_LIST* list = prevlist;
 	do {
@@ -264,6 +266,10 @@ PROCESS_INFO* PrioritySchedule() {
 			ptr->status = TASK_OVER;
 		}
 		list = (PROCESS_INFO_LIST*)list->list.next;
+		if (cnt++ > 0x1000) {
+			__printf(szout, "%s %d error\r\n",__FUNCTION__, __LINE__);
+			break;
+		}
 	} while (list && list != prevlist);
 #endif
 	if ( count < 2) {
@@ -274,8 +280,7 @@ PROCESS_INFO* PrioritySchedule() {
 		target_tss = tss[0];
 #endif
 		if (count <= 0 && sleep_count == 0) {
-			__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",
-				__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
+			__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
 		}
 	}
 	else if (count >= 2) {
@@ -448,7 +453,6 @@ PROCESS_INFO* PrioritySchedule() {
 		}
 
 		if (g_dl_train_complete == 0  ) { 
-
 			if ((count > ML_TASK_LIMIT / g_cpu_total) && (g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)) {
 #ifdef MODEL_TYPE_RNN
 				CollectRNNSample(g_tpp_buf[cpu], count);
@@ -746,8 +750,7 @@ int PredictionTask() {
 				target_tss = tss[0];
 #endif
 				if (count <= 0 || target_tss->status == TASK_TERMINATE || target_tss->status == TASK_OVER) {
-					__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",
-						__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
+					__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
 				}
 				g_task_other_hit++;
 			}
@@ -907,17 +910,14 @@ int PredictionTask() {
 					}
 				}		
 				
-				int target_idx = -1;
 				int seq = TaskSchedulePredict(&tp);
 				if (seq >= 0 && seq < count) {
 					target_id = rate[seq].id;	
-					target_idx = target_id;
 					total++;
 					PreMultipleHitRate(count, 3, cpu, target_id);
 					g_task_pre_hit++;
 				}
 				else {
-					target_idx = 0;
 					target_id = rate[0].id;
 					g_tp_error_cnt++;
 					g_task_other_hit++;
@@ -934,7 +934,7 @@ int PredictionTask() {
 					}
 				}
 #else
-				target_tss = tss[target_idx];
+				target_tss = tss[seq];
 				for (int i = 0; i < count; i++) {
 					if (target_id != rate[i].id) {
 						tss[i]->delta += STATIC_PRIORITY;

@@ -297,7 +297,7 @@ void __declspec(naked) UndefinedOpcode(LIGHT_ENVIRONMENT* stack) {
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();	
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 #else 
-			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid,1);
 			LPPROCESS_INFO proc = &list->proc;
 #endif
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -363,7 +363,7 @@ void __declspec(naked) DeviceNotAvailable(LIGHT_ENVIRONMENT* stack) {
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 #else 
-			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid,1);
 			LPPROCESS_INFO proc = &list->proc;
 #endif
 			int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -940,7 +940,7 @@ __declspec(naked) void SIMDException(LIGHT_ENVIRONMENT* stack) {
 			LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();		
 			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
 #else
-			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid);
+			PROCESS_INFO_LIST* list = (PROCESS_INFO_LIST*)GetTaskListTid(cur->tid,1);
 			LPPROCESS_INFO proc = &list->proc;
 #endif
 			DWORD mxcsr_reg = 0;

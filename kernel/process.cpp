@@ -130,7 +130,7 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 	if(tss->tid != tid || tss->pid != tss->tid)
 		__printf(szout, "%s %d pid:%d tid:%d,current tid:%d\r\n", __FUNCTION__, __LINE__,pid, tid,tss->tid);
 
-	RemoveTaskListPid(pid);
+	MarkTaskListPid(pid,1);
 
 	//__printf(szout, "%s %d pid:%d tid:%d cpu:%d\r\n", __FUNCTION__, __LINE__, pid,tid, tss->cpuid);
 
