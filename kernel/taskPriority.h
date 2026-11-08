@@ -56,7 +56,7 @@ extern "C" __declspec(dllimport) unsigned long long g_task_train_hit;
 
 
 
-PROCESS_INFO* PrioritySchedule();
+PROCESS_INFO* PrioritySchedule(int sleep);
 
 void InitTaskScheduleBuf();
 

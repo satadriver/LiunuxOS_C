@@ -70,11 +70,13 @@ void clearTssBuf(LPPROCESS_INFO tss);
 void tasktest(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO next, LPPROCESS_INFO prev);
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
-LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env);
+LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep);
 
 extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);
 
 void debugReg(PROCESS_INFO* next, PROCESS_INFO* prev);
+
+PROCESS_INFO_LIST* TraversalTaskList(int id);
 
 void InitTaskList();
 void InitTaskArray();
@@ -103,7 +105,7 @@ extern "C" __declspec(dllexport) unsigned long long g_cpu_prev_tick[MAX_CPU_COUN
 extern "C" __declspec(dllexport) unsigned long long g_cpu_tick[MAX_CPU_COUNT];
 extern "C" __declspec(dllexport) unsigned long long g_cpu_start_tick[MAX_CPU_COUNT];
 
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*,int sleep);
 
 extern "C"  __declspec(dllexport) int __terminateTid(int tid);
 
@@ -124,7 +126,7 @@ extern "C" __declspec(dllimport) unsigned long long g_cpu_prev_tick[MAX_CPU_COUN
 extern "C" __declspec(dllimport) unsigned long long g_cpu_tick[MAX_CPU_COUNT];
 extern "C" __declspec(dllimport) unsigned long long g_cpu_start_tick[MAX_CPU_COUNT];
 
-extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*);
+extern "C"  __declspec(dllimport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT*,int sleep);
 
 extern "C"  __declspec(dllimport) int __terminateTid(int tid);
 

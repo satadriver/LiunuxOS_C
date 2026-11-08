@@ -327,11 +327,6 @@ DWORD memLoadDll(char* filedata, char* addr) {
 void initDll() {
 	g_dll_info_buf = (char*) __kMalloc(0x10000);
 
-	DATALOADERINFO* dl = (DATALOADERINFO*)(gKernelData<<4);
-
-	int ks = dl->_kdllSecCnt * BYTES_PER_SECTOR;
-	//__memcpy((char*)KERNEL_DLL_SOURCE_BASE, (char*)VSKDLL_LOAD_ADDRESS, ks);
-
 	int cnt = 0x10000 / sizeof(DLLMODULEINFO);
 	DLLMODULEINFO* dllptr = (DLLMODULEINFO*)g_dll_info_buf;
 	for (int i = 0; i < cnt; i++)
@@ -343,15 +338,13 @@ void initDll() {
 	__kStoreModule((char*)LIUNUX_KERNEL32_DLL, KERNEL_DLL_BASE);
 
 	if (*(WORD*)MAIN_DLL_SOURCE_BASE != 0x5a4d)
-	//if (*(WORD*)VSMAINDLL_LOAD_ADDRESS != 0x5a4d) 
 	{
 		char* databuf = (char*)MAIN_DLL_SOURCE_BASE;
 		int ret = readFile(LIUNUX_BASE_PATH "main.dll", &databuf);
 		char* realbuf = (char*)memLoadDll((char*)databuf, (char*)MAIN_DLL_BASE);
 	}
 	else {
-		int ms = dl->_maindllSecCnt * BYTES_PER_SECTOR;
-		//__memcpy((char*)MAIN_DLL_SOURCE_BASE, (char*)VSMAINDLL_LOAD_ADDRESS, ms);
+		//int ms = dl->_maindllSecCnt * BYTES_PER_SECTOR;
 		memLoadDll((char*)MAIN_DLL_SOURCE_BASE, (char*)MAIN_DLL_BASE);
 	}
 

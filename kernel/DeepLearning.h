@@ -3,7 +3,7 @@
 #include "def.h"
 #include "kann-master/kann.h"
 
-#define		TASK_DISPATCH_SAMPLE		(4096)
+#define		TASK_DISPATCH_SAMPLE		(16384)
 
 #define		ML_TASK_LIMIT				32
 

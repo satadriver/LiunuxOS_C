@@ -130,6 +130,37 @@ void InitTaskList() {
 	InitListEntry((LIST_ENTRY*)&(gTasksListPtr[id]->list));
 }
 
+int g_traversal_task_list = 0;
+
+PROCESS_INFO_LIST* TraversalTaskList(int id) {
+	if (g_traversal_task_list++ > 16)
+		return 0;
+
+	int cnt = 0;
+	char szout[256];
+	PROCESS_INFO_LIST* result = 0;
+
+	PROCESS_INFO_LIST *hdr = (PROCESS_INFO_LIST*)gTasksListPtr[id]->list.next;
+
+	PROCESS_INFO_LIST *list = hdr;
+
+	while (list)
+	{
+		PROCESS_INFO * proc = &list->proc;
+		__printf(szout, "%s %d number:%d task:%s pid:%d tid:%d\r\n", __FUNCTION__, __LINE__,cnt++,proc->funcname, proc->pid,proc->tid);
+
+		list = (PROCESS_INFO_LIST*)list->list.next;
+		if (list == hdr) {
+			break;
+		}
+		if (cnt > 0x1000) {	
+			__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
+		}
+	}
+
+	return result;
+}
+
 
 
 PROCESS_INFO_LIST* GetRemoteTaskListTid(int id,int tid,int lock) {
@@ -518,7 +549,7 @@ void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
 }
 
 
-LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
+LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 	char szout[256];
 	int ret = 0;
 
@@ -548,11 +579,14 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 	else if (proc->status == TASK_RUN  && prev->status == TASK_RUN )
 	{
-		if (proc->sleep) {
-			proc->sleep--;
-		}
-		if (prev->sleep) {
-			prev->sleep--;
+		if (sleep) 
+		{
+			if (proc->sleep) {
+				proc->sleep--;
+			}
+			if (prev->sleep) {
+				prev->sleep--;
+			}
 		}
 		proc->counter++;
 		prev->counter++;
@@ -579,7 +613,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 	}
 
 #ifdef TASK_SWITCH_PRIORITY
-	next = PrioritySchedule();
+	next = PrioritySchedule(sleep);
 	if(next == prev || next == 0) {
 		return 0;
 	}
@@ -603,7 +637,10 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 		}
 		else if (next->status == TASK_RUN && next->cpuid == id) {
 			if (next->sleep) {
-				next->sleep--;
+				if (sleep)
+				{
+					next->sleep--;
+				}
 			}
 			else {
 				break;
@@ -758,10 +795,10 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env) {
 }
 
 LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env) {
-	return SingleTssSchedule(env);
+	return SingleTssSchedule(env,1);
 }
 
-extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) {
+extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 
 	char szout[256];
 
@@ -776,6 +813,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 #endif
 	 
 	//SwitchTaskCPU();
+
 	int ret = 0;
 
 	ret = __GetSpinlock(&g_task_list_lock[id]);
@@ -794,7 +832,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 		PROCESS_INFO_LIST* root = GetTaskListId(id);
 		PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid,0);
 		if (prevlist == 0) {
-			__printf(szout, "%s %d cpu:%d tid:%d get list:%x error\r\n", __FUNCTION__, __LINE__, id, current->tid,root);
+			TraversalTaskList(id);
+			//__printf(szout, "%s %d cpu:%d tid:%d get list:%x error\r\n", __FUNCTION__, __LINE__, id, current->tid,root);
 			goto __kTaskSchedule_end;
 		}
 		LPPROCESS_INFO prev = &prevlist->proc;
@@ -821,10 +860,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			goto __kTaskSchedule_end;
 		}
 
-		V86ProcessCheck(env, current, 0);
-
 #ifdef SINGLE_TASK_TSS
-		LPPROCESS_INFO next = SingleTssSchedule(env);
+		LPPROCESS_INFO next = SingleTssSchedule(env,sleep);
 #else
 		LPPROCESS_INFO next = MultipleTssSchedule(env);
 #endif
@@ -832,15 +869,19 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env) 
 			result = 1;
 
 		__int64 tick2 = __krdtsc();
-
 		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1))/2 ;
 
+		if (sleep) {
+			__kApicTimerProc();
+			V86ProcessCheck(env, current, 0);
 #ifndef TASK_SWITCH_ARRAY
-		__kRemoveTask(0);
+			__kRemoveTask(0);
 #endif
+		}
+		
 	__kTaskSchedule_end:
 		ret = __leaveSpinlock(&g_task_array_lock[id]);
-		__kApicTimerProc();
+		
 	}
 
 	ret = __leaveSpinlock(&g_task_list_lock[id]);
@@ -1056,20 +1097,21 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 		cur->sleep_total += times;
 
 		leave_task_array_lock();
-		//char szout[256];
-		//__printf(szout,"%s\r\n",__FUNCTION__);
 
-		__kTaskSchedule(stack);
+		int ret = __kTaskSchedule(stack,1);
+		if (ret == 0)
+		{
+			__asm {hlt}
 
-		//*(DWORD*)(LOCAL_APIC_BASE + 0xb0) = 0;
+			unsigned long long t = __krdtsc();
+			LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+			current->prev_tick = t;
+			int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+			g_cpu_prev_tick[id] = t;
+		}
 	}
 
 	__asm {
-		//call GetCurrentTaskTssBase
-		//mov edx, eax
-		//mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		//mov cr3, eax
-
 		mov esp, ebp
 		pop ebp
 		add esp, 4
@@ -1083,8 +1125,6 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, ss: [esp - 20]
 #endif
-		//clts
-
 		iretd
 	}
 }
@@ -1092,11 +1132,8 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
 	//__asm{cli}
-
-	int ret = __kTaskSchedule(stack);
-
+	int ret = __kTaskSchedule(stack,1);
 	//__asm{sti}
-
 	if (ret == 0)
 	{
 		__asm{hlt}
@@ -1110,11 +1147,6 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 	
 	__asm {
 		mov esp, stack
-
-		//call GetCurrentTaskTssBase
-		//mov edx, eax
-		//mov eax, dword ptr ds : [edx + PROCESS_INFO.tss.cr3]
-		//mov cr3, eax
 
 		//mov esp, ebp
 		//pop ebp
@@ -1130,8 +1162,6 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 #ifdef SINGLE_TASK_TSS
 		mov esp, ss: [esp - 20]
 #endif
-		//clts
-		//sti
 		iretd
 	}
 	return;

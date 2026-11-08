@@ -752,7 +752,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 		unsigned long long tick1 = __krdtsc();
 
-		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack);
+		__kTaskSchedule((LIGHT_ENVIRONMENT*)stack,1);
 
 		*(DWORD*)(LOCAL_APIC_BASE + 0xB0) = 0;
 
