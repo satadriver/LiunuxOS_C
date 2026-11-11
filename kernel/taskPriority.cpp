@@ -209,7 +209,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		if (ptr&&ptr->status == TASK_RUN) {
 			if (ptr->sleep) {
 				sleep_count++;
-				if (sleep) 
+				//if (sleep) 
 				{
 					if (ptr != prev)
 						ptr->sleep--;
@@ -272,21 +272,23 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 		list = (PROCESS_INFO_LIST*)list->list.next;
 		if (cnt++ > 0x1000) {
-			__printf(szout, "%s %d error\r\n",__FUNCTION__, __LINE__);
+			__printf(szout, "%s %d task:%s error\r\n",__FUNCTION__, __LINE__,cur->funcname);
 			break;
 		}
 	} while (list && list != prevlist);
 #endif
 	if ( count < 2) {
 		g_task_other_hit++;
+		if (count <= 0 && sleep_count == 0 ) {
+			if(cur->status != TASK_OVER)
+				__printf(szout, "%s %d task:%s cpu:%d tid:%d status:%d error\r\n",__FUNCTION__, __LINE__,cur->funcname, cpu, cur->tid, cur->status);
+			return 0;
+		}
 #ifdef TASK_SWITCH_ARRAY
 		target_tss = tss + g_rate_buf[cpu][0].id;
 #else
 		target_tss = tss[0];
 #endif
-		if (count <= 0 && sleep_count == 0) {
-			__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
-		}
 	}
 	else if (count >= 2) {
 		for (int i = 0; i < count; i++) {

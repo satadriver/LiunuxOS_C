@@ -138,7 +138,9 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 		return;
 	}
 	else {
-		__sleep(-1);
+		while (1)
+			Halt();
+		//__sleep(-1);
 	}
 }
 #endif

@@ -1602,6 +1602,10 @@ int __GetCurrentPid() {
 	return proc->pid;
 }
 
+//#define TASK_SLEEP_DELAY
+#define TASK_SLEEP_SWITCH
+
+
 int __sleep_old(int millisecs) {
 	__asm {
 		push edi
@@ -1611,6 +1615,26 @@ int __sleep_old(int millisecs) {
 		pop edi
 	}
 }
+
+#ifdef TASK_SLEEP_SWITCH
+int __sleep(int millisecs) {
+	__asm {
+		lea edi, millisecs
+		int TASK_SCHEDULE_VECTOR
+	}
+	return 0;
+}
+#else
+int __sleep(int millisecs) {
+	__asm {
+		push edi
+		mov eax, SVC_SLEEP_DELAY
+		lea edi, millisecs
+		int 80h
+		pop edi
+	}
+}
+#endif
 
 int __sleep_delay(int millisecs) {
 	__asm {
@@ -1623,13 +1647,7 @@ int __sleep_delay(int millisecs) {
 }
 
 
-int __sleep(int millisecs) {
-	__asm {
-		lea edi, millisecs
-		int TASK_SCHEDULE_VECTOR
-	}
-	return 0;
-}
+
 
 
 

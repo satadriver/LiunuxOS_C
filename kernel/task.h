@@ -69,7 +69,7 @@ void clearTssBuf(LPPROCESS_INFO tss);
 
 void tasktest(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO next, LPPROCESS_INFO prev);
 
-LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env);
+LPPROCESS_INFO MultipleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep);
 LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep);
 
 extern "C" void __declspec(dllexport) yield(LIGHT_ENVIRONMENT * stack);

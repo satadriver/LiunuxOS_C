@@ -79,7 +79,9 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 		return 0;
 	}
 	else {
-		__sleep(-1);
+		while (1)
+			Halt();
+		//__sleep(-1);
 	}
 	return 0;
 }
