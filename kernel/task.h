@@ -91,7 +91,7 @@ void __kRemoveTask( int lock);
 
 void SetIVTVector();
 
-extern "C" void __kTaskSwitch(LIGHT_ENVIRONMENT* stack);
+extern "C" int __kTaskSwitch(LIGHT_ENVIRONMENT* stack);
 
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 

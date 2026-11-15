@@ -147,7 +147,7 @@ PROCESS_INFO_LIST* TraversalTaskList(int id) {
 	while (list)
 	{
 		PROCESS_INFO * proc = &list->proc;
-		__printf(szout, "%s %d num:%d task:%s pid:%d tid:%d\r\n", __FUNCTION__, __LINE__,cnt++,proc->funcname, proc->pid,proc->tid);
+		__printf(szout, "%s %d num:%d task:%s pid:%d tid:%d cpu:%d status:%d\r\n", __FUNCTION__, __LINE__,cnt++,proc->funcname, proc->pid,proc->tid,proc->cpuid,proc->status);
 
 		list = (PROCESS_INFO_LIST*)list->list.next;
 		if (list == hdr) {
@@ -326,51 +326,6 @@ int InsertTaskList(PROCESS_INFO_LIST* p) {
 }
 
 
-
-PROCESS_INFO_LIST* MarkTaskList(PROCESS_INFO_LIST * p) {
-
-	char szout[256];
-	int cnt = 0;
-	PROCESS_INFO_LIST* result = 0;
-
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
-	__enterSpinlock(&g_task_list_lock[id]);
-
-	PROCESS_INFO_LIST* hdr = (PROCESS_INFO_LIST*)(gTasksListPtr[id]->list.next);
-	PROCESS_INFO_LIST* list = hdr;
-	while (list)
-	{
-		if (list &&  list->proc.pid == p->proc.pid )
-		{
-
-			list->proc.status = TASK_OVER;
-
-			DestroyThreadWindow(p->proc.tid, id);
-
-			//RemoveNode(&(gTasksListPtr[id]->list), &(list->list));
-
-			if(list->proc.pid = p->proc.pid)
-				result = list;
-		}
-		list = (PROCESS_INFO_LIST*)list->list.next;
-		if (list == hdr) {
-			break;
-		}
-		if (cnt++ > 0x1000) {
-			__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
-		}
-	}
-	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-	current->status = TASK_OVER;
-	//__kFreeProcess(&result->proc);
-	__leaveSpinlock(&g_task_list_lock[id]);
-
-	return result;
-}
-
-
-
 PROCESS_INFO_LIST* MarkTaskListTid(int tid,int lock) {
 
 	char szout[256];
@@ -395,6 +350,8 @@ PROCESS_INFO_LIST* MarkTaskListTid(int tid,int lock) {
 			RemoveNode(&father->child, &list->child);
 
 			//RemoveNode((LIST_ENTRY*)&(gTasksListPtr[id]->list), (LIST_ENTRY*)&(list->list));
+
+			//__kFree(list->proc.espbase);
 
 			result = list;
 			break;
@@ -454,7 +411,9 @@ PROCESS_INFO_LIST* MarkTaskListPid(int pid,int lock) {
 	}
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 	current->status = TASK_OVER;
+
 	//__kFreeProcess(&result->proc);
+
 	if (lock)
 		__leaveSpinlock(&g_task_list_lock[id]);
 
@@ -567,10 +526,12 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id, proc->tid,0);
 	if (prevlist)
 	{
-		//__printf(szout, "%s %d cpu:%d tid:%d pid:%d task:%s list:%x error\r\n", __FUNCTION__, __LINE__, id, proc->tid, proc->pid,proc->funcname,GetTaskListId(id));
 		prev = &prevlist->proc;
 		nextlist = (PROCESS_INFO_LIST*)prevlist->list.next;
 		next = (LPPROCESS_INFO)& nextlist->proc;
+	}
+	else {
+		//__printf(szout, "%s %d cpu:%d tid:%d pid:%d task:%s list:%x error\r\n", __FUNCTION__, __LINE__, id, proc->tid, proc->pid,proc->funcname,GetTaskListId(id));
 	}
 #endif
 	if (prev) {
@@ -628,7 +589,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 #endif
 		if (next == prev) {
 			if (next->status == TASK_OVER || next->status == TASK_TERMINATE) {
-				__printf(szout, "%s %d task status:%d error\r\n", __FUNCTION__, __LINE__, next->status);
+				__printf(szout, "%s %d task:%s pid:%d tid:%d status:%d error\r\n", __FUNCTION__, __LINE__,next->funcname,next->pid,next->tid, next->status);
 			}
 			return 0;		//something error
 		}
@@ -834,9 +795,11 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 		PROCESS_INFO_LIST* root = GetTaskListId(id);
 		PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid,0);
 		if (prevlist) {
-			//TraversalTaskList(id);
-			//__printf(szout, "%s %d cpu:%d tid:%d pid:%d function:%s list:%x error\r\n", __FUNCTION__, __LINE__, id, current->tid, current->pid, current->funcname, root);
 			prev = &prevlist->proc;
+		}
+		else {
+			//TraversalTaskList(id);
+			//__printf(szout, "%s %d cpu:%d tid:%d pid:%d function:%s status:%d list:%x error\r\n", __FUNCTION__, __LINE__, id, current->tid, current->pid, current->funcname, current->status, root);
 		}
 #endif
 		if (prev) {
@@ -858,7 +821,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 			g_cpu_prev_tick[id] = tick1;
 
 			if (prev->tid != current->tid) {
-				__printf(szout, "%s %d task:%s cpu:%d proc tid:%d not equal to prev tid:%d\r\n", __FUNCTION__, __LINE__,prev->funcname, id, prev->tid, current->tid);
+				__printf(szout, "%s %d task:%s cpu:%d tid:%d not equal to tid:%d\r\n", __FUNCTION__, __LINE__,prev->funcname, id, prev->tid, current->tid);
 				goto __kTaskSchedule_end;
 			}
 		}
@@ -874,18 +837,18 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 		__int64 tick2 = __krdtsc();
 		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1))/2 ;
 
-		if (sleep) {
-			__kApicTimerProc();
+		if (sleep) {			
 			V86ProcessCheck(env, current, 0);
 		}
+
+		__kApicTimerProc();
 		
 #ifndef TASK_SWITCH_ARRAY
-		__kRemoveTask(0);
+		//__kRemoveTask(0);
 #endif
 
 	__kTaskSchedule_end:
 		ret = __leaveSpinlock(&g_task_array_lock[id]);
-		
 	}
 
 	ret = __leaveSpinlock(&g_task_list_lock[id]);
@@ -1040,7 +1003,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 
 
 
-extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
+extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 
 	__asm {
 		pushad
@@ -1102,7 +1065,7 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 
 		leave_task_array_lock();
 
-		int ret = __kTaskSchedule(stack,1);
+		int ret = __kTaskSchedule(stack,0);
 		if (ret == 0)
 		{
 			LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -1141,7 +1104,7 @@ extern "C" void __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 
 	//__asm{cli}
-	int ret = __kTaskSchedule(stack,1);
+	int ret = __kTaskSchedule(stack,0);
 	//__asm{sti}
 	if (ret == 0)
 	{

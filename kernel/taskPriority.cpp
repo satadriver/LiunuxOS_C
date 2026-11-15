@@ -129,7 +129,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 			ptr->status = TASK_OVER;
 		}
 		else if (ptr->status == TASK_RUN && cpu != ptr->cpuid) {
-			__printf(szout, "%s %d status:%x cpu:%d cpuid:%d\r\n", __FUNCTION__, __LINE__, ptr->status,cpu,ptr->cpuid);
+			__printf(szout, "%s %d task:%s tid:%d pid:%d status:%x cpu:%d cpuid:%d\r\n", __FUNCTION__, __LINE__,ptr->funcname,ptr->tid,ptr->pid, ptr->status,cpu,ptr->cpuid);
 		}
 		else if (ptr->status == TASK_RUN && cpu == ptr->cpuid) {
 			if (ptr->sleep) {
@@ -209,7 +209,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		if (ptr&&ptr->status == TASK_RUN) {
 			if (ptr->sleep) {
 				sleep_count++;
-				//if (sleep) 
+				if (sleep) 
 				{
 					if (ptr != prev)
 						ptr->sleep--;
@@ -272,16 +272,17 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 		list = (PROCESS_INFO_LIST*)list->list.next;
 		if (cnt++ > 0x1000) {
-			__printf(szout, "%s %d task:%s error\r\n",__FUNCTION__, __LINE__,cur->funcname);
+			__printf(szout, "%s %d task:%s tid:%d pid:%d cpu:%d error\r\n",__FUNCTION__, __LINE__,cur->funcname,cur->tid,cur->pid,cur->cpuid);
 			break;
 		}
 	} while (list && list != prevlist);
 #endif
 	if ( count < 2) {
 		g_task_other_hit++;
-		if (count <= 0 && sleep_count == 0 ) {
-			if(cur->status != TASK_OVER)
-				__printf(szout, "%s %d task:%s cpu:%d tid:%d status:%d error\r\n",__FUNCTION__, __LINE__,cur->funcname, cpu, cur->tid, cur->status);
+		if (count <= 0) {		
+			if (sleep_count == 0 /*|| cur->status != TASK_OVER*/ ) {
+				__printf(szout, "%s %d task:%s cpu:%d tid:%d pid:%d status:%d error\r\n", __FUNCTION__, __LINE__, cur->funcname, cpu, cur->tid,cur->pid, cur->status);
+			}
 			return 0;
 		}
 #ifdef TASK_SWITCH_ARRAY
@@ -596,6 +597,7 @@ int PredictionTask() {
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	int sleep_count = 0;
 	float alloc_max = 0.01;
 	float mem_max = 0.01;
 	float sleep_max = 0.001;
@@ -756,14 +758,17 @@ int PredictionTask() {
 			} while (list && list != prevlist);
 #endif
 			if (count < 2) {
+				if (count <= 0) {
+					if ( cur->status != TASK_OVER) {
+						__printf(szout, "%s %d task:%s cpu:%d tid:%d status:%d error\r\n", __FUNCTION__, __LINE__, cur->funcname, cpu, cur->tid, cur->status);
+					}
+					return 0;
+				}
 #ifdef TASK_SWITCH_ARRAY
-				target_tss = tss + rate[0].id;
+				target_tss = tss + g_rate_buf[cpu][0].id;
 #else
 				target_tss = tss[0];
 #endif
-				if (count <= 0 || target_tss->status == TASK_TERMINATE || target_tss->status == TASK_OVER) {
-					__printf(szout, "%s %d cpu:%d tid:%d status:%d error\r\n",__FUNCTION__, __LINE__, cpu, target_tss->tid, target_tss->status);
-				}
 				g_task_other_hit++;
 			}
 			else if (count >= 2) {
