@@ -265,7 +265,7 @@ void __kBreakPoint(LIGHT_ENVIRONMENT* stack) {
 //DR0 - DR3
 //Contain linear addresses of up to 4 breakpoints.If paging is enabled, they are translated to physical addresses.
 
-// DR6 It permits the debugger to determine which debug conditions have occurred.
+//DR6 It permits the debugger to determine which debug conditions have occurred.
 //Bits 0 through 3 indicates, when set, that it's associated breakpoint condition was met when a debug exception was generated.
 //Bit 13 indicates that the next instruction in the instruction stream accesses one of the debug registers.
 //Bit 14 indicates(when set) that the debug exception was triggered by the single - step execution mode(enabled with TF bit in EFLAGS).

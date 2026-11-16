@@ -21,7 +21,7 @@ int gKeyboardID = 0;
 int g_kbd_lock = 0;
 
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
-unsigned char ScanCodesBuf[96] =
+unsigned char ScanCodesBuf[256] =
 { 0, VK_ESCAPE, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', VK_BACK, VK_TAB, \
 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', 0x0d, VK_CONTROL, 'a', 's',\
 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', VK_LSHIFT, '\\','z','x','c','v',
@@ -31,7 +31,7 @@ VK_DOWN, VK_NEXT, VK_INSERT, VK_DELETE, 0, 0, 0, VK_F11, VK_F12, 0, 0, 0, 0, 0, 
 
 
 
-unsigned char shiftScanCodesTransBuf[96]=
+unsigned char shiftScanCodesTransBuf[256]=
 {0, VK_ESCAPE, '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', VK_BACK, VK_TAB,
 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', 0x0a, VK_CONTROL, 'A', 'S',\
 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', '~', VK_LSHIFT, '|', 'Z', 'X', 'C', 'V', 

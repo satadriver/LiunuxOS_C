@@ -1374,7 +1374,7 @@ void BPCodeStart() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x350) = 0x700;
 	*(DWORD*)(LOCAL_APIC_BASE + 0x360) = 0x400;
 
-	InitTaskScheduleBuf();
+	//InitTaskScheduleBuf();
 	__asm {sti}
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;

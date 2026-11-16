@@ -278,23 +278,24 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		if (res) {
 			int pid = src_target->proc.pid;
 
-			//PROCESS_INFO_LIST* dst_list = (PROCESS_INFO_LIST*)__kProcessMalloc(sizeof(PROCESS_INFO_LIST),0,
-			//	dst_id, pid,0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT );
-			//PROCESS_INFO* dst_proc = &dst_list->proc;
-			//__memcpy((char*)dst_proc, (char*)&src_target->proc, sizeof(PROCESS_INFO) );
-			//dst_proc->cpuid = dst_id;
-			//dst_proc->lpHeapCnt = &dst_proc->heapCnt;
-			//dst_proc->lpheap_lock = &dst_proc->heap_lock;
-			//dst_proc->lpHeapBase = (char***)&dst_proc->heapBase;
-			//dst_proc->lpvasize = &dst_proc->va_size;
-			//dst_proc->status = TASK_RUN;
+			PROCESS_INFO_LIST* dst_list = (PROCESS_INFO_LIST*)__kProcessMalloc(sizeof(PROCESS_INFO_LIST),0,
+				dst_id, pid,0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT );
+			PROCESS_INFO* dst_proc = &dst_list->proc;
+			__memcpy((char*)dst_proc, (char*)&src_target->proc, sizeof(PROCESS_INFO) );
+			dst_proc->cpuid = dst_id;
+			dst_proc->lpHeapCnt = &dst_proc->heapCnt;
+			dst_proc->lpheap_lock = &dst_proc->heap_lock;
+			dst_proc->lpHeapBase = (char***)&dst_proc->heapBase;
+			dst_proc->lpvasize = &dst_proc->va_size;
+			dst_proc->status = TASK_RUN;
 
 			PROCESS_INFO_LIST* dst_root = (PROCESS_INFO_LIST*)GetTaskListId(dst_id);
 
-			//remove first ,then insert second
-			RemoveNode(&(src_root->list), &(src_target->list));
+			src_target->proc.status = TASK_OVER;
 
-			src_target->proc.cpuid = dst_id;
+			//RemoveNode(&(src_root->list), &(src_target->list));
+
+			//src_target->proc.cpuid = dst_id;
 			InsertListTail((LIST_ENTRY*)&(dst_root->list), (LIST_ENTRY*)&(src_target->list));
 
 			__printf(szout, "%s copy cpu:%d pid:%d to cpu:%d\r\n", __FUNCTION__, src_id, pid, dst_id);

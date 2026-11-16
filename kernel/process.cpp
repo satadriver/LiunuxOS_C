@@ -444,6 +444,13 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->large_heap_size = 0;
 	tss->fast_heap_large = 0;
 
+	tss->dr0 = 0;
+	tss->dr1 = 0;
+	tss->dr2 = 0;
+	tss->dr3 = 0;
+	tss->dr6 = 0xFFFF0FF0;
+	tss->dr7 = 0x400;
+
 	//__printf(szout, "imagebase:%x,imagesize:%x,map base:%x,entry:%x,cr3:%x,esp:%x,cpu:%d,pid:%d,tid:%d\n",getImageBase((char*)pemap), imagesize, pemap, entry, tss->tss.cr3,tss->espbase,tss->cpuid,tss->pid,tss->tid);
 
 	tss->status = TASK_RUN;
