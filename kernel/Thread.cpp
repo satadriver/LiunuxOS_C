@@ -305,7 +305,7 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	tss->prev_tick = __krdtsc();
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
-	tss->tick_switch_cost = 0;
+//	tss->tick_switch_cost = 0;
 
 	tss->slice = process->slice;
 	tss->frac_slice = 0;

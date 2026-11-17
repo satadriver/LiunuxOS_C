@@ -186,7 +186,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 #ifdef MODEL_TYPE_RNN
 		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlRNNTraining", 3, 0);
 #else
-		//__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
+		__kCreateProcess((unsigned int)MAIN_DLL_SOURCE_BASE, imageSize, "main.dll", "DlMLPTraining", 3, 0);
 #endif
 	}
 

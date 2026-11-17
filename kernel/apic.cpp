@@ -1568,26 +1568,28 @@ int GetCpu(int* out, int size) {
 
 
 int GetIdleProcessor() {
+	char szout[256];
 
 	int* ids = (int*)g_cpu_id;
 	int cpu_cnt = g_cpu_total;
+
 	AlgorithmModel rate[MAX_CPU_COUNT];
-
-	unsigned long long dcnt[MAX_CPU_COUNT];
-
-	double total_counter = 0.0;
 
 	unsigned long long tick = __krdtsc();
 	for (int num = 0; num < cpu_cnt; num++) {
 		int id = ids[num];
 		double cpu_diff = tick - g_cpu_start_tick[id];
-		double cpu_ratio = (double)g_cpu_tick[id] / cpu_diff;
+		double cpu_tick = (double)g_cpu_tick[id];
+		if(cpu_tick == 0){
+			cpu_tick = 0.01;
+		}
+		double cpu_ratio = cpu_tick / cpu_diff;
 
 		rate[num].fv = cpu_ratio;
 		rate[num].id = id;
 		
 		float tasks = 0.0;
-		double cnt = 0;
+
 #ifdef TASK_SWITCH_ARRAY		
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBaseId(id);
 		for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {
@@ -1608,21 +1610,27 @@ int GetIdleProcessor() {
 			LPPROCESS_INFO p = &ptr->proc;
 			if (p->status == TASK_RUN) {
 				tasks += 1.0;
-				cnt += p->counter;
-				total_counter += p->counter;
 			}
 			ptr = (PROCESS_INFO_LIST*)ptr->list.next;
 		} while (ptr && ptr != hdr);
 #endif
-		dcnt[num] = cnt;
-		rate[num].fv = ( rate[num].fv * 0.8 + tasks * 0.2) ;
+		rate[num].fv = ( rate[num].fv * 0.5 + tasks * 0.5);
+
+		//__printf(szout, "cpu:%d ratio:%lf,tasks:%d\r\n", (int)rate[num].id, rate[num].fv, (int)tasks);
 	}
 
 	for (int num = 0; num < cpu_cnt; num++) {
-		rate[num].fv = rate[num].fv + 0.0* (total_counter/dcnt[num] );
+		//rate[num].fv = rate[num].fv + 0.0* (total_counter/dcnt[num] );
 	}
+
 	BubbleSortd(rate, cpu_cnt);
+
+	for(int i = 0;i < cpu_cnt; i++){
+		//__printf(szout, "cpu:%d ratio:%lf\r\n", (int)rate[i].id, rate[i].fv);
+	}
 	
+	//__printf(szout, "select cpu:%d\r\n", (int)rate[0].id);
+
 	return (int)rate[0].id;
 }
 

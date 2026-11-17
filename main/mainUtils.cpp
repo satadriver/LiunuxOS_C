@@ -136,7 +136,7 @@ int GetSimpleProcesses(char* szout) {
 				double proc_diff =  p->tick_total;
 				double proc_ratio = (double)p->tick_run / proc_diff;
 				double proc_usage = (double)p->tick_run / (double)g_cpu_tick[cpu];
-				double cost = p->tick_switch_cost;
+				double cost = g_td_tickcost;
 				double switch_cost = cost / g_timer_tick[cpu];
 				len = __sprintf(szout + outlen,
 					"[%d].file:%s, function:%s, cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,cpu usage:%lf£¬task rate:%lf,task usage:%lf,cost rate:%lf,counter:%x,priority:%d,delta:%d,lpvasize:%x\r\n",
@@ -196,12 +196,12 @@ int GetAllProcesses(char* szout) {
 				double proc_diff = p->tick_total;
 				double proc_ratio = (double)p->tick_run / proc_diff;
 				double proc_usage = (double)p->tick_run / (double)g_cpu_tick[cpu];
-				double cost = p->tick_switch_cost;
+				double cost = g_td_tickcost;
 				double switch_cost = cost / g_timer_tick[cpu];
 				len = __sprintf(szout + outlen,
 					"[%d]. filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf£¬task rate:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 					n++, p->filename, p->funcname, p->moduleBase, p->cpuid,
-					p->pid, p->ppid, p->tid, p->level, p->tick_run, p->tick_switch_cost, p->tick_start,
+					p->pid, p->ppid, p->tid, p->level, p->tick_run, g_td_tickcost, p->tick_start,
 					cpu_usage, proc_ratio, proc_usage, switch_cost, p->sleep_total, p->counter, p->slice, p->priority, 
 					p->delta, *p->lpvasize, *p->lpHeapCnt);
 				outlen += len;
@@ -255,13 +255,13 @@ int GetProcess(int cpuid,int pid, char* szout) {
 				if (p->status == TASK_RUN && p->pid == pid) {
 					double proc_diff = p->tick_total;
 					double proc_ratio = (double)p->tick_run / proc_diff;
-					double cost = p->tick_switch_cost;
+					double cost = g_td_tickcost;
 					double switch_cost = cost / g_timer_tick[cpu];
 					double proc_usage = (double)p->tick_run / (double)g_cpu_tick[cpu];
 					int len = __sprintf(szout,
 						"filename:%s, funcname:%s, base:%x,cpu:%d, pid:%d, ppid:%d,tid:%d,level:%d,tick:%i64x,cost:%i64x,start:%i64x,cpu usage:%lf,task ratio:%lf,task usage:%lf,switch_cost:%lf,sleep:%x,counter:%x,slice:%d,priority:%d,delta:%d,lpvasize:%x,HeapCnt:%d\r\n\r\n",
 						p->filename, p->funcname, p->moduleBase, p->cpuid,
-						p->pid, p->ppid, p->tid, p->level, p->tick_run, p->tick_switch_cost, p->tick_start,
+						p->pid, p->ppid, p->tid, p->level, p->tick_run, g_td_tickcost, p->tick_start,
 						cpu_usage, proc_ratio, proc_usage, switch_cost, p->sleep_total, p->counter, p->slice, p->priority, p->delta, *p->lpvasize, *p->lpHeapCnt);
 					return len;
 				}
@@ -471,7 +471,7 @@ int GetTaskRatio(char* szout) {
 			if (p->status == TASK_RUN) {
 				double proc_diff = p->tick_total;
 				double proc_alive = (double)p->tick_run / proc_diff;
-				double cost = p->tick_switch_cost;
+				double cost = g_td_tickcost;
 				double switch_cost = cost / g_timer_tick[cpu];
 				double proc_cpu = (double)p->tick_run / (double)g_cpu_tick[cpu];
 				len = __sprintf(szout + outlen,

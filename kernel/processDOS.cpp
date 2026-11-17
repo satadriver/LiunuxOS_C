@@ -322,7 +322,7 @@ int __initDosTss(LPPROCESS_INFO tss, int pid, DWORD addr, char * filename, char 
 	tss->prev_tick = __krdtsc();
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
-	tss->tick_switch_cost = 0;
+//	tss->tick_switch_cost = 0;
 
 	tss->lpvasize = &tss->va_size;
 	tss->va_size = 0;

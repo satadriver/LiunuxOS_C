@@ -534,6 +534,13 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 		//__printf(szout, "%s %d cpu:%d tid:%d pid:%d task:%s list:%x error\r\n", __FUNCTION__, __LINE__, id, proc->tid, proc->pid,proc->funcname,GetTaskListId(id));
 	}
 #endif
+
+#ifdef TASK_SWITCH_PRIORITY
+	next = PrioritySchedule(sleep);
+	if (next == 0 || next == prev ) {
+		return 0;
+	}
+#else
 	if (prev) {
 		if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE ||prev->status == TASK_OVER || proc->status == TASK_OVER) {
 			proc->status = TASK_OVER;
@@ -550,16 +557,19 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 					prev->sleep--;
 				}
 			}
-			proc->counter++;
-			prev->counter++;
-			proc->frac_slice++;
-			prev->frac_slice++;
-			if (proc->frac_slice >= proc->slice) {
-				proc->frac_slice = 0;
-				prev->frac_slice = 0;
-			}
 			else {
-				return 0;		//stop  task switching,continue to run old task
+				proc->counter++;
+				prev->counter++;
+
+				proc->frac_slice++;
+				prev->frac_slice++;
+				if (proc->frac_slice >= proc->slice) {
+					proc->frac_slice = 0;
+					prev->frac_slice = 0;
+				}
+				else {
+					return 0;		//stop  task switching,continue to run old task
+				}
 			}
 		}
 		else if (proc->status == TASK_SUSPEND || prev->status == TASK_SUSPEND) {
@@ -574,12 +584,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 			return 0;	//error
 		}
 	}
-#ifdef TASK_SWITCH_PRIORITY
-	next = PrioritySchedule(sleep);
-	if(next == prev || next == 0) {
-		return 0;
-	}
-#else
+
 	do {
 #ifdef TASK_SWITCH_ARRAY
 		next++;
@@ -615,6 +620,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 #endif
 	} while (next && (next != prev));
 #endif
+
 	if (prev) {
 		g_last_task_tid[id] = prev->tid;
 
@@ -793,7 +799,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 #else
 		LPPROCESS_INFO prev = 0;
 		PROCESS_INFO_LIST* root = GetTaskListId(id);
-		PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetTaskListTid(current->tid,0);
+		PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,current->tid,0);
 		if (prevlist) {
 			prev = &prevlist->proc;
 		}
@@ -833,9 +839,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 #endif
 		if (next)
 			result = 1;
-
-		__int64 tick2 = __krdtsc();
-		current->tick_switch_cost = (current->tick_switch_cost + (tick2 - tick1))/2 ;
 
 		if (sleep) {			
 			V86ProcessCheck(env, current, 0);
@@ -965,7 +968,7 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	proc->prev_tick = __krdtsc();
 	proc->tick_start = __krdtsc();
 	proc->tick_total = 0;
-	proc->tick_switch_cost = 0;
+	//proc->tick_switch_cost = 0;
 
 	DWORD size = HEAP_SIZE;
 	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);

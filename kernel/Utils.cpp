@@ -582,7 +582,7 @@ int __i64ToStru64(__int64 v, char* buf) {
 	return out;
 }
 
-int lf2strlf(double f, char* buf) {
+int lf2strlf_old(double f, char* buf) {
 	if (f == 0.0) {
 		__strcpy(buf, "0.0");
 		return 3;
@@ -626,58 +626,111 @@ int lf2strlf(double f, char* buf) {
 	return len;
 }
 
-int lf2strlf_old(double f, char* buf) {
-	if (f <= DBL_EPSILON && f >= -DBL_EPSILON) {
-		__strcpy(buf, "0.0");
+
+// 辅助函数：数字转字符
+void my_itoa(unsigned long long val, char* buf, int* idx) {
+	char temp[32];
+	int len = 0;
+	if (val == 0) temp[len++] = '0';
+	while (val > 0) {
+		temp[len++] = (char)('0' + (val % 10));
+		val /= 10;
+	}
+	for (int i = len - 1; i >= 0; i--) {
+		buf[(*idx)++] = temp[i];
+	}
+}
+
+int lf2strlf(double f, char* buf) {
+	if (f == 0.0) {
+		buf[0] = '0'; buf[1] = '.'; buf[2] = '0'; buf[3] = '\0';
 		return 3;
 	}
-	if (f >= MAX_I64_AS_DOUBLE || f<= -MAX_I64_AS_DOUBLE) {
-		// 处理溢出，例如返回错误或使用其他表示
-		__strcpy(buf, "NULL");
-		//buf[0] = '0';
-		//buf[1] = 0;
-		return 4;
+
+	union { double d; unsigned long long u; } u;
+	u.d = f;
+	unsigned long long bits = u.u;
+
+	int sign = (bits >> 63) & 1;
+	int exp = ((bits >> 52) & 0x7FF) - 1023;
+	unsigned long long mantissa = bits & 0xFFFFFFFFFFFFFULL;
+
+	if (exp == 1024) { // NaN / INF
+		__strcpy(buf, "NULL"); return 4;
 	}
 
 	int len = 0;
-	if (f < 0) {
-		buf[0] = '-';
-		f = -f;
-		len++;
+	if (sign) buf[len++] = '-';
+
+	// 处理 0 附近极其微小的数
+	if (exp == -1023) {
+		__strcpy(buf + len, "0.0");
+		return len + 3;
 	}
 
-	__int64 i = (__int64)f;
+	mantissa |= (1ULL << 52);
 
-	len += __i64ToStru64(i, buf+len);
-	buf[len] = '.';
-	len++;
+	// 使用 128 位模拟大整数（或者干脆分成两部分：整数和纯小数）
+	// 为了避免复杂的 128 位运算，我们通过移位拆解整数部分
 
-	double s = f - i;
+	unsigned long long int_part = 0;
+	unsigned long long frac_bits = 0;
+	int frac_shift = 0;
 
-	double tf = s;
-	int pos = 0;
-
-	for (int p = 0; p < 4; p++) {
-		tf = tf * 10;
-		unsigned long long ti = (unsigned long long)tf;
-		if (ti) {
-			tf = tf - ti;
-			pos = p;
+	if (exp >= 0) {
+		if (exp >= 52) {
+			// 全是整数，但可能超出 64 位范围
+			int_part = mantissa; // 暂存
+			// 如果要处理超大数，这里需要扩充 char 数组去乘 2
+		}
+		else {
+			int_part = mantissa >> (52 - exp);
+			frac_bits = mantissa & ((1ULL << (52 - exp)) - 1);
+			frac_shift = 52 - exp;
 		}
 	}
-
-	for (int k = 0; k < pos + 1; k++) {
-		s = s * 10;
-		unsigned long long t = (unsigned long long)s;
-		s = s - t;
-		int sublen = __i64ToStru64(t, buf + len);
-		len += sublen;
+	else {
+		frac_bits = mantissa;
+		frac_shift = -exp + 52;
 	}
 
-	buf[len] = 0;
+	// 打印整数部分
+	if (int_part == 0) {
+		buf[len++] = '0';
+	}
+	else {
+		my_itoa(int_part, buf, &len);
+	}
+
+	buf[len++] = '.';
+
+	// 打印小数部分：我们不能用浮点除法，只能不断乘以 10 凑出每一位
+	// 这种算法对于 0.1 这种无限循环二进制小数，最多打印 15 位即可
+	const int PREC = 6; // 保留 6 位
+	int printed_frac = 0;
+
+	// 核心算法：frac_part = frac_bits / 2^frac_shift
+	// 等价于每次算：d = (frac_bits * 10) >> frac_shift
+	for (int k = 0; k < PREC; k++) {
+		frac_bits *= 10;
+		unsigned long long d = frac_bits >> frac_shift;
+		if (d > 9) d = 9; // 防止溢出越界
+
+		buf[len++] = (char)('0' + d);
+		frac_bits -= (d << frac_shift);
+
+		if (frac_bits == 0) break; // 如果除尽了就提前退出
+	}
+
+	buf[len] = '\0';
+
+	// 去掉末尾的 0
+	while (len > 0 && buf[len - 1] == '0') len--;
+	if (len > 0 && buf[len - 1] == '.') buf[len++] = '0';
+	buf[len] = '\0';
+
 	return len;
 }
-
 
 char* swapStr(char* dst, char* src) {
 	int len = __strlen(src);
