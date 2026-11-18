@@ -54,11 +54,11 @@ extern "C" __declspec(dllimport) unsigned long long g_task_train_hit;
 
 #define TASK_PREDICTION_BUF_SIZE	16
 
+
+
 double GetCpuRatio(int cpu);
 
 PROCESS_INFO* PrioritySchedule(int sleep);
-
-void InitTaskScheduleBuf();
 
 int PredictionTask();
 

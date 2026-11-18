@@ -49,7 +49,8 @@ unsigned long long g_apic_freq[MAX_CPU_COUNT];
 
 unsigned long long g_timer_tick[MAX_CPU_COUNT];
 
-
+unsigned long long g_sleep_count = 0;
+unsigned long long g_taskswitch_count = 0;
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -749,6 +750,7 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		//char szout[256];
+		g_taskswitch_count++;
 
 		unsigned long long tick1 = __krdtsc();
 
@@ -1273,9 +1275,7 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 
-	__enterSpinlock(&g_ap_lock);
 	ret = InitLocalApicTimer();
-	__leaveSpinlock(&g_ap_lock);
 
 	InitLocalApicErr();
 
@@ -1290,8 +1290,6 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	InitApicThermalMonitor();
 
 	InitApicPerformMonitor();
-
-	InitTaskScheduleBuf();
 
 	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 

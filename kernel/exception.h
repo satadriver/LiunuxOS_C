@@ -3,6 +3,8 @@
 #include "def.h"
 #include "task.h"
 
+
+
 #pragma pack(1)
 
 typedef struct {
@@ -62,7 +64,7 @@ typedef struct {
 
 #pragma pack()
 
-
+#define EXCEPTION_TIPS_COLOR 0X9F3F00
 
 
 #ifdef DLL_EXPORT

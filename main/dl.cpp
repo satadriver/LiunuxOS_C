@@ -85,7 +85,7 @@ void DlTestProcess(int tag,int cnt) {
 
 	//g_dl_proc_test_tag = tag;
 
-	int sleep_time = 20;
+	int sleep_time = 0;
 
 	int thread_cnt = cnt  - g_cpu_total;
 	for (int i = 0; i < thread_cnt; i++) {
@@ -167,7 +167,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
 		g_dl_task_total = GetProcessNum();
-		__sleep(1000);
+		__sleep(0);
 	}
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);
@@ -270,7 +270,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	}
 
 	while (1) {
-		__sleep_delay(1000);
+		__sleep_delay(0);
 	}
 	return 0;
 }

@@ -10,7 +10,7 @@
 #include "apic.h"
 #include "core.h"
 
-#define EXCEPTION_TIPS_COLOR 0X9F3F00
+
 
 int g_ExceptionCounter = 0;
 
@@ -19,8 +19,8 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	char showinfo[1024];
 
 	DWORD rcr0 = readcr0();
-	DWORD rcr2 = readcr0();
-	DWORD rcr3 = readcr0();
+	DWORD rcr2 = readcr2();
+	DWORD rcr3 = readcr3();
 	DWORD rcr4 = readcr4();
 
 	LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
@@ -37,7 +37,7 @@ void __kException(const char* descriptor, int num, LIGHT_ENVIRONMENT* param){
 	int cpu = process->cpuid;
 
 	int len = 0;
-	if (num == 8 || num == 10 || num == 11 || num == 12 || num == 13 || num == 14 || num == 17 || num == 21)
+	if (num == 8 || num == 10 || num == 11 || num == 12 || num == 13 || num == 14 || num == 17 || num == 20|| num == 21)
 	{
 		LPEXCEPTIONCODESTACK tss = (LPEXCEPTIONCODESTACK)param;
 		if (tss->eflags & 0x20000)

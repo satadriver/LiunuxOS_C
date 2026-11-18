@@ -41,9 +41,7 @@ unsigned long long g_task_train_hit = 0;
 LPPROCESS_INFO g_task_predict_buf[256][TASK_PREDICTION_BUF_SIZE];
 
 
-void InitTaskScheduleBuf() {
-	return;
-}
+
 
 double GetCpuRatio(int cpu) {
 	double cpu_total = 0.01;
@@ -466,7 +464,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 
 		if (g_dl_train_complete == 0  ) { 
-			if ( sleep && (count > ML_TASK_LIMIT / g_cpu_total) /* && (g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)*/ )
+			if (  (count >= ML_TASK_LIMIT / g_cpu_total)  && (g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)  /* && sleep */)
 			{
 #ifdef MODEL_TYPE_RNN
 				CollectRNNSample(&tpp_buf, count);

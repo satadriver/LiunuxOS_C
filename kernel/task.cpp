@@ -515,6 +515,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		
 	LPPROCESS_INFO proc = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+
 #ifdef TASK_SWITCH_ARRAY
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 	LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + proc->tid);
@@ -523,49 +524,53 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 	LPPROCESS_INFO prev = 0;
 	LPPROCESS_INFO next = 0;
 	PROCESS_INFO_LIST* nextlist = 0;
-	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id, proc->tid,0);
+	PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id, proc->tid, 0);
 	if (prevlist)
 	{
 		prev = &prevlist->proc;
 		nextlist = (PROCESS_INFO_LIST*)prevlist->list.next;
-		next = (LPPROCESS_INFO)& nextlist->proc;
+		next = (LPPROCESS_INFO)&nextlist->proc;
 	}
 	else {
 		//__printf(szout, "%s %d cpu:%d tid:%d pid:%d task:%s list:%x error\r\n", __FUNCTION__, __LINE__, id, proc->tid, proc->pid,proc->funcname,GetTaskListId(id));
 	}
 #endif
-
-#ifdef TASK_SWITCH_PRIORITY
-	next = PrioritySchedule(sleep);
-	if (next == 0 || next == prev ) {
-		return 0;
-	}
-#else
 	if (prev) {
-		if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE ||prev->status == TASK_OVER || proc->status == TASK_OVER) {
+		unsigned long long tick1 = __krdtsc();
+		if (env->eip == (DWORD)g_hlt_addr) {
+
+		}
+		else {
+			proc->tick_run += (tick1 - proc->prev_tick);
+			prev->tick_run += (tick1 - prev->prev_tick);
+			g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
+		}
+
+		proc->tick_total += tick1 - proc->prev_tick;
+		prev->tick_total += tick1 - proc->prev_tick;
+
+		proc->prev_tick = tick1;
+		prev->prev_tick = tick1;
+
+		g_cpu_prev_tick[id] = tick1;
+
+		if (prev->status == TASK_TERMINATE || proc->status == TASK_TERMINATE || prev->status == TASK_OVER || proc->status == TASK_OVER) {
 			proc->status = TASK_OVER;
 			prev->status = TASK_OVER;
 		}
-		else if (proc->status == TASK_RUN  && prev->status == TASK_RUN)
+		else if (proc->status == TASK_RUN && prev->status == TASK_RUN)
 		{
 			if (sleep)
 			{
 				if (proc->sleep) {
 					proc->sleep--;
 				}
-				if (prev->sleep) {
-					prev->sleep--;
-				}
 			}
 			else {
 				proc->counter++;
-				prev->counter++;
-
 				proc->frac_slice++;
-				prev->frac_slice++;
 				if (proc->frac_slice >= proc->slice) {
 					proc->frac_slice = 0;
-					prev->frac_slice = 0;
 				}
 				else {
 					return 0;		//stop  task switching,continue to run old task
@@ -576,15 +581,21 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 			proc->status = TASK_SUSPEND;
 			prev->status = TASK_SUSPEND;
 		}
-		else if (prev->status != proc->status) {
-			__printf(szout, "%s task:%s prev status %d not equal to %d error!\r\n",__FUNCTION__,prev->funcname, prev->status, proc->status);
+		else if (prev->status != proc->status || prev->tid != proc->tid) {
+			__printf(szout, "%s task:%s prev status:%d, proc status:%d error!\r\n", __FUNCTION__, prev->funcname, prev->status, proc->status);
 		}
 		else {
-			__printf(szout, "%s task:%s prev status %d not equal to %d error!\r\n", __FUNCTION__, prev->funcname, prev->status, proc->status);
+			__printf(szout, "%s %d error!\r\n", __FUNCTION__, __LINE__);
 			return 0;	//error
-		}
+		}	
 	}
 
+#ifdef TASK_SWITCH_PRIORITY
+	next = PrioritySchedule(sleep);
+	if (next == 0 || next == prev ) {
+		return 0;
+	}
+#else
 	do {
 #ifdef TASK_SWITCH_ARRAY
 		next++;
@@ -789,48 +800,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 		return 0;
 
 	ret = __GetSpinlock(&g_task_array_lock[id]);
-	if (ret) {
-		unsigned long long tick1 = __krdtsc();
-	
-		LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-#ifdef TASK_SWITCH_ARRAY
-		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
-		LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + current->tid);
-#else
-		LPPROCESS_INFO prev = 0;
-		PROCESS_INFO_LIST* root = GetTaskListId(id);
-		PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(id,current->tid,0);
-		if (prevlist) {
-			prev = &prevlist->proc;
-		}
-		else {
-			//TraversalTaskList(id);
-			//__printf(szout, "%s %d cpu:%d tid:%d pid:%d function:%s status:%d list:%x error\r\n", __FUNCTION__, __LINE__, id, current->tid, current->pid, current->funcname, current->status, root);
-		}
-#endif
-		if (prev) {
-			if (env->eip == (DWORD)g_hlt_addr) {
-
-			}
-			else {
-				current->tick_run += (tick1 - current->prev_tick);
-				prev->tick_run += (tick1 - current->prev_tick);
-				g_cpu_tick[id] += (tick1 - g_cpu_prev_tick[id]);
-			}
-
-			current->tick_total += tick1 - current->prev_tick;
-			prev->tick_total += tick1 - current->prev_tick;
-
-			current->prev_tick = tick1;
-			prev->prev_tick = tick1;
-
-			g_cpu_prev_tick[id] = tick1;
-
-			if (prev->tid != current->tid) {
-				__printf(szout, "%s %d task:%s cpu:%d tid:%d not equal to tid:%d\r\n", __FUNCTION__, __LINE__,prev->funcname, id, prev->tid, current->tid);
-				goto __kTaskSchedule_end;
-			}
-		}
+	if (ret) {	
 
 #ifdef SINGLE_TASK_TSS
 		LPPROCESS_INFO next = SingleTssSchedule(env,sleep);
@@ -840,7 +810,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 		if (next)
 			result = 1;
 
-		if (sleep) {			
+		if (sleep) {
+			LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 			V86ProcessCheck(env, current, 0);
 		}
 
@@ -1031,6 +1002,9 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
+		extern unsigned long long g_sleep_count;
+		g_sleep_count++;
+
 		int sleeptime ;
 
 		__asm {
@@ -1105,6 +1079,9 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 }
 
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
+
+	extern unsigned long long g_sleep_count;
+	g_sleep_count++;
 
 	//__asm{cli}
 	int ret = __kTaskSchedule(stack,0);

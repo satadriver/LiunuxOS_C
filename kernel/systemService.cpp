@@ -306,6 +306,9 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module
 
 void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack) {
 	//__asm {cli}
+	
+	//extern unsigned long long g_sleep_count;
+	//g_sleep_count++;
 
 	int sleeptime = params[0];
 	int interval = TASK_TIME_SLICE;
@@ -346,6 +349,10 @@ void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack) {
 
 
 void sleep_delay(DWORD * params) {
+
+	extern unsigned long long g_sleep_count;
+	g_sleep_count++;
+
 	int sleeptime = params[0];
 	int interval = TASK_TIME_SLICE;
 	DWORD times = sleeptime / interval;
@@ -405,12 +412,12 @@ void sleep_delay(DWORD * params) {
 
 		if (cur->sleep == 0)
 		{
-			enter_task_array_lock();
+			//enter_task_array_lock();
 			cur->delta = DYNAMIC_PRIORITY;
 			process->delta = DYNAMIC_PRIORITY;
 			cur->authority = AUTHORITY_PRIORITY;
 			process->authority = AUTHORITY_PRIORITY;
-			leave_task_array_lock();
+			//leave_task_array_lock();
 			break;
 		}
 		else {
