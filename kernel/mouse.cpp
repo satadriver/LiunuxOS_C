@@ -36,7 +36,7 @@ void mousetest() {
 	unsigned int ret = GetMousePacket(&mouseinfo);
 	if (ret)
 	{
-		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel + (gVideoWidth/2)*gBytesPerPixel;
+		DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT*2) * gVideoWidth * gBytesPerPixel ;
 
 		unsigned int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 		__sprintf(szout, (char*)"cpu:%d,mouse X:%x,mouse Y:%x,status:%x        ", 

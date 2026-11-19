@@ -270,7 +270,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 	}
 
 	while (1) {
-		__sleep_delay(0);
+		__sleep_delay(-1);
 	}
 	return 0;
 }

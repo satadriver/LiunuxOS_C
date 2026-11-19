@@ -187,7 +187,7 @@ DWORD __declspec(dllexport) __kServicesProc(DWORD num, DWORD * params, LIGHT_ENV
 			break;
 		}
 		case SVC_ADJUST_APIC_TIMER: {
-			r = AdjustApicTimer();
+			//r = AdjustApicTimer();
 			break;
 		}
 		case SVC_RDMSR: {

@@ -584,7 +584,7 @@ int AdjustApicTimer_new() {
 	return 0;
 }
 
-
+/*
 int AdjustApicTimer() {
 
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -653,6 +653,7 @@ int AdjustApicTimer() {
 
 	return newf;
 }
+*/
 
 
 unsigned long Get8254TickCount_error() {

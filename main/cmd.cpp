@@ -336,6 +336,11 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			g_tick_persec, g_td_tickcost, g_td_pre_tickcost, rate);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "sleep") == 0)
+	{
+		__sprintf(szout, "sleep:%i64d, task switch:%i64d\r\n",g_sleep_count,g_taskswitch_count);
+		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+	}
 	else if (__strcmp(params[0], "8254ps") == 0) {
 		unsigned long v = Get8254TickCount();
 		__sprintf(szout, "%x\r\n", v);

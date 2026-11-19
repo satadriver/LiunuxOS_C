@@ -12,13 +12,17 @@
 #include "cmosPeriodTimer.h"
 #include "apicTimer.h"
 
-DWORD gKbdTest = FALSE;
+DWORD gKbdTest = 1;
 
 char * g_kbd_buf = 0;
 
 int gKeyboardID = 0;
 
 int g_kbd_lock = 0;
+
+unsigned char g_key_scancode[256];
+int g_key_sc_hdr = 0;
+
 
 //ctrl alt shift 等已经被过滤，肯定不会出现在当前的字母表中
 unsigned char ScanCodesBuf[256] =
@@ -259,10 +263,22 @@ void setkbdStatus(DWORD status) {
 }
 
 
+unsigned char ReadKey() {
+	unsigned char c = inportb(0x60);
+	if (g_key_sc_hdr >= 256)
+		g_key_sc_hdr = 0;
+
+	g_key_scancode[g_key_sc_hdr++] = c;
+
+	return c;
+}
+
+
+
 void __kKeyboardProc() {
 
 	unsigned char status = inportb(0x64);
-	if ( (status & 0xc0) ) {
+	if ((status & 0xc0)) {
 		inportb(0x60);
 		return;
 	}
@@ -270,7 +286,7 @@ void __kKeyboardProc() {
 		return;
 	}
 
-	unsigned int c = inportb(0x60);
+	unsigned int c = ReadKey();
 
 	char szout[256];
 
@@ -281,64 +297,45 @@ void __kKeyboardProc() {
 	{
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 		//__terminateProcess(tss->pid | 0x80000000,tss->funcname,tss->filename,0);
-		return;
 	}
-
-	if (c == 0x1d || c == 0x9d)
+	else if (c == 0x1d || c == 0x9d)
 	{
 		data->kbdStatus = data->kbdStatus ^ CTRLLEFT_SET_FLAG;
-		return;
-	}else if (c == 0x2a || c == 0xaa)
+	}
+	else if (c == 0x2a || c == 0xaa)
 	{
 		data->kbdStatus = data->kbdStatus ^ SHIFTLEFT_SET_FLAG;
-		return;
-	}else if (c == 0x36 || c == 0xb6)
+	}
+	else if (c == 0x36 || c == 0xb6)
 	{
 		data->kbdStatus = data->kbdStatus ^ SHIFTRIGHT_SET_FLAG;
-		return;
 	}
 	else if (c == 0x38 || c == 0xb8)
 	{
 		data->kbdStatus = data->kbdStatus ^ ALTLEFT_SET_FLAG;
-		return;
 	}
-	else if (c == 0x3a )
+	else if (c == 0x3a)
 	{
 		data->kbdStatus = data->kbdStatus ^ CAPSLOCK_SET_FLAG;
-		data->kbdLedStatus = data->kbdLedStatus ^4;
+		data->kbdLedStatus = data->kbdLedStatus ^ 4;
 		__kKbdLed(data->kbdLedStatus);
-		return;
-	}
-	else if (c == 0xba)
-	{
-		return;
 	}
 	else if (c == 0x45)
 	{
 		data->kbdStatus = data->kbdStatus ^ NUMSLOCK_SET_FLAG;
 		data->kbdLedStatus = data->kbdLedStatus ^ 2;
 		__kKbdLed(data->kbdLedStatus);
-		return;
 	}
-	else if (c == 0xc5)
-	{
-		return;
-	}
-	else if (c == 0x46 )
+	else if (c == 0x46)
 	{
 		data->kbdStatus = data->kbdStatus ^ SCROLLLOCK_SET_FLAG;
-		data->kbdLedStatus = data->kbdLedStatus ^1;
+		data->kbdLedStatus = data->kbdLedStatus ^ 1;
 		__kKbdLed(data->kbdLedStatus);
-		return;
 	}
-	else if (c == 0xc6)
+	else if (c == 0x53)	//delete
 	{
-		return;
-	}
-	else if (c == 0x53 )	//delete
-	{
-		if ( (data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || 
-			(data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG))  )
+		if ((data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) ||
+			(data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG)))
 		{
 			__reboot();
 		}
@@ -352,20 +349,14 @@ void __kKeyboardProc() {
 			//return;
 		}
 	}
-	else if (c == 0xd3)
-	{
-		return;
-	}
-
 	else if (c == 0x37 || (c >= 0x47 && c <= 0x53))
 	{
 		result = numsLockProc(c);
-		return;
 	}
 	else if (c == 0xe0)
 	{
 		c = c << 8;
-		c += inportb(0x60);
+		c += ReadKey();
 		if (c == 0xe053)
 		{
 			if ((data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || (data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG)))
@@ -383,38 +374,32 @@ void __kKeyboardProc() {
 		}
 		else if (c == 0xe0d3)
 		{
-			return;
 		}
 		else if (c == 0x0e01d || c == 0x0e09d)
 		{
 			data->kbdStatus = data->kbdStatus ^ CTRLRIGHT_SET_FLAG;
-			return;
 		}
 		else if (c == 0x0e038 || c == 0x0e0b8)
 		{
 			data->kbdStatus = data->kbdStatus ^ ALTRIGHT_SET_FLAG;
-			return;
-		}	
+		}
 		else if (c == 0xe052)
 		{
 			data->kbdStatus = data->kbdStatus ^ INSERT_SET_FLAT;
-			return;
 		}
 		else if (c == 0xe0d2)
 		{
-			return;
-		}		
+		}
 		else if (c == 0xe02a)
 		{
 			c = c << 8;
-			c+= inportb(0x60);
+			c += ReadKey();
 			c = c << 8;
-			c += inportb(0x60);
+			c += ReadKey();
 
 			if (c == 0xe02ae037)
 			{
 				__kPrintScreen();
-				return;
 				//printfscreen make code,to keep it
 			}
 			else {
@@ -424,69 +409,65 @@ void __kKeyboardProc() {
 		else if (c == 0xe0b7)
 		{
 			c = c << 8;
-			c += inportb(0x60);
+			c += ReadKey();
 			c = c << 8;
-			c += inportb(0x60);
+			c += ReadKey();
 
 			if (c == 0xe0b7e0aa)
 			{
 				//printfscreen break code
-				return;
 			}
 		}
 		else if (c == 0xe01c || c == 0xe035)
 		{
 			result = numsLockProc(c);
-			return;
 		}
 		else {
-			
+
 		}
 	}
 	else if (c == 0xe1)
 	{
 		c = c << 8;
-		c += inportb(0x60);
+		c += ReadKey();
 		c = c << 8;
-		c+= inportb(0x60);
+		c += ReadKey();
 
 		if (c == 0xe11d45)
 		{
 			c = c << 8;
-			c += inportb(0x60);
+			c += ReadKey();
 
 			DWORD hc = 0;
-			hc += inportb(0x60);
+			hc += ReadKey();
 			hc = hc << 8;
-			hc += inportb(0x60);
+			hc += ReadKey();
 
 			char pb[6];
 			__asm {
-				mov eax,c
-				mov dword ptr [pb],eax
+				mov eax, c
+				mov dword ptr[pb], eax
 
-				mov eax,hc
-				mov word ptr [pb + 4],ax
+				mov eax, hc
+				mov word ptr[pb + 4], ax
 			}
 
-			if (__memcmp(pb, (char*)"\xe1\x1d\x45\xe1\x9d\xc5",6) == 0 )
+			if (__memcmp(pb, (char*)"\xe1\x1d\x45\xe1\x9d\xc5", 6) == 0)
 			{
 				//make code is "\xe1\x1d\x45\xe1\x9d\xc5",but no break code!按下后6个字节扫描码，松开后不产生扫描码
-				__printf(szout, ( char*)"get Pause/Break key!\r\n");
+				__printf(szout, (char*)"get Pause/Break key!\r\n");
 				pauseBreak();
 			}
-
-			return;
 		}
 	}
 	else if (c == 0xe2)
 	{
 		c = c << 8;
-		c += inportb(0x60);
+		c += ReadKey();
 		c = c << 8;
-		c += inportb(0x60);
+		c += ReadKey();
 		c = c << 8;
-		c += inportb(0x60);
+		c += ReadKey();
 	}
 
 	else if ((c >= 0x3b && c <= 0x44) || c == 0x57 || c == 0x58)
@@ -496,26 +477,28 @@ void __kKeyboardProc() {
 
 	if (c & 0x80)
 	{
-		return;
+
 	}
-
-// 	char szout[256];
-// 	__printf(szout, "input key:%x,status:%x\n", c, data->kbdStatus);
-
-	__enterSpinlock(&g_kbd_lock);
-	data->kbdBuf[data->kbdBufHdr] = c;
-	data->kbdStatusBuf[data->kbdBufHdr] = data->kbdStatus;
-
-	data->kbdBufHdr ++;
-	if (data->kbdBufHdr >= KEYBORAD_BUF_SIZE)
-	{
-		data->kbdBufHdr = 0;
+	else {
+		unsigned ch = ReadKey();
 	}
-	__leaveSpinlock(&g_kbd_lock);
 
 	if (gKbdTest)
 	{
 		kbdtest();
+	}
+
+	if ( (c & 0x80) == 0) {
+		__enterSpinlock(&g_kbd_lock);
+		data->kbdBuf[data->kbdBufHdr] = c;
+		data->kbdStatusBuf[data->kbdBufHdr] = data->kbdStatus;
+
+		data->kbdBufHdr++;
+		if (data->kbdBufHdr >= KEYBORAD_BUF_SIZE)
+		{
+			data->kbdBufHdr = 0;
+		}
+		__leaveSpinlock(&g_kbd_lock);
 	}
 }
 
@@ -546,19 +529,18 @@ void kbdtest() {
 	
 	char szout[256];
 
-	DWORD status = 0;
-	unsigned int key = __kGetKbdAndStatus(gKbdTest,&status);
-	if (key)
-	{
-		DWORD pos = ( GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel + (gVideoWidth / 2)*gBytesPerPixel;
+	DWORD pos = (gVideoHeight - GRAPHCHAR_HEIGHT * 2) * gVideoWidth * gBytesPerPixel;
 
-		__sprintf(szout, (char*)"input key:%x,%s,status:%x\n", key,&key,status);
-		__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
-
-		if (key == 0x1b) {
-			__kPutKbd(1,gKbdTest);
-		}
+	int offset = 0;
+	for (int i = 0; i < g_key_sc_hdr; i++) {
+		int len = __sprintf(szout + offset, (char*)"%x ", g_key_scancode[i]);
+		offset += len;
 	}
+	__sprintf(szout + offset, (char*)"        ");
+
+	__drawGraphChar(( char*)szout, 0, pos, TASKBARCOLOR);
+
+	g_key_sc_hdr = 0;
 }
 
 

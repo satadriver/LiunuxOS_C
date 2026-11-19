@@ -218,6 +218,7 @@
     <ClCompile Include="cmd.cpp" />
     <ClCompile Include="console.cpp" />
     <ClCompile Include="CubeVector.cpp" />
+    <ClCompile Include="cursor.cpp" />
     <ClCompile Include="explorer.cpp" />
     <ClCompile Include="ext\ext4dirs.cpp" />
     <ClCompile Include="fat12\fat12.cpp" />
@@ -252,6 +253,7 @@
     <ClInclude Include="cmd.h" />
     <ClInclude Include="console.h" />
     <ClInclude Include="CubeVector.h" />
+    <ClInclude Include="cursor.h" />
     <ClInclude Include="explorer.h" />
     <ClInclude Include="ext\ext4dirs.h" />
     <ClInclude Include="kann-master\kann.h" />
