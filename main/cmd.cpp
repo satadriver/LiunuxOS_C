@@ -338,8 +338,12 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 	}
 	else if (__strcmp(params[0], "sleep") == 0)
 	{
-		__sprintf(szout, "sleep:%i64d, task switch:%i64d\r\n",g_sleep_count,g_taskswitch_count);
-		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		for(int i = 0;i < g_cpu_total; i++)
+		{
+			int cpu = g_cpu_id[i];
+			__sprintf(szout, "cpu:%d, sleep:%i64d, task switch:%i64d\r\n", cpu, g_sleep_count[cpu], g_taskswitch_count[cpu]);
+			ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
 	}
 	else if (__strcmp(params[0], "8254ps") == 0) {
 		unsigned long v = Get8254TickCount();

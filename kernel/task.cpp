@@ -820,8 +820,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 #ifndef TASK_SWITCH_ARRAY
 		//__kRemoveTask(0);
 #endif
-
-	__kTaskSchedule_end:
 		ret = __leaveSpinlock(&g_task_array_lock[id]);
 	}
 
@@ -1002,10 +1000,7 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 	}
 
 	{
-		extern unsigned long long g_sleep_count;
-		g_sleep_count++;
-
-		int sleeptime ;
+		int sleeptime = 0;
 
 		__asm {
 			mov eax,[edi]
@@ -1022,6 +1017,8 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 		if (times == 0) {
 			times = 1;
 		}
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		g_sleep_count[id]++;
 
 		enter_task_array_lock();
 
@@ -1055,7 +1052,7 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 			unsigned long long t = __krdtsc();
 			
 			current->prev_tick = t;
-			int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+			
 			g_cpu_prev_tick[id] = t;
 		}
 	}
@@ -1079,9 +1076,8 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 }
 
 extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
-
-	extern unsigned long long g_sleep_count;
-	g_sleep_count++;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	g_sleep_count[id]++;
 
 	//__asm{cli}
 	int ret = __kTaskSchedule(stack,0);
@@ -1099,7 +1095,7 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 		unsigned long long t = __krdtsc();
 		
 		current->prev_tick = t;
-		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		
 		g_cpu_prev_tick[id] = t;
 	}
 	

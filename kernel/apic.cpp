@@ -49,8 +49,8 @@ unsigned long long g_apic_freq[MAX_CPU_COUNT];
 
 unsigned long long g_timer_tick[MAX_CPU_COUNT];
 
-unsigned long long g_sleep_count = 0;
-unsigned long long g_taskswitch_count = 0;
+unsigned long long g_sleep_count[256] ;
+unsigned long long g_taskswitch_count[256] ;
 
 void enableRcba() {
 	outportd(0xcf8, 0x8000f8f0);
@@ -750,7 +750,8 @@ extern "C" void __declspec(naked) LVTTimerIntHandler(LIGHT_ENVIRONMENT* stack) {
 
 	{
 		//char szout[256];
-		g_taskswitch_count++;
+		int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+		g_taskswitch_count[id]++;
 
 		unsigned long long tick1 = __krdtsc();
 
@@ -1563,6 +1564,10 @@ int GetCpu(int* out, int size) {
 	return cnt;
 }
 
+
+int GetCpuCount() {
+	return g_cpu_total;
+}
 
 
 int GetIdleProcessor() {

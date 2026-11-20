@@ -5,9 +5,9 @@
 
 #define		TASK_DISPATCH_SAMPLE		(0x1000)
 
-#define		ML_TASK_LIMIT				64
+#define		ML_TASK_LIMIT				16
 
-#define		TASK_DISPATCH_ERROR_RATE	(20.0)
+#define		TASK_DISPATCH_ERROR_RATE	(10.0)
 
 #pragma pack(1)
 
@@ -26,7 +26,6 @@ struct TaskSwitchSample {
 };
 
 struct TaskPredictParam {
-
 	TaskSwitchSample task[ML_TASK_LIMIT];
 	int result;
 };

@@ -27,7 +27,7 @@ int fat32Init() {
 	writeFile = writeFat32File;
 
 // #ifdef LIUNUX_DEBUG_FLAG
- 	unsigned char szshow[4096];
+ 	unsigned char szshow[256];
 // 	__printf((char*)szshow, "fat32 readFile:%x,writeFile:%x,MBR:\n", readFile, writeFile);
 // 	__drawGraphChars((unsigned char*)szshow, 0);
 // 

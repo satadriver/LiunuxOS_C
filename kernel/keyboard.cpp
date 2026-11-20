@@ -290,47 +290,58 @@ void __kKeyboardProc() {
 
 	char szout[256];
 
-	unsigned int result = 0;
+	unsigned int tag = 0;
 
 	LPKBDBUFDATA data = (LPKBDBUFDATA)g_kbd_buf;
 	if (c == 1 && (data->kbdStatus & CTRLLEFT_SET_FLAG))
 	{
 		LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-		//__terminateProcess(tss->pid | 0x80000000,tss->funcname,tss->filename,0);
+		__asm {
+			sti
+		}
+		__terminateProcess(tss->pid,tss->funcname,tss->filename,0);
+		tag = 1;
 	}
 	else if (c == 0x1d || c == 0x9d)
 	{
 		data->kbdStatus = data->kbdStatus ^ CTRLLEFT_SET_FLAG;
+		tag = 1;
 	}
 	else if (c == 0x2a || c == 0xaa)
 	{
 		data->kbdStatus = data->kbdStatus ^ SHIFTLEFT_SET_FLAG;
+		tag = 1;
 	}
 	else if (c == 0x36 || c == 0xb6)
 	{
 		data->kbdStatus = data->kbdStatus ^ SHIFTRIGHT_SET_FLAG;
+		tag = 1;
 	}
 	else if (c == 0x38 || c == 0xb8)
 	{
 		data->kbdStatus = data->kbdStatus ^ ALTLEFT_SET_FLAG;
+		tag = 1;
 	}
 	else if (c == 0x3a)
 	{
 		data->kbdStatus = data->kbdStatus ^ CAPSLOCK_SET_FLAG;
 		data->kbdLedStatus = data->kbdLedStatus ^ 4;
 		__kKbdLed(data->kbdLedStatus);
+		tag = 1;
 	}
 	else if (c == 0x45)
 	{
 		data->kbdStatus = data->kbdStatus ^ NUMSLOCK_SET_FLAG;
 		data->kbdLedStatus = data->kbdLedStatus ^ 2;
 		__kKbdLed(data->kbdLedStatus);
+		tag = 1;
 	}
 	else if (c == 0x46)
 	{
 		data->kbdStatus = data->kbdStatus ^ SCROLLLOCK_SET_FLAG;
 		data->kbdLedStatus = data->kbdLedStatus ^ 1;
 		__kKbdLed(data->kbdLedStatus);
+		tag = 1;
 	}
 	else if (c == 0x53)	//delete
 	{
@@ -339,19 +350,11 @@ void __kKeyboardProc() {
 		{
 			__reboot();
 		}
-		else {
-			//keep it
-			//data->kbdBufHdr--;
-			//if (data->kbdBufHdr <= 0)
-			//{
-			//	data->kbdBufHdr = KEYBORAD_BUF_SIZE - 1;
-			//}
-			//return;
-		}
 	}
 	else if (c == 0x37 || (c >= 0x47 && c <= 0x53))
 	{
-		result = numsLockProc(c);
+		numsLockProc(c);
+		tag = 1;
 	}
 	else if (c == 0xe0)
 	{
@@ -362,14 +365,6 @@ void __kKeyboardProc() {
 			if ((data->kbdStatus & (CTRLLEFT_SET_FLAG | ALTLEFT_SET_FLAG)) || (data->kbdStatus & (CTRLRIGHT_SET_FLAG | ALTRIGHT_SET_FLAG)))
 			{
 				__reboot();
-			}
-			else {
-				//data->kbdBufHdr--;
-				//if (data->kbdBufHdr <=0)
-				//{
-				//	data->kbdBufHdr = KEYBORAD_BUF_SIZE-1;
-				//}
-				//return;
 			}
 		}
 		else if (c == 0xe0d3)
@@ -399,8 +394,7 @@ void __kKeyboardProc() {
 
 			if (c == 0xe02ae037)
 			{
-				__kPrintScreen();
-				//printfscreen make code,to keep it
+				__kPrintScreen();	//printfscreen make code
 			}
 			else {
 
@@ -420,11 +414,12 @@ void __kKeyboardProc() {
 		}
 		else if (c == 0xe01c || c == 0xe035)
 		{
-			result = numsLockProc(c);
+			numsLockProc(c);
 		}
 		else {
 
 		}
+		tag = 1;
 	}
 	else if (c == 0xe1)
 	{
@@ -459,6 +454,7 @@ void __kKeyboardProc() {
 				pauseBreak();
 			}
 		}
+		tag = 1;
 	}
 	else if (c == 0xe2)
 	{
@@ -468,6 +464,7 @@ void __kKeyboardProc() {
 		c += ReadKey();
 		c = c << 8;
 		c += ReadKey();
+		tag = 1;
 	}
 
 	else if ((c >= 0x3b && c <= 0x44) || c == 0x57 || c == 0x58)
@@ -477,10 +474,10 @@ void __kKeyboardProc() {
 
 	if (c & 0x80)
 	{
-
+		tag = 1;
 	}
 	else {
-		unsigned ch = ReadKey();
+		//unsigned ch = ReadKey();
 	}
 
 	if (gKbdTest)
@@ -488,7 +485,7 @@ void __kKeyboardProc() {
 		kbdtest();
 	}
 
-	if ( (c & 0x80) == 0) {
+	if ( (c & 0x80) == 0 && tag == 0) {
 		__enterSpinlock(&g_kbd_lock);
 		data->kbdBuf[data->kbdBufHdr] = c;
 		data->kbdStatusBuf[data->kbdBufHdr] = data->kbdStatus;

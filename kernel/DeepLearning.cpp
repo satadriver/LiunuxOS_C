@@ -173,24 +173,7 @@ int TaskSchedulePredict(TaskPredictParam* tp) {
 
 
 
-int GetSamplePos(int cpu,int * label) {
-	int g_tasks_cpu_array[256];
-	int pos = 0;
-	int subpos = 0;
-	int cnt = g_cpu_total;
-	int* cpus = (int*)g_cpu_id;
-	for(int i = 0;i < cnt; i++) {
-		if (cpus[i] == cpu) {
-			break;
-		}
-		else {
-			pos += g_tasks_cpu_array[cpus[i]] * sizeof(TaskSwitchSample);
-			subpos +=sizeof(float);
-		}
-	}
-	*label = subpos;
-	return pos;
-}
+
 
 
 

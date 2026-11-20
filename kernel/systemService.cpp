@@ -307,9 +307,6 @@ extern "C"  __declspec(dllexport)void __ipiCreateThread(DWORD addr, DWORD module
 void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack) {
 	//__asm {cli}
 	
-	//extern unsigned long long g_sleep_count;
-	//g_sleep_count++;
-
 	int sleeptime = params[0];
 	int interval = TASK_TIME_SLICE;
 	DWORD times = sleeptime / interval;
@@ -349,9 +346,6 @@ void sleep(DWORD * params, LIGHT_ENVIRONMENT* stack) {
 
 
 void sleep_delay(DWORD * params) {
-
-	extern unsigned long long g_sleep_count;
-	g_sleep_count++;
 
 	int sleeptime = params[0];
 	int interval = TASK_TIME_SLICE;
@@ -399,6 +393,7 @@ void sleep_delay(DWORD * params) {
 	while(1)
 	{	
 		//__yield();
+		g_sleep_count[id]++;
 		
 		__asm {
 			hlt
@@ -527,11 +522,9 @@ DWORD	__cputype(unsigned long * params) {
 	__asm{
 		mov edi,params
 		mov eax, 0
-		; must use .586 or above
-		; dw 0a20fh
 		mov ecx,0
 		cpuid
-		; ebx:edx:ecx = intel or else
+		//ebx:edx:ecx = intel or else
 		mov ds : [edi + 0] , ebx
 		mov ds : [edi + 4] , edx
 		mov ds : [edi + 8] , ecx
@@ -540,23 +533,44 @@ DWORD	__cputype(unsigned long * params) {
 }
 
 
+//eax 0x0 : get vendor string
+// eax 0x1 : get feature info
+// eax 0x2 : get cache and TLB info
+// eax 0x3 : get serial number
+// eax 0x4 : get deterministic cache parameters
+// eax 0x5 : get MONITOR/MWAIT parameters
+// eax 0x6 : get thermal and power management
+// eax 0x7 : get extended features
+
+//eax 0x80000000 : get max extension function number
+//eax 0x80000001 : get cpu feature
+//eax 0x80000002 : get cpu name part1
+//eax 0x80000003 : get cpu name part2
+//eax 0x80000004 : get cpu name part3
+//eax 0x80000005 : get L1 cache and TLB info
+//eax 0x80000006 : get L2 cache and TLB info
+//eax 0x80000007 : get advanced power management info
+//eax 0x80000008 : get physical and virtual address size
+//eax 0x80000009 : get SVM feature
+//eax 0x8000000a : get L3 cache info
+//eax 0x8000000b : get extended topology info
+//eax 0x8000000c : get extended feature info
 
 
 
 DWORD __cpuinfo(unsigned long* params) {
-	__asm {
-		mov edi,params
+	__asm {	
+		mov		edi,params
+		mov     dword ptr[edi], 0
 
 		mov     eax, 80000000h
 		mov		ecx,0
-		; dw 0a20fh
-		cpuid
+		cpuid	//dw 0a20fh , must use .586 or above
 		cmp     eax, 80000004h
 		jb      __cpuinfoEnd
 
 		mov     eax, 80000002h
 		mov		ecx, 0
-		; dw 0a20fh
 		cpuid
 		mov     dword ptr[edi + 0], eax
 		mov     dword ptr[edi + 4], ebx
@@ -565,7 +579,6 @@ DWORD __cpuinfo(unsigned long* params) {
 
 		mov     eax, 80000003h
 		mov		ecx, 0
-		; dw 0a20fh
 		cpuid
 		mov     dword ptr[edi + 16], eax
 		mov     dword ptr[edi + 20], ebx
@@ -574,7 +587,6 @@ DWORD __cpuinfo(unsigned long* params) {
 
 		mov     eax, 80000004h
 		mov		ecx, 0
-		; dw 0a20fh
 		cpuid	
 		mov     dword ptr[edi + 32], eax
 		mov     dword ptr[edi + 36], ebx
@@ -689,10 +701,7 @@ unsigned __int64 getCpuFreq() {
 
 unsigned __int64 __krdtsc() {
 	__asm {
-
 		rdtsc
-		//why use ret will make error?
-		//ret 
 	}
 }
 
@@ -701,12 +710,9 @@ DWORD __timestamp(unsigned long* params) {
 
 	__asm {
 		mov edi,params
-		; must use .586 or above
 		rdtsc
-		; edx:eax = time stamp
 		mov ds : [edi] , eax
 		mov ds : [edi + 4] , edx
-		mov dword ptr ds : [edi + 8] , 0
 	}
 }
 

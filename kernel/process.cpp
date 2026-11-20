@@ -53,9 +53,7 @@ void __kFreeProcess(LPPROCESS_INFO proc) {
 // any process can call this to terminate self to other process with dwtid
 //above so,the most import element is dwtid
 #ifdef TASK_SWITCH_ARRAY
-extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
-
-	int tid = dwtid & 0x7fffffff;
+extern "C" __declspec(dllexport) void __terminateProcess(int tid, char* filename, char* funcname, DWORD lpparams) {
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetTaskTssBase();
 
@@ -110,19 +108,13 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	//__printf(szout, "pid:%d tid:%d file:%s function:%s terminate\r\n",pid,tid,filename,funcname);
 
-	if (dwtid & 0x80000000) {
-		return;
-	}
-	else {
-		//yield();
+	//yield();
 
-		__sleep(-1);
-	}
+	__sleep(-1);
 }
 #else
-extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filename, char* funcname, DWORD lpparams) {
+extern "C" __declspec(dllexport) void __terminateProcess(int tid, char* filename, char* funcname, DWORD lpparams) {
 	char szout[256];
-	int tid = dwtid & 0x7fffffff;
 
 	LPPROCESS_INFO tss = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
@@ -134,14 +126,9 @@ extern "C" __declspec(dllexport) void __terminateProcess(int dwtid, char* filena
 
 	//__printf(szout, "%s %d pid:%d tid:%d cpu:%d\r\n", __FUNCTION__, __LINE__, pid,tid, tss->cpuid);
 
-	if (dwtid & 0x80000000) {
-		return;
-	}
-	else {
-		while (1)
-			Halt();
-		//__sleep(-1);
-	}
+	while (1)
+		Halt();
+	//__sleep(-1);
 }
 #endif
 
@@ -176,7 +163,7 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	//tss->fpu = 0;
 
 	DWORD syslevel = level & 3;
-	tss->level = syslevel;
+	tss->level = (unsigned char)syslevel;
 	tss->copyMap = 0;
 
 	DWORD eflags = 0x200202;	//if = 1,cpuid = 1

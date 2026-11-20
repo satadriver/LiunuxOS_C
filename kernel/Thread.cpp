@@ -20,9 +20,7 @@
 //above so,the most import element is dwtid
 
 #ifdef TASK_SWITCH_ARRAY
-extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
-
-	int tid = dwtid & 0x7fffffff;
+extern "C" __declspec(dllexport) DWORD __kTerminateThread(int tid, char* filename, char* funcname, DWORD lpparams) {
 
 	char szout[256];
 
@@ -57,32 +55,21 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filen
 
 	leave_task_array_lock();
 
-	if (dwtid & 0x80000000) {
-		return 0;
-	}
-	else {
-		__yield();
+	//__yield();
 
-		__sleep(-1);
-	}
+	__sleep(-1);
 
 	return 0;
 }
 #else
-extern "C" __declspec(dllexport) DWORD __kTerminateThread(int dwtid, char* filename, char* funcname, DWORD lpparams) {
-
-	int tid = dwtid & 0x7fffffff;
+extern "C" __declspec(dllexport) DWORD __kTerminateThread(int tid, char* filename, char* funcname, DWORD lpparams) {
 
 	MarkTaskListTid(tid,1);
 
-	if (dwtid & 0x80000000) {
-		return 0;
-	}
-	else {
-		while (1)
-			Halt();
-		//__sleep(-1);
-	}
+	while (1)
+		Halt();
+	//__sleep(-1);
+	
 	return 0;
 }
 #endif

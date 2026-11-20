@@ -449,14 +449,14 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 		else {
 			for (int i = num; i < ML_TASK_LIMIT; i++) {
-				tpp_buf.task[i].tickrate = 1.0;
-				tpp_buf.task[i].cpurate = 1.0;
+				tpp_buf.task[i].tickrate = 0.0;
+				tpp_buf.task[i].cpurate = 0.0;
 				tpp_buf.task[i].user = 0.0;
 				tpp_buf.task[i].window = 0.0;
 				tpp_buf.task[i].delta = 0.0;
 				tpp_buf.task[i].priority = 0.0;
 				tpp_buf.task[i].authority = 0.0;
-				tpp_buf.task[i].sleep = 1.0;
+				tpp_buf.task[i].sleep = 0.0;
 				tpp_buf.task[i].mem = 0.0;
 				tpp_buf.task[i].alloc = 0.0;
 				tpp_buf.task[i].delay = 0.0;
@@ -464,7 +464,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 
 		if (g_dl_train_complete == 0  ) { 
-			if (  (count >= ML_TASK_LIMIT / g_cpu_total)  && (g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)  /* && sleep */)
+			if (sleep || (count >= ML_TASK_LIMIT / g_cpu_total  && g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)  )
 			{
 #ifdef MODEL_TYPE_RNN
 				CollectRNNSample(&tpp_buf, count);
@@ -908,14 +908,14 @@ int PredictionTask() {
 				}
 				else {
 					for (int i = num; i < ML_TASK_LIMIT; i++) {
-						tp.task[i].tickrate = 1.0;
-						tp.task[i].cpurate = 1.0;
+						tp.task[i].tickrate = 0.0;
+						tp.task[i].cpurate = 0.0;
 						tp.task[i].user = 0.0;
 						tp.task[i].window = 0.0;
 						tp.task[i].delta = 0.0;
 						tp.task[i].priority = 0.0;
 						tp.task[i].authority = 0.0;
-						tp.task[i].sleep = 1.0;
+						tp.task[i].sleep = 0.0;
 						tp.task[i].mem = 0.0;
 						tp.task[i].alloc = 0.0;
 						tp.task[i].delay = 0.0;
