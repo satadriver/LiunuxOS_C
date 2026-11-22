@@ -1212,6 +1212,8 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 	DWORD reg_ebp = readebp();
 	int ret = 0;
 
+	InitCurrentTask();
+
 	char szout[256];
 
 	int lint0 = *(DWORD*)(LOCAL_APIC_BASE + 0x350);

@@ -22,8 +22,6 @@
 
 int g_task_list_lock[256];
 
-int g_task_array_lock[256] ;
-
 int g_last_task_tid[MAX_CPU_COUNT];
 
 unsigned long long g_cpu_prev_tick[MAX_CPU_COUNT];
@@ -32,25 +30,32 @@ unsigned long long g_cpu_start_tick[MAX_CPU_COUNT];
 
 int g_tagMsg = 0;
 
-
+/*
+int g_task_array_lock[256];
+*/
 
 void enter_task_array_lock() {
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	__enterSpinlock(&g_task_array_lock[id]);
+
+	LPPROCESS_INFO cur = GetCurrentTaskTssBase();
+	__enterSpinlock(cur->lplock);
 }
 
 void leave_task_array_lock() {
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	__leaveSpinlock(&g_task_array_lock[id]);
+	LPPROCESS_INFO cur = GetCurrentTaskTssBase();
+	__leaveSpinlock(cur->lplock);
 }
 
 void enter_task_array_lock_id(int id) {
-	__enterSpinlock(&g_task_array_lock[id]);
+
+	LPPROCESS_INFO cur = GetCurrentTaskTssBaseId(id);
+	__enterSpinlock(cur->lplock);
 }
 
 void leave_task_array_lock_id(int id) {
-	__leaveSpinlock(&g_task_array_lock[id]);
+	LPPROCESS_INFO cur = GetCurrentTaskTssBaseId(id);
+	__leaveSpinlock(cur->lplock);
 }
+
 
 
 
@@ -794,12 +799,13 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 	//SwitchTaskCPU();
 
 	int ret = 0;
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
 
 	ret = __GetSpinlock(&g_task_list_lock[id]);
 	if (ret == 0)
 		return 0;
 
-	ret = __GetSpinlock(&g_task_array_lock[id]);
+	ret = __GetSpinlock(cur->lplock);
 	if (ret) {	
 
 #ifdef SINGLE_TASK_TSS
@@ -811,8 +817,8 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 			result = 1;
 
 		if (sleep) {
-			LPPROCESS_INFO current = (LPPROCESS_INFO)GetCurrentTaskTssBase();
-			V86ProcessCheck(env, current, 0);
+			
+			V86ProcessCheck(env, cur, 0);
 		}
 
 		__kApicTimerProc();
@@ -820,7 +826,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 #ifndef TASK_SWITCH_ARRAY
 		//__kRemoveTask(0);
 #endif
-		ret = __leaveSpinlock(&g_task_array_lock[id]);
+		ret = __leaveSpinlock(cur->lplock);
 	}
 
 	ret = __leaveSpinlock(&g_task_list_lock[id]);
@@ -849,6 +855,20 @@ void SetIVTVector() {
 	}
 }
 
+
+void InitCurrentTask() {
+	LPPROCESS_INFO cur = (LPPROCESS_INFO)GetCurrentTaskTssBase();
+	cur->lplock = &cur->lock;
+	cur->lock = 0;
+	cur->lpvasize = &cur->va_size;
+	cur->va_size = 0;
+	cur->status = TASK_RUN;
+	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
+	cur->cpuid = id;
+	cur->lpheap_lock = &cur->heap_lock;
+	cur->lpHeapBase = (char***) &cur->heapBase;
+	cur->lpHeapCnt = &cur->heapCnt;
+}
 
 int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	int ret = 0;
@@ -924,6 +944,8 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	proc->heap_lock = 0;
 	proc->lpheap_lock = &proc->heap_lock;
 	proc->lpHeapBase = (char***)&proc->heapBase;
+	proc->lplock = &proc->lock;
+	proc->lock = 0;
 
 	proc->large_heap_size = 0;
 	proc->fast_heap_large = 0;
@@ -937,7 +959,6 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	proc->prev_tick = __krdtsc();
 	proc->tick_start = __krdtsc();
 	proc->tick_total = 0;
-	//proc->tick_switch_cost = 0;
 
 	DWORD size = HEAP_SIZE;
 	char* buf = (char*)__kProcessMalloc(HEAP_SIZE, &size, 0, id, 0, PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT);

@@ -361,6 +361,8 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->lpHeapCnt = &tss->heapCnt;
 	tss->heap_lock = 0;
 	tss->lpheap_lock = &tss->heap_lock;
+	tss->lock = 0;
+	tss->lplock = &tss->lock;
 
 	vaddr = tss->vaddr + *tss->lpvasize;
 	heapsize = HEAP_SIZE;
@@ -410,7 +412,6 @@ int __initProcess(LPPROCESS_INFO tss, int tid, DWORD filedata, char * filename, 
 	tss->prev_tick = __krdtsc();
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
-//	tss->tick_switch_cost = 0;
 
 	tss->sleep = 0;
 	tss->sleep_total = 0;

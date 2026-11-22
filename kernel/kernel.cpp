@@ -92,15 +92,16 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	g_cpu_id[0] = id;
 
 	gGraphBase =(DWORD)( vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+	InitCurrentTask();
 	SetTaskVideoBase(vesa->PhyBasePtr + vesa->OffScreenMemOffset);
 	__initVideo(vesa, fontbase);
 
 	initMemory();
-
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	__initTask0((char*)LIUNUX_KERNEL32_DLL, "__kKernel", 0, GRAPHCHAR_HEIGHT * id * 16 + 64);
-
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	initPaging();
-	
+	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
 	InitGdt();
 	InitIDT();
 
@@ -193,7 +194,7 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	//logFile("__kernelEntry\n");
 	
 	//ret = loadLibRunFun(LIUNUX_BASE_PATH "main.dll", "__kMainProcess");
-	__printf(szout, "%s %d ok\r\n", __FUNCTION__, __LINE__);
+	
 	DWORD reg_esp = readesp();
 	DWORD reg_ebp = readebp();
 

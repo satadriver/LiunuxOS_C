@@ -61,7 +61,7 @@ typedef struct {
 #define TASK_TERMINATE			4
 #define TASK_REALTIME			8
 
-extern "C" int g_task_array_lock[256];
+//extern "C" int g_task_array_lock[256];
 
 extern "C" int g_last_task_tid[MAX_CPU_COUNT];
 
@@ -92,6 +92,8 @@ void __kRemoveTask( int lock);
 void SetIVTVector();
 
 extern "C" int __kTaskSwitch(LIGHT_ENVIRONMENT* stack);
+
+void InitCurrentTask();
 
 int __initTask0(char* filename, char* funcname,int showx,int showy);
 

@@ -76,9 +76,6 @@ typedef struct _PROCESS_INFO
 
 	DWORD vaddr;
 
-	//内存分配的虚拟地址偏移
-	DWORD * lpvasize;
-
 	DWORD alloc_times;
 	DWORD free_times;
 
@@ -117,6 +114,8 @@ typedef struct _PROCESS_INFO
 	DWORD dr6;
 	DWORD dr7;
 
+	int * lplock;
+	DWORD * lpvasize;
 	char* fast_heap_large;
 	int large_heap_size;
 	char* fast_heap;
@@ -125,6 +124,7 @@ typedef struct _PROCESS_INFO
 	DWORD heapsize;
 	char*** lpHeapBase;
 
+	int lock;
 	char filename[256];
 	char funcname[64];
 	DWORD va_size;

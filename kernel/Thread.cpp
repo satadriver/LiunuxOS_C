@@ -106,14 +106,12 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	freetask.number = GenPid();
 #endif
 
-	//DWORD imagesize = getSizeOfImage((char*)module);
-	//DWORD alignsize = getAlignSize(imagesize, PAGE_SIZE);
-	
-	//如果想要修改父进程的信息，必须在CURRENT_TASK_TSS_BASE中修改，否则线程切换时信息还是会被替换
 	LPPROCESS_INFO process = (LPPROCESS_INFO)GetCurrentTaskTssBaseId(cpu);
 	LPPROCESS_INFO tss = freetask.lptss;
-	__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
-	__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
+	//__memset((char*)tss->tss.intMap, 0, sizeof(tss->tss.intMap));
+	//__memset((char*)tss->tss.iomap, 0, sizeof(tss->tss.iomap));
+	int tssSize = GetTssSize();
+	__memcpy((char*)tss, (char*)process, tssSize);
 	tss->copyMap = 0;
 #ifdef SINGLE_TASK_TSS
 	tss->tss.trap = 0;
@@ -144,6 +142,8 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	tss->cpuid = cpu;
 
 	//tss->fpu = 0;
+	tss->lock = 0;
+	tss->lplock = &tss->lock;
 	tss->level = process->level;
 	tss->vaddr = process->vaddr;
 	tss->lpvasize = process->lpvasize;
@@ -292,7 +292,6 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 	tss->prev_tick = __krdtsc();
 	tss->tick_start = __krdtsc();
 	tss->tick_total = 0;
-//	tss->tick_switch_cost = 0;
 
 	tss->slice = process->slice;
 	tss->frac_slice = 0;

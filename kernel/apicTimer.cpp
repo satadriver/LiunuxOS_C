@@ -188,12 +188,14 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 		return 0;
 	}
 	
-	res = __GetSpinlock(&g_task_array_lock[src_id]);
+	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
+	res = __GetSpinlock(src_current->lplock);
 	if (res == 0) {
 		return 0;
 	}
-	LPPROCESS_INFO src_current = GetCurrentTaskTssBaseId(src_id);
+	
 	double max = 0.0;	
+	LPPROCESS_INFO dst_current = GetCurrentTaskTssBaseId(dst_id);
 
 	double cpu_diff = tick - g_cpu_start_tick[src_id];
 #ifdef TASK_SWITCH_ARRAY
@@ -274,7 +276,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 
 	if (src_target ) {
 		
-		res = __GetSpinlock(&g_task_array_lock[dst_id]);
+		res = __GetSpinlock(dst_current->lplock);
 		if (res) {
 			int pid = src_target->proc.pid;
 
@@ -301,10 +303,10 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 			__printf(szout, "%s copy cpu:%d pid:%d to cpu:%d\r\n", __FUNCTION__, src_id, pid, dst_id);
 		}
 		//leave_task_array_lock_id(dst_id);
-		__leaveSpinlock(&g_task_array_lock[dst_id]);
+		__leaveSpinlock(dst_current->lplock);
 	}
 #endif
-	__leaveSpinlock(&g_task_array_lock[src_id]);
+	__leaveSpinlock(src_current->lplock);
 	//leave_task_array_lock_id(src_id);
 
 	return 0;
