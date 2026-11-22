@@ -123,7 +123,7 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 			}
 			else {
 				return playWavFile(filename);
-			}	
+			}
 		}
 	}
 	else if (__strcmp(params[0], "uname") == 0) {
@@ -490,7 +490,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "hdmedium") == 0) {
-
 		getIdeMediumSeq(szout);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}
@@ -498,7 +497,6 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		ret = __drawWindowChars((char*)getVGAInfo(), CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "vesa") == 0) {
-
 		__sprintf(szout,"mode:%x,width:%x,height:%x,color:%x\r\n", gVideoMode,gVideoWidth,gVideoHeight,gBytesPerPixel<<3);
 		ret = __drawWindowChars((char*)szout, CONSOLE_FONT_COLOR, window);
 	}

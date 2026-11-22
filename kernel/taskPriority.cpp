@@ -66,6 +66,15 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
+	PROCESS_INFO* cur = GetCurrentTaskTssBase();
+	cur->counter++;
+	if (cur->sleep)
+		cur->sleep--;
+
+	cur->delta = cur->delta >> 1;
+	cur->priority = cur->priority >> 1;
+	cur->delay = cur->delay >> 1;
+
 	LPPROCESS_INFO target_tss = 0;
 
 	int ret = __GetSpinlock(&g_tp_lock[cpu]);
@@ -80,6 +89,13 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		__leaveSpinlock(&g_tp_lock[cpu]);
 		if (target_tss) {
 			g_task_pre_cache_hit++;
+			target_tss->counter++;
+			if (target_tss->sleep)
+				target_tss->sleep--;
+
+			target_tss->delta = cur->delta >> 1;
+			target_tss->priority = cur->priority >> 1;
+			target_tss->delay = cur->delay >> 1;
 			return target_tss;
 		}
 	}
@@ -113,11 +129,6 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 	TaskPredictParam tpp_buf;
 
 	unsigned long long ticknow = __krdtsc();
-
-	PROCESS_INFO* cur = GetCurrentTaskTssBase();
-	cur->counter++;
-	if (cur->sleep)
-		cur->sleep--;
 
 #ifdef TASK_SWITCH_ARRAY
 	PROCESS_INFO* tss = GetTaskTssBase();
@@ -534,9 +545,6 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		target_tss->authority = target_tss->authority / 2;
 		target_tss->delay >>= 1;
 	}
-	cur->delta = cur->delta>>1;
-	cur->priority = cur->priority>>1;
-	cur->delay = cur->delay>>1;
 
 	return target_tss;
 }
@@ -583,9 +591,6 @@ int PredictionTask() {
 	LPPROCESS_INFO target_tss = 0;
 
 	PROCESS_INFO* cur = GetCurrentTaskTssBase();
-	cur->delay >= 1;
-	cur->priority >>= 1;
-	cur->delta >>= 1;
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
 
@@ -631,7 +636,6 @@ int PredictionTask() {
 					else if (ptr->status == TASK_RUN) {
 						if (ptr->sleep) {
 							sleep_count++;
-							//ptr->sleep--;
 						}
 						else {
 							if ((ptr->tick_total == 0 || g_cpu_tick[cpu] == 0) || ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
@@ -737,13 +741,14 @@ int PredictionTask() {
 				g_task_other_hit++;
 				if (sleep_count <= 0) {
 					__printf(szout, "%s %d task:%s cpu:%d tid:%d status:%d error\r\n", __FUNCTION__, __LINE__, cur->funcname, cpu, cur->tid, cur->status);
-					return 0;
+					//return 0;
+					target_tss = 0;
 				}
 				else if(cur->status == TASK_OVER) {
 					target_tss = tss_sleep[0];
 				}
 				else {
-					return 0;
+					target_tss = prev;
 				}
 			}
 			else if (count == 1) {
@@ -961,14 +966,6 @@ int PredictionTask() {
 				target_tss = tss[target_idx];
 #endif
 			}
-
-			target_tss->delta >>= 1;
-			target_tss->delay >>= 1;
-			target_tss->authority = target_tss->authority / 2;
-
-			cur->delta = cur->delta>>1;
-			cur->priority = cur->priority>>1;
-			cur->delay = cur->delay>>1;
 
 			g_task_predict_buf[cpu][num] = target_tss;
 		}

@@ -19,7 +19,7 @@ unsigned long long g_tick_persec = 0;
 
 DWORD g_random_seed = 0;
 
-extern "C" __declspec(dllexport)char* g_hlt_addr = 0;
+extern "C" __declspec(dllexport)char* g_hlt_ret_addr = 0;
 
 DWORD __declspec(naked) ServiceEntry(LIGHT_ENVIRONMENT* stack) {
 
@@ -397,12 +397,12 @@ void sleep_delay(DWORD * params) {
 		
 		__asm {
 			hlt
-			__hlt_addr:
-			cmp dword ptr ds : [g_hlt_addr],0
-			jnz __hlt_addr_end
-			lea eax, __hlt_addr
-			mov	ds:[g_hlt_addr],eax
-			__hlt_addr_end:
+			__hlt_ret_addr :
+			lea eax, __hlt_ret_addr
+			cmp dword ptr ds : [g_hlt_ret_addr], eax
+			jnz __hlt_addr_after
+			mov	ds : [g_hlt_ret_addr], eax
+			__hlt_addr_after :
 		}
 
 		if (cur->sleep == 0)

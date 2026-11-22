@@ -57,7 +57,7 @@ extern unsigned long long g_tick_prev ;
 
 #ifdef DLL_EXPORT
 extern "C" __declspec(dllexport) unsigned long long g_tick_persec;
-extern "C" __declspec(dllexport) char* g_hlt_addr;
+extern "C" __declspec(dllexport) char* g_hlt_ret_addr;
 extern "C" __declspec(dllexport) int CpuTemperature(DWORD * temp);
 extern "C" __declspec(dllexport) int __kVm86IntProc();
 extern "C"  __declspec(dllexport) unsigned __int64 __krdtsc();
@@ -116,7 +116,7 @@ extern "C"  __declspec(dllexport)void __ksti();
 extern "C"  __declspec(dllexport)unsigned long long getsecond();
 #else
 extern "C" __declspec(dllimport) unsigned long long g_tick_persec;
-extern "C" __declspec(dllimport) char* g_hlt_addr;
+extern "C" __declspec(dllimport) char* g_hlt_ret_addr;
 extern "C"  __declspec(dllimport) unsigned __int64 __krdtsc();
 extern "C" __declspec(dllimport) int CpuTemperature(DWORD * temp);
 extern "C" __declspec(dllimport) int __kVm86IntProc();

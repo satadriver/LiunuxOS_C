@@ -537,7 +537,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 #endif
 	if (prev) {
 		unsigned long long tick1 = __krdtsc();
-		if (env->eip == (DWORD)g_hlt_addr) {
+		if (env->eip == (DWORD)g_hlt_ret_addr) {
 
 		}
 		else {
@@ -1047,7 +1047,16 @@ extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
 				while (1)
 					Halt();
 			}
-			__asm {hlt}
+
+			__asm {
+				hlt
+				__hlt_ret_addr :
+				lea eax, __hlt_ret_addr
+				cmp dword ptr ds : [g_hlt_ret_addr], eax
+				jnz __hlt_addr_after
+				mov	ds : [g_hlt_ret_addr], eax
+				__hlt_addr_after :
+			}
 
 			unsigned long long t = __krdtsc();
 			
@@ -1090,7 +1099,15 @@ extern "C" void __declspec(dllexport) yield( LIGHT_ENVIRONMENT * stack) {
 				Halt();
 		}
 
-		__asm{hlt}
+		__asm {
+			hlt
+			__hlt_ret_addr :
+			lea eax, __hlt_ret_addr
+			cmp dword ptr ds : [g_hlt_ret_addr], eax
+			jnz __hlt_addr_after
+			mov	ds : [g_hlt_ret_addr], eax
+			__hlt_addr_after :
+		}
 		
 		unsigned long long t = __krdtsc();
 		

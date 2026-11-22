@@ -25,7 +25,6 @@ WORD beat[] = {
 void __kSpeakerProc() {
 	//__drawGraphChars((unsigned char*)"speaker running\r\n", 0);
 
-
 	__asm {
 		mov al, 0b6h
 		out 43h, al

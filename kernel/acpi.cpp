@@ -10,10 +10,16 @@
 
 int g_cpu_total_apci = 0;
 
+static const ACPIFadt *acpiFadt = 0;
+
+static const ACPIHeader *acpiSsdt = 0;
+
+static const ACPIHeader *acpiDsdt = 0;
+
 
 static void *acpi_find_table(void *root_sdt, const char *sig, int is_xsdt)
 {
-	acpi_sdt_header_t *sdt = (acpi_sdt_header_t *)root_sdt;
+	acpi_sdt_header_t *sdt = (acpi_sdt_header_t *)root_sdt;		//RSDT
 	uint8_t *entry_start = (uint8_t *)root_sdt + sizeof(acpi_sdt_header_t);
 	size_t entry_size = is_xsdt ? 8 : 4;
 	size_t entry_count = (sdt->length - sizeof(acpi_sdt_header_t)) / entry_size;
@@ -51,12 +57,12 @@ int acpi_enumerate_cpus(acpi_rsdp_t *rsdp, uint8_t *lapic_ids, int max_cpus)
 	}
 
 	if (!madt) {
-		__printf(szout, (char*)"%s not found madt\r\n", __FUNCTION__);
+		__printf(szout, (char*)"%s not found MADT!\r\n", __FUNCTION__);
 		return -1; 
 	}
 
 	ACPIHeaderApic * apic = (ACPIHeaderApic*)madt;
-	__printf(szout, (char*)"%s madt:%x,apic address:%x,flag:%x\r\n", __FUNCTION__,madt,apic->localApicAddress,apic->flags);
+	__printf(szout, (char*)"%s MADT:%x,APIC address:%x,flag:%x\r\n", __FUNCTION__,madt,apic->localApicAddress,apic->flags);
 
 	uint8_t *ptr = (uint8_t *)madt + sizeof(ACPIHeaderApic);
 	uint8_t *end = (uint8_t *)madt + madt->length;
@@ -87,25 +93,61 @@ int acpi_enumerate_cpus(acpi_rsdp_t *rsdp, uint8_t *lapic_ids, int max_cpus)
 	return cpu_count;
 }
 
+/*
+? Root System Description Table(RSDT)
+? Fixed ACPI Description Table(FADT)
+? Firmware ACPI Control Structure(FACS)
+? Differentiated System Description Table(DSDT)
+? Secondary System Description Table(SSDT)
+? Multiple APIC Description Table(MADT)
+? Smart Battery Table(SBST)
+? Extended System Description Table(XSDT)
+? Embedded Controller Boot Resources Table(ECDT)
+? System Locality Distance Information Table(SLIT)
+? System Resource Affinity Table(SRAT)
+? Corrected Platform Error Polling Table(CPEP)
+? Maximum System Characteristics Table(MSCT)
+? ACPI RAS Feature Table(RASF)
+? Memory Power State Table(MPST)
+? Platform Memory Topology Table(PMTT)
+? Boot Graphics Resource Table(BGRT)
+? Firmware Performance Data Table(FPDT)
+? Generic Timer Description Table(GTDT)
+? NVDIMM Firmware Interface Table(NFIT)
+*/
 
 int parseDT(ACPIHeader *dt)
 {
+	char szout[256];
 	u32 signature = dt->signature;
 	char signatureString[5];
 	__memcpy((char *)signatureString, (char *)&signature, 4);
 	signatureString[4] = '\0';
 
 	if (signature == *(u32 *)"APIC") {
-
+		__printf(szout, (char*)"%s APIC:%x\r\n", __FUNCTION__, dt);
+	}
+	else if (signature == *(u32 *)"BGRT") {
+		__printf(szout, (char*)"%s BGRT:%x\r\n", __FUNCTION__, dt);
 	}
 	else if (signature == *(u32 *)"HPET") {
-
+		__printf(szout, (char*)"%s HPET:%x\r\n", __FUNCTION__, dt);
 	}
 	else if (signature == *(u32 *)"FACP") {
-
+		acpiFadt = (ACPIFadt *)dt;
+		__printf(szout, (char*)"%s FACP:%x\r\n", __FUNCTION__, dt);
 	}
 	else if (signature == *(u32 *)"SSDT") {
-
+		acpiSsdt = (ACPIHeader *)dt;
+		__printf(szout, (char*)"%s SSDT:%x\r\n", __FUNCTION__, acpiSsdt);
+	}
+	else if (signature == *(u32 *)"FADT") {
+		acpiFadt = (ACPIFadt *)dt;
+		__printf(szout, (char*)"%s FADT:%x\r\n", __FUNCTION__, acpiFadt);
+	}
+	else if (signature == *(u32 *)"DSDT") {
+		acpiDsdt = (ACPIHeader *)dt;
+		__printf(szout, (char*)"%s DSDT:%x\r\n", __FUNCTION__, acpiDsdt);
 	}
 	return TRUE;
 }
@@ -203,7 +245,7 @@ int initACPI(void)
 			unsigned char cpus[256];
 			int cpucnt = acpi_enumerate_cpus((acpi_rsdp_t *)start,cpus,256);
 			if (cpucnt) {
-				__printf(szout, "find apic cpu:%d\r\n",cpucnt);
+				__printf(szout, "find local apic cpu:%d\r\n",cpucnt);
 			}
 
 			if (parseRSDP((XSDP_HEADER * )start) == 0)
@@ -238,18 +280,14 @@ int initACPI(void)
 
 
 
-static const ACPIFadt *acpiFadt = 0;
 
-static const ACPIHeader *acpiSsdt = 0;
-
-static const ACPIHeader *acpiDsdt = 0;
 
 
 extern "C"  __declspec(dllexport) int doPowerOff(void)
 {
 
 	const ACPIHeader *dt = acpiDsdt; /*先找dsdt*/
-retry:;
+retry:
 	u8 *data = (u8 *)dt + sizeof(ACPIHeader); /*获取data和长度*/
 	u32 length = dt->length - sizeof(*dt);
 	for (; length-- > 0; ++data)

@@ -11,28 +11,7 @@
 
 
 
-/*
-• Root System Description Table(RSDT)
-• Fixed ACPI Description Table(FADT)
-• Firmware ACPI Control Structure(FACS)
-• Differentiated System Description Table(DSDT)
-• Secondary System Description Table(SSDT)
-• Multiple APIC Description Table(MADT)
-• Smart Battery Table(SBST)
-• Extended System Description Table(XSDT)
-• Embedded Controller Boot Resources Table(ECDT)
-• System Locality Distance Information Table(SLIT)
-• System Resource Affinity Table(SRAT)
-• Corrected Platform Error Polling Table(CPEP)
-• Maximum System Characteristics Table(MSCT)
-• ACPI RAS Feature Table(RASF)
-• Memory Power State Table(MPST)
-• Platform Memory Topology Table(PMTT)
-• Boot Graphics Resource Table(BGRT)
-• Firmware Performance Data Table(FPDT)
-• Generic Timer Description Table(GTDT)
-• NVDIMM Firmware Interface Table(NFIT)
-*/
+
 
 
 
@@ -54,13 +33,13 @@ typedef struct {
 typedef struct {
 	u32 signature;
 	u32 length;
-	u8 version;
+	u8 version;		//8
 	u8 checksum;
 	u8 oem[6];
-	u8 oemTableID[8];
-	u32 oemVersion;
-	u32 creatorID;
-	u32 creatorVersion;
+	u8 oemTableID[8];	//16
+	u32 oemVersion;		//24
+	u32 creatorID;		//28
+	u32 creatorVersion;	//32
 	//u32 data[0];
 } ACPIHeader;
 
@@ -154,28 +133,28 @@ typedef struct  {
 
 typedef struct  {
 	ACPIHeader header;
-	u32 firmwareControl;
-	u32 dsdt;
-	u8 reserved;
-	u8 preferredPMProfile;
-	u16 sciInterrupt;
-	u32 smiCommandPort;
-	u8 acpiEnable;
-	u8 acpiDisable;
-	u8 unused1[56 - 54];
-	u32 eventRegister1a;
-	u32 eventRegister1b;
+	u32 firmwareControl;		//36
+	u32 dsdt;		//40
+	u8 reserved;	//44
+	u8 preferredPMProfile;	//45
+	u16 sciInterrupt;		//46
+	u32 smiCommandPort;	//48
+	u8 acpiEnable;		//52
+	u8 acpiDisable;		//53
+	u8 unused1[56 - 54];	//54
+	u32 eventRegister1a;	//56
+	u32 eventRegister1b;	//60
 	u32 controlRegister1a; /*PM1a_CNT_BLK*/
 						   /*System port address of the PM1a Control Register Block.*/
 	u32 controlRegister1b; /*PM1b_CNT_BLK*/
 						   /*System port address of the PM1b Control Register Block.*/
-	u8 unused2[88 - 72];
-	u8 eventRegister1Length;
-	u8 unused3[116 - 89];
-	ACPIAddressFormat resetRegister;
-	u8 resetValue;   /*Indicates the value to write to */
+	u8 unused2[88 - 72];	//72
+	u8 eventRegister1Length;	//88
+	u8 unused3[116 - 89];		//89
+	ACPIAddressFormat resetRegister;	//116
+	u8 resetValue;   /*Indicates the value to write to */		//128
 					 /*the RESET_REG port to reset the system.*/
-	u8 unused4[268 - 129];
+	u8 unused4[268 - 129];	//129
 } ACPIFadt;
 
 
