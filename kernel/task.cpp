@@ -30,12 +30,7 @@ unsigned long long g_cpu_start_tick[MAX_CPU_COUNT];
 
 int g_tagMsg = 0;
 
-/*
-int g_task_array_lock[256];
-*/
-
 void enter_task_array_lock() {
-
 	LPPROCESS_INFO cur = GetCurrentTaskTssBase();
 	__enterSpinlock(cur->lplock);
 }
@@ -46,7 +41,6 @@ void leave_task_array_lock() {
 }
 
 void enter_task_array_lock_id(int id) {
-
 	LPPROCESS_INFO cur = GetCurrentTaskTssBaseId(id);
 	__enterSpinlock(cur->lplock);
 }
@@ -56,20 +50,12 @@ void leave_task_array_lock_id(int id) {
 	__leaveSpinlock(cur->lplock);
 }
 
-
-
-
 #ifdef TASK_SWITCH_ARRAY
 void InitTaskArray() {
 	LPPROCESS_INFO tssbase = GetTaskTssBase();
-	for (int i = 0; i < MAX_CPU_COUNT; i++)
-	{
+	for (int i = 0; i < MAX_CPU_COUNT; i++){
 		tssbase[i].status = TASK_OVER;
 	}
-
-	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-
-	g_task_array_lock[id] = 0;
 }
 
 int __GetFreeTask(LPTASKRESULT ret, int id) {
@@ -111,26 +97,16 @@ int __GetFreeTask(LPTASKRESULT ret, int id) {
 
 #else
 
-
-
 PROCESS_INFO_LIST* gTasksListPtr[256];
 
-
-
 char g_task_list_buf[0x1000];
-
-
 
 PROCESS_INFO_LIST* GetTaskListId(int id) {
 	return gTasksListPtr[id];
 }
 
-
-
 void InitTaskList() {
 	int id = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	int size = sizeof(PROCESS_INFO_LIST);
-	//char* gbuf = (char*)__kmalloc(0x1000);
 	gTasksListPtr[id] = (PROCESS_INFO_LIST*)(g_task_list_buf + id* OFFSETOF(PROCESS_INFO_LIST,proc));
 	InitListEntry((LIST_ENTRY*)&(gTasksListPtr[id]->list));
 }
@@ -366,7 +342,6 @@ PROCESS_INFO_LIST* MarkTaskListTid(int tid,int lock) {
 			break;
 		}
 		if (cnt++ > 0x1000) {
-
 			__printf(szout, "%s %d error\r\n", __FUNCTION__, __LINE__);
 		}
 	}
@@ -473,7 +448,6 @@ void clearTssBuf(LPPROCESS_INFO tss) {
 
 
 void debugReg(PROCESS_INFO *next, PROCESS_INFO * prev) {
-	
 	__asm {
 		mov ebx, prev
 
@@ -565,8 +539,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 		}
 		else if (proc->status == TASK_RUN && prev->status == TASK_RUN)
 		{
-			if (sleep)
-			{
+			if (sleep){
 				if (proc->sleep) {
 					proc->sleep--;
 				}
@@ -620,8 +593,7 @@ LPPROCESS_INFO SingleTssSchedule(LIGHT_ENVIRONMENT* env,int sleep) {
 		}
 		else if (next->status == TASK_RUN && next->cpuid == id) {
 			if (next->sleep) {
-				if (sleep)
-				{
+				if (sleep){
 					next->sleep--;
 				}
 			}
@@ -807,7 +779,6 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 
 	ret = __GetSpinlock(cur->lplock);
 	if (ret) {	
-
 #ifdef SINGLE_TASK_TSS
 		LPPROCESS_INFO next = SingleTssSchedule(env,sleep);
 #else
@@ -816,15 +787,14 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 		if (next)
 			result = 1;
 
-		if (sleep) {
-			
+		if (sleep) {		
 			V86ProcessCheck(env, cur, 0);
 		}
 
 		__kApicTimerProc();
 		
 #ifndef TASK_SWITCH_ARRAY
-		//__kRemoveTask(0);
+		__kRemoveTask(0);
 #endif
 		ret = __leaveSpinlock(cur->lplock);
 	}
@@ -987,13 +957,11 @@ int __initTask0(char * filename,char *funcname,int showx,int showy) {
 	return tid;
 }
 
-
 //在V86模式下，CPL=3，执行特权指令时，或者要引起出错码为0的通用保护故障，或者要引起 非法操作码故障。
 //由于CPL = 3， 所以如果IOPL < 3，那么执行CLI或STI指令将引起通用保护故障。
 //输入 / 输出指令IN、INS、OUT或OUTS的 敏感条件仅仅是当前V86任务TSS内的I / O许可位图，而忽略EFLAGS中的IOPL。
 //在V86模式下， 当IOPL < 3时，执行指令PUSHF、POPF、INT n及IRET会引起出错码为0的通用保护故障。
 //采取上述措施的目的是使操作系统软件可以支持一个“虚拟EFLAGS”寄存器。
-
 
 
 extern "C" int __declspec(naked) __kTaskSwitch(LIGHT_ENVIRONMENT* stack) {
@@ -1189,5 +1157,3 @@ void tasktest(LIGHT_ENVIRONMENT* env, LPPROCESS_INFO current, LPPROCESS_INFO nex
 		gTestFlag++;
 	}
 }
-
-

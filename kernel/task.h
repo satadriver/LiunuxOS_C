@@ -61,7 +61,6 @@ typedef struct {
 #define TASK_TERMINATE			4
 #define TASK_REALTIME			8
 
-//extern "C" int g_task_array_lock[256];
 
 extern "C" int g_last_task_tid[MAX_CPU_COUNT];
 
@@ -84,7 +83,7 @@ PROCESS_INFO_LIST* GetRemoteTaskListTid(int id, int tid, int lock);
 PROCESS_INFO_LIST* GetRemoteTaskListPid(int id, int pid,int lock);
 PROCESS_INFO_LIST* GetTaskListPid(int pid, int lock);
 int InsertTaskList(PROCESS_INFO_LIST* p);
-PROCESS_INFO_LIST* MarkTaskList(PROCESS_INFO_LIST * p);
+
 PROCESS_INFO_LIST* MarkTaskListTid(int tid, int lock);
 PROCESS_INFO_LIST* MarkTaskListPid(int pid, int lock);
 void __kRemoveTask( int lock);

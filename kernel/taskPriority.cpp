@@ -41,8 +41,6 @@ unsigned long long g_task_train_hit = 0;
 LPPROCESS_INFO g_task_predict_buf[256][TASK_PREDICTION_BUF_SIZE];
 
 
-
-
 double GetCpuRatio(int cpu) {
 	double cpu_total = 0.01;
 	for (int n = 0; n < g_cpu_total; n++) {
@@ -99,6 +97,9 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 			return target_tss;
 		}
 	}
+	else {
+		return 0;
+	}
 
 	int cnt = 0;
 
@@ -108,11 +109,10 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 
 	float delay_delta = 0.01;
 	double delay_max = 0.01;
+	PROCESS_INFO* ptr_delay_max = 0;
 	
 	double delta_max = 0.01;
 	double authority_max = 0.01;
-
-	PROCESS_INFO * ptr_delay_max = 0;
 
 	int count = 0;
 
@@ -127,6 +127,8 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 	AlgorithmModel level_buf[256];
 
 	TaskPredictParam tpp_buf;
+
+	LPPROCESS_INFO tss_sleep[256];
 
 	unsigned long long ticknow = __krdtsc();
 
@@ -143,7 +145,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 		else if (ptr->status == TASK_RUN && cpu == ptr->cpuid) {
 			if (ptr->sleep) {
-				sleep_count++;
+				tss_sleep[sleep_count++] = ptr;
 				if (sleep){
 					ptr->sleep--;
 				}
@@ -151,7 +153,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 			else {
 				ptr->counter++;
 
-				if ((ptr->tick_total == 0 || g_cpu_tick[cpu] == 0) || ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
+				if (ptr->tick_total == 0 || g_cpu_tick[cpu] == 0 || ptr->tick_run == 0 ||ptr->param->cmd & TASK_REALTIME ) {
 					ptr->delta = DYNAMIC_PRIORITY;
 				}
 				
@@ -160,8 +162,8 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 
 				task_total += ptr->tick_run;
 
-				g_level_buf[cpu][count].id = ptr->tid;
-				g_level_buf[cpu][count].fv = 0.0;
+				level_buf[count].id = ptr->tid;
+				level_buf[count].fv = 0.0;
 
 				if (ptr->alloc_times + ptr->free_times > alloc_max)
 					alloc_max = ptr->alloc_times + ptr->free_times;
@@ -196,7 +198,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 	} while (ptr != prev);
 
 #else
-	LPPROCESS_INFO tss_sleep[256];
+	
 	LPPROCESS_INFO tss[256];
 	PROCESS_INFO_LIST* prevlist = GetRemoteTaskListTid(cpu,cur->tid,0);
 	if(prevlist == 0) {
@@ -219,7 +221,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 			else {
 				ptr->counter++;
 
-				if ( (ptr->tick_total == 0 || g_cpu_tick[cpu] == 0)|| ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
+				if ( ptr->tick_total == 0 || g_cpu_tick[cpu] == 0|| ptr->tick_run == 0 || ptr->param->cmd & TASK_REALTIME) {
 					ptr->delta = DYNAMIC_PRIORITY;
 				}
 
@@ -237,8 +239,6 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 				if (*(ptr->lpvasize) > mem_max)
 					mem_max = *(ptr->lpvasize);
 
-				tss[count] = ptr;
-
 				if ((ticknow - ptr->prev_tick) > delay_max) {
 					delay_max = ticknow - ptr->prev_tick;
 					ptr_delay_max = ptr;
@@ -255,7 +255,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 				if (ptr->authority > authority_max)
 					authority_max = ptr->authority;
 
-				count++;
+				tss[count++] = ptr;
 			}
 		}
 		else if (ptr->status == TASK_TERMINATE || ptr->status == TASK_OVER) {
@@ -475,7 +475,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		}
 
 		if (g_dl_train_complete == 0  ) { 
-			if (sleep || (count >= ML_TASK_LIMIT / g_cpu_total  && g_task_pre_total % TASK_SAMPLE_FRACTOR == 0)  )
+			if (sleep || (count >= ML_TASK_LIMIT / g_cpu_total  && g_task_pre_total % TASK_SAMPLE_FRACTOR == 0) )
 			{
 #ifdef MODEL_TYPE_RNN
 				CollectRNNSample(&tpp_buf, count);
@@ -598,11 +598,10 @@ int PredictionTask() {
 
 	AlgorithmModel task_ratio[256];
 
-	double task_total = 0.01;
-
 	AlgorithmModel level[TASK_LIMIT_TOTAL];
 
-	int sleep_count = 0;
+	double task_total = 0.01;
+	
 	float alloc_max = 0.01;
 	float mem_max = 0.01;
 	float sleep_max = 0.001;
@@ -611,11 +610,20 @@ int PredictionTask() {
 	float delay_delta = 0.01;
 	double delay_max = 0.01;
 	PROCESS_INFO * ptr_delay_max = 0;
+
 	double delta_max = 0.01;
 	double authority_max = 0.01;
+
 	unsigned long long ticknow = __krdtsc();
 
+	int ret = __GetSpinlock(cur->lplock);
+	if (ret == 0)
+		return 0;
+
 	__enterSpinlock(&g_tp_lock[cpu]);
+
+	PROCESS_INFO* tss_sleep[256];
+	int sleep_count = 0;
 
 	int total = 0;
 
@@ -626,8 +634,8 @@ int PredictionTask() {
 			int count = 0;
 #ifdef TASK_SWITCH_ARRAY
 			PROCESS_INFO* tss = GetTaskTssBase();
-			LPPROCESS_INFO proc = (LPPROCESS_INFO)(tss + cur->tid);
-			LPPROCESS_INFO ptr = proc;
+			LPPROCESS_INFO prev = (LPPROCESS_INFO)(tss + cur->tid);
+			LPPROCESS_INFO ptr = prev;
 			do {
 				if (cpu == ptr->cpuid) {
 					if (ptr->status == TASK_TERMINATE) {
@@ -635,10 +643,10 @@ int PredictionTask() {
 					}
 					else if (ptr->status == TASK_RUN) {
 						if (ptr->sleep) {
-							sleep_count++;
+							tss_sleep[sleep_count++] = ptr;
 						}
 						else {
-							if ((ptr->tick_total == 0 || g_cpu_tick[cpu] == 0) || ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
+							if (ptr->tick_total == 0 || g_cpu_tick[cpu] == 0 || ptr->tick_run == 0 ||ptr->param->cmd & TASK_REALTIME) {
 								ptr->delta = DYNAMIC_PRIORITY;
 							}
 
@@ -676,15 +684,15 @@ int PredictionTask() {
 				if (ptr - tss >= TASK_LIMIT_TOTAL) {
 					ptr = tss;
 				}
-			} while (ptr != proc);
+			} while (ptr != prev);
 #else
-			PROCESS_INFO* tss[256];
-			PROCESS_INFO* tss_sleep[256];
+			PROCESS_INFO* tss[256];		
 			PROCESS_INFO_LIST* prevlist = (PROCESS_INFO_LIST*)GetRemoteTaskListTid(cpu,cur->tid,0);
 			if (prevlist == 0)
 				prevlist = (PROCESS_INFO_LIST*)GetTaskListId(cpu)->list.next;
 			PROCESS_INFO* prev = (PROCESS_INFO*)&prevlist->proc;
 			PROCESS_INFO_LIST* list = prevlist;
+			ptr_delay_max = prev;
 			do {
 				if (list == 0)
 					break;
@@ -697,7 +705,7 @@ int PredictionTask() {
 						tss_sleep[sleep_count++]=ptr;
 					}
 					else {
-						if ((ptr->tick_total == 0 || g_cpu_tick[cpu] == 0) || ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
+						if (ptr->tick_total == 0 || g_cpu_tick[cpu] == 0 || ptr->tick_run == 0 || (ptr->param->cmd & TASK_REALTIME)) {
 							ptr->delta = DYNAMIC_PRIORITY;
 						}
 
@@ -712,8 +720,6 @@ int PredictionTask() {
 
 						if (*(ptr->lpvasize) > mem_max)
 							mem_max = *(ptr->lpvasize);
-
-						tss[count] = ptr;
 
 						if ((ticknow - ptr->prev_tick) > delay_max) {
 							delay_max = ticknow - ptr->prev_tick;
@@ -731,7 +737,7 @@ int PredictionTask() {
 						if (ptr->sleep_total / (ptr->counter + 1) > sleep_max)
 							sleep_max = ptr->sleep_total / (ptr->counter + 1);
 
-						count++;
+						tss[count++] = ptr;
 					}
 				}
 				list = (PROCESS_INFO_LIST*)list->list.next;
@@ -741,7 +747,6 @@ int PredictionTask() {
 				g_task_other_hit++;
 				if (sleep_count <= 0) {
 					__printf(szout, "%s %d task:%s cpu:%d tid:%d status:%d error\r\n", __FUNCTION__, __LINE__, cur->funcname, cpu, cur->tid, cur->status);
-					//return 0;
 					target_tss = 0;
 				}
 				else if(cur->status == TASK_OVER) {
@@ -774,16 +779,16 @@ int PredictionTask() {
 
 				for (int i = 0; i < num; i++) {
 #ifdef TASK_SWITCH_ARRAY
-					int pid = rate[i].id;
+					int pid = task_ratio[i].id;
 					float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
 
 					task_ratio[i].fv = task_total / (tss[pid].tick_run + 1);
 					if (task_ratio[i].fv > STATIC_PRIORITY)
 						task_ratio[i].fv = STATIC_PRIORITY;
-					level_buf[i].fv += task_ratio[i].fv;
 
-					level_buf[i].fv += cpu_ratio;
+					tp.task[i].tickrate = task_ratio[i].fv / STATIC_PRIORITY;
+					tp.task[i].cpurate = cpu_ratio / STATIC_PRIORITY;
 
 					tp.task[i].user = user_ratio;
 					tp.task[i].window = window_ratio;
@@ -799,13 +804,12 @@ int PredictionTask() {
 					task_ratio[i].fv = task_total / (tss[i]->tick_run + 1);
 					if (task_ratio[i].fv > STATIC_PRIORITY)
 						task_ratio[i].fv = STATIC_PRIORITY;
-					level[i].fv += task_ratio[i].fv;
-
-					level[i].fv += cpu_ratio;
 
 					float user_ratio = (float)(tss[i]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 					float window_ratio = (float)(tss[i]->window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;
 
+					tp.task[i].tickrate = task_ratio[i].fv / STATIC_PRIORITY;
+					tp.task[i].cpurate = cpu_ratio / STATIC_PRIORITY;
 					tp.task[i].user = user_ratio;
 					tp.task[i].window = window_ratio;
 					tp.task[i].delta = tss[i]->delta / delta_max;
@@ -822,7 +826,7 @@ int PredictionTask() {
 				if (num == ML_TASK_LIMIT) {
 					if (count != ML_TASK_LIMIT) {
 						__printf("%s %d counter:%d exceed\r\n", __FUNCTION__, __LINE__, count);
-						AlgorithmModel level[TASK_LIMIT_TOTAL];
+
 						for (int i = 0; i < count; i++) {
 #ifdef TASK_SWITCH_ARRAY
 							int pid = task_ratio[i].id;
@@ -872,7 +876,7 @@ int PredictionTask() {
 							int ri = __random(0) % ML_TASK_LIMIT;
 							tp.result = ri;
 #ifdef TASK_SWITCH_ARRAY
-							int pid = rate[index].id;
+							int pid = task_ratio[index].id;
 							float user_ratio = (float)(tss[pid].level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
 							float window_ratio = (float)(tss[pid].window ? WINDOW_PRIORITY : 0) / (float)STATIC_PRIORITY;				
 							tp.task[ri].tickrate = task_ratio[index].fv / STATIC_PRIORITY;
@@ -887,8 +891,8 @@ int PredictionTask() {
 							tp.task[ri].mem = (*(tss[pid].lpvasize) / mem_max);
 							tp.task[ri].alloc = (tss[pid].alloc_times + tss[pid].free_times) / alloc_max;
 							tp.task[ri].delay = tss[pid].delay;				
-							rate[ri].id = pid;
-							rate[ri].fv = rate[index].fv;
+							task_ratio[ri].id = pid;
+							task_ratio[ri].fv = task_ratio[index].fv;
 #else
 
 							float user_ratio = (float)(tss[index]->level == 0 ? USER_PRIORITY : 0) / (float)STATIC_PRIORITY;
@@ -942,8 +946,8 @@ int PredictionTask() {
 #ifdef TASK_SWITCH_ARRAY
 				target_tss = tss + target_id;
 				for (int i = 0; i < count; i++) {
-					int tid = rate[i].id;
-					if (target_id != rate[i].id) {
+					int tid = task_ratio[i].id;
+					if (target_id != task_ratio[i].id) {
 						tss[tid].delta += STATIC_PRIORITY;
 						if (tss[tid].delta > DYNAMIC_PRIORITY) {
 
@@ -972,6 +976,8 @@ int PredictionTask() {
 	}
 
 	__leaveSpinlock(&g_tp_lock[cpu]);
+
+	__leaveSpinlock(cur->lplock);
 	//__asm{sti}
 	return total;
 }

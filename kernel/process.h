@@ -70,7 +70,7 @@ typedef struct _PROCESS_INFO
 
 	DWORD status;
 
-	DWORD espbase;	//stack base address,stack is esp top but not equal to base !
+	DWORD stackbase;	//stack base address,stack is esp top but not equal to base !
 
 	DWORD moduleBase;
 

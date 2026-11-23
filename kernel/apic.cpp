@@ -1601,8 +1601,6 @@ int GetIdleProcessor() {
 			if (tss[i].status == TASK_RUN)
 			{
 				tasks+=1.0;
-				cnt += tss[i].counter;
-				total_counter += tss[i].counter;
 			}
 		}
 #else

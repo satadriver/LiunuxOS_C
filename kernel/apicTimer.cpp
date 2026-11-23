@@ -217,7 +217,7 @@ extern "C" __declspec(dllexport)int SwitchTaskCPU() {
 	}
 
 	if (src_tid != -1) {
-		res = __GetSpinlock(&g_task_array_lock[dst_id]);
+		res = __GetSpinlock(dst_current->lplock);
 		if (res) {
 			LPPROCESS_INFO dst_tss = (LPPROCESS_INFO)GetTaskTssBaseId(dst_id);
 			for (int i = 0; i < TASK_LIMIT_TOTAL; i++) {

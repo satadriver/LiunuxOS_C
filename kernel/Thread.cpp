@@ -46,8 +46,8 @@ extern "C" __declspec(dllexport) DWORD __kTerminateThread(int tid, char* filenam
 
 	tss[tid].status = TASK_OVER;
 	
-	if (tss[tid].level >= 3 && (tss[tid].tss.eflags & 0x20000) && tss[tid].espbase) {
-		__kFree(tss[tid].espbase);
+	if (tss[tid].level >= 3 && (tss[tid].tss.eflags & 0x20000) && tss[tid].stackbase) {
+		__kFree(tss[tid].stackbase);
 	}
 
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
@@ -184,6 +184,7 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 
 	DWORD vaddr = tss->vaddr + *tss->lpvasize;
 	LPTASKPARAMS params = 0;
+	unsigned long espbase = 0;
 	if (tss->level == 0)
 	{
 		tss->tss.ds = KERNEL_MODE_DATA;
@@ -193,9 +194,9 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 		tss->tss.cs = KERNEL_MODE_CODE;
 		tss->tss.ss = KERNEL_MODE_STACK;
 
-		tss->espbase = __kProcessMalloc(KTASK_STACK_SIZE, 0, process->pid,tss->cpuid,vaddr, 
+		espbase = __kProcessMalloc(KTASK_STACK_SIZE, 0, process->pid,tss->cpuid,vaddr, 
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
-		if (tss->espbase == FALSE)
+		if (espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
 			leave_task_array_lock();
@@ -205,10 +206,10 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 		tss->tss.esp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #else
-		tss->tss.esp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		tss->tss.ebp = (DWORD)tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.esp = (DWORD)espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
-		params = (LPTASKPARAMS)(tss->espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
+		params = (LPTASKPARAMS)(espbase + KTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
 #ifdef SINGLE_TASK_TSS
 		RETUTN_ADDRESS_0* ret0 = (RETUTN_ADDRESS_0*)((char*)params - sizeof(RETUTN_ADDRESS_0));
@@ -230,9 +231,9 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 		tss->tss.cs = USER_MODE_CODE | tss->level;
 		tss->tss.ss = USER_MODE_STACK | tss->level;
 
-		tss->espbase = __kProcessMalloc(UTASK_STACK_SIZE, 0,process->pid,tss->cpuid,vaddr, 
+		espbase = __kProcessMalloc(UTASK_STACK_SIZE, 0,process->pid,tss->cpuid,vaddr, 
 			PAGE_READWRITE | PAGE_USERPRIVILEGE | PAGE_PRESENT | 0x80000000);
-		if (tss->espbase == FALSE)
+		if (espbase == FALSE)
 		{
 			tss->status = TASK_OVER;
 			leave_task_array_lock();
@@ -242,10 +243,10 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 		tss->tss.esp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 		tss->tss.ebp = (DWORD)vaddr + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #else
-		tss->tss.esp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
-		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.esp = (DWORD)espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
+		tss->tss.ebp = (DWORD)espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
-		params = (LPTASKPARAMS)(tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
+		params = (LPTASKPARAMS)(espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS));
 
 #ifdef SINGLE_TASK_TSS
 		RETUTN_ADDRESS_3* ret3 = (RETUTN_ADDRESS_3*)((char*)tss->tss.esp0 - sizeof(RETUTN_ADDRESS_3));
@@ -263,6 +264,7 @@ DWORD __kCreateRemoteThread(int cpu,DWORD addr, DWORD module, DWORD runparam,cha
 		tss->tss.ebp = (DWORD)tss->espbase + UTASK_STACK_SIZE - STACK_TOP_DUMMY - sizeof(TASKPARAMS);
 #endif
 	}
+	tss->stackbase = espbase;
 
 	params->terminate = (DWORD)__kTerminateThread;
 	params->terminate2 = (DWORD)__kTerminateThread;
