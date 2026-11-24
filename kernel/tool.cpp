@@ -31,7 +31,7 @@ int WaitOrKey(int s,int wid,int key) {
 
 		}
 
-		__sleep(0);
+		__sleep_delay(0);
 	}
 
 	return 0;

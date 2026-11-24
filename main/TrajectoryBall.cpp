@@ -402,7 +402,7 @@ extern "C" __declspec(dllexport)int TrajectoryBall(unsigned int retaddr, int tid
 			}
 		}
 
-		__sleep(0);
+		__sleep_delay(0);
 	}
 
 	stopTrajectoryBall();

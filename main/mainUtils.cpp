@@ -495,7 +495,7 @@ DWORD InterruptPerSec() {
 	DWORD tick2 = tick;
 	while (tick2 == tick) {
 		tick = g_cmos_period_tick_cnt;
-		__sleep(0);
+		__sleep_delay(0);
 	}
 
 	tick2 = tick + 1;
@@ -504,7 +504,7 @@ DWORD InterruptPerSec() {
 
 	while (tick2 != tick) {
 		tick = g_cmos_period_tick_cnt;
-		__sleep(0);
+		__sleep_delay(0);
 	}
 
 	DWORD ints2 = g_apictimer_tick_cnt [ id ];

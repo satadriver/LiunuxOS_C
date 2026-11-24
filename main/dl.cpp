@@ -167,7 +167,7 @@ extern "C" __declspec(dllexport) int DlMLPTraining(unsigned int retaddr, int tid
 
 	while (g_dl_data_cnt < TASK_DISPATCH_SAMPLE) {
 		g_dl_task_total = GetProcessNum();
-		__sleep(0);
+		__sleep_delay(0);
 	}
 
 	printf("%s %d start\r\n", __FUNCTION__, __LINE__);

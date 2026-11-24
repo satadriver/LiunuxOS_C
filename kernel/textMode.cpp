@@ -200,8 +200,11 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	glpVesaInfo = vesa;
 
 	g_ScreenMode = 0;
-
+	InitCurrentTask();
 	SetTaskVideoBase((char*)vesa->PhyBasePtr + vesa->OffScreenMemOffset);
+	initMemory();
+
+	initPaging();
 
 	InitGdt();
 
@@ -231,10 +234,6 @@ extern "C" __declspec(dllexport) int __kTextModeEntry(LPVESAINFORMATION vesa, DW
 	SetIVTVector();
 
 	initTextModeDevices();
-
-	initMemory();
-
-	initPaging();	
 
 	char buf[1024];
 

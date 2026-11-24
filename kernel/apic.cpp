@@ -1327,15 +1327,18 @@ extern "C" void __declspec(dllexport) __kApInitProc() {
 
 	ret = 0;
 	do {
-		__sleep(0);
+		__sleep_delay(0);
 		//ret = AdjustApicTimer();
 		break;
 	} while (ret == 0);
 
 	while (1) {
-		ret = PredictionTask();
+		ret = PrefetchTaskCache();
 		if (ret == 0) {
 			__sleep(0);
+		}
+		else {
+			__sleep_delay(0);
 		}
 	}
 }
@@ -1399,10 +1402,10 @@ void BPCodeStart() {
 #else
 	SetIcr(0, 0, 5, 3);
 #endif
-	__sleep(0);
+	__sleep_delay(0);
 
 	SetIcr(0, 0, 5, 3);
-	__sleep(0);
+	__sleep_delay(0);
 
 #if 0
 	WaitIcrFree();
@@ -1411,17 +1414,17 @@ void BPCodeStart() {
 #else
 	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
-	__sleep(0);
+	__sleep_delay(0);
 
 #if 0
 	WaitIcrFree();
 	v = 0xc4600 | (AP_INIT_ADDRESS >> 12);
 	*(DWORD*)(LOCAL_APIC_BASE + 0x300) = v;
-	__sleep(0);
+	__sleep_delay(0);
 #else
 	SetIcr(0, AP_INIT_ADDRESS >> 12, 6, 3);
 #endif
-	__sleep(0);
+	__sleep_delay(0);
 
 	InitLocalApicErr();
 

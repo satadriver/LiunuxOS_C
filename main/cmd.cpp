@@ -323,17 +323,17 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		double cacheRate = (double)g_task_pre_cache_hit / (double)(g_task_pre_total - g_task_train_hit);
 		double dlrate = (double)g_task_pre_hit / (double)(g_task_pre_total - g_task_train_hit);
 		double otherRate = (double)g_task_other_hit / (double)(g_task_pre_total - g_task_train_hit);
-		__sprintf(szout, "Total:%I64x,PRE Cache:%i64x,DL:%i64x,OTHER:%i64x. Reason cost:%i64x. PRE rate:%lf,DL rate:%lf,OTHER rate:%lf,error:%i64x,correct1:%i64x,correct2:%i64x,correct3:%i64x\r\n", 
-			g_task_pre_total, g_task_pre_cache_hit, g_task_pre_hit, g_task_other_hit, 
-			g_task_reason_cost, cacheRate, dlrate, otherRate,
+		__sprintf(szout, "Total:%I64x,Train:%i64x,PRE-Cache:%i64x,DL:%i64x,OTHER:%i64x.PRE-Cache rate:%lf,DL rate:%lf,OTHER rate:%lf,error:%i64x,correct1:%i64x,correct2:%i64x,correct3:%i64x\r\n", 
+			g_task_pre_total, g_task_train_hit,g_task_pre_cache_hit, g_task_pre_hit, g_task_other_hit,
+			 cacheRate, dlrate, otherRate,
 			g_tp_error_cnt,g_tp_corrects[0], g_tp_corrects[1], g_tp_corrects[2]);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "tdcost") == 0)
 	{
 		double rate = (double)g_td_tickcost / (double)g_tick_persec;
-		__sprintf(szout, "TSC:%I64x,task schedule cost:%I64x,task predict cost:%i64x, rate:%lf\r\n", 
-			g_tick_persec, g_td_tickcost, g_td_pre_tickcost, rate);
+		__sprintf(szout, "TSC/second:%I64x,task schedule cost:%I64x,task predict cost:%i64x,reason cost:%i64x, rate:%lf\r\n", 
+			g_tick_persec, g_td_tickcost, g_td_pre_tickcost, g_task_reason_cost, rate);
 		ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
 	else if (__strcmp(params[0], "sleep") == 0)

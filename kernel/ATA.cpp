@@ -130,7 +130,7 @@ void resetPort(int port) {
 
 	outportb(0x376,4);
 
-	__sleep(0);
+	__sleep_delay(0);
 
 	outportb(0x3f6, 0); //IRQ15
 
@@ -336,7 +336,7 @@ int waitComplete(WORD port) {
 					}
 				}
 				//delay();
-				__sleep(0);
+				__sleep_delay(0);
 				//waitInterval0(1);
 				continue;
 			}
@@ -357,7 +357,7 @@ void waitFree(WORD port) {
 		if (r & 0x80) {
 			char szout[256];
 			//__printf(szout, "waitFree:%x\r\n",r);
-			__sleep(0);
+			__sleep_delay(0);
 			//waitInterval0(1);
 			//delay();
 			continue;
@@ -379,7 +379,7 @@ void waitReady(WORD port) {
 		else {
 			char szout[256];
 			//__printf(szout, "waitReady:%x\r\n", r);
-			__sleep(0);
+			__sleep_delay(0);
 			//waitInterval0(1);
 			//delay();
 			continue;

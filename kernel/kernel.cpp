@@ -216,9 +216,12 @@ int __kernelEntry(LPVESAINFORMATION vesa, DWORD fontbase, DWORD v86ProcessBase, 
 	int adjust = 0;
 	while (1)
 	{
-		ret = PredictionTask();
+		ret = PrefetchTaskCache();
 		if (ret == 0) {
 			__sleep(0);
+		}
+		else {
+			__sleep_delay(0);
 		}
 
 		if (adjust == 0) {

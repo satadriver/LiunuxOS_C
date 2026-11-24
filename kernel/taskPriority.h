@@ -60,7 +60,7 @@ double GetCpuRatio(int cpu);
 
 PROCESS_INFO* PrioritySchedule(int sleep);
 
-int PredictionTask();
+int PrefetchTaskCache();
 
 void PreMultipleHitRate(int count, int limit, AlgorithmModel* level_buf,  int target_id);
 
