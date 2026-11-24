@@ -55,6 +55,9 @@ extern "C" __declspec(dllimport) unsigned long long g_task_train_hit;
 #define TASK_PREDICTION_BUF_SIZE	16
 
 
+#define TASK_SAMPLE_FRACTOR			0X10
+
+
 
 double GetCpuRatio(int cpu);
 

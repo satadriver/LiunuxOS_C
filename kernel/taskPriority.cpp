@@ -22,7 +22,7 @@
 #include "apicTimer.h"
 #include "taskPriority.h"
 
-#define TASK_SAMPLE_FRACTOR		0X10
+
 
 int g_tp_cache_enable = 0;
 
@@ -262,10 +262,6 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 			ptr->status = TASK_OVER;
 		}
 		list = (PROCESS_INFO_LIST*)list->list.next;
-		if (cnt++ > 0x1000) {
-			__printf(szout, "%s %d task:%s tid:%d pid:%d cpu:%d error\r\n",__FUNCTION__, __LINE__,cur->funcname,cur->tid,cur->pid,cur->cpuid);
-			break;
-		}
 	} while (list && list != prevlist);
 #endif
 	if (count <= 0) {
@@ -586,11 +582,12 @@ void priorityTaskTest(int count,int cpu,int target_id,int target_idx, LPPROCESS_
 LPPROCESS_INFO PredictNextTask() {
 
 	char szout[256];
+
 	PROCESS_INFO* cur = GetCurrentTaskTssBase();
 
 	LPPROCESS_INFO target_tss = 0;
+
 	int cpu = *(DWORD*)(LOCAL_APIC_BASE + 0x20) >> 24;
-	double cpu_ratio = GetCpuRatio(cpu);
 
 	AlgorithmModel task_ratio[256];
 
@@ -613,6 +610,7 @@ LPPROCESS_INFO PredictNextTask() {
 
 	PROCESS_INFO* tss_sleep[256];
 	int sleep_count = 0;
+	double cpu_ratio = GetCpuRatio(cpu);
 	int count = 0;
 #ifdef TASK_SWITCH_ARRAY
 	PROCESS_INFO* tss = GetTaskTssBase();
@@ -725,7 +723,7 @@ LPPROCESS_INFO PredictNextTask() {
 		list = (PROCESS_INFO_LIST*)list->list.next;
 	} while (list && list != prevlist);
 #endif
-	if (count < 0) {
+	if (count <= 0) {
 		g_task_other_hit++;
 		if (sleep_count <= 0) {
 			__printf(szout, "%s %d task:%s cpu:%d tid:%d status:%d error\r\n", __FUNCTION__, __LINE__, cur->funcname, cpu, cur->tid, cur->status);
