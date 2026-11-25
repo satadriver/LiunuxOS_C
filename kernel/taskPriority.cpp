@@ -140,7 +140,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 		if (ptr->status == TASK_TERMINATE) {
 			ptr->status = TASK_OVER;
 		}
-		else if ( cpu != ptr->cpuid) {
+		else if (ptr->status == TASK_RUN && cpu != ptr->cpuid) {
 			__printf(szout, "%s %d task:%s tid:%d pid:%d status:%x cpu:%d cpuid:%d\r\n", __FUNCTION__, __LINE__,ptr->funcname,ptr->tid,ptr->pid, ptr->status,cpu,ptr->cpuid);
 		}
 		else if (ptr->status == TASK_RUN && cpu == ptr->cpuid) {
@@ -295,9 +295,7 @@ PROCESS_INFO* PrioritySchedule(int sleep) {
 				if (task_ratio[i].fv > STATIC_PRIORITY)
 					task_ratio[i].fv = STATIC_PRIORITY;
 				level_buf[i].fv += task_ratio[i].fv;
-
 				level_buf[i].fv += cpu_ratio;
-
 				int window_priority = (tss[pid].window == 0 ? 0 : WINDOW_PRIORITY);
 				int user_priority = (tss[pid].level == 0 ? USER_PRIORITY : 0);
 				level_buf[i].fv += (window_priority + user_priority);

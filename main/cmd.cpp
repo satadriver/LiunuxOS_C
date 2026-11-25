@@ -362,6 +362,16 @@ extern "C" __declspec(dllexport) int __cmd(char* cmd, WINDOWCLASS* window, char*
 		__sprintf(szout, "%x\r\n", cnt);
 		ret = __drawWindowChars(( char*)&szout, CONSOLE_FONT_COLOR, window);
 	}
+	else if (__strcmp(params[0], "apictimer") == 0 )
+	{
+		int cnt = g_cpu_total;
+		for(int i = 0; i < cnt; i++)
+		{
+			int id = g_cpu_id[i];
+			__sprintf(szout, "cpu:%d,apic timer frequence:%i64x apic timer tick:%x\r\n", id, g_apic_freq[id], g_timer_tick[id]);
+			ret = __drawWindowChars((char*)&szout, CONSOLE_FONT_COLOR, window);
+		}
+	}
 	else if (__strcmp(params[0], "8254tc") == 0)
 	{
 		DWORD cnt = g_timer_tick_cnt;

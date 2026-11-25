@@ -1147,7 +1147,8 @@ unsigned long long ApicTimerFreq() {
 
 #define APICTIMER_FREQ 100000000
 
-
+unsigned long long g_apic_freq_0 = 0;
+unsigned long long g_apic_tick_0 = 0;
 
 int InitLocalApicTimer() {
 
@@ -1176,15 +1177,26 @@ int InitLocalApicTimer() {
 	*(DWORD*)(LOCAL_APIC_BASE + 0x380) = (DWORD)0xffffffff;
 
 	unsigned long long freq = 0;
-	int times = 1;
 	unsigned  long long ticks = 0;
-	unsigned  long long tick;
-	for (int i = 0; i < times; i++) {
-		freq += GetApicTimerFreq(&tick);
-		ticks += tick;
+	if (g_apic_freq_0 == 0 || g_apic_tick_0 == 0)
+	{
+		int times = 1;
+		
+		unsigned  long long tick = 0;
+		for (int i = 0; i < times; i++) {
+			freq += GetApicTimerFreq(&tick);
+			ticks += tick;
+		}
+		freq = freq / times;
+		ticks = ticks / times;
+
+		g_apic_freq_0 = freq;
+		g_apic_tick_0 = ticks;
 	}
-	freq = freq / times;
-	ticks = ticks / times;
+	else {
+		freq = g_apic_freq_0;
+		ticks = g_apic_tick_0;
+	}
 
 	//freq = freq/ LOCAL_APIC_DIVIDE;
 	//freq = freq * 2 / 3;

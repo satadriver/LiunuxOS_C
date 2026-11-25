@@ -164,7 +164,7 @@ extern "C" __declspec(dllexport) int __kConsole(unsigned int retaddr, int tid, c
 
 		}
 
-		__sleep_delay(0);
+		__sleep(0);
 	}
 	return 0;
 }

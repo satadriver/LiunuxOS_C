@@ -414,7 +414,7 @@ int __kExplorer(unsigned int retaddr, int tid, char * filename, char * funcname,
 // 			menu.action = mouseinfo.status;
 		}
 
-		__sleep_delay(0);
+		__sleep(0);
 	}
 	return 0;
 }

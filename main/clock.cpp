@@ -294,7 +294,7 @@ extern "C" __declspec(dllexport)int __kClock(unsigned int retaddr, int tid, char
 			dt_old.hour = dt.hour;
 		}
 		else {
-			__sleep_delay(0);
+			__sleep(0);
 			//__yield();
 		}
 	}

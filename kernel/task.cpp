@@ -794,7 +794,7 @@ extern "C"  __declspec(dllexport) DWORD __kTaskSchedule(LIGHT_ENVIRONMENT* env,i
 		__kApicTimerProc();
 		
 #ifndef TASK_SWITCH_ARRAY
-		__kRemoveTask(0);
+		//__kRemoveTask(0);
 #endif
 		ret = __leaveSpinlock(cur->lplock);
 	}
